@@ -12,28 +12,24 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
 # Alex Mbugua Ngugi
 
 <table style="width: 100%; border: none; border-collapse: collapse;">
   <tr style="border: none;">
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>📧 <strong>Email:</strong> <a href="mailto:alex.mbugua@outlook.com">alex.mbugua@outlook.com</a></li>
+        <li>💼 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga</a></li>
       </ul>
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>🔗 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga</a></li>
+        <li>🌐 <strong>Website:</strong> <a href="https://alexmbugua.me">alexmbugua.me</a></li>
       </ul>
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>🐙 <strong>GitHub:</strong> <a href="https://github.com/asce1062/">asce1062</a></li>
-      </ul>
-    </td>
-    <td style="width: 33%; border: none; vertical-align: top;">
-      <ul>
-        <li>🔗 <strong>Website:</strong> <a href="https://alexmbugua.me">alexmbugua.me</a></li>
+        <li>📧 <strong>Email:</strong> <a href="mailto:alexmbugua@outlook.com">alex.mbugua@outlook.com</a></li>
       </ul>
     </td>
   </tr>

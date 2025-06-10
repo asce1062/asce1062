@@ -1,0 +1,40 @@
+@font-face {
+  font-family: 'josefinsans';
+  src: local('josefinsans');
+  src: url('fonts/josefinsans_regular.ttf');
+}
+
+@font-face {
+  font-family: 'josefinsans bold';
+  src: local('josefinsans bold');
+  src: url('fonts/josefinsans_bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'josefinsans medium';
+  src: local('josefinsans medium');
+  src: url('fonts/josefinsans_medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'poppins';
+  src: local('poppins');
+  src: url('fonts/poppins_regular.ttf');
+}
+
+@font-face {
+  font-family: 'poppins bold';
+  src: local('poppins bold');
+  src: url('fonts/poppins_bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'poppins medium';
+  src: local('poppins regular');
+  src: url('fonts/poppins_medium.ttf') format('truetype');
+}
+
+body {
+  font-family: 'josefinsans';
+  font-size: 24px;
+}
