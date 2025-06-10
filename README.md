@@ -19,18 +19,30 @@ Here are some ideas to get you started:
   <tr style="border: none;">
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>💼 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga</a></li>
+        <div>💼 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga</a></div>
       </ul>
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>🌐 <strong>Website:</strong> <a href="https://alexmbugua.me">alexmbugua.me</a></li>
+        <div>🌐 <strong>Website:</strong> <a href="https://alexmbugua.me">alexmbugua.me</a></div>
       </ul>
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>📧 <strong>Email:</strong> <a href="mailto:alexmbugua@outlook.com">alex.mbugua@outlook.com</a></li>
+        <div>📧 <strong>Email:</strong> <a href="mailto:alex.mbugua@outlook.com">alex.mbugua@outlook.com</a></div>
       </ul>
     </td>
   </tr>
+</table>
+<table style="width: 100%; border: none; border-collapse: collapse;">
+  <div style="width: 100%; border: none; margin-top: 24px; text-align: center">
+      💾
+      <a
+        style="font-weight: bold"
+        target="_blank"
+        href="Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
+        download="Alex Mbugua Ngugi - Resume.pdf"
+        >Download Resume.pdf</a
+      >
+  </div>
 </table>
