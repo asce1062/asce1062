@@ -23,7 +23,7 @@ Here are some ideas to get you started:
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>🔗 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga Ngugi</a></li>
+        <li>🔗 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/alex-mbugua/">Alex Mbuguga</a></li>
       </ul>
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
@@ -33,7 +33,7 @@ Here are some ideas to get you started:
     </td>
     <td style="width: 33%; border: none; vertical-align: top;">
       <ul>
-        <li>🔗 <strong>Website:</strong> <a href="https://github.com/asce1062/">alexmbugua.me</a></li>
+        <li>🔗 <strong>Website:</strong> <a href="https://alexmbugua.me">alexmbugua.me</a></li>
       </ul>
     </td>
   </tr>
