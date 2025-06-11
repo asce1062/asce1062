@@ -47,7 +47,7 @@ Here are some ideas to get you started:
           <a
             style="font-weight: bold"
             target="_blank"
-            href="Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
+            href="assets/resume/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
             download="Alex Mbugua Ngugi - Resume.pdf"
             >Download Resume.pdf</a
           >
