@@ -69,6 +69,17 @@ body {
   gap: 0.3rem;
 }
 
+.vertical-table div svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
+}
+
+.vertical-table div a {
+  margin-left: 0.25rem;
+}
+
 @media (max-width: 480px) {
   body {
     font-size: 18px;
