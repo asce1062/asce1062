@@ -47,18 +47,10 @@ Here are some ideas to get you started:
           <a
             style="font-weight: bold"
             href="assets/resume/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
-            download="Alex Mbugua Ngugi - Resume.pdf"
-          >
-            Download.pdf
-          </a>
-          |
-          <a
-            style="font-weight: bold"
-            href="assets/resume/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
-            View
+            View Resume
           </a>
         </div>
       </td>
