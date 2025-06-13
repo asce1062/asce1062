@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"> <head><title>Alex - Full-Stack Engineer, Mentor, Open Source Contributor</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, resizes-content"><meta name="description" content="Alex Mbugua's personal website."><link href="/css/style.css" rel="stylesheet"><script>(function(){const defaultTheme = "dark";
+<!DOCTYPE html><html lang="en"> <head><title>Alex - Full-Stack Engineer, Mentor, Open Source Contributor</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, resizes-content"><meta name="description" content="Alex Mbugua's personal website."><link href="css/style.css" rel="stylesheet"><script>(function(){const defaultTheme = "dark";
 
   const n="theme",r=window.matchMedia("(prefers-color-scheme: dark)");function d(){return r.matches?"dark":defaultTheme}function a(e){const o=e!==void 0?e:localStorage.getItem(n);return o!=null?o:d()}function t(e){document.documentElement.setAttribute("data-theme",e),document.documentElement.style.colorScheme=e}function l(e){e.key===n&&t(a(e.newValue))}function m(){t(a())}function c(e){e.detail?(localStorage.setItem(n,e.detail),t(e.detail)):(localStorage.removeItem(n),t(a(e.detail)))}document.addEventListener("set-theme",c),window.addEventListener("storage",l),r.addEventListener("change",m),document.addEventListener("astro:after-swap",m),t(a());
 })();</script><style>
@@ -6,7 +6,7 @@
           visibility: hidden;
           opacity: 0;
         }
-      </style><link rel="stylesheet" href="/_astro/index.Dy75f1Ih.css"></head> <body class="z-1 m-0 h-full min-h-screen overflow-y-scroll bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] pt-0 font-proto text-white"> <div id="primary" class="z-2 m-auto grid min-h-screen w-11/12 px-8 pt-2 transition-all duration-100 lg:w-1/2" style="grid-template-rows: auto 1fr auto"> <header> <!-- prettier-ignore --> <div id="navigation" class="mb-3"> <script>
+      </style><link rel="stylesheet" href="_astro/index.Dy75f1Ih.css"></head> <body class="z-1 m-0 h-full min-h-screen overflow-y-scroll bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] pt-0 font-proto text-white"> <div id="primary" class="z-2 m-auto grid min-h-screen w-11/12 px-8 pt-2 transition-all duration-100 lg:w-1/2" style="grid-template-rows: auto 1fr auto"> <header> <!-- prettier-ignore --> <div id="navigation" class="mb-3"> <script>
     var lightMode = document.documentElement.attributes.getNamedItem("data-theme")?.value == "light";
     // Fall back on localStorage to get theme details, as lightMode @ initial render is always undefined.
     lightMode = lightMode ? lightMode : (localStorage.getItem("theme") == "light")
