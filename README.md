@@ -46,7 +46,7 @@ Here are some ideas to get you started:
           📄 <strong>Resume:</strong>
           <a
             style="font-weight: bold"
-            href="assets/resume/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
+            href="asce1062/public/Alex Mbugua Ngugi - Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
