@@ -2,11 +2,15 @@
   "name": "alex mbugua's website",
   "type": "module",
   "version": "0.0.1",
+  "homepage": "https://asce1062.github.io/asce1062",
+
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
     "postbuild": "node scripts/post-build.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -28,6 +32,7 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
-    "astro-themes": "^0.2.6"
+    "astro-themes": "^0.2.6",
+    "gh-pages": "^6.3.0"
   }
 }

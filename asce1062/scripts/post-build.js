@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.join(__dirname, '../dist');
-const docsDir = path.join(distDir, '../../');
+const artifactsDir = path.join(distDir, '../../artifacts');
 
 /**
  *
@@ -53,32 +53,41 @@ function walkAndFix(dir) {
   }
 }
 
+function removeDirRecursively(dirPath) {
+  if (fs.existsSync(dirPath)) {
+    fs.rmSync(dirPath, { recursive: true, force: true });
+    console.log(`🗑️ Removed existing directory: ${dirPath}`);
+  }
+}
+
 /**
  *
  * cheeky workaround to have our sources and site hosted on github
- * move static files /dist > ../../
+ * move static files /dist > ../../artifacts
  *
  */
 
-function copyDirContentsToRoot(src, destRoot) {
+function copyDirRecursively(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
   for (const item of fs.readdirSync(src)) {
     const srcPath = path.join(src, item);
-    const destPath = path.join(destRoot, item);
+    const destPath = path.join(dest, item);
+
     if (fs.statSync(srcPath).isDirectory()) {
-      copyDirContentsToRoot(srcPath, destPath);
+      copyDirRecursively(srcPath, destPath);
     } else {
-      const destDir = path.dirname(destPath);
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-      }
       fs.copyFileSync(srcPath, destPath);
-      console.log(`📄 Copied ${srcPath} → ${destPath}`);
     }
   }
+  console.log(`📁 Copied dist → ${dest}`);
 }
 
 // Main
 console.log('🔧 Running post-build fix and copy...');
 walkAndFix(distDir);
-copyDirContentsToRoot(distDir, docsDir);
+// removeDirRecursively(docsDir);
+// copyDirRecursively(distDir, docsDir);
 console.log('🎉 All done!');
