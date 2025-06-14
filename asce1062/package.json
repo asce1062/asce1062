@@ -8,9 +8,8 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
-    "postbuild": "node scripts/post-build.js",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
+    "predeploy": "astro check && astro build && mv ./dist/_astro ./dist/astro && node scripts/pre-deploy.js && touch ./dist/.nojekyll",
+    "deploy": "gh-pages -d dist --branch alexmbugua --dotfiles",
     "preview": "astro preview",
     "astro": "astro"
   },
