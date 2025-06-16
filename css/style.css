@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?3ff9nz');
-  src:  url('../fonts/icomoon.eot?3ff9nz#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.woff2?3ff9nz') format('woff2'),
-    url('../fonts/icomoon.ttf?3ff9nz') format('truetype'),
-    url('../fonts/icomoon.woff?3ff9nz') format('woff'),
-    url('../fonts/icomoon.svg?3ff9nz#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?tf1ato');
+  src:  url('../fonts/icomoon.eot?tf1ato#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.woff2?tf1ato') format('woff2'),
+    url('../fonts/icomoon.ttf?tf1ato') format('truetype'),
+    url('../fonts/icomoon.woff?tf1ato') format('woff'),
+    url('../fonts/icomoon.svg?tf1ato#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -26,6 +26,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-moon:before {
+  content: "\e92e";
+}
 .icon-cloud-download-fill:before {
   content: "\e9e4";
 }
@@ -34,6 +37,9 @@
 }
 .icon-file-arrow-down-fill:before {
   content: "\eaef";
+}
+.icon-sun:before {
+  content: "\eb91";
 }
 .icon-envelope-at-fill:before {
   content: "\eea5";
