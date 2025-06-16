@@ -34,7 +34,8 @@ Federated authentication and secure SSO flows for enterprise platforms, improvin
 
 Content management with Hygraph(graphQL), Auth0, SSO flows, SAML, OAuth, Terraform, serverless patterns on AWS, building progressive profiling flows, or streamlining engineering workflows.
 
-📫 **How to reach me:**
+📫 **How to reach me**
+
 <table style="display: flex; flex-direction: column;">
   <tbody>
     <tr>
