@@ -13,8 +13,28 @@ Here are some ideas to get you started:
 - ⚡ Fun fact: ...
 -->
 
-# Alex Mbugua Ngugi
+### Hey there 👋 I'm Alex Mbugua Ngugi
 
+🔭 **I’m currently working on**
+
+Federated authentication and secure SSO flows for enterprise platforms, improving scalability and user experience across the board. I’m also mentoring engineers and contributing to projects that support millions of learners.
+
+🌱 **I’m currently learning**
+
+- Advanced observability with Datadog and distributed tracing
+- Astro framework by building my personal site. [Check it out!](https://github.com/asce1062/asce1062/)
+
+👯 **I’m looking to collaborate on**
+
+- Designing multi-tenant SaaS authentication that gracefully supports both B2B and B2C flows
+- Initiatives building resilient infrastructure and serverless architectures
+- Open Source Projects in the authentication, DevTools, or EdTech space
+
+💬 **Ask me about**
+
+Content management with Hygraph(graphQL), Auth0, SSO flows, SAML, OAuth, Terraform, serverless patterns on AWS, building progressive profiling flows, or streamlining engineering workflows.
+
+📫 **How to reach me:**
 <table style="display: flex; flex-direction: column;">
   <tbody>
     <tr>
@@ -57,3 +77,10 @@ Here are some ideas to get you started:
     </tr>
   </tbody>
 </table>
+
+⚡ **Fun fact**
+
+When I’m not contributing to open source projects or reverse engineering things for fun, I compose chip music.
+
+---
+*P.S. I’m open to exciting new opportunities, especially roles where authentication, infrastructure, or education intersect with impact-driven engineering.* 🚀
