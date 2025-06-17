@@ -1,0 +1,495 @@
+[
+    {
+        "name": "Personal Website",
+        "url": "https://alexmbugua.me/",
+        "repo": "https://github.com/asce1062/asce1062/tree/main/asce1062",
+        "description": "🏡 My space on the internet. I'm happy you're here.",
+        "tools": [
+            { "name": "Astro", "icon": "icon-astro" },
+            { "name": "TailwindCSS", "icon": "icon-tailwindcss" },
+            { "name": "Typescript", "icon": "icon-typescript" },
+            { "name": "React", "icon": "icon-react" }
+        ]
+    },
+    {
+        "name": "Auth0 Provider",
+        "url": "https://registry.terraform.io/providers/auth0/auth0/latest/docs",
+        "repo": "https://github.com/auth0/terraform-provider-auth0",
+        "description": "Auth0 Terraform Provider for managing Auth0 tenant configuration through the Terraform tool.",
+        "tools": [{ "name": "GO", "icon": "icon-go" }]
+    },
+    {
+        "name": "Alex.Immer (Android)",
+        "url": "https://asce1062.github.io/Android%20Application/alex_immer.apk",
+        "repo": "https://github.com/asce1062/Alex.Immer",
+        "description": "An android module player for all my OpenMPT projects.",
+        "tools": [
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Java", "icon": "icon-javascript" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Bucket List API",
+        "url": "https://github.com/asce1062/CP2A-BucketList-Application-API",
+        "repo": "https://github.com/asce1062/CP2A-BucketList-Application-API",
+        "description": "API for an online Bucket List service using Flask.",
+        "tools": [
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "Flask", "icon": "icon-flask" },
+            { "name": "SQLAlchemy", "icon": "icon-sqlalchemy" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "Hospital Information System",
+        "url": "https://github.com/asce1062/HIS-PROJECT-SQL/tree/main/HIS_PROJECT",
+        "repo": "https://github.com/asce1062/HIS-PROJECT-SQL",
+        "description": "Final year project. Archive from visual studio Azure DevOps to github.",
+        "tools": [
+            { "name": ".NET", "icon": "icon-dot-net" },
+            { "name": "MSSQL", "icon": "" }
+        ]
+    },
+    {
+        "name": "Alex.Immer (Website)",
+        "url": "https://asce1062.github.io/",
+        "repo": "https://github.com/asce1062/asce1062.github.io",
+        "description": "Website for all the music I make. Licensed under Attribution Non-Commercial Creative Commons License. For commercial uses, don't hesitate to contact me: tnkratos@gmail.com",
+        "tools": [
+            { "name": "HTML", "icon": "icon-html" },
+            { "name": "CSS", "icon": "icon-css" }
+        ]
+    },
+    {
+        "name": "Xiaomi Mi 6 Device Tree",
+        "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
+        "repo": "https://github.com/asce1062/android_device_xiaomi_sagit",
+        "description": "Xiaomi MI 6 (sagit) unofficial device tree. Build your own Custom ROM.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Java", "icon": "icon-java" },
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "JSON", "icon": "icon-json" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Xiaomi Mi 6 (sagit) Vendor Files",
+        "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
+        "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_sagit",
+        "description": "Xiaomi MI 6 (sagit) vendor files.",
+        "tools": [
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Xiaomi MI 6 (sagit) Custom Repo",
+        "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
+        "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_custom",
+        "description": "Xiaomi MI 6 (sagit) custom device fixes and patches.",
+        "tools": [
+            { "name": "Java", "icon": "icon-java" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "MSM8998 (Snapdragon 835) Vendor Files",
+        "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
+        "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_msm8998-common",
+        "description": "Xiaomi msm8998-common vendor files.",
+        "tools": [
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "hardware_qcom_audio MSM8998 (Snapdragon 835)",
+        "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
+        "repo": "https://github.com/asce1062/hardware_qcom_audio",
+        "description": "Fixes to hardware_qcom_audio for msm8998 (Snapdragon 835) SoC for Xiaomi MI 6 (sagit).",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Objective-C", "icon": "icon-objectivec" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "GCC-Linaro",
+        "url": "https://releases.linaro.org/components/toolchain/binaries/5.5-2017.10/aarch64-linux-gnu/gcc-linaro-5.5.0-2017.10-i686_aarch64-linux-gnu.tar.xz",
+        "repo": "https://github.com/asce1062/gcc-linaro",
+        "description": "Fixes to the toolchain allowing us to compile ARM libraries with our fixes for the Xiaomi MI 6 (sagit).",
+        "tools": [
+            { "name": "HTML", "icon": "icon-html" },
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "Amity Office Space Allocation",
+        "url": "https://github.com/asce1062/cp1-amity-allocation",
+        "repo": "https://github.com/asce1062/cp1-amity-allocation",
+        "description": "Andela's Office space allocation tool checkpoint project.",
+        "tools": [
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "SQLAlchemy", "icon": "icon-sqlalchemy" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "jess-hbd",
+        "url": "https://github.com/asce1062/jess-hbd_src",
+        "repo": "https://github.com/asce1062/jess-hbd_src",
+        "description": "oldschool, cracktro style program with some effects, written in ASM and compiled with MASM32.",
+        "tools": [
+            { "name": "ASM", "icon": "" },
+            { "name": "MASM", "icon": "" }
+        ]
+    },
+    {
+        "name": "Song Lyrics Finder",
+        "url": "https://github.com/asce1062/bc-15-song-lyrics-finder",
+        "repo": "https://github.com/asce1062/bc-15-song-lyrics-finder",
+        "description": "Andela's song lyrics finder tool bootcamp project.",
+        "tools": [
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "SQLAlchemy", "icon": "icon-sqlalchemy" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "CyanHacker Manifest",
+        "url": "https://github.com/asce1062/android",
+        "repo": "https://github.com/asce1062/android",
+        "description": "Manifest to pull all sources required to build CyanHacker.",
+        "tools": [{ "name": "XML", "icon": "icon-xml" }]
+    },
+    {
+        "name": "CyanHacker Vendor Files",
+        "url": "https://github.com/asce1062/android_vendor_liquid",
+        "repo": "https://github.com/asce1062/android_vendor_liquid",
+        "description": "Modifications to the CyanHacker vendor tree adding LG e610, LG p700 and LG p705.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "msm7x27a (Snapdragon S1) Common",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/android_device_lge_msm7x27a-common",
+        "description": "Common files for msm7x27a (Snapdragon S1) boards. LG e610, LG p700 and LG p705.",
+        "tools": [
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG e610 CyanHacker Device Tree",
+        "url": "https://github.com/asce1062/CyanHacker_android_device_lge_e610",
+        "repo": "https://github.com/asce1062/CyanHacker_android_device_lge_e610",
+        "description": "LG e610 build configuration for CyanHacker.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p700 CyanHacker Device Tree",
+        "url": "https://github.com/asce1062/CyanHacker_android_device_lge_p700",
+        "repo": "https://github.com/asce1062/CyanHacker_android_device_lge_p700",
+        "description": "LG p700 build configuration for CyanHacker.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p705 CyanHacker Device Tree",
+        "url": "https://github.com/asce1062/CyanHacker_android_device_lge_p705",
+        "repo": "https://github.com/asce1062/CyanHacker_android_device_lge_p705",
+        "description": "LG p705 build configuration for CyanHacker.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p705 ParanoidAndroid Device Tree",
+        "url": "https://github.com/asce1062/pa_android_device_lge_p705",
+        "repo": "https://github.com/asce1062/pa_android_device_lge_p705",
+        "description": "LG p705 build configuration for ParanoidAndroid.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p700 ParanoidAndroid Device Tree",
+        "url": "https://github.com/asce1062/pa_android_device_lge_p700",
+        "repo": "https://github.com/asce1062/pa_android_device_lge_p700",
+        "description": "LG p700 build configuration for ParanoidAndroid.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG e610 ParanoidAndroid Device Tree",
+        "url": "https://github.com/asce1062/pa_android_device_lge_e610",
+        "repo": "https://github.com/asce1062/pa_android_device_lge_e610",
+        "description": "LG e610 build configuration for ParanoidAndroid.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "CyanHacker Manifest",
+        "url": "https://github.com/asce1062/manifest",
+        "repo": "https://github.com/asce1062/manifest",
+        "description": "Manifest to pull all sources required to build ParanoidAndroid.",
+        "tools": [{ "name": "XML", "icon": "icon-xml" }]
+    },
+    {
+        "name": "ParanoidAndroid Vendor Files",
+        "url": "https://github.com/asce1062/android_vendor_pa",
+        "repo": "https://github.com/asce1062/android_vendor_pa",
+        "description": "Modifications to the ParanoidAndroid vendor tree adding LG e610, LG p700 and LG p705.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Mahdi-Rom Manifest",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/platform_manifest",
+        "description": "Manifest to pull all sources required to build Mahdi-Rom.",
+        "tools": [{ "name": "XML", "icon": "icon-xml" }]
+    },
+    {
+        "name": "AOSB Manifest",
+        "url": "https://github.com/asce1062/android-1",
+        "repo": "https://github.com/asce1062/android-1",
+        "description": "Manifest to pull all sources required to build Mahdi-Rom.",
+        "tools": [{ "name": "XML", "icon": "icon-xml" }]
+    },
+    {
+        "name": "msm7x27a (Snapdragon S1) android_system_qcom",
+        "url": "https://github.com/asce1062/android_system_qcom",
+        "repo": "https://github.com/asce1062/android_system_qcom",
+        "description": "Fixes to the msm7x27a (Snapdragon S1) WiFi drivers for LG e610, LG p700 and LG p705.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    },
+    {
+        "name": "LG e610 Mahdi-Rom Device Tree",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_android_device_lge_e610",
+        "description": "LG e610 build configuration for Mahdi-Rom.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p700 Mahdi-Rom Device Tree",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_android_device_lge_p700",
+        "description": "LG p700 build configuration for Mahdi-Rom.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LG p705 Mahdi-Rom Device Tree",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_android_device_lge_p705",
+        "description": "LG p705 build configuration for Mahdi-Rom.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "android_external_webkit msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/android_external_webkit",
+        "repo": "https://github.com/asce1062/android_external_webkit",
+        "description": "Fixes to hardware_qcom_audio for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Objective-C", "icon": "icon-objectivec" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Javascript", "icon": "icon-javascript" },
+            { "name": "Python", "icon": "icon-python" },
+            { "name": "Perl", "icon": "icon-perl" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LGE Vendor Files",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/android_vendor_lge",
+        "description": "LG E610, LG P700 and LG P705 vendor files.",
+        "tools": [
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "LGE Vendor Files",
+        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
+        "repo": "https://github.com/asce1062/android_vendor_lge",
+        "description": "LG E610, LG P700 and LG P705 vendor files.",
+        "tools": [
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "classic_Webview_Patch msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/Classic_Webview_Patch",
+        "repo": "https://github.com/asce1062/Classic_Webview_Patch",
+        "description": "Patches to classic_Webview_Patch for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "Java", "icon": "icon-java" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "hardware_qcom_display-caf msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/android_hardware_qcom_display-caf",
+        "repo": "https://github.com/asce1062/android_hardware_qcom_display-caf",
+        "description": "Fixes to hardware_qcom_display-caf for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Objective-C", "icon": "icon-objectivec" },
+            { "name": "C++", "icon": "icon-cplusplus" }
+        ]
+    },
+    {
+        "name": "hardware_qcom_media-caf msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/MAHDI-ROM_hardware_qcom_media-caf",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_hardware_qcom_media-caf",
+        "description": "Fixes to hardware_qcom_media-caf for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Java", "icon": "icon-java" },
+            { "name": "Perl", "icon": "icon-perl" }
+        ]
+    },
+    {
+        "name": "frameworks_av msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/MAHDI-ROM_frameworks_av",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_frameworks_av",
+        "description": "Fixes to frameworks_av for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Assembly", "icon": "" }
+        ]
+    },
+    {
+        "name": "external_skia msm7x27a (Snapdragon S1) ",
+        "url": "https://github.com/asce1062/MAHDI-ROM_external_skia",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_external_skia",
+        "description": "Fixes to external_skia for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Objective-C", "icon": "icon-objectivec" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Javascript", "icon": "icon-javascript" },
+            { "name": "Python", "icon": "icon-python" }
+        ]
+    },
+    {
+        "name": "apps_Browser ",
+        "url": "https://github.com/asce1062/MAHDI-ROM_apps_Browser",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_apps_Browser",
+        "description": "Patches to apps_Browser for LG e610, LG p700 and LG p705. ",
+        "tools": [{ "name": "Java", "icon": "icon-java" }]
+    },
+    {
+        "name": "frameworks_base ",
+        "url": "https://github.com/asce1062/MAHDI-ROM_external_skia",
+        "repo": "https://github.com/asce1062/MAHDI-ROM_external_skia",
+        "description": "Patches to frameworks_base for LG e610, LG p700 and LG p705. ",
+        "tools": [{ "name": "Java", "icon": "icon-java" }]
+    },
+    {
+        "name": "Huawei Ideos (U8150) CyanMobile Device Tree",
+        "url": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
+        "repo": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
+        "description": "Huawei Ideos (U8150) build configuration for CyanMobile.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Huawei Ideos (U8150) Vendor Files",
+        "url": "https://github.com/asce1062/u8150_vendor_CyanMobile",
+        "repo": "https://github.com/asce1062/u8150_vendor_CyanMobile",
+        "description": "Huawei Ideos (U8150) vendor files.",
+        "tools": [
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "XML", "icon": "icon-xml" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Huawei Ideos (U8150) CyanogenMod Device Tree",
+        "url": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
+        "repo": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
+        "description": "Huawei Ideos (U8150) build configuration for CyanogenMod 7.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Bash", "icon": "icon-bash" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Huawei Ideos (U8150) Kernel",
+        "url": "https://github.com/asce1062/kernel_huawei_u8150",
+        "repo": "https://github.com/asce1062/kernel_huawei_u8150",
+        "description": "Huawei Ideos (U8150) kernel source, plus my experimental modifications.",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "Bash", "icon": "icon-bash" }
+        ]
+    }
+]

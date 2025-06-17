@@ -1,5 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+import Columns from "../components/Columns.astro";
+import projects from '../data/projects.json';
+const displayProjects = projects.slice(0,4)
 ---
 
 <Layout title="Alex Mbugua">
@@ -20,6 +24,12 @@ import Layout from '../layouts/Layout.astro';
 		</p>
 		<br/>
 		<h2>showcase</h2>
+		</div>
+		<Columns>
+				{displayProjects.map(({ name, url, repo, description, tools }) => (
+				<Card name = {name}, url={url}, repo={repo}, description={description}, tools={tools}/>))}
+		</Columns>
+		<p class = "text-center"><a href = "/projects" aria-label="Visit the Projects page">see more projects</a></p>
 		</div>
 	</div>
 	</main>
