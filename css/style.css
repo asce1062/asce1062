@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?veswa');
-  src:  url('../fonts/icomoon.eot?veswa#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.woff2?veswa') format('woff2'),
-    url('../fonts/icomoon.ttf?veswa') format('truetype'),
-    url('../fonts/icomoon.woff?veswa') format('woff'),
-    url('../fonts/icomoon.svg?veswa#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?budup6');
+  src:  url('../fonts/icomoon.eot?budup6#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.woff2?budup6') format('woff2'),
+    url('../fonts/icomoon.ttf?budup6') format('truetype'),
+    url('../fonts/icomoon.woff?budup6') format('woff'),
+    url('../fonts/icomoon.svg?budup6#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -26,6 +26,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-css:before {
+  content: "\e910";
+}
+.icon-html:before {
+  content: "\e911";
+}
 .icon-astro:before {
   content: "\e900";
 }
