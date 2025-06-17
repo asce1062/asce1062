@@ -13,10 +13,22 @@ const { title } = Astro.props;
 <!doctype html>
 <html lang="en">
     <head>
-        <title>{title} - Full-Stack Engineer, Mentor, Open Source Contributor</title>
+        <title>{title} - Full-Stack Engineer, Open Source Contributor, Chip Musician</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, resizes-content" />
-        <meta name="description" content="Alex Mbugua's personal website.">
+        <meta name="description" content="Building secure, performant, scalable solutions in the cloud">
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://alexmbugua.me/">
+        <meta property="og:title" content=`${title} – Full-Stack Engineer, Open Source Contributor, Chip Musician`>
+        <meta property="og:description" content="Building secure, performant, scalable solutions in the cloud">
+        <meta property="og:image" content="https://alexmbugua.me/social-preview.png">
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="https://alexmbugua.me/">
+        <meta property="twitter:title" content=`${title} – Full-Stack Engineer, Open Source Contributor, Chip Musician`>
+        <meta property="twitter:description" content="Building secure, performant, scalable solutions in the cloud">
+        <meta property="twitter:image" content="https://alexmbugua.me/social-preview.png">
         <link href="css/style.css" rel="stylesheet" />
         <Themes defaultTheme="dark"/>
     </head>
