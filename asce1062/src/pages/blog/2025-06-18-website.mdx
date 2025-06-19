@@ -1,0 +1,25 @@
+---
+title: "I'm happy you're here"
+pubDate: 2025-06-18
+description: "Your mind is for having ideas, not holding them"
+image:
+    url: "/src/assets/blog/2u-escape-room.jpg"
+    alt: "Escape room with the original implementations #imp-just-us team."
+tags: ["blog"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+A place to capture, organize, distill and express what I consume. I'm happy you're here ^^[^1]
+
+[^1]: 🏡 My space on the internet >> Still no clue who the cougars are, but the jumper kept me warm!
+</span>
+</BlogLayout>

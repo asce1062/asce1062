@@ -3,7 +3,7 @@
         "name": "Personal Website",
         "url": "https://alexmbugua.me/",
         "repo": "https://github.com/asce1062/asce1062/tree/main/asce1062",
-        "description": "🏡 My space on the internet. I'm happy you're here.",
+        "description": "🏡 My space on the internet.",
         "tools": [
             { "name": "Astro", "icon": "icon-astro" },
             { "name": "TailwindCSS", "icon": "icon-tailwindcss" },
@@ -25,7 +25,7 @@
         "description": "An android module player for all my OpenMPT projects.",
         "tools": [
             { "name": "C++", "icon": "icon-cplusplus" },
-            { "name": "Java", "icon": "icon-javascript" },
+            { "name": "Java", "icon": "icon-java" },
             { "name": "Android", "icon": "icon-android" }
         ]
     },
@@ -48,7 +48,7 @@
         "description": "Final year project. Archive from visual studio Azure DevOps to github.",
         "tools": [
             { "name": ".NET", "icon": "icon-dot-net" },
-            { "name": "MSSQL", "icon": "" }
+            { "name": "MSSQL", "icon": "icon-mssql" }
         ]
     },
     {
@@ -153,8 +153,8 @@
         "repo": "https://github.com/asce1062/jess-hbd_src",
         "description": "oldschool, cracktro style program with some effects, written in ASM and compiled with MASM32.",
         "tools": [
-            { "name": "ASM", "icon": "" },
-            { "name": "MASM", "icon": "" }
+            { "name": "ASM", "icon": "icon-assembly" },
+            { "name": "MASM32", "icon": "icon-compiler" }
         ]
     },
     {
