@@ -1,0 +1,200 @@
+---
+title: "Resume"
+pubDate: 2025-06-19
+description: "Alex Mbugua Ngugi's Professional Experience"
+image:
+    url: "/src/assets/blog/profile.jpg"
+    alt: "Alex Mbugua Ngugi"
+tags: ["resume"]
+---
+
+import BlogLayout from "../../layouts/BlogLayout.astro";
+import Timeline from "../../components/Timeline.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+Alex is a results-driven, articulate, and analytical Full-Stack Engineer with extensive experience designing and deploying secure, scalable cloud architectures for high-impact platforms.
+Demonstrates expertise in authentication systems, infrastructure as code (IaC), and Agile methodologies, driving successful technology initiatives impacting millions of users.
+Recognized for driving platform transformation through cross-functional collaboration and excels at guiding engineering teams towards delivering platform-wide tools and infrastructure that drive business and engineering success.
+
+<Timeline timeline={[
+    {
+        "title": "Andela",
+        "date": "March 2017 - present",
+        "desc":
+            `Increased mentorship connections at Andela using Lenken,
+                collaborating in a scrum team of 12 members to
+                    build features for mentee-expert developer interactions`,
+        "desc1":
+            `Delivered major updates, including social login and barcode scanning,
+                on the Andela Resource Tracker android app
+                    by leading and mentoring a team of 10 developers`,
+        "desc2":
+            `Placed on partner 2U, where I have been
+                contributing to delivering learning outcomes to
+                    millions of students at scale by collaborating
+                        with universities and learning institutions`,
+    },
+    {
+        "title": "2U, Engineer III",
+        "date": "Jan 2024 - present",
+        "desc":
+            `Collaborated with cross-functional teams,
+                including auth, payments, and platform engineers,
+                    to align authentication flows with the
+                        broader marketplace transformation strategy`,
+        "desc1":
+            `Increased transaction completion rate by designing robust
+                authentication flows for the Marketplace Transformation initiative`,
+        "desc2":
+            `Enabled seamless checkout sessions between edX and Commerce Tools
+                by integrating authentication logic using
+                    Next.js (SSR), Netlify, and Frontastic API Hub`,
+        "desc3":
+            `Secured over 500,000 user sessions per month by
+                enforcing JWT signature verification and
+                    managing edge cases such as
+                        token expiration and single log-out scenarios`,
+        "desc4":
+            `Maintained authentication service uptime by
+                deploying and monitoring using Datadog,
+                    Frontastic.io, and Humio dashboards`,
+        "desc5":
+            `Mentored developers and facilitated professional development`,
+    },
+    {
+        "title": "2U, Engineer III",
+        "date": "Jan 2023 - Jan 2024",
+        "desc":
+            `Enabled secure SSO integration for all enterprise users by
+                designing and deploying a SAML SSO and edX OAuth
+                    self-service orchestration API via Auth0`,
+        "desc1":
+            `Developed API Gateway endpoints and AWS Lambda functions
+                for SSO authentication, serving a user base of
+                    more than 200,000 across enterprise clients`,
+        "desc2":
+            `Achieved a reduction in onboarding time by building a
+                self-service orchestrator, allowing enterprise users
+                    to configure SSO independently by automating management tasks`,
+        "desc3":
+            `Implemented authentication flows to validate user roles
+                and restrict access based on metadata in Auth0 and Cognito`,
+        "desc4":
+            `Improved OAuth2 connection efficiency for all applications
+                by enhancing the Auth0 Terraform provider to support
+                    custom headers by contributing to the open source project`,
+    },
+    {
+        "title": "2U, Engineer III",
+        "date": "Jan 2022 - Jan 2023",
+        "desc":
+            `Enabled secure access to EDX and GetSmarter
+                by enterprise clients by deploying
+                    a federated SSO solution with Auth0`,
+        "desc1":
+            `Improved B2B authentication flow by
+                centralizing SSO for all client organizations,
+                    resulting in an increase in login efficiency`,
+        "desc2":
+            `Enabled migration of user accounts to Auth0 by implementing
+                user linking between Cognito and Auth0`,
+        "desc3":
+            `Achieved a reduction in onboarding time for
+                EDX and GetSmarter enterprise clients by
+                    collaborating with all cross-functional
+                        teams to ensure successful SSO migration`,
+    },
+    {
+        "title": "2U, Engineer II",
+        "date": "Jan 2021 - Jan 2022",
+        "desc":
+            `Implemented a proxy service for authentication
+                between 2U’s degree sites and all
+                    internal applications with Auth0,
+                        ensuring user data parity during transition from OARS`,
+        "desc1":
+            `Reduced auth provisioning time for new programs
+                through automation of all
+                    Auth0 configurations using Terraform`,
+        "desc2":
+            `Supported logistration and user management operations
+                by developing and maintaining
+                    Lambda functions and serverless services`,
+        "desc3":
+            `Increased user profile completeness by
+                creating progressive profiling pages for
+                    richer data collection across platforms`,
+    },
+    {
+        "title": "2U, Engineer II",
+        "date": "Jan 2019 - Jan 2021",
+        "desc":
+            `Streamlined asset delivery and reduced deployment times by
+                engineering ViBrAM (Visual Brand Asset Manager),
+                    AWS Lambda and Step Functions for
+                        seamless asset delivery across all 2U platforms`,
+        "desc1":
+            `Migrated all branded and brand assets to new infrastructure
+                by implementing Lambda functions that
+                    integrated Central Park (new program data entry point),
+                        Hygraph (content manager using GraphQL),
+                            and S3 (asset store), ensuring on demand
+                                content delivery to all platforms`,
+        "desc2":
+            `Improved asset visibility and QA turnaround times
+                for creative teams by collaborating to deliver ViBrAM-UI
+                    using Next.js, Material-UI, and Storybook`,
+        "desc3":
+            `Enabled monitoring by developing CloudWatch and
+                Slack Integrations to ensure ViBrAM system reliability`,
+    },
+    {
+        "title": "2U, Engineer I",
+        "date": "Apr 2018 - Jan 2019",
+        "desc":
+            `Increased onboarding efficiency by synchronizing
+                100% of all new program fields with Salesforce
+                    using the in-house CMS, OARS`,
+        "desc1":
+            `Reduced UAT times and decreased deploy frequency
+                by ensuring 100% accuracy during all program standup`,
+        "desc2":
+            `Resolved manual process hurdles,
+                enabling faster deployments by
+                    implementing GitHub version control strategies`,
+        "desc3":
+            `Managed all support tickets, reducing turnaround times
+                by 80% for program updates and enhancements post-launch`,
+    },
+    {
+        "title": "B.Sc. Information Technology, Jomo Kenyatta University Of Agriculture And Technology",
+        "date": "Sept 2012 - Aug 2016",
+        "desc":
+            `Second Class Upper Division`,
+        "desc1":
+            `Majored in Software Engineering`,
+        "desc2":
+            `Developed a .Net and MSSQL application to streamline
+                procurement management for the
+                    Public Procurement Oversight Authority of Kenya`,
+        "desc3":
+            `Migrated the existing MS Access database to MSSQL,
+                preserving historical records while
+                    Improving workflow efficiency for
+                        procurement management and government tender tracking`,
+    },
+]}
+
+> </Timeline>
+
+<span>
+[Check out my resume](https://alexmbugua.me/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf)
+</span>
+</BlogLayout>

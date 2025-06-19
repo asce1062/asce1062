@@ -1,0 +1,30 @@
+---
+title: "The Myth of the “Perfect Time”"
+pubDate: 2025-06-20
+description: "If you're looking for a sign, this is it"
+image:
+    url: "/src/assets/blog/time.jpg"
+    alt: "hesitating to get started"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- The cost of procrastination is a life you could have lived
+- It's not just about time, it's missed chances
+- A lot of people wait for the right time to start
+- There is no perfect time, you just have to begin
+- If you keep waiting for the perfect conditions, you may never move at all[^1]
+
+[^1]:Ecclesiastes 11:4: Whoever watches the wind will never plant. Whoever looks at the clouds will never harvest.
+</span>
+</BlogLayout>
