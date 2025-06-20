@@ -19,11 +19,11 @@ const displayProjects = projects.slice(0,4)
 		<p>
 			Outside of work Alex hones his love for programming on unsuspecting Open Source projects,
 			spends an exorbitant amount of time reverse engineering, and moonlights as a
-			<a href = "https://asce1062.github.io/" aria-label="Visit my music site">chip musician</a>
+			<a href="https://asce1062.github.io/" aria-label="visit my music site" target="_blank" rel="noopener noreferrer">chip musician</a>
 			with a soft spot for 8-bit nostalgia reminiscent of the Atari and C64 gaming eras.
 		</p>
 		<p>
-			Thanks for stopping by - check out my <a href = "/blog" aria-label="Visit the blog page">blog</a> before you go :]
+			Thanks for stopping by - check out my <a href="/blog" aria-label="Visit the blog page">blog</a> before you go :]
 		</p>
 		<br/>
 		<h2>showcase</h2>
@@ -32,7 +32,7 @@ const displayProjects = projects.slice(0,4)
 				{displayProjects.map(({ name, url, repo, description, tools }) => (
 				<Card name = {name}, url={url}, repo={repo}, description={description}, tools={tools}/>))}
 		</Columns>
-		<p class = "text-center"><a href = "/projects" aria-label="Visit the Projects page">see more projects</a></p>
+		<p class = "text-center"><a href="/projects" aria-label="Visit the Projects page">see more projects</a></p>
 		</div>
 	</div>
 	</main>

@@ -1,48 +1,77 @@
-# Astro Starter Kit: Basics
+# [Website](https://alexmbugua.me/)
+
+- Personal site/portfolio/blog.
+- Built with [Astro](https://astro.build/) and [TailwindCSS](https://tailwindcss.com/).
+- Dark and light modes with a responsive, mobile-friendly design.
+
+## Development
+
+1. Clone the source code to your device
 
 ```sh
-npm create astro@latest -- --template basics
+git clone git@github.com:asce1062/asce1062.git
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+or
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+git clone https://github.com/asce1062/asce1062.git
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+2. Navigate to working directory
 
-## 🧞 Commands
+```sh
+cd asce1062/asce1062
+```
 
-All commands are run from the root of the project, from a terminal:
+3. Install the project's dependencies.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+```sh
+npm install
+```
 
-## 👀 Want to learn more?
+4. Start the development server on `localhost:4321`
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```sh
+npm run dev
+```
+
+5. Build the site to `/dist`.
+
+```sh
+npm run build
+```
+
+### Deploying to Github Pages (Deploy from a branch)
+
+1. Run Pre-deploy script to sanitize `/dist`.
+
+```sh
+npm run predeploy
+```
+
+2. Start `/dist` preview server on `localhost:4322`
+
+```sh
+npm run preview
+```
+
+3. Run deploy script.
+
+```sh
+npm run deploy
+```
+
+#### Notes
+
+- Built on node 24
+- `/dist` output from step #5 `npm run build` can be deployed using workflows, or to any other platform that can host static files
+- `predeploy` script modifies `/dist` output for `gh-pages jekyll sites`
+  - Runs `scripts/pre-deploy.js` which removes underscores and fixes paths
+  - Jekyll "ignores" directories/files with underscores [Issue #55](https://github.com/jekyll/jekyll/issues/55). This is a feature not a bug (they are treated as "special")
+    - Adding a `.nojekyll` does not [bypass Jekyll on GitHub pages](https://github.blog/news-insights/bypassing-jekyll-on-github-pages/) for us
+  - Creates a CNAME record pointing our branch deploy to our apex custom domain `alexmbugua.me`
+    - _CNAME record for `www` in the apex domain provider should point to `<username>.github.io`_
+- `deploy` script will:
+  - Run `predeploy` script
+  - Push to a branch of choice, `alexmbugua`, triggering automatic deploys
