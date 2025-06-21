@@ -1,0 +1,32 @@
+---
+title: "Trust the Process"
+pubDate: 2025-06-21
+description: "You are born whole; whole unto yourself"
+image:
+    url: "/src/assets/blog/progress.png"
+    alt: "progress over perfection"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- The day you plant the seed, isn't the say you'll eat the fruit
+- Growth takes time. Whether it's your goals, healing or your relationships, none of it happens overnight
+- Just because you don't see results right away, doesn't mean that nothing's happening
+- Roots grow in silence and progress can be quiet, so be patient with the process
+- Just because you don't think it's happening yet, doesn't mean it won't
+- Because one day, without realising it, you'll look around and you'll see the tree that you grew[^1]
+- Like the seed before the fruit, before the tree; everything that we are is already inside us
+
+[^1]:Galatians 6:49 - Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up.
+</span>
+</BlogLayout>
