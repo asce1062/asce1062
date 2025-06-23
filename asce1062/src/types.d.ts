@@ -14,10 +14,11 @@ export interface Posts {
 export interface TimelineEntry {
     title: string;
     date: string;
-    desc: string;
-    desc1?: string;
-    desc2?: string;
-    desc3?: string;
-    desc4?: string;
-    desc5?: string;
+    description: string;
+    description1?: string;
+    description2?: string;
+    description3?: string;
+    description4?: string;
+    description5?: string;
+    moreInformation?: string;
 }
