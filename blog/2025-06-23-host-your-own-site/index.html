@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"> <head><title>Host Your Own Site - Full-Stack Engineer, Open Source Contributor, Chip Musician</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Part 1 - Using GitHub and Jekyll"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://alexmbugua.me/blog/2025-06-23-host-your-own-site/"><meta property="og:title" content="Host Your Own Site - Full-Stack Engineer, Open Source Contributor, Chip Musician"><meta property="og:description" content="Part 1 - Using GitHub and Jekyll"><meta property="og:image" content="https://alexmbugua.me/open-graph/blog/2025-06-23-host-your-own-site.png"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://alexmbugua.me/blog/2025-06-23-host-your-own-site/"><meta property="twitter:title" content="Host Your Own Site - Full-Stack Engineer, Open Source Contributor, Chip Musician"><meta property="twitter:description" content="Part 1 - Using GitHub and Jekyll"><meta property="twitter:image" content="https://alexmbugua.me/open-graph/blog/2025-06-23-host-your-own-site.png"><link href="../../css/style.css" rel="stylesheet"><script>(function(){const defaultTheme = "dark";
+
+  const n="theme",r=window.matchMedia("(prefers-color-scheme: dark)");function d(){return r.matches?"dark":defaultTheme}function a(e){const o=e!==void 0?e:localStorage.getItem(n);return o!=null?o:d()}function t(e){document.documentElement.setAttribute("data-theme",e),document.documentElement.style.colorScheme=e}function l(e){e.key===n&&t(a(e.newValue))}function m(){t(a())}function c(e){e.detail?(localStorage.setItem(n,e.detail),t(e.detail)):(localStorage.removeItem(n),t(a(e.detail)))}document.addEventListener("set-theme",c),window.addEventListener("storage",l),r.addEventListener("change",m),document.addEventListener("astro:after-swap",m),t(a());
+})();</script><style>
+        body {
+          visibility: hidden;
+          opacity: 0;
+        }
+      </style><link rel="stylesheet" href="../../astro/2025-06-18-website.B1cw4u7x.css">
+<link rel="stylesheet" href="../../astro/2025-06-18-website.dprBNgFt.css"></head> <body class="z-1 m-0 h-full min-h-screen overflow-y-scroll bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] pt-0 font-proto text-white"> <div id="primary" class="z-2 m-auto grid min-h-screen w-11/12 px-8 pt-2 transition-all duration-100 lg:w-1/2" style="grid-template-rows: auto 1fr auto"> <header> <!-- prettier-ignore --> <div id="navigation" class="mb-3"> <script>
+    var lightMode = document.documentElement.attributes.getNamedItem("data-theme")?.value == "light";
+    // Fall back on localStorage to get theme details, as lightMode @ initial render is always undefined.
+    lightMode = lightMode ? lightMode : (localStorage.getItem("theme") == "light")
+    document.addEventListener("DOMContentLoaded", function() {
+        const icon = document.getElementById('toggleIcon');
+        icon.className = (lightMode) ? "icon-moon" : "icon-sun";
+    });
+    function setTheme() {
+        document.dispatchEvent(
+            new CustomEvent("set-theme", { detail: lightMode ? "dark" : "light" })
+        );
+        lightMode = !lightMode;
+        const icon = document.getElementById('toggleIcon');
+        icon.className = (lightMode) ? "icon-moon" : "icon-sun";
+    }
+</script> <button class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100" onclick="setTheme()" aria-label="Switch page theme"> <i id="toggleIcon" class=""></i> </button> <p>~/ <a class="no-underline" href="/">home</a> <span> <span> / <a class="no-underline" href="/blog"> blog</a></span><span> / <a class="no-underline" href="/2025-06-23-host-your-own-site"> 2025-06-23-host-your-own-site</a></span> </span> </p> </div> <h1>hi, i'm Alex.</h1> <hr> <div class="flex flex-col justify-between text-sm leading-7 sm:leading-5 transition-all duration-300 sm:flex-row sm:text-base"> <div class="text-palette-800"> <b><a class="icon" href="https://github.com/asce1062"><i class="icon-github mr-2"></i>asce1062</a></b><br> <b><a class="icon" href="https://www.linkedin.com/in/alex-mbugua"><i class="icon-linkedin mr-2"></i>Alex Mbugua</a></b> </div> <div class="text-palette-800"> <b><a class="icon" href="../../Alex%20Mbugua%20Ngugi%20-%20Resume.pdf" target="_blank" rel="noopener noreferrer"> <i class="icon-eye mr-2"></i>Resume</a>
+|
+<a class="icon" href="../../Alex%20Mbugua%20Ngugi%20-%20Resume.pdf" download="Alex Mbugua Ngugi - Resume.pdf"> <i class="icon-cloud-download mr-2"></i>Resume.pdf</a></b><br> <b><a class="icon" href="mailto:alex.mbugua@outlook.com"><i class="icon-envelope-at mr-2"></i>alex.mbugua@outlook.com</a></b> </div> </div> <hr> </header>  <main> <h2>Host Your Own Site</h2> <span><i><b>2025-06-23</b> | Part 1 - Using GitHub and Jekyll</i></span> <span class="relative flex items-center justify-center overflow-hidden shadow-xl h-72 my-4 w-full rounded-2xl"> <img src="../../astro/your-own-site.yIogx8XL_ZCCGIc.webp" alt="stake your spot on the internet" title="stake your spot on the internet" width="1024" height="1024" loading="lazy" decoding="async" class="m-auto my-4 block rounded-2xl bg-cover h-72 object-cover opacity-100 transition-all duration-300 hover:scale-105"> </span> <span>
+tags: <a class="mr-2" href="/tags/github">github</a><a class="mr-2" href="/tags/jekyll">jekyll</a> </span> <hr> <span><h1 id="website-repository">Website Repository</h1><ul>
+<li>Create a <a href="https://github.com/new">new</a> GitHub repository</li>
+<li>Repository name: <b class="text-sm"> <em><strong><code>githubusername</code></strong></em></b></li>
+<li><sup>*</sup><em><strong>Public</strong></em></li>
+<li>Check <b class="text-sm"><em><strong><code> Initialize this repository with: Add a README file</code></strong></em></b></li>
+<li>Create repository</li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-repo-setup.DGWDNRbX_Z18iGKh.webp" alt="GitHub Repository Setup" title="GitHub Repository Setup" width="1422" height="1728" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">GitHub Repository Setup</figcaption> </figure> </div><br/><ul>
+<li>Edit <b class="text-sm"><em><strong><code>README.md</code></strong></em></b> file <b class="text-sm"><em><strong><code>https://github.com/githubusername/githubusername/edit/main/README.md</code></strong></em></b></li>
+<li>For github markdown syntax, visit this <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">getting started doc</a></li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-edit-readme.CwzuclGq_ZY1jIJ.webp" alt="Edit README.md" title="Edit README.md" width="1816" height="680" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">Edit README.md</figcaption> </figure> </div><br/><ul>
+<li>For formatting that isn’t supported by  <b class="text-sm"><em><strong><code>markdown&#39;s syntax</code></strong></em></b> or for more complex layouts, you can use <b class="text-sm"><em><strong><code>HTML tags</code></strong></em></b> directly in your markdown.</li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-html-in-markdown.CJIlUu_I_19NCdJ.webp" alt="HTML in Markdown" title="HTML in Markdown" width="1540" height="372" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">HTML in Markdown</figcaption> </figure> </div><br/><ul>
+<li>Save your changes by <b class="text-sm"><em><strong><code>Committing changes...</code></strong></em></b></li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-commit-readme.D3YuGey4_27kWB8.webp" alt="Commit changes..." title="Commit changes..." width="3316" height="370" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">Commit changes...</figcaption> </figure> </div><br/><ul>
+<li>Navigate to repository’s <em><strong><code>Settings &gt; Pages</code></strong></em> <b class="text-sm"><em><strong><code>https://github.com/githubusername/githubusername/settings/pages</code></strong></em></b></li>
+<li>Under <em><strong><code>Build and deployment Source</code></strong></em> select <b class="text-sm"><em><strong><code>Deploy from a branch</code></strong></em></b></li>
+<li>Under <em><strong><code>Branch</code></strong></em> select <b class="text-sm"><em><strong><code>main</code></strong></em></b></li>
+<li>Under <em><strong><code>select folder</code></strong></em> <b class="text-sm"><em><strong><code>/(root)</code></strong></em></b></li>
+<li><b class="text-sm"><em><strong><code>Save</code></strong></em></b> these changes</li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-pages-setup.DZJG2q8r_27gg63.webp" alt="GitHub Pages Setup" title="GitHub Pages Setup" width="2272" height="1194" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">GitHub Pages Setup</figcaption> </figure> </div><br/><ul>
+<li>An automatic build should be triggered</li>
+<li>Progress can be tracked under the repository’s <b class="text-sm"><em><strong><code>Actions</code></strong></em></b> tab <b class="text-sm"><em><strong><code>https://github.com/githubusername/githubusername/actions</code></strong></em></b></li>
+</ul><br/><div class="pb-4"> <figure> <img src="../../astro/github-actions-tab.BtVjI9gx_Z1nYLT6.webp" alt="GitHub Actions tab" title="GitHub Actions tab" width="1882" height="1010" loading="lazy" decoding="async" class="h-auto max-w-full"> <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">GitHub Actions tab</figcaption> </figure> </div><br/><ul>
+<li>Once deployment is done, navigate back to repository’s <em><strong><code>Settings &gt; Pages</code></strong></em> <b class="text-sm"><em><strong><code>https://github.com/githubusername/githubusername/settings/pages</code></strong></em></b></li>
+<li>You should see <em><strong><code>Your site is live at</code></strong></em> <b class="text-sm"><em><strong><code>https://githubusername.github.io/repositoryname/</code></strong></em></b></li>
+<li>Since we created our <b class="text-sm"><em><strong><code>repositoryname</code></strong></em></b> like: <b class="text-sm"><em><strong><code>githubusername</code></strong></em></b>, the <em><strong><code>site url</code></strong></em> we expect is <b class="text-sm"><em><strong><code>https://githubusername.github.io/githubusername/</code></strong></em></b></li>
+</ul></span> </main>  <footer> <div class="mx-auto mt-4 mb-10"> <span class="inline-block h-8 w-[10%] bg-palette-50 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-100 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-200 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-300 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-400 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-500 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --><span class="inline-block h-8 w-[10%] bg-palette-600 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><!--
+        --> <i></i><p class="text-xs"><i>this website is <a href="https://github.com/asce1062/asce1062/tree/main/asce1062">open source</a>. made with astro and tailwindcss</i></p> </div> </footer> </div> </body></html>
