@@ -11,12 +11,12 @@ const { image, altText } = Astro.props;
 const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/**/*.{jpeg,jpg,png,gif}');
 ---
 <div class = "pb-4">
-    <figure class="h-auto max-w-full mx-auto">
+    <figure class="h-auto max-w-xl mx-auto">
     <Image
         src = {images[image]()}
         alt={altText}
         title = {altText}
-        class = {`h-auto max-w-full`}/>
+        class = {`h-auto max-w-full mx-auto`}/>
         <figcaption class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">{altText}</figcaption>
     </figure>
 </div>

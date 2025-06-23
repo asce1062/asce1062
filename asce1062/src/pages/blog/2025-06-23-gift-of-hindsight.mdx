@@ -1,0 +1,32 @@
+---
+title: "The Gift of Hindsight"
+pubDate: 2025-06-23
+description: "Growth often hides in the moments we wish we could rewrite. But maybe we were never off course"
+image:
+    url: "/src/assets/blog/hindsight.png"
+    alt: "progress over perfection"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- If I had the mind I have now, I wouldn't have made the mistakes I made back then
+- But if I hadn't made the mistakes I made back then, I wouldn't have the mind I have now
+- It's easy to look back and feel regret, to wish we had done things differently
+- But the truth is, everything happened the way it was meant to
+- Every wrong turn, every setback, every choice. It all led us here
+- Maybe here is exactly where we are supposed to be[^1]
+- So; do not hold on to the past, make room for what is coming next
+
+[^1]:Galatians 6:49 - Forget the former things; do not dwell on the past. See, I am doing a new thing! Now it springs up; do you not perceive it? I am making a way in the wilderness and streams in the wasteland.
+</span>
+</BlogLayout>
