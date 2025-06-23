@@ -1,0 +1,63 @@
+---
+title: "Host Your Own Site"
+pubDate: 2025-06-23
+description: "Part 1 - Using GitHub"
+image:
+    url: "/src/assets/blog/your-own-site.png"
+    alt: "stake your spot on the internet"
+tags: ["github", "howto", "hosting"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+import ImageView from "../../components/ImageView.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+# PT.1 Webbed Site Repository
+<br/>
+- Create a [new](https://github.com/new) GitHub repository
+- Repository name: <b class="text-sm"> _**`githubusername`**_</b>
+- <sup>*</sup>_**`Public`**_
+- Check <b class="text-sm">_**` Initialize this repository with: Add a README file`**_</b>
+- Create repository
+<br/>
+<ImageView image = "/src/assets/blog/github/github-repo-setup.png" altText="GitHub Repository Setup"></ImageView>
+<br/>
+- Edit <b class="text-sm">_**`README.md`**_</b> file
+- For github markdown syntax, visit this [getting started doc](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)
+<br/>
+<ImageView image = "/src/assets/blog/github/github-edit-readme.png" altText="Edit README.md"></ImageView>
+<br/>
+- For formatting that isn't supported by  <b class="text-sm">_**`markdown's syntax`**_</b> or for more complex layouts, you can use <b class="text-sm">_**`HTML tags`**_</b> directly in <b class="text-sm">_**`markdown`**_</b>
+- Check out my [README.md](https://github.com/asce1062/asce1062/blob/main/README.md) for inspiration if needed (switch to <b class="text-sm">_**`code view`**_</b> for markdown html syntax)
+<br/>
+<ImageView image = "/src/assets/blog/github/github-html-in-markdown.png" altText="HTML in Markdown"></ImageView>
+<br/>
+- Save your changes by <b class="text-sm">_**`Committing changes...`**_</b>
+<br/>
+<ImageView image = "/src/assets/blog/github/github-commit-readme.png" altText="Commit changes..."></ImageView>
+<br/>
+- Navigate to repository's <b class="text-sm">_**`Settings > Pages`**_</b>
+- Under <b class="text-sm">_**`Build and deployment Source`**_</b> select <b class="text-sm">_**`Deploy from a branch`**_</b>
+- Under _**`Branch`**_ select <b class="text-sm">_**`main`**_</b>
+- Under _**`select folder`**_ <b class="text-sm">_**`/(root)`**_</b>
+- <b class="text-sm">_**`Save`**_</b> these changes
+<br/>
+<ImageView image = "/src/assets/blog/github/github-pages-setup.png" altText="GitHub Pages Setup"></ImageView>
+<br/>
+- An build should be automatically triggered
+- Progress can be tracked under the repository's <b class="text-sm">_**`Actions`**_</b> tab
+<br/>
+<ImageView image = "/src/assets/blog/github/github-actions-tab.png" altText="GitHub Actions tab"></ImageView>
+<br/>
+- Once deployment is done, navigate back to repository's <b class="text-sm">_**`Settings > Pages`**_</b>
+- You should see _**`Your site is live at`**_ <b class="text-sm">_**`https://username.github.io/reponame/`**_</b>
+- Since we created our <b class="text-sm">_**`repositoryname`**_</b> like: <b class="text-sm">_**`githubusername`**_</b>, the expected <b class="text-sm">_**`site url`**_</b> is <b class="text-sm">_**`https://githubname.github.io/githubname/`**_</b>
+</span>
+</BlogLayout>
