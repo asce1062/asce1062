@@ -1,0 +1,52 @@
+---
+title: "Host Your Own Site"
+pubDate: 2025-06-24
+description: "Part 2 - Adding a Theme with Jekyll"
+image:
+    url: "/src/assets/blog/your-own-site.png"
+    alt: "stake your spot on the internet"
+tags: ["github", "howto", "hosting", "jekyll"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+import ImageView from "../../components/ImageView.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+# PT.2 Theming your webbed site
+<br/>
+- Before changes were made to GitHub Pages interface, it was possible to pick a theme using a built-in GUI
+- Currently we need to set the theme using a <b class="text-sm">_**`_config.yml`**_</b> file. This will tell <b class="text-sm">_**`Jekyll`**_</b> how to transform the text in the README file and generate a styled website.
+- Select <b class="text-sm">_**`Add File > Create New File`**_</b>
+<br/>
+<ImageView image = "/src/assets/blog/github/github-add-file.png" altText="Create a new File"></ImageView>
+<br/>
+- On the new page opened under <b class="text-sm">_**`Name your file...`**_</b> enter <b class="text-sm">_**`_config.yml`**_</b>
+- Add the following contents to <b class="text-sm">_**`_config.yml file`**_</b>
+<br/>
+<code class="block h-auto max-w-xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+<b class="text-sm">_**`title: Your Name`**_</b>
+<br/>
+<b class="text-sm">_**`theme: jekyll-theme-minimal`**_</b>
+<br/>
+</code>
+<br/>
+- A full list of supported themes can be found [here](https://pages.github.com/themes/)
+- Save your changes by <b class="text-sm">_**`Committing changes...`**_</b>
+<br/>
+<ImageView image = "/src/assets/blog/github/github-config-yaml.png" altText="_config.yml file"></ImageView>
+<br/>
+- A build should be automatically triggered
+- Progress can be tracked under the repository's <b class="text-sm">_**`Actions`**_</b> tab
+<br/>
+<ImageView image = "/src/assets/blog/github/github-actions-tab.png" altText="GitHub Actions tab"></ImageView>
+<br/>
+- Once deployment is done, the site we created from the previous <a href="https://alexmbugua.me/blog/2025-06-23-host-your-own-site/" aria-label="Visit the blog page" target="_blank" rel="noopener noreferrer">PT.1 Webbed Site Repository</a> should now be themed
+</span>
+</BlogLayout>
