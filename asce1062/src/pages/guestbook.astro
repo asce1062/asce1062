@@ -1,0 +1,102 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PreviewImage from "../components/PreviewImage.astro";
+import PrivacyPolicy from "../components/PrivacyPolicy.astro";
+
+const image = "/src/assets/blog/guestbook_landscape.png";
+const alt = "guestbook";
+const title = "Guestbook";
+const description = "Please sign my guestbook ^^";
+
+async function getGuestEntries() {
+  const response = await fetch(new Request(
+    `https://api.netlify.com/api/v1/forms/${import.meta.env.GUESTBOOK_ID}/submissions`,
+    {method: 'GET', headers: {'Authorization': `Bearer ${import.meta.env.NETLIFY_ACCESS}`}}
+  ));
+  return response.json();
+}
+const entries = await getGuestEntries();
+
+---
+
+<Layout title="Projects" ogImage="social-preview.png" description="Guestbook">
+		<main>
+				<article>
+					<PreviewImage src = {image} altText = {alt}/>
+					<h1 id="page-title" style="view-transition-name: guestbook-title">{title}</h1>
+					<p>{description}</p>
+					<p>
+            In the spirit of a (welcome, and long overdue!) resurgence of nostalgia for the old, decentralised web, where many of us bashed out our own personal homepages and filled them with whimsical, social stuff not only intended to make us look good for prospective clients or employers, I've built myself this little guestbook.
+          </p>
+					<p>Don't expect instant updates, new messages will be moderated, and added when I next deploy my site :]</p>
+
+					<form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded">
+						<input type="hidden" name="form-name" value="guestbook" />
+						<p>
+						  <label
+							>Name
+							<br /><input type="text" name="name" required /></label
+						  >
+						</p>
+						<p>
+						  <label
+							>Email <small>(optional, not published)</small>
+							<br /><input type="email" name="email" /></label
+						  >
+						</p>
+						<p>
+						  <label
+							>URL <small>(optional, linked from Name)</small>
+							<br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" /></label
+						  >
+						</p>
+						<p>
+						  <label>Subject <small>(please skip this field if you're real)</small>
+							<br /><input type="text" name="bot-field" placeholder="Leave me be!" />
+							<small>Are you sure you want to type in here? I won't get your message!</small>
+						  </label>
+						</p>
+						<p>
+						  <label class="message">Message<br /><textarea name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write your thoughts here..."/></label>
+						</p>
+            <p>
+              <label class="consent"><input type="checkbox" required><small> I consent to <a href="https://www.netlify.com/platform/core/forms/">Netlify Forms</a> receiving this message and passing it through <a href="https://akismet.com/">Akismet</a> spam filtering.</small></label>
+            </p>
+						<p>
+						  <button type="submit" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"><b>Sign Guestbook</b></button>
+						</p>
+					</form>
+          <PrivacyPolicy />
+          {Array.isArray(entries) && entries.map((entry:any) =>(
+						<article class="entry" style="max-width: 80ch; margin: 0 auto; padding: 6vmin 5.5vmin 5.5vmin;">
+							<h2>{entry.human_fields.Url && <a href={entry.human_fields.Url}>{entry.name}</a>}{!entry.human_fields.Url && entry.name}</h2>
+							<p>{entry.body}</p>
+							<time style="display: block; width: fit-content; margin: 0 0 3vmin auto;">{new Date(entry.created_at).toLocaleDateString('en-gb', {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+							})}</time>
+						</article>
+					))}
+					<a class="back" href="/">back to home page</a>
+				</article>
+			</div>
+		</main>
+</Layout>
+
+<style>
+.entry {
+    margin: 5vmin 0;
+}
+.entry h2 {
+    margin-bottom: 0;
+}
+.entry p {
+    white-space: pre-line;
+}
+time {
+    display: block;
+    width: fit-content;
+    margin: 0 0 3vmin auto;
+}
+</style>
