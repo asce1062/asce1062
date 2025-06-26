@@ -8,8 +8,8 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
-    "predeploy": "astro check && astro build && mv ./dist/_astro ./dist/astro && node scripts/pre-deploy.js && touch ./dist/.nojekyll && touch ./dist/CNAME && echo \"alexmbugua.me\" > ./dist/CNAME",
-    "deploy": "gh-pages -d dist --branch alexmbugua --dotfiles",
+    "predeploy": "astro check && astro build && mv ./dist/_astro ./dist/astro && node scripts/pre-deploy.js",
+    "deploy": "touch ./dist/.nojekyll && touch ./dist/CNAME && echo \"alexmbugua.me\" > ./dist/CNAME && gh-pages -d dist --branch alexmbugua --dotfiles",
     "preview": "astro preview",
     "astro": "astro"
   },
