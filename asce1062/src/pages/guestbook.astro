@@ -3,10 +3,9 @@ import Layout from "../layouts/Layout.astro";
 import PreviewImage from "../components/PreviewImage.astro";
 import PrivacyPolicy from "../components/PrivacyPolicy.astro";
 
-const image = "/src/assets/blog/guestbook_landscape.png";
-const alt = "guestbook";
+const image = "/src/assets/blog/guestbook.png";
 const title = "Guestbook";
-const description = "Please sign my guestbook ^^";
+const description = "Drop me a note, let's connect ^^";
 
 async function getGuestEntries() {
   const response = await fetch(new Request(
@@ -19,18 +18,19 @@ const entries = await getGuestEntries();
 
 ---
 
-<Layout title="Projects" ogImage="social-preview.png" description="Guestbook">
+<Layout title={title} ogImage="social-preview.png" description={description}>
 		<main>
 				<article>
-					<PreviewImage src = {image} altText = {alt}/>
-					<h1 id="page-title" style="view-transition-name: guestbook-title">{title}</h1>
+					<PreviewImage src = {image} altText = {title}/>
+					<h1>{title}</h1>
 					<p>{description}</p>
 					<p>
-            In the spirit of a (welcome, and long overdue!) resurgence of nostalgia for the old, decentralised web, where many of us bashed out our own personal homepages and filled them with whimsical, social stuff not only intended to make us look good for prospective clients or employers, I've built myself this little guestbook.
+            In the spirit of the beautifully chaotic, handcrafted web of yesteryear — when we all had personal homepages filled with <span class="blink">blinking text</span>, dubious counters <b><strong>Visitor# <span id="counter">000000</span></strong></b>, and way too many <marquee> marquee tags (not just to impress recruiters)</marquee> I've decided to bring back the classic guestbook.
           </p>
-					<p>Don't expect instant updates, new messages will be moderated, and added when I next deploy my site :]</p>
-
-					<form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded">
+					<p>Just keep in mind:
+          <p>* It's not instant.</p>
+          <p>* Messages are moderated and will appear the next time I ship an update. Patience is retro, right? :]</p>
+					<form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded" action="/success">
 						<input type="hidden" name="form-name" value="guestbook" />
 						<p>
 						  <label
@@ -51,9 +51,9 @@ const entries = await getGuestEntries();
 						  >
 						</p>
 						<p>
-						  <label>Subject <small>(please skip this field if you're real)</small>
+						  <label>Subject <small>(please <b>skip</b> this field if you're real)</small>
 							<br /><input type="text" name="bot-field" placeholder="Leave me be!" />
-							<small>Are you sure you want to type in here? I won't get your message!</small>
+							<small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
 						  </label>
 						</p>
 						<p>
@@ -78,10 +78,18 @@ const entries = await getGuestEntries();
 							})}</time>
 						</article>
 					))}
-					<a class="back" href="/">back to home page</a>
 				</article>
 			</div>
 		</main>
+    <p>
+      <div class = "!flex !flex-wrap justify-between">
+        <a href = "/" aria-label="Visit the Home page">Home</a>
+        <a href = "/projects" aria-label="Visit the Projects page">Projects</a>
+        <a href = "/blog" aria-label="Visit the Blog page">Blog</a>
+        <a href = "/tags" aria-label="Visit the Blog Tags page">Tags</a>
+        <a href = "/guestbook" aria-label="Visit the Guestbook page">Guestbook</a>
+      </div>
+    </p>
 </Layout>
 
 <style>
@@ -99,4 +107,21 @@ time {
     width: fit-content;
     margin: 0 0 3vmin auto;
 }
+.blink {
+  animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
 </style>
+
+<script>
+  const fakeCount = Math.floor(Math.random() * 900000 + 100000);
+  const counter = document.getElementById("counter");
+  if (counter) {
+    counter.textContent = fakeCount.toString();
+  }
+</script>
