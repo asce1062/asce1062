@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import PreviewImage from "../components/PreviewImage.astro";
 import PrivacyPolicy from "../components/PrivacyPolicy.astro";
 
-const image = "/src/assets/blog/guestbook.png";
+const image = "/src/assets/guestbook/guestbook.png";
 const title = "Guestbook";
 const description = "Drop me a note, let's connect ^^";
 
@@ -25,7 +25,11 @@ const entries = await getGuestEntries();
 					<h1>{title}</h1>
 					<p>{description}</p>
 					<p>
-            In the spirit of the beautifully chaotic, handcrafted web of yesteryear — when we all had personal homepages filled with <span class="blink">blinking text</span>, dubious counters <b><strong>Visitor# <span id="counter">000000</span></strong></b>, and way too many <marquee> marquee tags (not just to impress recruiters)</marquee> I've decided to bring back the classic guestbook.
+            In the spirit of the beautifully chaotic, handcrafted web of yesteryear
+            — when we all had personal homepages filled with <span class="blink">blinking text</span>,
+            dubious counters <b><strong>Visitor# <span id="counter">000000</span></strong></b>,
+            and way too many <marquee> marquee tags (not just to impress recruiters)</marquee>
+            I've decided to bring back the classic guestbook.
           </p>
 					<p>Just keep in mind:
           <p>* It's not instant.</p>
@@ -33,22 +37,16 @@ const entries = await getGuestEntries();
 					<form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded" action="/success">
 						<input type="hidden" name="form-name" value="guestbook" />
 						<p>
-						  <label
-							>Name
-							<br /><input type="text" name="name" required /></label
-						  >
+						  <label>Name
+							<br /><input type="text" name="name" required /></label>
 						</p>
 						<p>
-						  <label
-							>Email <small>(optional, not published)</small>
-							<br /><input type="email" name="email" /></label
-						  >
+						  <label>Email <small>(optional, not published)</small>
+							<br /><input type="email" name="email" /></label>
 						</p>
 						<p>
-						  <label
-							>URL <small>(optional, linked from Name)</small>
-							<br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" /></label
-						  >
+						  <label>URL <small>(optional, linked from Name)</small>
+							<br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" /></label>
 						</p>
 						<p>
 						  <label>Subject <small>(please <b>skip</b> this field if you're real)</small>

@@ -1,0 +1,35 @@
+---
+title: "Passion Fades, Purpose Stays"
+pubDate: 2025-06-27
+description: "Passion is great; but consistency is more important than staying excited"
+image:
+    url: "/src/assets/blog/purpose.png"
+    alt: "discipline is what keeps you moving when passion fades"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- It's not about doing what you like, it's about liking what you do
+- One thing I've found myself getting used to, is chasing what feels good
+- Sometimes I find myself putting in more effort into the things that excite me, or only showing up when I'm in the mood
+- Purpose doesn't always come dressed in passion
+- Sometimes it comes in discipline, in doing the work, in choosing to stay consistent; even when it's not fun
+- You won't always love the process, but you can learn to love what it's producing in you
+- It was never going to be easy; it will be worth it[^1]
+- So even when it's tiring, even when it might feel unseen; keep going, keep giving it your all
+- Because what you are producing matters and is not in vain
+
+[^1]:1 Corinthians 15:58 - Therefore, my dear brothers and sisters, stand firm. Let nothing move you. Always give yourselves fully to the work of the Lord, because you know that your labor in the Lord is not in vain.
+
+</span>
+</BlogLayout>
