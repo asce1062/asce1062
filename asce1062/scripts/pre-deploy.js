@@ -29,7 +29,8 @@ function fixHtmlFile(filePath) {
   // Remove leading slash and underscore (/_astro) on paths references to astro on index.html
   content = content
     .replace(/href="\/_(astro\/[^"]+\.css)"/g, 'href="$1"')
-    .replace(/src="\/_(astro\/[^"]+\.webp)"/g, 'src="$1"');
+    .replace(/src="\/_(astro\/[^"]+\.webp)"/g, 'src="$1"')
+    .replace(/(href|src)="\/(favicon\.ico|sitemap-index\.xml)"/g, '$1="$2"');
 
   // Determine relative path depth to distDir
   const fileDir = path.dirname(filePath);
@@ -47,7 +48,9 @@ function fixHtmlFile(filePath) {
       // update src="astro/*.webp paths
       .replace(/src="(astro\/[^"]+\.webp)"/g, (_, p1) => `src="${prefix}${p1}"`)
       // Update resume PDF path
-      .replace(/href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g, (_, p1) => `href="${prefix}${p1}"`);
+      .replace(/href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g, (_, p1) => `href="${prefix}${p1}"`)
+      // Fix favicon + sitemap references
+      .replace(/(href|src)="(favicon\.ico|sitemap-index\.xml)"/g, (_, attr, file) => `${attr}="${prefix}${file}"`);
   }
 
   if (content !== original) {

@@ -14,7 +14,7 @@ const { name, url, repo, description, tools } = Astro.props;
 
 <div class="hover:scale-[101%] relative flex flex-col overflow-auto rounded-lg bg-white/20 dark:bg-palette-900 border border-black/20 dark:border-white/20">
     <div class = "p-4 h-full flex flex-col">
-        <a class="no-underline text-sm sm:text-base transition-all duration-300 font-bold hover:bg-transparent" href={url}>{name}</a>
+        <a class="no-underline text-sm sm:text-base transition-all duration-300 font-bold hover:bg-transparent" href={url} target="_blank" rel="noopener noreferrer">{name}</a>
         <div class="grow">
             <p>{description}</p>
         </div>
@@ -30,8 +30,8 @@ const { name, url, repo, description, tools } = Astro.props;
         </div>
         <hr class = "bg-transparent">
         <div class="bottom-0 mt-auto text-sm sm:text-base font-bold *:hover:bg-transparent *:hover:decoration-offset-4 *:hover:dark:bg-transparent *:text-light-300 *:dark:hover:text-palette-300">
-            <a class = "icon float-left" href={repo} aria-label=`Visit the GitHub repository for ${name}`><i class="icon-github mr-2"></i><span class = "text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">view source</span></a>
-            <a class = "icon float-right" href={url} aria-label=`Visit the external site for ${name}`>
+            <a class = "icon float-left" href={repo} aria-label=`Visit the GitHub repository for ${name}` target="_blank" rel="noopener noreferrer"><i class="icon-github mr-2"></i><span class = "text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">view source</span></a>
+            <a class = "icon float-right" href={url} aria-label=`Visit the external site for ${name}` target="_blank" rel="noopener noreferrer">
                 <i class="icon-link mr-2 "></i><span class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">visit</span>
             </a>
         </div>

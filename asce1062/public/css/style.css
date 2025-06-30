@@ -1,11 +1,11 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?kj4j3x');
-  src:  url('../fonts/icomoon.eot?kj4j3x#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.woff2?kj4j3x') format('woff2'),
-    url('../fonts/icomoon.ttf?kj4j3x') format('truetype'),
-    url('../fonts/icomoon.woff?kj4j3x') format('woff'),
-    url('../fonts/icomoon.svg?kj4j3x#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?yt5bfs');
+  src:  url('../fonts/icomoon.eot?yt5bfs#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.woff2?yt5bfs') format('woff2'),
+    url('../fonts/icomoon.ttf?yt5bfs') format('truetype'),
+    url('../fonts/icomoon.woff?yt5bfs') format('woff'),
+    url('../fonts/icomoon.svg?yt5bfs#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -110,8 +110,23 @@
 .icon-file-arrow-down:before {
   content: "\eaef";
 }
+.icon-kanban:before {
+  content: "\eb00";
+}
 .icon-sun:before {
   content: "\eb91";
+}
+.icon-bookmark-heart:before {
+  content: "\ec39";
+}
+.icon-substack:before {
+  content: "\ec9d";
+}
+.icon-bookmarks:before {
+  content: "\ecac";
+}
+.icon-tags:before {
+  content: "\ee8e";
 }
 .icon-envelope-at:before {
   content: "\eea5";
@@ -119,6 +134,12 @@
 .icon-eye:before {
   content: "\eed4";
 }
+.icon-house-heart:before {
+  content: "\ef39";
+}
 .icon-github:before {
   content: "\efc4";
+}
+.icon-journal-bookmark:before {
+  content: "\f05f";
 }
