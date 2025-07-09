@@ -1,0 +1,35 @@
+---
+title: "Fear Wastes More Time Than Failure"
+pubDate: 2025-07-09
+description: "You'll never regret trying, but you might regret waiting; make it count"
+image:
+    url: "/src/assets/blog/start-today.png"
+    alt: "start now, thank yourself later"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- Never give up on a dream because of the time it will take, the time will pass anyway
+- One year from now, you'll be wishing you started today
+- Five years will go by with or without your effort
+- The dream doesn't wait, the clock doesn't care, but you can choose what you do with it
+- Progress takes time, but regret lasts even longer
+- Time's moving regardless, you might as well let it move you forward[^1]
+- Whatever is holding you back - whether it's the fear, the doubt, or the opinions of others; it does not compare to the strength and purpose that lives within you
+- Think of all you can accomplish if you moved past these
+- The time will pass anyway, but now it's in your hands
+
+[^1]:Hebrews 13:6 - So we say with confidence, “The Lord is my helper; I will not be afraid. What can mere mortals do to me?”
+
+</span>
+</BlogLayout>
