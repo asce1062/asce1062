@@ -22,7 +22,7 @@ Federated authentication and secure SSO flows for enterprise platforms, improvin
 🌱 **I’m currently learning**
 
 - Advanced observability with Datadog and distributed tracing
-- Astro framework by building my personal site. [Check it out!](https://github.com/asce1062/asce1062/tree/main/asce1062)
+- Astro framework by building my personal [site](https://alexmbugua.me/). Fully [open source](https://github.com/asce1062/asce1062/tree/main/asce1062).
 
 👯 **I’m looking to collaborate on**
 
@@ -81,7 +81,7 @@ Content management with Hygraph(graphQL), Auth0, SSO flows, SAML, OAuth, Terrafo
 
 ⚡ **Fun fact**
 
-When I’m not contributing to open source projects or reverse engineering things for fun, I compose chip music.
+When I’m not contributing to open source projects or reverse engineering things for fun, I [compose chip music](https://asce1062.github.io/).
 
 ---
 *P.S. I’m open to exciting new opportunities, especially roles where authentication, infrastructure, or education outcomes intersect with impact-driven engineering.* 🚀
