@@ -84,4 +84,4 @@ Content management with Hygraph(graphQL), Auth0, SSO flows, SAML, OAuth, Terrafo
 When I’m not contributing to open source projects or reverse engineering things for fun, I compose chip music.
 
 ---
-*P.S. I’m open to exciting new opportunities, especially roles where authentication, infrastructure, or education intersect with impact-driven engineering.* 🚀
+*P.S. I’m open to exciting new opportunities, especially roles where authentication, infrastructure, or education outcomes intersect with impact-driven engineering.* 🚀
