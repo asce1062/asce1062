@@ -1,0 +1,35 @@
+---
+title: "The Future Can Wait — Be Present"
+pubDate: 2025-07-17
+description: "We only get one life; stop waiting for the “real” part to begin"
+image:
+    url: "/src/assets/blog/be-present.png"
+    alt: "the second life begins when you wake up to the first"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- We have two lives, the second one begins when we realize we only have one
+- One thing I've found myself struggling with, is going through the motions
+- Let's get this day out of the way so I can get onto that greater future
+- Or something bad happened to me today, so I'll just get today over with and tomorrow will be better
+- But I'm realizing that every single thing happens to us exactly the way it's supposed to
+- Some days are not going to be amazing, and not everything is going to be sunshine and rainbows
+- Appreciate each day because nothing is guaranteed[^1]
+- We can't take today for granted; So instead of waiting for the future, appreciate the now
+- Whether it's the people, the opportunities, or the moments that we have right in front of us
+
+[^1]:Proverbs 27:1 - Do not boast about tomorrow, for you do not know what a day may bring.
+
+</span>
+</BlogLayout>
