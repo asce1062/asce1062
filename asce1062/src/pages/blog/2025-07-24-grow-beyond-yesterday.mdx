@@ -1,0 +1,32 @@
+---
+title: "Grow Beyond Yesterday"
+pubDate: 2025-07-24
+description: "Change is the current of life; flow with it"
+image:
+    url: "/src/assets/blog/current-of-life.png"
+    alt: "growth means leaving behind versions of yourself that once felt comfortable"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- No man ever steps in the same river twice; for it is not the same river, and he is not the same man
+- Change can feel scary, but scarier is no change at all
+- You're not meant to stay who you were last year, last month or even yesterday
+- Sometimes you'll feel like a stranger to your old self, and that's okay. That means you are moving
+- Let got of who you were, and embrace who you're becoming, because the river never stops flowing; and neither do you[^1]
+- Change is how new chapters are written, you just have to be willing to turn the page
+
+[^1]:Ecclesiastes 3:1 - There is a time for everything, and a season for every activity under the heavens
+
+</span>
+</BlogLayout>
