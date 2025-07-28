@@ -9,7 +9,7 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "predeploy": "astro check && astro build && mv ./dist/_astro ./dist/astro && node scripts/pre-deploy.js",
-    "deploy": "touch ./dist/.nojekyll && touch ./dist/CNAME && echo \"alexmbugua.me\" > ./dist/CNAME && gh-pages -d dist --branch alexmbugua --dotfiles",
+    "deploy": "gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -25,13 +25,13 @@
     "astro": "^5.9.2",
     "astro-og-canvas": "^0.7.0",
     "devicon": "^2.16.0",
+    "gh-pages": "^6.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
-    "astro-themes": "^0.2.6",
-    "gh-pages": "^6.3.0"
+    "astro-themes": "^0.2.6"
   }
 }
