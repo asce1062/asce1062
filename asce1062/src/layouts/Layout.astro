@@ -20,9 +20,9 @@ const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
 <html lang="en">
     <head>
       <meta charset="utf-8" />
-      <meta name="robots" content="index, follow" />
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
       <meta name="googlebot" content="index, follow, max-image-preview:large" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
       <meta name="generator" content={Astro.generator} />
       <link rel="canonical" href={permalink} />
       <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
@@ -30,20 +30,37 @@ const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
       <title>{pageTitle}</title>
       <meta name="title" content={pageTitle} />
       <meta name="description" content={pageDescription} />
+      <meta name="author" content="Alex Mbugua Ngugi" />
+      <meta name="keywords" content="leader, mentor, engineer, chip musician, site, portfolio, blog, guestbook, Alex Mbugua, Alex Ngugi, Alex Mbugua Ngugi, asce1062, Alex.Immer" />
       <!-- Open Graph / Facebook -->
       <meta property="og:type" content="website" />
       <meta property="og:url" content={permalink} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={ogImageURL} />
+      <meta property="og:image:alt" content={`${pageTitle} - ${pageDescription}`} />
+      <meta property="og:site_name" content="Alex Mbugua Ngugi" />
+      <meta property="og:locale" content="en_US" />
       <!-- Twitter -->
       <meta property="twitter:card" content="summary_large_image" />
       <meta property="twitter:url" content={permalink} />
       <meta property="twitter:title" content={pageTitle} />
       <meta property="twitter:description" content={pageDescription} />
       <meta property="twitter:image" content={ogImageURL} />
+      <meta property="twitter:image:alt" content={`${pageTitle} - ${pageDescription}`} />
+      <meta property="twitter:creator" content="@asce1062" />
+      <meta property="twitter:site" content="@asce1062" />
       <link href="css/style.css" rel="stylesheet"/>
       <Themes defaultTheme="dark"/>
+      <!-- Language and Region -->
+      <meta name="language" content="English" />
+      <meta name="geo.region" content="US" />
+      <meta name="geo.placename" content="United States" />
+      <!-- Additional SEO Meta Tags -->
+      <meta name="rating" content="General" />
+      <meta name="distribution" content="Global" />
+      <meta name="revisit-after" content="7 days" />
+      <meta name="format-detection" content="telephone=no" />
     </head>
     <style is:inline>
         body {
