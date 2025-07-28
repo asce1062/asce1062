@@ -57,8 +57,10 @@
         "repo": "https://github.com/asce1062/asce1062.github.io",
         "description": "Website for all the music I make. Licensed under Attribution Non-Commercial Creative Commons License. For commercial uses, don't hesitate to contact me: tnkratos@gmail.com",
         "tools": [
-            { "name": "HTML", "icon": "icon-html" },
-            { "name": "CSS", "icon": "icon-css" }
+            { "name": "Astro", "icon": "icon-astro" },
+            { "name": "TailwindCSS", "icon": "icon-tailwindcss" },
+            { "name": "Typescript", "icon": "icon-typescript" },
+            { "name": "React", "icon": "icon-react" }
         ]
     },
     {
