@@ -7,6 +7,7 @@
         font-family: "0xProto";
         src: url("/fonts/0xProto/0xProtoNerdFont-Regular.ttf") format("truetype");
     }
+
     :root {
         --tangrey: #8e878c;
         --neutralgrey: #9f94a0;
@@ -17,6 +18,7 @@
         --lightblue: #cad5db;
         --dark: #120f19;
         --bold: #947b82;
+        --spacing-inline: clamp(20px, 4vw, 80px);
         font-family: "0xProto", monospace;
     }
 
@@ -62,6 +64,41 @@
     pre {
         color: white;
         font-family: "0xProto", monospace;
+        width: calc(100vw - (5 * var(--spacing-inline)));
+        max-width: 80ch;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        line-height: 1.4;
+        white-space: pre;
+        overflow-x: auto;
+    }
+
+
+    @media screen and (width < 640px) {
+        pre {
+            padding: 0.75rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    @media (min-width: 640px) {
+        pre {
+            padding: 1rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    @media (min-width: 768px) {
+        pre {
+            font-size: 1rem;
+            padding: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        pre {
+            padding: 2rem;
+        }
     }
 
     header {
@@ -72,8 +109,9 @@
         text-align: center;
     }
 
-    [class^="icon-"], [class*=" icon-"] {
-    text-decoration: none;
+    [class^="icon-"],
+    [class*=" icon-"] {
+        text-decoration: none;
     }
 
     .icon {
@@ -82,7 +120,9 @@
 
 
     @media screen and (width < 640px) {
-        p, ul {
+
+        p,
+        ul {
             font-size: 14px;
         }
     }
@@ -93,6 +133,7 @@
     h1 {
         @apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-white;
     }
+
     h2 {
         @apply mt-0 text-xl transition-all duration-100 md:text-2xl;
     }
@@ -105,7 +146,11 @@
         @apply w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white;
     }
 
-    p, ul, span, div, pre {
+    p,
+    ul,
+    span,
+    div,
+    pre {
         @apply text-black dark:text-white;
     }
 
@@ -113,11 +158,18 @@
         @apply list-disc list-inside
     }
 
+    ol {
+        @apply list-decimal ml-14
+    }
+
     li {
         @apply my-1
     }
 
-    h2, h4, a, b {
+    h2,
+    h4,
+    a,
+    b {
         @apply text-light-300 dark:text-palette-300
     }
 
@@ -129,6 +181,19 @@
         @apply my-4 bg-white p-2 font-normal rounded-md dark:bg-palette-900
     }
 
+    code:not(pre code) {
+        @apply px-1 py-0.5 rounded font-normal text-sm;
+        @apply bg-palette-200 text-light-300;
+        @apply dark:bg-white/10 dark:text-palette-400;
+    }
+
+    blockquote {
+        @apply border-l-4 border-palette-300 pl-4 pr-2 italic;
+        @apply bg-palette-100/20 dark:bg-white/5;
+        @apply my-4 py-2;
+        @apply text-palette-600 dark:text-palette-200;
+    }
+
 }
 
 
@@ -138,7 +203,8 @@
     padding-left: 2rem;
     padding-right: 2rem;
     padding-bottom: 5.5vh;
-    @media (width >= 64rem) {
+
+    @media (width >=64rem) {
         width: 50%;
     }
 }

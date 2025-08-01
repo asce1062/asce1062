@@ -21,7 +21,7 @@ Federated authentication and secure SSO flows for enterprise platforms, improvin
 
 🌱 **I’m currently learning**
 
-- Advanced observability with Datadog and distributed tracing
+- Advanced observability and distributed tracing with Datadog
 - Astro framework by building my personal [site](https://alexmbugua.me/). Fully [open source](https://github.com/asce1062/asce1062/tree/main/asce1062).
 
 👯 **I’m looking to collaborate on**

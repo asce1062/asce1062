@@ -22,3 +22,14 @@ export interface TimelineEntry {
     description5?: string;
     moreInformation?: string;
 }
+
+export interface Frontmatter {
+    title: string;
+    description: string;
+    image: {
+        url: string;
+        alt: string;
+    };
+    pubDate: string;
+    tags: string[];
+}

@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "homepage": "https://asce1062.github.io/asce1062",
-
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -11,18 +10,19 @@
     "predeploy": "astro check && astro build && mv ./dist/_astro ./dist/astro && node scripts/pre-deploy.js",
     "deploy": "gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/mdx": "4.3.0",
+    "@astrojs/mdx": "^4.3.2",
     "@astrojs/react": "^4.3.0",
     "@astrojs/rss": "^4.0.12",
-    "@astrojs/sitemap": "^3.4.1",
+    "@astrojs/sitemap": "^3.4.2",
     "@astrojs/tailwind": "^6.0.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "astro": "^5.9.2",
+    "astro": "^5.12.7",
     "astro-og-canvas": "^0.7.0",
     "devicon": "^2.16.0",
     "gh-pages": "^6.3.0",
