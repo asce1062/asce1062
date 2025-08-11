@@ -9,6 +9,9 @@ import mdx from '@astrojs/mdx';
 export default defineConfig({
   site: 'https://alexmbugua.me/',
   //output: "server",
+  build: {
+    assets: 'astro'
+  },
   integrations: [tailwind({applyBaseStyles:true}), sitemap({
           filter: page => page !== 'https://alexmbugu.me/404'
       }), mdx()]

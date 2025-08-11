@@ -158,7 +158,7 @@
         @apply list-disc list-inside
     }
 
-    ol {
+    ol:not(.relative):not(.footnotes ol) {
         @apply list-decimal ml-14
     }
 

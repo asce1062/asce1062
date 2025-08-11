@@ -2,11 +2,10 @@
 import Layout from "../../layouts/Layout.astro";
 import Columns from "../../components/Columns.astro";
 import Post from '../../components/Post.astro';
-import type { MarkdownInstance } from 'astro';
-import type { Frontmatter } from "../../types";
+import { getCollection } from 'astro:content';
 
-const posts = Object.values(import.meta.glob<MarkdownInstance<Frontmatter>>("../blog/*.mdx", { eager: true }));
-posts.sort((a, b) => Date.parse(b.frontmatter.pubDate) - Date.parse(a.frontmatter.pubDate));
+const posts = await getCollection('blog');
+posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
@@ -17,11 +16,11 @@ posts.sort((a, b) => Date.parse(b.frontmatter.pubDate) - Date.parse(a.frontmatte
             <Columns>
                 {posts.map(post => (
                 <Post
-                    name = {post.frontmatter.title},
-                    url={post.url},
-                    image={post.frontmatter.image.url},
-                    description={post.frontmatter.description},
-                    date={(post.frontmatter.pubDate).toString().slice(0,10)}/>))}
+                    name = {post.data.title},
+                    url={`/blog/${post.id.replace('.mdx', '')}`},
+                    image={post.data.image.url},
+                    description={post.data.description},
+                    date={post.data.pubDate.toISOString().slice(0,10)}/>))}
             </Columns>
         </body>
     </main>
