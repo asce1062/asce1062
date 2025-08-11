@@ -1,0 +1,149 @@
+---
+title: "How to Use IcoMoon to Create and Integrate High Quality Vector Icon Fonts"
+pubDate: 2025-08-11
+description: "Part 2 - IcoMoon Workflow: The Ultimate IcoMoon Workflow for Building & Updating Icon Fonts"
+image:
+    url: "/src/assets/blog/icomoon.png"
+    alt: "using icoMoon to create and integrate high-quality vector icon fonts"
+tags: ["icomoon", "icons", "howto", "tools"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+import ImageView from "../../components/ImageView.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+# Part 2: IcoMoon Workflow: How to Create & Manage Custom Icon Fonts Easily.
+
+<br/>
+In [Part 1](/blog/2025-08-01-how-to-use-icomoon-to-create-and-integrate-high-quality-vector-icon-fonts-part-1) of this series, we covered the basics of getting started with IcoMoon: picking icons, generating your font, and integrating it into your project.
+
+Now it’s time to dive into the fun stuff: **a workflow that keeps your icon font process smooth, consistent, and dare I say, enjoyable**.
+
+<br/>
+<br/>
+# **Decide on Icons Early in the Design Stage**
+
+Before you even touch a text editor, make the decision to use an icon font. This isn’t just a developer thing, it’s a design choice. Whether you’re the designer or you’re collaborating with one, agreeing to use icons from IcoMoon early on will save a ton of headaches later.
+
+That said… what if you just can’t find the perfect icon? No problem. IcoMoon lets you upload your own SVGs (we’ll explore this in Part 3).
+
+<br/>
+<br/>
+# **My IcoMoon Workflow**
+Once I have the design direction ready and I’m ready to start building the site, here’s the process I follow:
+
+1. Identify all the icons in the design
+    - Go through the mockups and note every icon you’ll need.
+
+2. Head to IcoMoon and select those icons (or upload custom ones).
+
+3. Generate your icon font
+    - Hit that Font button, review your selection, and download your generated font set.
+
+4. Organize your files
+    - Copy all four font formats (`.svg`, `.ttf`, `.woff`, `.woff2`) into your `/fonts/` directory.
+    - Keep the original IcoMoon download folder intact, you’ll want `index.html` handy for reference.
+
+5. Keep `index.html` open while coding
+    - This file lists all your selected icons along with their unicode values, making it easy to copy and paste the right code.
+
+<br/>
+<br/>
+# **Updating Your Icon Font Later**
+Design change? Client requests a new icon? No sweat. If you’ve kept your IcoMoon folder untouched, you can:
+
+- Reopen your original selection in IcoMoon
+- Add or replace icons
+- Regenerate the font
+- Copy the new font files back into `/fonts/`
+
+> When using IcoMoon, your modifications will automatically get saved in your browser's cache (using IndexedDB).
+>
+> It does not get uploaded to your user account on IcoMoon's servers. If you clear your browser's cache, this data will be lost.
+>
+> If you are using a [paid plan](https://icomoon.io/pricing), your changes will automatically get uploaded and synced to your account on IcoMoon's servers.
+>
+> Always version control the `selection.json` session file from IcoMoon (available in generated font pack .zip you downloaded or accessed from Main Menu → Manage Projects → Project Name → Download). This file is your safety net for making updates in the future.
+>
+> <ImageView image = "/src/assets/blog/icomoon/manage-projects.png" altText="Manage Projects"></ImageView>
+>
+> <ImageView image = "/src/assets/blog/icomoon/download-project-json.png" altText="Download Project.json"></ImageView>
+>
+> You may import this file both via the **Import Icons** button in the app, or via the **project manager** (accessed from Main Menu → Manage Projects). If you import your `selection.json` file via the project manager, your project settings will get imported too.
+>
+> <ImageView image = "/src/assets/blog/icomoon/import-icons.png" altText="Import Icons"></ImageView>
+>
+> <ImageView image = "/src/assets/blog/icomoon/load-project-json.png" altText="Load Project.json"></ImageView>
+>
+
+<br/>
+<br/>
+# **Integrating with SASS for Extra Convenience**
+These days, I write all my styles in `SASS`, which makes managing icon fonts even easier.
+
+1. Define variables in `_variables.scss`
+```scss
+$icon-font: "icomoon"; // Your icon font name
+$icon-github: "\efc4"; // Unicode for your github icon
+```
+
+2. Use pseudo-elements to insert icons
+```scss
+.foo {
+  &:before {
+    content: $icon-github;
+    font-family: $icon-font;
+    speak: none;
+    font-weight: normal;
+  }
+}
+```
+
+3. Or extend classes directly from IcoMoon’s `style.css`:
+```scss
+.foo {
+  &:before {
+    @extend .icon-github; //found in the downloaded style.css
+  }
+}
+```
+
+<br/>
+<br/>
+# **Creating a Silent Extendable Icon Class**
+For ultimate reusability, I like to make a silent extendable %icon class
+```scss
+%icon {
+  font-family: $icon-font;
+  speak: none;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+```
+
+Then use it wherever you need an icon
+```scss
+.foo {
+  &:before {
+    @extend %icon;
+    content: $icon-github;
+  }
+}
+```
+<br/>
+And it's that it. As easy as vector based pie!<br/>
+This workflow keeps your icons consistent, your code clean, and your future updates painless.
+
+In Part 3, we’ll take things up a notch with some ninja-level IcoMoon tricks that will really unlock the tool’s full potential.
+</span>
+</BlogLayout>

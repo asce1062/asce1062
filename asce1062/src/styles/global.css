@@ -191,7 +191,12 @@
         @apply border-l-4 border-palette-300 pl-4 pr-2 italic;
         @apply bg-palette-100/20 dark:bg-white/5;
         @apply my-4 py-2;
-        @apply text-palette-600 dark:text-palette-200;
+        @apply text-palette-800 dark:text-palette-200;
+    }
+
+    blockquote ol {
+        @apply text-palette-800 dark:text-palette-200;
+        @apply list-decimal ml-6;
     }
 
 }
