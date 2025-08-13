@@ -1,0 +1,301 @@
+---
+title: "How to Use IcoMoon to Create and Integrate High Quality Vector Icon Fonts"
+pubDate: 2025-08-13
+description: "Part 3 - IcoMoon Mastery: Advanced Icon Font Tips & Tricks for Mastering Icon Fonts"
+image:
+    url: "/src/assets/blog/icomoon.png"
+    alt: "icomoon tips covering editing, renaming, importing SVGs, pseudo-element icons"
+tags: ["icomoon", "icons", "howto", "tools"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+import ImageView from "../../components/ImageView.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+# Part 3: Ninja Tricks.
+
+<br/>
+This is the grand finale in our 3 part series on IcoMoon and icon fonts.<br/>
+In this post, we’ll cover pro-level tips or, as I like to call them, ninja tricks to help you get even more out of IcoMoon. Some are about working inside the app, and others will help you integrate icons more effectively into your projects.
+
+<br/>
+<br/>
+# **#1: Adding More Icon Sets**
+IcoMoon ships with a few sets preloaded, but you can load many more, some free, some paid.
+
+- In the Selection view, click Icon Library at the top right.
+<ImageView image = "/src/assets/blog/icomoon/icon-library.png" altText="Icon Library"></ImageView>
+
+- Browse or search for additional sets.
+<ImageView image = "/src/assets/blog/icomoon/icon-sets.png" altText="Available Icon Sets"></ImageView>
+
+- Click Add to make them available in your project.
+<ImageView image = "/src/assets/blog/icomoon/add-icon-sets.png" altText="Add Icon Sets"></ImageView>
+>
+> Free icon packs are usually under a Creative Commons license (CC). Always check the license before use.
+>
+
+<br/>
+<br/>
+# **#2: Editing Icons Inside IcoMoon**
+Need to rotate, flip, resize, or rename an icon before adding it to your font? IcoMoon has a built in Edit Mode.
+
+- From the Selection view, click the Edit (pencil) icon.
+<ImageView image = "/src/assets/blog/icomoon/edit-icon.png" altText="Edit Icon"></ImageView>
+
+- Click the icon you want to modify.
+<ImageView image = "/src/assets/blog/icomoon/select-icon.png" altText="Select Icon"></ImageView>
+
+- Use the edit icon toolbox modal to:
+1. Rotate/Mirror
+    - Spin your icon or flip it horizontally/vertically
+2. Move
+    - Shift the icon’s position on the canvas without changing its shape
+3. Scale
+    - Resize the icon proportionally or stretch it if needed
+4. Canvas/Alignment
+    - Adjust the icon’s canvas size and alignment so it sits perfectly in your design
+<ImageView image = "/src/assets/blog/icomoon/edit-icon-modal.png" altText="Edit Icon Toolbox Modal"></ImageView>
+>
+> This is especially handy when CSS scaling causes side effects. Editing directly in the font keeps the proportions perfect.
+>
+
+<br/>
+<br/>
+# **#3: Importing Your Own SVG Icons (and Public Icon Sets)**
+If the icon you need isn’t already in IcoMoon, or you’d like to tap into other free icon libraries, you can bring your own.
+
+- Create or open your icon in a vector editor (e.g. Adobe Illustrator, Figma, Gimp, Inkscape).
+- Export as SVG 1.1.
+- In IcoMoon’s Selection view, click Import Icons.
+<ImageView image = "/src/assets/blog/icomoon/import-icon.png" altText="Import Icon"></ImageView>
+
+- Upload your SVG file.
+- Name your imported icon set for easy reference. This helps keep things organized if you’re mixing multiple libraries.
+<ImageView image = "/src/assets/blog/icomoon/icon-set-properties.png" altText="Icon Set Properties"></ImageView>
+<ImageView image = "/src/assets/blog/icomoon/edit-icon-set-metadata.png" altText="Edit Icon Set Metadata"></ImageView>
+
+- If the icon has colors, **remove all colors** so you can style it with CSS later. Solid black vector paths work best.
+<ImageView image = "/src/assets/blog/icomoon/remove-icon-set-colors.png" altText="Remove Icon Set Colors"></ImageView>
+- Once imported, you can edit it just like any other icon in IcoMoon.
+>
+> Many popular icon libraries like [Bootstrap Icons](https://icons.getbootstrap.com/) and [Devicons](https://devicon.dev/) are openly available as SVGs. Just download the ones you want, import them straight into IcoMoon and clean them up (remove all colors).
+>
+
+<br/>
+<br/>
+# **#4: Renaming Your Font**
+By default IcoMoon maintains the original icon names from your uploaded SVGs.<br/>
+That means when you import icons from outside libraries like [Devicons](https://devicon.dev/), you’ll often see names such as `javascript-plain`, `nodejs-original`, or whatever the file was named during the import.
+
+To keep your naming consistent and CSS-friendly:
+
+- Open Edit Mode (see **Ninja Trick #2**) — click the Edit (pencil) on the **Selection view**, then click the icon you want to change.
+- Rename in the Toolbox Modal.<br/>
+In the modal, update the **Names** field (e.g. change `javascript-plain` → `javascript`). This updates the exported class (e.g. .icon-javascript) at download time.
+- Optionally, rename any icons directly in the Font tab before downloading.
+<ImageView image = "/src/assets/blog/icomoon/rename-icon-before-downloading.png" altText="Rename Icon Before Downloading"></ImageView>
+>
+> Consistent, readable names make your icon CSS classes easier to remember and prevent conflicts when you merge multiple icon sets in one project.
+>
+
+<br/>
+<br/>
+# **#5: Saving Your Session**
+When using IcoMoon, your modifications will automatically get saved in your browser's cache (using IndexedDB).
+
+It does not get uploaded to your user account on IcoMoon's servers. If you clear your browser's cache, this data will be lost.
+
+If you are using a [paid plan](https://icomoon.io/pricing), your changes will automatically get uploaded and synced to your account on IcoMoon's servers.
+
+Always version control the `selection.json` session file from IcoMoon (available in generated font pack .zip you downloaded or accessed from Main Menu → Manage Projects → Project Name → Download). This file is your safety net for making updates in the future.
+
+<ImageView image = "/src/assets/blog/icomoon/manage-projects.png" altText="Manage Projects"></ImageView>
+
+<ImageView image = "/src/assets/blog/icomoon/download-project-json.png" altText="Download Project.json"></ImageView>
+
+You may import this file both via the **Import Icons** button in the app, or via the **project manager** (accessed from Main Menu → Manage Projects). If you import your `selection.json` file via the project manager, your project settings will get imported too.
+<ImageView image = "/src/assets/blog/icomoon/import-icons.png" altText="Import Icons"></ImageView>
+<ImageView image = "/src/assets/blog/icomoon/load-project-json.png" altText="Load Project.json"></ImageView>
+>
+> Store your `selection.json` alongside your project files (and in version control).
+> You can load it later from `Import Project` and pick up exactly where you left off, even on a different computer.
+> <ImageView image = "/src/assets/blog/icomoon/import-project-json.png" altText="Import Project.json"></ImageView>
+>
+
+<br/>
+<br/>
+# **#6: Changing an Icon with JavaScript / jQuery**
+This one puzzled me recently, so I thought I’d save you the trouble. Let’s say you have an icon in your HTML, and you want to change it dynamically. For example, toggling between a pause icon and a play icon on a button.
+
+With IcoMoon’s newer class-based approach, we don’t have to mess with HTML entities. We can just swap out icon classes directly.
+
+`HTML`
+```html
+<a href="#" id="pausePlayButton" class="btn">
+  <i class="icon-play mr-2" id="playPauseIcon" aria-hidden="true"></i>
+  Play
+</a>
+```
+
+`JavaScript (jQuery)`
+```javascript
+$("#pausePlayButton").click(function (e) {
+  e.preventDefault();
+
+  $("#playPauseIcon").toggleClass("icon-play icon-pause");
+
+  // Optionally, update the button text too
+  const isPlaying = $("#playPauseIcon").hasClass("icon-pause");
+  $(this).contents().last()[0].textContent = isPlaying ? " Pause" : " Play";
+});
+```
+What’s happening here:
+
+- We give the icon its own id so we can target it directly.
+- We toggle between `icon-play` and `icon-pause` classes provided by IcoMoon.
+- We also update the button text so the user knows the current state.
+
+If you're curious how it looked in my final implementation
+
+`HTML`
+```html
+<button id="playPauseBtn" class="flex items-center gap-2">
+  <i id="playPauseIcon" class="icon-play"></i>
+  Play
+</button>
+
+<script>
+  const btn = document.getElementById('playPauseBtn');
+  const icon = document.getElementById('playPauseIcon');
+
+  btn.addEventListener('click', () => {
+    if (icon.classList.contains('icon-play')) {
+      icon.classList.replace('icon-play', 'icon-pause');
+      btn.lastChild.textContent = ' Pause';
+    } else {
+      icon.classList.replace('icon-pause', 'icon-play');
+      btn.lastChild.textContent = ' Play';
+    }
+  });
+</script>
+```
+The best part? This approach is cleaner, easier to read, and works seamlessly with IcoMoon’s latest class naming.
+
+<br/>
+<br/>
+# **#7: Sass Mixin Magic for Icon Classes (with Pseudo-Element Support)**
+Using [Sass](https://sass-lang.com/) with icon fonts makes your workflow faster, cleaner, and much more maintainable.<br/>
+You can also create mixins that work both for inline icons and pseudo-elements (`::before` / `::after`).
+
+<br/>
+- Extendable base class
+```scss
+%icon {
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+```
+
+<br/>
+- Flexible mixin for class-based icons
+```scss
+@mixin icon-class($class, $pseudo: null) {
+  @if $pseudo {
+    &::#{$pseudo} {
+      @extend %icon;
+      @extend .#{$class};
+    }
+  } @else {
+    @extend %icon;
+    @extend .#{$class};
+  }
+}
+```
+- `$class` → the IcoMoon class name (e.g., icon-play, icon-pause)
+- `$pseudo` → optional (before or after) if you want the icon injected with CSS only
+
+<br/>
+- **Usage examples**
+1. Inline Icon (HTML element)
+
+    - `SCSS`
+    ```scss
+    .button-play {
+      @include icon-class('icon-play');
+    }
+    ```
+    <br/>
+    - `HTML`
+    ```html
+    <button class="button-play">Play</button>
+    ```
+2. Pseudo-Element icon
+
+    - `SCSS`
+    ```scss
+    .button-play::before {
+      @include icon-class('icon-play', before);
+      margin-right: 0.5rem;
+    }
+    ```
+    <br/>
+    - `HTML`
+    ```html
+    <button class="button-play">Play</button>
+    ```
+3. Play/Pause toggle
+
+    - `SCSS`
+    ```scss
+    .button-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &.is-playing::before {
+        @include icon-class('icon-pause', before);
+      }
+
+      &:not(.is-playing)::before {
+        @include icon-class('icon-play', before);
+      }
+    }
+    ```
+    <br/>
+    - `HTML`
+    ```html
+    <button id="playPauseBtn" class="button-toggle">Play</button>
+    ```
+    <br/>
+    - `JavaScript`
+    ```javascript
+    const btn = document.getElementById('playPauseBtn');
+
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('is-playing');
+      btn.textContent = btn.classList.contains('is-playing') ? 'Pause' : 'Play';
+    });
+    ```
+This approach keeps your CSS lean and your icon usage consistent.
+
+<br/>
+# **Wrapping Up**
+That’s a wrap on our three part dive into IcoMoon and icon fonts. We’ve covered some nifty tricks to help you take full control of your icons. From importing and editing, to keeping your styles clean and consistent.<br/>
+Keep an eye out for future installments where we’ll explore advanced moves like ligatures, custom character mapping, and other ways to squeeze even more magic out of icon fonts.
+</span>
+</BlogLayout>
