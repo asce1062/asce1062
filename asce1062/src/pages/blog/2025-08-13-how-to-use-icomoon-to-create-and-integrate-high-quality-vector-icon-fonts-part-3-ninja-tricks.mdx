@@ -230,66 +230,71 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 - `$pseudo` → optional (before or after) if you want the icon injected with CSS only
 
 <br/>
-- **Usage examples**
-1. Inline Icon (HTML element)
+### **Usage examples**
+<br/>
+#### Inline Icon (HTML element)
+<br/>
+- `SCSS`
+```scss
+.button-play {
+  @include icon-class('icon-play');
+}
+```
+<br/>
+- `HTML`
+```html
+<button class="button-play">Play</button>
+```
+<br/>
+<br/>
+#### Pseudo-Element icon
+<br/>
+- `SCSS`
+```scss
+.button-play::before {
+  @include icon-class('icon-play', before);
+  margin-right: 0.5rem;
+}
+```
+<br/>
+- `HTML`
+```html
+<button class="button-play">Play</button>
+```
+<br/>
+<br/>
+#### Play/Pause toggle practical example
+<br/>
+- `SCSS`
+```scss
+.button-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 
-    - `SCSS`
-    ```scss
-    .button-play {
-      @include icon-class('icon-play');
-    }
-    ```
-    <br/>
-    - `HTML`
-    ```html
-    <button class="button-play">Play</button>
-    ```
-2. Pseudo-Element icon
+  &.is-playing::before {
+    @include icon-class('icon-pause', before);
+  }
 
-    - `SCSS`
-    ```scss
-    .button-play::before {
-      @include icon-class('icon-play', before);
-      margin-right: 0.5rem;
-    }
-    ```
-    <br/>
-    - `HTML`
-    ```html
-    <button class="button-play">Play</button>
-    ```
-3. Play/Pause toggle
+  &:not(.is-playing)::before {
+    @include icon-class('icon-play', before);
+  }
+}
+```
+<br/>
+- `HTML`
+```html
+<button id="playPauseBtn" class="button-toggle">Play</button>
+```
+<br/>
+- `JavaScript`
+```javascript
+const btn = document.getElementById('playPauseBtn');
 
-    - `SCSS`
-    ```scss
-    .button-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      &.is-playing::before {
-        @include icon-class('icon-pause', before);
-      }
-
-      &:not(.is-playing)::before {
-        @include icon-class('icon-play', before);
-      }
-    }
-    ```
-    <br/>
-    - `HTML`
-    ```html
-    <button id="playPauseBtn" class="button-toggle">Play</button>
-    ```
-    <br/>
-    - `JavaScript`
-    ```javascript
-    const btn = document.getElementById('playPauseBtn');
-
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('is-playing');
-      btn.textContent = btn.classList.contains('is-playing') ? 'Pause' : 'Play';
-    });
+btn.addEventListener('click', () => {
+  btn.classList.toggle('is-playing');
+  btn.textContent = btn.classList.contains('is-playing') ? 'Pause' : 'Play';
+});
     ```
 This approach keeps your CSS lean and your icon usage consistent.
 
