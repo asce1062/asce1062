@@ -152,44 +152,22 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 <span class="line"><span style="color:#E1E4E8">}</span></span></code></pre><ul>
 <li><code>$class</code> → the IcoMoon class name (e.g., icon-play, icon-pause)</li>
 <li><code>$pseudo</code> → optional (before or after) if you want the icon injected with CSS only</li>
-</ul><br/><ul>
-<li><strong>Usage examples</strong></li>
-</ul><ol>
-<li>
-<p>Inline Icon (HTML element)</p>
-<ul>
+</ul><br/><h3 id="usage-examples"><strong>Usage examples</strong></h3><br/><h4 id="inline-icon-html-element">Inline Icon (HTML element)</h4><br/><ul>
 <li><code>SCSS</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-play</span><span style="color:#E1E4E8"> {</span></span>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-play</span><span style="color:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#F97583">  @include</span><span style="color:#B392F0"> icon-class</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;icon-play&#39;</span><span style="color:#E1E4E8">);</span></span>
-<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
-<br/>
-<ul>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre><br/><ul>
 <li><code>HTML</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-play&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre>
-</li>
-<li>
-<p>Pseudo-Element icon</p>
-<ul>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-play&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre><br/><br/><h4 id="pseudo-element-icon">Pseudo-Element icon</h4><br/><ul>
 <li><code>SCSS</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-play::before</span><span style="color:#E1E4E8"> {</span></span>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-play::before</span><span style="color:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#F97583">  @include</span><span style="color:#B392F0"> icon-class</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;icon-play&#39;</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">before</span><span style="color:#E1E4E8">);</span></span>
 <span class="line"><span style="color:#79B8FF">  margin-right</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.5</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
-<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
-<br/>
-<ul>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre><br/><ul>
 <li><code>HTML</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-play&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre>
-</li>
-<li>
-<p>Play/Pause toggle</p>
-<ul>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-play&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre><br/><br/><h4 id="playpause-toggle-practical-example">Play/Pause toggle practical example</h4><br/><ul>
 <li><code>SCSS</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-toggle</span><span style="color:#E1E4E8"> {</span></span>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="scss"><code><span class="line"><span style="color:#B392F0">.button-toggle</span><span style="color:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#79B8FF">  display</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">flex</span><span style="color:#E1E4E8">;</span></span>
 <span class="line"><span style="color:#79B8FF">  align-items</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">center</span><span style="color:#E1E4E8">;</span></span>
 <span class="line"><span style="color:#79B8FF">  gap</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.5</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
@@ -201,22 +179,14 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 <span class="line"><span style="color:#85E89D">  &amp;</span><span style="color:#B392F0">:not</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">.is-playing</span><span style="color:#E1E4E8">)</span><span style="color:#B392F0">::before</span><span style="color:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#F97583">    @include</span><span style="color:#B392F0"> icon-class</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;icon-play&#39;</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">before</span><span style="color:#E1E4E8">);</span></span>
 <span class="line"><span style="color:#E1E4E8">  }</span></span>
-<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
-<br/>
-<ul>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre><br/><ul>
 <li><code>HTML</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> id</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;playPauseBtn&quot;</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-toggle&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre>
-<br/>
-<ul>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">button</span><span style="color:#B392F0"> id</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;playPauseBtn&quot;</span><span style="color:#B392F0"> class</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">&quot;button-toggle&quot;</span><span style="color:#E1E4E8">&gt;Play&lt;/</span><span style="color:#85E89D">button</span><span style="color:#E1E4E8">&gt;</span></span></code></pre><br/><ul>
 <li><code>JavaScript</code></li>
-</ul>
-<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> btn</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> document.</span><span style="color:#B392F0">getElementById</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;playPauseBtn&#39;</span><span style="color:#E1E4E8">);</span></span>
+</ul><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="javascript"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> btn</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> document.</span><span style="color:#B392F0">getElementById</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;playPauseBtn&#39;</span><span style="color:#E1E4E8">);</span></span>
 <span class="line"></span>
 <span class="line"><span style="color:#E1E4E8">btn.</span><span style="color:#B392F0">addEventListener</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;click&#39;</span><span style="color:#E1E4E8">, () </span><span style="color:#F97583">=&gt;</span><span style="color:#E1E4E8"> {</span></span>
 <span class="line"><span style="color:#E1E4E8">  btn.classList.</span><span style="color:#B392F0">toggle</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;is-playing&#39;</span><span style="color:#E1E4E8">);</span></span>
 <span class="line"><span style="color:#E1E4E8">  btn.textContent </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> btn.classList.</span><span style="color:#B392F0">contains</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">&#39;is-playing&#39;</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">?</span><span style="color:#9ECBFF"> &#39;Pause&#39;</span><span style="color:#F97583"> :</span><span style="color:#9ECBFF"> &#39;Play&#39;</span><span style="color:#E1E4E8">;</span></span>
-<span class="line"><span style="color:#E1E4E8">});</span></span></code></pre>
-</li>
-</ol><p>This approach keeps your CSS lean and your icon usage consistent.</p><br/><h1 id="wrapping-up"><strong>Wrapping Up</strong></h1><p>That’s a wrap on our three part dive into IcoMoon and icon fonts. We’ve covered some nifty tricks to help you take full control of your icons. From importing and editing, to keeping your styles clean and consistent.<br/>
+<span class="line"><span style="color:#E1E4E8">});</span></span></code></pre><p>This approach keeps your CSS lean and your icon usage consistent.</p><br/><h1 id="wrapping-up"><strong>Wrapping Up</strong></h1><p>That’s a wrap on our three part dive into IcoMoon and icon fonts. We’ve covered some nifty tricks to help you take full control of your icons. From importing and editing, to keeping your styles clean and consistent.<br/>
 Keep an eye out for future installments where we’ll explore advanced moves like ligatures, custom character mapping, and other ways to squeeze even more magic out of icon fonts.</p></span> </main>  <footer> <p></p><div class="!flex !flex-wrap justify-between"> <b><a class="icon text-xs" href="/" aria-label="Visit the Home page"><i class="icon-house-heart mr-1"></i>Home</a></b> <b><a class="icon text-xs" href="/projects" aria-label="Visit the Projects page"><i class="icon-kanban mr-1"></i>Projects</a></b> <b><a class="icon text-xs" href="/blog" aria-label="Visit the Blog page"><i class="icon-bookmark-heart mr-1"></i>Blog</a></b> <b><a class="icon text-xs" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1"></i>Tags</a></b> <b><a class="icon text-xs" href="/guestbook" aria-label="Visit the Guestbook page"><i class="icon-journal-bookmark mr-1"></i>Guestbook</a></b> </div>  <div class="mx-auto mt-4 mb-10"> <span class="inline-block h-8 w-[10%] bg-palette-50 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-100 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-200 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-300 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-400 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-500 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="inline-block h-8 w-[10%] bg-palette-600 opacity-60 dark:opacity-100 ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> <i></i><p class="text-xs"><i>this website is <a href="https://github.com/asce1062/asce1062/tree/main/asce1062" target="_blank" rel="noopener noreferrer">open source</a>. made with astro and tailwindcss</i></p> </div> </footer> </div> </body></html>
