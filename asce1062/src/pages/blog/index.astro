@@ -11,7 +11,7 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
     <main>
         <body>
-            <h2>blog</h2>
+            <h2><a class="icon" href = "/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>blog</a></h2>
             <p>I'm happy you're here ^^</p>
             <Columns>
                 {posts.map(post => (
