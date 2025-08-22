@@ -1,6 +1,8 @@
 import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import fs from 'fs';
+import path from 'path';
 
 // Import all blog images
 import escapeRoomImg from '../assets/blog/2u-escape-room.jpg';
@@ -68,6 +70,14 @@ export async function GET(context: { site: string | URL }) {
     })
   );
 
+  const publicDir = path.resolve('./public');
+  const primaryImagePath = path.join(publicDir, 'social-preview.png');
+
+  // Use primary if it exists, otherwise fallback
+  const channelImage = fs.existsSync(primaryImagePath)
+    ? new URL('/social-preview.png', context.site).href
+    : new URL('/social-preview-no-bg.png', context.site).href;
+
   // Get most recent date for <lastBuildDate> and <pubDate>
   const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();
 
@@ -78,22 +88,52 @@ export async function GET(context: { site: string | URL }) {
     items: postsWithOptimizedImages.map((post) => ({
       title: post.data.title,
       pubDate: post.data.pubDate,
-      description: `<![CDATA[
-        <img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>
-        ${post.data.description}
-      ]]>`,
+      description: `<img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>${post.data.description}`,
       link: `/blog/${post.id.replace('.mdx', '')}/`,
       categories: post.data.tags,
     })),
-    customData: `<language>en</language>
+    customData: `
+      <language>en</language>
       <lastBuildDate>${lastBuildDate}</lastBuildDate>
       <pubDate>${lastBuildDate}</pubDate>
       <ttl>60</ttl>
       <generator>Astro RSS Generator</generator>
-      <atom:link href="${new URL('/rss.xml', context.site).href}" rel="self" type="application/rss+xml" />`,
+      <!-- Podcast Metadata for platforms like YouTube -->
+      <managingEditor>tnkratos@gmail.com (Alex Mbugua Ngugi)</managingEditor>
+      <image>
+        <url>${channelImage}</url>
+        <title>Alex Mbugua's Blog</title>
+        <link>${context.site}</link>
+      </image>
+      <itunes:owner>
+        <itunes:name>Alex Mbugua Ngugi</itunes:name>
+        <itunes:email>tnkratos@gmail.com</itunes:email>
+      </itunes:owner>
+      <itunes:author>Alex Mbugua Ngugi</itunes:author>
+      <itunes:explicit>no</itunes:explicit>
+      <itunes:category text="Society &amp; Culture">
+        <itunes:category text="Personal Journals" />
+      </itunes:category>
+      <itunes:category text="Society &amp; Culture">
+        <itunes:category text="Philosophy" />
+      </itunes:category>
+      <itunes:category text="Technology"/>
+      <itunes:category text="Religion &amp; Spirituality">
+        <itunes:category text="Spirituality" />
+      </itunes:category>
+      <itunes:category text="Religion &amp; Spirituality">
+        <itunes:category text="Christianity" />
+      </itunes:category>
+      <itunes:category text="Education">
+        <itunes:category text="How To" />
+      </itunes:category>
+      <itunes:category text="Music"/>
+      <atom:link href="${new URL('/rss.xml', context.site).href}" rel="self" type="application/rss+xml" />
+    `,
     xmlns: {
       dc: 'http://purl.org/dc/elements/1.1/',
       atom: 'http://www.w3.org/2005/Atom',
+      itunes: 'http://www.itunes.com/dtds/podcast-1.0.dtd',
     },
   });
 }

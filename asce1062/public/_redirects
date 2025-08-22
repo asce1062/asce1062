@@ -1,0 +1,37 @@
+# ----------------------------------------
+# Enforce HTTPS
+# ----------------------------------------
+http://*alexmbugua.me/*  https://alexmbugua.me/:splat  301!
+
+# ----------------------------------------
+# RSS Feed Shortcuts
+# ----------------------------------------
+/rss        /rss.xml  301
+/feed       /rss.xml  301
+/atom.xml   /rss.xml  301
+
+# ----------------------------------------
+# Sitemap Shortcuts
+# Redirect /sitemap.xml to the sitemap index
+# ----------------------------------------
+/sitemap.xml   /sitemap-index.xml  301
+
+# ----------------------------------------
+# Legacy Blog Patterns
+# Ensure /blog/YYYY/MM/DD/slug is future-proofed.
+# Example: /blog/2025/08/21/if-its-not-okay-its-not-the-end -> /blog/2025-08-21-if-its-not-okay-its-not-the-end
+# ----------------------------------------
+/blog/:year/:month/:day/:slug  /blog/:year-:month-:day-:slug/  301
+
+# ----------------------------------------
+# Trailing Slash Normalization
+# Ensure all blog URLs end with a slash for consistency
+# ----------------------------------------
+/blog/:slug  /blog/:slug/  301
+
+# ----------------------------------------
+# Handle 404s (Astro static fallback)
+# Point unmatched routes to /404.html page
+# Send users to custom 404 page
+# ----------------------------------------
+/*  /404.html  404
