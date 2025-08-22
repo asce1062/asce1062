@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Point to sitemap
-Sitemap: https://alexmbugua.me/sitemap.xml
+Sitemap: https://alexmbugua.me/sitemap-index.xml
 
 # Point to RSS feed
 Sitemap: https://alexmbugua.me/rss.xml

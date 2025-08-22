@@ -1,7 +1,10 @@
 /rss.xml
   Content-Type: application/rss+xml; charset=UTF-8
 
-/sitemap.xml
+/sitemap-index.xml
+  Content-Type: application/xml; charset=UTF-8
+
+/sitemap-0.xml
   Content-Type: application/xml; charset=UTF-8
 
 /robots.txt
