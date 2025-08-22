@@ -1,0 +1,9 @@
+# Allow all search engines to crawl everything
+User-agent: *
+Allow: /
+
+# Point to sitemap
+Sitemap: https://alexmbugua.me/sitemap.xml
+
+# Point to RSS feed
+Sitemap: https://alexmbugua.me/rss.xml
