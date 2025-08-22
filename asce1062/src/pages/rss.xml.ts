@@ -20,7 +20,7 @@ import walkFreeImg from '../assets/blog/walk-free.png';
 import icomoonImg from '../assets/blog/icomoon.png';
 import itWillBeOkayImg from '../assets/blog/it-will-be-okay-in-the-end.png';
 
-// Create image mapping
+// Map blog images for optimization
 const imageMap = {
   '/src/assets/blog/2u-escape-room.jpg': escapeRoomImg,
   '/src/assets/blog/profile.jpg': profileImg,
@@ -40,48 +40,60 @@ const imageMap = {
   '/src/assets/blog/it-will-be-okay-in-the-end.png': itWillBeOkayImg,
 };
 
-export async function GET(context: { site: string | URL; }) {
+export async function GET(context: { site: string | URL }) {
   const blog = await getCollection('blog');
 
   // Sort posts by publication date (newest first)
-  const sortedPosts = blog.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+  const sortedPosts = blog.sort(
+    (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+  );
 
   // Process images to get optimized URLs
-  const sortedPostsWithHeaderImages = await Promise.all(
+  const postsWithOptimizedImages = await Promise.all(
     sortedPosts.map(async (post) => {
       const imageAsset = imageMap[post.data.image.url];
-      if (imageAsset) {
-        const optimizedImage = await getImage({ src: imageAsset, format: 'webp' });
-        return {
-          ...post,
-          optimizedImageUrl: new URL(optimizedImage.src, context.site).href
-        };
-      } else {
-        // Fallback to original path conversion if image not in map
-        return {
-          ...post,
-          optimizedImageUrl: new URL(post.data.image.url.replace('/src/assets/', '/astro/'), context.site).href
-        };
-      }
+      const optimizedImage = imageAsset
+        ? await getImage({ src: imageAsset, format: 'webp' })
+        : null;
+
+      return {
+        ...post,
+        optimizedImageUrl: optimizedImage
+          ? new URL(optimizedImage.src, context.site).href
+          : new URL(
+              post.data.image.url.replace('/src/assets/', '/astro/'),
+              context.site
+            ).href,
+      };
     })
   );
 
+  // Get most recent date for <lastBuildDate> and <pubDate>
+  const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();
+
   return rss({
-    title: 'Alex Mbugua\'s Blog',
-    description: 'My space on the internet. Thoughts on life, tech, and everything in between. I\'m happy you\'re here ^^',
+    title: `Alex Mbugua's Blog`,
+    description: "My space on the internet. Thoughts on life, tech, and everything in between. I'm happy you're here ^^",
     site: context.site,
-    items: sortedPostsWithHeaderImages.map((post) => ({
+    items: postsWithOptimizedImages.map((post) => ({
       title: post.data.title,
       pubDate: post.data.pubDate,
-      description: `<img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>${post.data.description}`,
+      description: `<![CDATA[
+        <img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>
+        ${post.data.description}
+      ]]>`,
       link: `/blog/${post.id.replace('.mdx', '')}/`,
       categories: post.data.tags,
     })),
     customData: `<language>en</language>
-    <atom:link href="${new URL('/rss.xml', context.site).href}" rel="self" type="application/rss+xml" />`,
+      <lastBuildDate>${lastBuildDate}</lastBuildDate>
+      <pubDate>${lastBuildDate}</pubDate>
+      <ttl>60</ttl>
+      <generator>Astro RSS Generator</generator>
+      <atom:link href="${new URL('/rss.xml', context.site).href}" rel="self" type="application/rss+xml" />`,
     xmlns: {
-      dc: "http://purl.org/dc/elements/1.1/",
-      atom: "http://www.w3.org/2005/Atom"
-    }
+      dc: 'http://purl.org/dc/elements/1.1/',
+      atom: 'http://www.w3.org/2005/Atom',
+    },
   });
 }

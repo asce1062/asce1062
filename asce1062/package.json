@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && node scripts/fix-rss.js",
-    "predeploy": "astro check && astro build && node scripts/fix-rss.js",
+    "build": "astro build",
+    "predeploy": "astro check && astro build",
     "deploy": "gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles",
     "preview": "astro preview",
     "astro": "astro",
