@@ -27,8 +27,9 @@ const entries = await getGuestEntries();
 					<p>
             In the spirit of the beautifully chaotic, handcrafted web of yesteryear
             — when we all had personal homepages filled with <span class="blink">blinking text</span>,
-            dubious counters <b><strong>Visitor# <span id="counter">000000</span></strong></b>,
-            and way too many <marquee> marquee tags (not just to impress recruiters)</marquee>
+            dubious counters <strong>Visitor# <span id="counter">000000</span></strong>,
+            way too many <marquee> marquee tags</marquee> and
+            <span class="faded-text">color faded text (not just to impress recruiters)</span>,
             I've decided to bring back the classic guestbook.
           </p>
 					<p>Just keep in mind:
@@ -55,7 +56,8 @@ const entries = await getGuestEntries();
 						  </label>
 						</p>
 						<p>
-						  <label class="message">Message<br /><textarea name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write your thoughts here..."/></label>
+						  <label class="message">Message<br /><br />
+              <textarea name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write your thoughts here..."/></label>
 						</p>
             <p>
               <label class="consent"><input type="checkbox" required><small> I consent to <a href="https://www.netlify.com/platform/core/forms/" target="_blank" rel="noopener noreferrer">Netlify Forms</a> receiving this message and passing it through <a href="https://akismet.com/" target="_blank" rel="noopener noreferrer">Akismet</a> spam filtering.</small></label>
@@ -85,17 +87,21 @@ const entries = await getGuestEntries();
 .entry {
     margin: 5vmin 0;
 }
+
 .entry h2 {
     margin-bottom: 0;
 }
+
 .entry p {
     white-space: pre-line;
 }
+
 time {
     display: block;
     width: fit-content;
     margin: 0 0 3vmin auto;
 }
+
 .blink {
   animation: blink-animation 1s steps(2, start) infinite;
 }
@@ -104,6 +110,28 @@ time {
   to {
     visibility: hidden;
   }
+}
+
+marquee {
+  display: inline-block;
+  vertical-align: middle;
+  width: auto;
+  height: auto;
+}
+
+.faded-text {
+  background: linear-gradient(90deg, #8e878c, #9f94a0, #bbb8bb, #dcb8b0, #e5cab7, #9bb0cd, #cad5db);
+  /* background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffd93d); */
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 </style>
 

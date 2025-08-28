@@ -3,6 +3,7 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Themes from 'astro-themes';
 import "@/styles/global.css";
+import { BLOG_TITLE, DEFAULT_DESCRIPTION, SITE_TITLE_SUFFIX, SITE_AUTHOR } from "@/config";
 interface Props {
     title: string;
     description?: string;
@@ -13,8 +14,8 @@ const { title, description, ogImage } = Astro.props;
 const permalink = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageURL = new URL(ogImage, Astro.site).href;
 const rssURL = new URL("rss.xml", Astro.site);
-const pageDescription = description ? description : "Building secure, performant, scalable solutions in the cloud"
-const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
+const pageDescription = description ? description : DEFAULT_DESCRIPTION;
+const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 ---
 
 <!doctype html>
@@ -28,11 +29,11 @@ const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
       <link rel="canonical" href={permalink} />
       <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
       <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
-      <link rel="alternate" type="application/rss+xml" title="Alex Mbugua's Blog" href={rssURL} />
+      <link rel="alternate" type="application/rss+xml" title={BLOG_TITLE} href={rssURL} />
       <title>{pageTitle}</title>
       <meta name="title" content={pageTitle} />
       <meta name="description" content={pageDescription} />
-      <meta name="author" content="Alex Mbugua Ngugi" />
+      <meta name="author" content={SITE_AUTHOR} />
       <meta name="keywords" content="leader, mentor, engineer, chip musician, site, portfolio, blog, guestbook, Alex Mbugua, Alex Ngugi, Alex Mbugua Ngugi, asce1062, Alex.Immer" />
       <!-- Open Graph / Facebook -->
       <meta property="og:type" content="website" />
@@ -41,7 +42,7 @@ const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={ogImageURL} />
       <meta property="og:image:alt" content={`${pageTitle} - ${pageDescription}`} />
-      <meta property="og:site_name" content="Alex Mbugua Ngugi" />
+      <meta property="og:site_name" content={SITE_AUTHOR} />
       <meta property="og:locale" content="en_US" />
       <!-- Twitter -->
       <meta property="twitter:card" content="summary_large_image" />
@@ -78,7 +79,7 @@ const pageTitle = `${title} - Leader, Mentor, Engineer, Chip Musician`;
         }
       </style>
     <body class="z-1 m-0 h-full min-h-screen overflow-y-scroll bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] pt-0 font-proto text-white">
-        <div id="primary" class="z-2 m-auto grid min-h-screen w-11/12 px-8 pt-2 transition-all duration-100 lg:w-1/2" style="grid-template-rows: auto 1fr auto">
+        <div id="primary" class="z-2 m-auto grid min-h-screen p-8 transition-all duration-100 lg:w-1/2" style="grid-template-rows: auto 1fr auto">
             <Header/>
             <slot/>
             <Footer/>

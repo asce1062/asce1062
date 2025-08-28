@@ -199,6 +199,10 @@
         @apply list-decimal ml-6;
     }
 
+    details > :nth-child(n+2),
+    #expand-content p {
+        @apply pl-4 border-l p-2
+    }
 }
 
 

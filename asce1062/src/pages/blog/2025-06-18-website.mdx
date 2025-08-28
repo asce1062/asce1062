@@ -8,6 +8,7 @@ image:
 tags: ["blog"]
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
+import ImageView from "../../components/ImageView.astro";
 
 <BlogLayout
     title={frontmatter.title}
@@ -19,7 +20,9 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
 
 <span>
 A place to capture, organize, distill and express what I consume. I'm happy you're here ^^[^1]
-
-[^1]: 🏡 My space on the internet >> Still no clue who the cougars are, but the jumper kept me warm!
+<br/>
+<ImageView image = "/src/assets/blog/2u-escape-room.jpg" altText="#imp-just-us"></ImageView>
+<br/>
+[^1]:1. 🏡 My space on the internet >> Still no clue who the cougars are, but the jumper kept me warm!
 </span>
 </BlogLayout>

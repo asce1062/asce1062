@@ -1,6 +1,5 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import Columns from "../../components/Columns.astro";
 import Post from '../../components/Post.astro';
 import { getCollection } from 'astro:content';
 
@@ -13,15 +12,19 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
         <body>
             <h2><a class="icon" href = "/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>blog</a></h2>
             <p>I'm happy you're here ^^</p>
-            <Columns>
+            <div class = "flex flex-col gap-4">
                 {posts.map(post => (
                 <Post
                     name = {post.data.title},
                     url={`/blog/${post.id.replace('.mdx', '')}`},
                     image={post.data.image.url},
                     description={post.data.description},
-                    date={post.data.pubDate.toISOString().slice(0,10)}/>))}
-            </Columns>
+                    date={(new Date(post.data.pubDate)).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                })}/>))}
+            </div>
         </body>
     </main>
 </Layout>

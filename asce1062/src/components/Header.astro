@@ -7,12 +7,11 @@ const link = url.pathname.split("/").filter((i) => i);
 <header>
     <div id = "navigation" class = "mb-3">
         <ThemeSwitcher default="dark" />
-
-        <p>~/ <a class = "no-underline" href = "/">home</a>
-        { link ?
-        <span> { link.map((data, index) => <span> / <a class = "no-underline" href = {`/${link.slice(0, index + 1).join('/')}`}> {data}</a></span>) }
-        </span> : null}
-        </p>
+        <span>~/ <a class = "no-underline" href = "/">home</a>
+            { link ?
+            <span> { link.map((data, index) => <span> / <a class = "no-underline" href = {`/${link.slice(0, index + 1).join('/')}`}> {data}</a></span>) }
+            </span> : null}
+        </span>
     </div>
     <h1>hi, i'm Alex.</h1>
     <hr />

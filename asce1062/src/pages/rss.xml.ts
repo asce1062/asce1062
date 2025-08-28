@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 import fs from 'fs';
 import path from 'path';
+import { BLOG_TITLE, BLOG_DESCRIPTION } from '../config';
 
 // Import all blog images
 import escapeRoomImg from '../assets/blog/2u-escape-room.jpg';
@@ -82,8 +83,8 @@ export async function GET(context: { site: string | URL }) {
   const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();
 
   return rss({
-    title: `Alex Mbugua's Blog`,
-    description: "My space on the internet. Thoughts on life, tech, and everything in between. I'm happy you're here ^^",
+    title: BLOG_TITLE,
+    description: BLOG_DESCRIPTION,
     site: context.site,
     items: postsWithOptimizedImages.map((post) => ({
       title: post.data.title,
@@ -102,7 +103,7 @@ export async function GET(context: { site: string | URL }) {
       <managingEditor>tnkratos@gmail.com (Alex Mbugua Ngugi)</managingEditor>
       <image>
         <url>${channelImage}</url>
-        <title>Alex Mbugua's Blog</title>
+        <title>${BLOG_TITLE}</title>
         <link>${context.site}</link>
       </image>
       <itunes:owner>
@@ -129,6 +130,7 @@ export async function GET(context: { site: string | URL }) {
       </itunes:category>
       <itunes:category text="Music"/>
       <atom:link href="${new URL('/rss.xml', context.site).href}" rel="self" type="application/rss+xml" />
+      <copyright>© ${new Date().getFullYear()} Alex Mbugua Ngugi. You are free to Share i.e copy and redistribute the material in any medium or format. You are free to Adapt i.e transform, and build upon the material. Content by Alex Ngugi is licensed under Attribution Non-Commercial Creative Commons License (https://creativecommons.org/licenses/by-nc-sa/4.0/). For commercial uses, don't hesitate to contact me: mailto:tnkratos@gmail.com</copyright>
     `,
     xmlns: {
       dc: 'http://purl.org/dc/elements/1.1/',
