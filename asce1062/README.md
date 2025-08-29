@@ -1,4 +1,5 @@
 # [Website](https://alexmbugua.me/) [![Netlify Status](https://api.netlify.com/api/v1/badges/e4a4138b-ce8f-454c-8d78-0ee4f68631d4/deploy-status)](https://app.netlify.com/projects/alexmbugua/deploys)
+
 ![Website](https://raw.githubusercontent.com/asce1062/asce1062/refs/heads/main/asce1062/public/alexmbugua.me.png)
 
 - Personal site/portfolio/blog.
@@ -45,7 +46,7 @@ npm run build
 
 ### Deploying to Github Pages (Deploy from a branch)
 
-1. Run Pre-deploy script to sanitize `/dist`.
+1. Run Pre-deploy script.
 
 ```sh
 npm run predeploy
@@ -67,12 +68,30 @@ npm run deploy
 
 - Built on node 24
 - `/dist` output from step #5 `npm run build` can be deployed using workflows, or to any other platform that can host static files
-- `predeploy` script modifies `/dist` output for `gh-pages jekyll sites`
-  - Runs `scripts/pre-deploy.js` which removes underscores and fixes paths
+- For github branch deploys
   - Jekyll "ignores" directories/files with underscores [Issue #55](https://github.com/jekyll/jekyll/issues/55). This is a feature not a bug (they are treated as "special")
-    - Adding a `.nojekyll` does not [bypass Jekyll on GitHub pages](https://github.blog/news-insights/bypassing-jekyll-on-github-pages/) for us
-  - Creates a CNAME record pointing our branch deploy to our apex custom domain `alexmbugua.me`
-    - _CNAME record for `www` in the apex domain provider should point to `<username>.github.io`_
-- `deploy` script will:
-  - Run `predeploy` script
-  - Push to a branch of choice, `alexmbugua`, triggering automatic deploys
+
+  - Adding a `.nojekyll` does not [bypass Jekyll on GitHub pages](https://github.blog/news-insights/bypassing-jekyll-on-github-pages/) for us
+
+  - To address this we tell Astro to build out our assets in a directory without a leading underscore
+    - in our `astro.config.mjs`
+
+      ```javascript
+        build: {
+          assets: 'astro'
+        },
+      ```
+
+- We use a [gh-pages](https://www.npmjs.com/package/gh-pages) integration in our `deploy` script, `gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles`, that does a couple of things for us:
+    1. `-d dist` tells `gh-pages` to deploy the contents of the dist folder. This is the output directory from our Astro build
+    2. `--branch alexmbugua` deploys to my custom branch named `alexmbugua` instead of the default `gh-pages` branch.
+    3. `--nojekyll` creates a `.nojekyll` file that disables GitHub Pages' built-in Jekyll processing on branch deploys.
+    4. `--cname alexmbugua.me` creates a file named `CNAME` in the root of the deployed branch with the content:
+
+        ```cname
+        alexmbugua.me
+        ```
+
+        - This tells `github-pages` to map the site to my custom domain [alexmbugua.me](https://alexmbugua.me/).
+        - _CNAME record for `www` in the apex domain provider should point to `<username>.github.io`_
+    5. `--dotfiles` tells `gh-pages` to include hidden files (dotfiles) in the deployment.
