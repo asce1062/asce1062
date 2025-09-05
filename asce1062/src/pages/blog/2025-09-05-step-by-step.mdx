@@ -1,0 +1,37 @@
+---
+title: "Step by Step: Finding Strength in the Present"
+pubDate: 2025-09-05
+description: "The only moment you truly have is this one. Start where you are, move forward, step by step"
+image:
+    url: "/src/assets/blog/step-by-step.png"
+    alt: "the journey is now, not just the summit"
+tags: ["motivation"]
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}>
+
+<span>
+
+- Focus on the step in front of you, not the whole staircase
+- So often we get lost in the big picture. Overwhelmed by how far we have to go, or how high we have to climb
+- We focus on the summit, forgetting that every step matters
+- The journey isn't about the end, it's about the now
+- The step you're standing on, the one you can control, is the most important
+- Don't let the weight of the whole staircase paralyze you
+- Progress isn't always linear and success isn't about seeing the top right away
+- It's about moving forward, step by step
+- Don't let the fear of the climb stop you from taking the first step[^1]
+- The only moment you truly have is this one
+- Don't let the fear of what's next rob you of the power of today
+
+[^1]:1. Matthew 6:34 - Therefore do not worry about tomorrow, for tomorrow will worry about itself. Each day has enough trouble of its own.
+
+</span>
+</BlogLayout>
