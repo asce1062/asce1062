@@ -173,6 +173,11 @@
     pre {
         @apply px-1 py-0.5 my-4 rounded font-normal text-xs;
     }
+
+    #ascii-404 {
+        @apply text-center;
+        display: inline-block;
+    }
 }
 
 

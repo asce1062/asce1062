@@ -20,66 +20,65 @@ const entries = await getGuestEntries();
 
 <Layout title={title} ogImage="social-preview.png" description={description}>
 		<main>
-				<article>
-					<PreviewImage src = {image} altText = {title}/>
-					<h1>{title}</h1>
-					<p>{description}</p>
-					<p>
-            In the spirit of the beautifully chaotic, handcrafted web of yesteryear
-            — when we all had personal homepages filled with <span class="blink">blinking text</span>,
-            dubious counters <strong>Visitor# <span id="counter">000000</span></strong>,
-            way too many <marquee> marquee tags</marquee> and
-            <span class="faded-text">color faded text (not just to impress recruiters)</span>,
-            I've decided to bring back the classic guestbook.
-          </p>
-					<p>Just keep in mind:
-          <p>* It's not instant.</p>
-          <p>* Messages are moderated and will appear the next time I ship an update. Patience is retro, right? :]</p>
-					<form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded" action="/success">
-						<input type="hidden" name="form-name" value="guestbook" />
-						<p>
-						  <label>Name
-							<br /><input type="text" name="name" required /></label>
-						</p>
-						<p>
-						  <label>Email <small>(optional, not published)</small>
-							<br /><input type="email" name="email" /></label>
-						</p>
-						<p>
-						  <label>URL <small>(optional, linked from Name)</small>
-							<br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" /></label>
-						</p>
-						<p>
-						  <label>Subject <small>(please <b>skip</b> this field if you're real)</small>
-							<br /><input type="text" name="bot-field" placeholder="Leave me be!" />
-							<small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
-						  </label>
-						</p>
-						<p>
-						  <label class="message">Message<br /><br />
-              <textarea name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write your thoughts here..."/></label>
-						</p>
-            <p>
-              <label class="consent"><input type="checkbox" required><small> I consent to <a href="https://www.netlify.com/platform/core/forms/" target="_blank" rel="noopener noreferrer">Netlify Forms</a> receiving this message and passing it through <a href="https://akismet.com/" target="_blank" rel="noopener noreferrer">Akismet</a> spam filtering.</small></label>
-            </p>
-						<p>
-						  <button type="submit" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"><b>Sign Guestbook</b></button>
-						</p>
-					</form>
-          <PrivacyPolicy />
-          {Array.isArray(entries) && entries.map((entry:any) =>(
-						<article class="entry" style="max-width: 80ch; margin: 0 auto; padding: 6vmin 5.5vmin 5.5vmin;">
-							<h2>{entry.human_fields.Url && <a href={entry.human_fields.Url}>{entry.name}</a>}{!entry.human_fields.Url && entry.name}</h2>
-							<p>{entry.body}</p>
-							<time style="display: block; width: fit-content; margin: 0 0 3vmin auto;">{new Date(entry.created_at).toLocaleDateString('en-gb', {
-								year: 'numeric',
-								month: 'short',
-								day: 'numeric',
-							})}</time>
-						</article>
-					))}
-				</article>
-			</div>
+      <PreviewImage src = {image} altText = {title}/>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      <p>
+        In the spirit of the beautifully chaotic, handcrafted web of yesteryear
+        — when we all had personal homepages filled with <span class="blink">blinking text</span>,
+        dubious counters <strong>Visitor# <span id="counter">000000</span></strong>,
+        way too many <marquee> marquee tags</marquee> and
+        <span class="faded-text">color faded text (not just to impress recruiters)</span>,
+        I've decided to bring back the classic guestbook.
+      </p>
+      <p>Just keep in mind:
+        <ul>
+          <li>It's not instant.</li>
+          <li>Messages are moderated and will appear the next time I ship an update.</li>
+        </ul>
+      <form id="form" name="guestbook" method="POST" netlify-honeypot="bot-field" data-netlify="true" Content-Type="application/x-www-form-urlencoded" action="/success">
+        <input type="hidden" name="form-name" value="guestbook" />
+        <p>
+          <label>Name
+          <br /><input type="text" name="name" required /></label>
+        </p>
+        <p>
+          <label>Email <small>(optional, not published)</small>
+          <br /><input type="email" name="email" /></label>
+        </p>
+        <p>
+          <label>URL <small>(optional, linked from Name)</small>
+          <br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" /></label>
+        </p>
+        <p>
+          <label>Subject <small>(please <b>skip</b> this field if you're real)</small>
+          <br /><input type="text" name="bot-field" placeholder="Leave me be!" />
+          <small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
+          </label>
+        </p>
+        <p>
+          <label class="message">Message<br /><br />
+          <textarea name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Write your thoughts here..."/></label>
+        </p>
+        <p>
+          <label class="consent"><input type="checkbox" required><small> I consent to <a href="https://www.netlify.com/platform/core/forms/" target="_blank" rel="noopener noreferrer">Netlify Forms</a> receiving this message and passing it through <a href="https://akismet.com/" target="_blank" rel="noopener noreferrer">Akismet</a> spam filtering.</small></label>
+        </p>
+        <p>
+          <button type="submit" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"><b>Sign Guestbook</b></button>
+        </p>
+      </form>
+      <PrivacyPolicy />
+      {Array.isArray(entries) && entries.map((entry:any) =>(
+        <article class="entry" style="max-width: 80ch; margin: 0 auto; padding: 6vmin 5.5vmin 5.5vmin;">
+          <h2>{entry.human_fields.Url && <a href={entry.human_fields.Url}>{entry.name}</a>}{!entry.human_fields.Url && entry.name}</h2>
+          <p>{entry.body}</p>
+          <time style="display: block; width: fit-content; margin: 0 0 3vmin auto;">{new Date(entry.created_at).toLocaleDateString('en-gb', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}</time>
+        </article>
+      ))}
 		</main>
 </Layout>
 
@@ -120,8 +119,8 @@ marquee {
 }
 
 .faded-text {
-  background: linear-gradient(90deg, #8e878c, #9f94a0, #bbb8bb, #dcb8b0, #e5cab7, #9bb0cd, #cad5db);
-  /* background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffd93d); */
+  /* background: linear-gradient(90deg, #8e878c, #9f94a0, #bbb8bb, #dcb8b0, #e5cab7, #9bb0cd, #cad5db); */
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffd93d);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

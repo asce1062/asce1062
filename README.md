@@ -21,14 +21,14 @@ Federated authentication and secure SSO flows for enterprise platforms, improvin
 
 🌱 **I’m currently learning**
 
-- Advanced observability and distributed tracing with Datadog
+- Advanced observability and distributed tracing with Datadog.
 - Astro framework by building my personal [site](https://alexmbugua.me/). Fully [open source](https://github.com/asce1062/asce1062/tree/main/asce1062).
 
 👯 **I’m looking to collaborate on**
 
-- Designing multi-tenant SaaS authentication that gracefully supports both B2B and B2C flows
-- Initiatives building resilient infrastructure and serverless architectures
-- Open Source Projects in the authentication, DevTools, or EdTech space
+- Designing multi-tenant SaaS authentication that gracefully supports both B2B and B2C flows.
+- Initiatives building resilient infrastructure and serverless architectures.
+- Open Source Projects in the authentication, DevTools, or EdTech space.
 
 💬 **Ask me about**
 
