@@ -14,13 +14,24 @@ export interface Posts {
 export interface TimelineEntry {
     title: string;
     date: string;
-    description: string;
-    description1?: string;
-    description2?: string;
-    description3?: string;
-    description4?: string;
-    description5?: string;
+    descriptions: string[];
     moreInformation?: string;
+}
+
+export interface TimelineSection {
+    sectionTitle: string;
+    entries: TimelineEntry[];
+}
+
+export interface SkillCategory {
+    categoryTitle: string;
+    skills: string[];
+}
+
+export interface SkillsSection {
+    sectionTitle: string;
+    items?: string[];
+    categories?: SkillCategory[];
 }
 
 export interface Frontmatter {

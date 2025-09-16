@@ -19,12 +19,34 @@
         "tools": [{ "name": "GO", "icon": "icon-go" }]
     },
     {
+        "name": "Alex.Immer (Website)",
+        "url": "https://asce1062.github.io/",
+        "repo": "https://github.com/asce1062/asce1062.github.io",
+        "description": "Website for all the music I make. Licensed under Attribution Non-Commercial Creative Commons License. For commercial uses, don't hesitate to contact me: tnkratos@gmail.com",
+        "tools": [
+            { "name": "Astro", "icon": "icon-astro" },
+            { "name": "TailwindCSS", "icon": "icon-tailwindcss" },
+            { "name": "Typescript", "icon": "icon-typescript" },
+            { "name": "React", "icon": "icon-react" }
+        ]
+    },
+    {
         "name": "Alex.Immer (Android)",
-        "url": "https://asce1062.github.io/Android%20Application/alex_immer.apk",
+        "url": "",
         "repo": "https://github.com/asce1062/Alex.Immer",
         "description": "An android module player for all my OpenMPT projects.",
         "tools": [
             { "name": "C++", "icon": "icon-cplusplus" },
+            { "name": "Java", "icon": "icon-java" },
+            { "name": "Android", "icon": "icon-android" }
+        ]
+    },
+    {
+        "name": "Alex.Immer (Android-Webview)",
+        "url": "https://github.com/asce1062/Alex.Immer/raw/refs/heads/webview/app/release/app-release.apk",
+        "repo": "https://github.com/asce1062/Alex.Immer/tree/webview",
+        "description": "A webview companion app for my music player website.",
+        "tools": [
             { "name": "Java", "icon": "icon-java" },
             { "name": "Android", "icon": "icon-android" }
         ]
@@ -52,22 +74,10 @@
         ]
     },
     {
-        "name": "Alex.Immer (Website)",
-        "url": "https://asce1062.github.io/",
-        "repo": "https://github.com/asce1062/asce1062.github.io",
-        "description": "Website for all the music I make. Licensed under Attribution Non-Commercial Creative Commons License. For commercial uses, don't hesitate to contact me: tnkratos@gmail.com",
-        "tools": [
-            { "name": "Astro", "icon": "icon-astro" },
-            { "name": "TailwindCSS", "icon": "icon-tailwindcss" },
-            { "name": "Typescript", "icon": "icon-typescript" },
-            { "name": "React", "icon": "icon-react" }
-        ]
-    },
-    {
-        "name": "Xiaomi Mi 6 Device Tree",
+        "name": "Xiaomi Mi 6 (sagit) Resurrection Remix Device Tree",
         "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
         "repo": "https://github.com/asce1062/android_device_xiaomi_sagit",
-        "description": "Xiaomi MI 6 (sagit) unofficial device tree. Build your own Custom ROM.",
+        "description": "Xiaomi MI 6 (sagit) unofficial device tree. Build your own Custom Resurrection Remix ROM.",
         "tools": [
             { "name": "C", "icon": "icon-c" },
             { "name": "C++", "icon": "icon-cplusplus" },
@@ -80,7 +90,7 @@
         ]
     },
     {
-        "name": "Xiaomi Mi 6 (sagit) Vendor Files",
+        "name": "Xiaomi Mi 6 (sagit) Resurrection Remix Vendor Files",
         "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
         "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_sagit",
         "description": "Xiaomi MI 6 (sagit) vendor files.",
@@ -91,7 +101,7 @@
         ]
     },
     {
-        "name": "Xiaomi MI 6 (sagit) Custom Repo",
+        "name": "Xiaomi MI 6 (sagit) Resurrection Remix Custom Repo",
         "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
         "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_custom",
         "description": "Xiaomi MI 6 (sagit) custom device fixes and patches.",
@@ -103,7 +113,7 @@
         ]
     },
     {
-        "name": "MSM8998 (Snapdragon 835) Vendor Files",
+        "name": "MSM8998 (Snapdragon 835) Resurrection Remix Vendor Files",
         "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
         "repo": "https://github.com/asce1062/proprietary_vendor_xiaomi_msm8998-common",
         "description": "Xiaomi msm8998-common vendor files.",
@@ -114,7 +124,7 @@
         ]
     },
     {
-        "name": "hardware_qcom_audio MSM8998 (Snapdragon 835)",
+        "name": "Resurrection Remix hardware_qcom_audio MSM8998 (Snapdragon 835)",
         "url": "https://xdaforums.com/t/rom-7-1-2-unofficial-resurrectionremix-5-8-5-03-02.3654879/",
         "repo": "https://github.com/asce1062/hardware_qcom_audio",
         "description": "Fixes to hardware_qcom_audio for msm8998 (Snapdragon 835) SoC for Xiaomi MI 6 (sagit).",
@@ -189,7 +199,7 @@
         ]
     },
     {
-        "name": "msm7x27a (Snapdragon S1) Common",
+        "name": "Mahdi-Rom msm7x27a (Snapdragon S1) Common",
         "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
         "repo": "https://github.com/asce1062/android_device_lge_msm7x27a-common",
         "description": "Common files for msm7x27a (Snapdragon S1) boards. LG e610, LG p700 and LG p705.",
@@ -368,17 +378,6 @@
         ]
     },
     {
-        "name": "LGE Vendor Files",
-        "url": "https://xdaforums.com/t/rom-4-4-4-lg-p705-p700-e610-mahdi-rom-2-9-final-team-optima.2871038/",
-        "repo": "https://github.com/asce1062/android_vendor_lge",
-        "description": "LG E610, LG P700 and LG P705 vendor files.",
-        "tools": [
-            { "name": "Bash", "icon": "icon-bash" },
-            { "name": "XML", "icon": "icon-xml" },
-            { "name": "Android", "icon": "icon-android" }
-        ]
-    },
-    {
         "name": "classic_Webview_Patch msm7x27a (Snapdragon S1) ",
         "url": "https://github.com/asce1062/Classic_Webview_Patch",
         "repo": "https://github.com/asce1062/Classic_Webview_Patch",
@@ -412,15 +411,11 @@
         ]
     },
     {
-        "name": "frameworks_av msm7x27a (Snapdragon S1) ",
+        "name": "Mahdi-Rom frameworks_av",
         "url": "https://github.com/asce1062/MAHDI-ROM_frameworks_av",
         "repo": "https://github.com/asce1062/MAHDI-ROM_frameworks_av",
-        "description": "Fixes to frameworks_av for msm7x27a (Snapdragon S1) SoC for LG e610, LG p700 and LG p705. ",
-        "tools": [
-            { "name": "C", "icon": "icon-c" },
-            { "name": "C++", "icon": "icon-cplusplus" },
-            { "name": "Assembly", "icon": "" }
-        ]
+        "description": "Patches to Mahdi-Rom frameworks_av for LG e610, LG p700 and LG p705. ",
+        "tools": [{ "name": "Java", "icon": "icon-java" }]
     },
     {
         "name": "external_skia msm7x27a (Snapdragon S1) ",
@@ -436,17 +431,17 @@
         ]
     },
     {
-        "name": "apps_Browser ",
+        "name": "Mahdi-Rom apps_Browser",
         "url": "https://github.com/asce1062/MAHDI-ROM_apps_Browser",
         "repo": "https://github.com/asce1062/MAHDI-ROM_apps_Browser",
-        "description": "Patches to apps_Browser for LG e610, LG p700 and LG p705. ",
+        "description": "Patches to Mahdi-Rom apps_Browser for LG e610, LG p700 and LG p705. ",
         "tools": [{ "name": "Java", "icon": "icon-java" }]
     },
     {
-        "name": "frameworks_base ",
-        "url": "https://github.com/asce1062/MAHDI-ROM_external_skia",
-        "repo": "https://github.com/asce1062/MAHDI-ROM_external_skia",
-        "description": "Patches to frameworks_base for LG e610, LG p700 and LG p705. ",
+        "name": "Mahdi-Rom frameworks_base",
+        "url": "https://github.com/asce1062/android_frameworks_base",
+        "repo": "https://github.com/asce1062/android_frameworks_base",
+        "description": "Patches to Mahdi-Rom frameworks_base for LG e610, LG p700 and LG p705. ",
         "tools": [{ "name": "Java", "icon": "icon-java" }]
     },
     {
@@ -473,9 +468,19 @@
         ]
     },
     {
+        "name": "Android Resizer Tool",
+        "url": "https://github.com/asce1062/android-resizer-tool",
+        "repo": "https://github.com/asce1062/android-resizer-tool",
+        "description": "Android Resizer Tool is written in C and C++. Adjust Android Densities, including .9.PNGs",
+        "tools": [
+            { "name": "C", "icon": "icon-c" },
+            { "name": "C++", "icon": "icon-cplusplus" }
+        ]
+    },
+    {
         "name": "Huawei Ideos (U8150) CyanogenMod Device Tree",
-        "url": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
-        "repo": "https://github.com/asce1062/CyanMobile_android_device_huawei_u8150",
+        "url": "https://github.com/asce1062/android_device_huawei_u8150",
+        "repo": "https://github.com/asce1062/android_device_huawei_u8150",
         "description": "Huawei Ideos (U8150) build configuration for CyanogenMod 7.",
         "tools": [
             { "name": "C", "icon": "icon-c" },
