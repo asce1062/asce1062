@@ -20,10 +20,10 @@ import type { SkillsSection, SkillCategory } from "../types";
                 <div>
                     {section.categories.map((category: SkillCategory) => (
                         <div class="mt-4">
-                            <h3 class="mb-1 text-sm text-light-50 dark:text-palette-300 underline decoration-dashed ">{category.categoryTitle}</h3>
-                            <div class="flex flex-wrap gap-2 text-xs">
+                            <h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed ">{category.categoryTitle}</h3>
+                            <div class="flex flex-wrap gap-2">
                                 {category.skills.map((skill: string) => (
-                                    <span class="bg-light-100 dark:bg-gray-700 px-2 py-1 rounded">{skill}</span>
+                                    <code class="text-xs">{skill}</code>
                                 ))}
                             </div>
                         </div>
