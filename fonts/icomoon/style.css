@@ -1,11 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?hooua2');
-  src:  url('fonts/icomoon.eot?hooua2#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.woff2?hooua2') format('woff2'),
-    url('fonts/icomoon.ttf?hooua2') format('truetype'),
-    url('fonts/icomoon.woff?hooua2') format('woff'),
-    url('fonts/icomoon.svg?hooua2#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?n1bxp0');
+  src:  url('fonts/icomoon.eot?n1bxp0#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?n1bxp0') format('truetype'),
+    url('fonts/icomoon.woff?n1bxp0') format('woff'),
+    url('fonts/icomoon.svg?n1bxp0#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -26,6 +25,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-activity:before {
+  content: "\e91f";
+}
+.icon-hourglass-split:before {
+  content: "\e920";
+}
+.icon-patch-question:before {
+  content: "\e921";
+}
+.icon-rocket-takeoff:before {
+  content: "\e91e";
+}
+.icon-lightning-charge:before {
+  content: "\e91d";
+}
+.icon-chat-square-dots:before {
+  content: "\e919";
+}
+.icon-journal-code:before {
+  content: "\e91a";
+}
+.icon-gear:before {
+  content: "\e91b";
+}
+.icon-people:before {
+  content: "\e91c";
+}
+.icon-chevron-down:before {
+  content: "\e916";
+}
+.icon-chevron-up:before {
+  content: "\e918";
+}
+.icon-list-ul:before {
+  content: "\e915";
+}
 .icon-mssql:before {
   content: "\e917";
 }
