@@ -22,7 +22,8 @@ import letWoundsHealImg from '../assets/blog/let-wounds-heal.png';
 import walkFreeImg from '../assets/blog/walk-free.png';
 import icomoonImg from '../assets/blog/icomoon.png';
 import itWillBeOkayImg from '../assets/blog/it-will-be-okay-in-the-end.png';
-import stepByStep from '../assets/blog/step-by-step.png'
+import stepByStepImg from '../assets/blog/step-by-step.png';
+import goodInEverydayImg from '../assets/blog/finding-good-in-every-day.png';
 
 // Map blog images for optimization
 const imageMap = {
@@ -42,7 +43,8 @@ const imageMap = {
   '/src/assets/blog/walk-free.png': walkFreeImg,
   '/src/assets/blog/icomoon.png': icomoonImg,
   '/src/assets/blog/it-will-be-okay-in-the-end.png': itWillBeOkayImg,
-  '/src/assets/blog/step-by-step.png': stepByStep,
+  '/src/assets/blog/step-by-step.png': stepByStepImg,
+  '/src/assets/blog/finding-good-in-every-day.png': goodInEverydayImg,
 };
 
 export async function GET(context: { site: string | URL }) {
