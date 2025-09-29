@@ -83,15 +83,16 @@ npm run deploy
       ```
 
 - We use a [gh-pages](https://www.npmjs.com/package/gh-pages) integration in our `deploy` script, `gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles`, that does a couple of things for us:
-    1. `-d dist` tells `gh-pages` to deploy the contents of the dist folder. This is the output directory from our Astro build
-    2. `--branch alexmbugua` deploys to my custom branch named `alexmbugua` instead of the default `gh-pages` branch.
-    3. `--nojekyll` creates a `.nojekyll` file that disables GitHub Pages' built-in Jekyll processing on branch deploys.
-    4. `--cname alexmbugua.me` creates a file named `CNAME` in the root of the deployed branch with the content:
+  1. `-d dist` tells `gh-pages` to deploy the contents of the dist folder. This is the output directory from our Astro build
+  2. `--branch alexmbugua` deploys to my custom branch named `alexmbugua` instead of the default `gh-pages` branch.
+  3. `--nojekyll` creates a `.nojekyll` file that disables GitHub Pages' built-in Jekyll processing on branch deploys.
+  4. `--cname alexmbugua.me` creates a file named `CNAME` in the root of the deployed branch with the content:
 
-        ```cname
-        alexmbugua.me
-        ```
+     ```cname
+     alexmbugua.me
+     ```
 
-        - This tells `github-pages` to map the site to my custom domain [alexmbugua.me](https://alexmbugua.me/).
-        - _CNAME record for `www` in the apex domain provider should point to `<username>.github.io`_
-    5. `--dotfiles` tells `gh-pages` to include hidden files (dotfiles) in the deployment.
+     - This tells `github-pages` to map the site to my custom domain [alexmbugua.me](https://alexmbugua.me/).
+     - _CNAME record for `www` in the apex domain provider should point to `<username>.github.io`_
+
+  5. `--dotfiles` tells `gh-pages` to include hidden files (dotfiles) in the deployment.

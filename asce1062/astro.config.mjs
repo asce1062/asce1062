@@ -1,16 +1,20 @@
-import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
-import mdx from '@astrojs/mdx';
+import mdx from "@astrojs/mdx";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://alexmbugua.me/',
+  site: "https://alexmbugua.me/",
   //output: "server",
   build: {
-    assets: 'astro'
+    assets: "astro",
   },
-  integrations: [tailwind({applyBaseStyles:true}), sitemap({
-          filter: page => page !== 'https://alexmbugu.me/404'
-      }), mdx()]
+  integrations: [
+    tailwind({ applyBaseStyles: true }),
+    sitemap({
+      filter: (page) => page !== "https://alexmbugu.me/404",
+    }),
+    mdx(),
+  ],
 });

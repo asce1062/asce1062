@@ -1,7 +1,16 @@
 {
-  "tabWidth": 4,
-  "useTabs": false,
-  "printWidth": 250,
-  "plugins": ["prettier-plugin-tailwindcss"],
-  "bracketSameLine": true
+  "plugins": ["prettier-plugin-astro"],
+  "overrides": [
+    {
+      "files": "*.astro",
+      "options": {
+        "parser": "astro",
+        "bracketSameLine": true,
+        "htmlWhitespaceSensitivity": "ignore",
+        "tabWidth": 4,
+        "useTabs": false,
+        "printWidth": 250
+      }
+    }
+  ]
 }

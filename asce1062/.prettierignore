@@ -1,0 +1,7 @@
+*.mdx
+*.astro/
+*dist/
+*public/
+*.vscode/
+package-lock.json
+package.json

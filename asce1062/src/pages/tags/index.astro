@@ -1,21 +1,26 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Columns from '../../components/Columns.astro';
-import { getCollection } from 'astro:content';
+import Layout from "../../layouts/Layout.astro";
+import Columns from "../../components/Columns.astro";
+import { getCollection } from "astro:content";
 
-const allPosts = await getCollection('blog');
+const allPosts = await getCollection("blog");
 const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 ---
+
 <Layout title="Tag Index" ogImage="social-preview.png" description=`bleep bloop indexed ${ tags.length == 1 ? "tag" : "tags!"}`>
     <main>
         <div>
             <h2>tag index</h2>
-            <p>indexed {tags.length} { tags.length == 1 ? "tag" : "tags!"}</p>
+            <p>indexed {tags.length} {tags.length == 1 ? "tag" : "tags!"}</p>
             <Columns>
-                <ul class = "list-disc list-inside">
-                {tags.map((tag) => (
-                    <li><a href={`/tags/${tag}`}>{tag}</a></li>
-                ))}
+                <ul class="list-disc list-inside">
+                    {
+                        tags.map((tag) => (
+                            <li>
+                                <a href={`/tags/${tag}`}>{tag}</a>
+                            </li>
+                        ))
+                    }
                 </ul>
             </Columns>
         </div>

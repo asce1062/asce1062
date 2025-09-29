@@ -8,12 +8,9 @@
 
 import fs from "fs";
 import path from "path";
-import {
-  fileURLToPath
-} from "url";
+import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(
-  import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.join(__dirname, "../dist");
 
 /**
@@ -48,9 +45,15 @@ function fixHtmlFile(filePath) {
       // update src="astro/*.webp paths
       .replace(/src="(astro\/[^"]+\.webp)"/g, (_, p1) => `src="${prefix}${p1}"`)
       // Update resume PDF path
-      .replace(/href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g, (_, p1) => `href="${prefix}${p1}"`)
+      .replace(
+        /href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g,
+        (_, p1) => `href="${prefix}${p1}"`,
+      )
       // Fix favicon + sitemap references
-      .replace(/(href|src)="(favicon\.ico|sitemap-index\.xml)"/g, (_, attr, file) => `${attr}="${prefix}${file}"`);
+      .replace(
+        /(href|src)="(favicon\.ico|sitemap-index\.xml)"/g,
+        (_, attr, file) => `${attr}="${prefix}${file}"`,
+      );
   }
 
   if (content !== original) {
@@ -68,7 +71,10 @@ function fixHtmlFile(filePath) {
 function fixCssFile(filePath) {
   let content = fs.readFileSync(filePath, "utf-8");
   const original = content;
-  content = content.replace(/url\(\s*['"]?\/([^)'"]+)['"]?\s*\)/g, "url(../$1)");
+  content = content.replace(
+    /url\(\s*['"]?\/([^)'"]+)['"]?\s*\)/g,
+    "url(../$1)",
+  );
 
   if (content !== original) {
     console.log(`✅ Fixed url() path in CSS: ${filePath}`);

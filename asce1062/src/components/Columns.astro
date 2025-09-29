@@ -1,3 +1,33 @@
-<div class="grid grid-cols-1 justify-between gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+---
+interface Props {
+    columns?: number;
+}
+
+const { columns = 4 } = Astro.props;
+// Dynamic columns
+const getColumnClasses = (cols: number) => {
+    const baseClass = "grid grid-cols-1 justify-between gap-4";
+    switch (cols) {
+        case 1:
+            return baseClass;
+        case 2:
+            return `${baseClass} lg:grid-cols-2`;
+        case 3:
+            return `${baseClass} md:grid-cols-2 xl:grid-cols-3`;
+        case 4:
+            return `${baseClass} lg:grid-cols-2 2xl:grid-cols-4`;
+        case 5:
+            return `${baseClass} md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5`;
+        case 6:
+            return `${baseClass} md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6`;
+        default:
+            // Any number > 6
+            // Max allowed columns is 12
+            return `${baseClass} md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-${Math.min(cols, 12)}`;
+    }
+};
+---
+
+<div class={getColumnClasses(columns)}>
     <slot />
 </div>

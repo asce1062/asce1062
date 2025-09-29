@@ -3,192 +3,188 @@
 @tailwind utilities;
 
 @layer base {
-    @font-face {
-        font-family: "0xProto";
-        src: url("/fonts/0xProto/0xProtoNerdFont-Regular.ttf") format("truetype");
+  @font-face {
+    font-family: "0xProto";
+    src: url("/fonts/0xProto/0xProtoNerdFont-Regular.ttf") format("truetype");
+  }
+
+  :root {
+    --tangrey: #8e878c;
+    --neutralgrey: #9f94a0;
+    --lightgrey: #bbb8bb;
+    --pink: #dcb8b0;
+    --peach: #e5cab7;
+    --blue: #9bb0cd;
+    --lightblue: #cad5db;
+    --dark: #120f19;
+    --bold: #947b82;
+    --spacing-inline: clamp(20px, 4vw, 80px);
+    font-family: "0xProto", monospace;
+  }
+
+  ::selection {
+    background: var(--blue);
+    color: var(--dark);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--dark);
+    color: white;
+  }
+
+  h1 {
+    font-size: 2.125em;
+  }
+
+  h2 {
+    font-size: 1.4em;
+    margin-bottom: 0.83em;
+  }
+
+  p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+
+  b {
+    color: var(--bold);
+    font-weight: 700;
+  }
+
+  header {
+    padding-top: 5.5vh;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  pre {
+    font-family: "0xProto", monospace;
+    width: max-content;
+    max-width: min(80ch, calc(100vw - (5 * var(--spacing-inline))));
+    overflow-x: auto;
+  }
+
+  header {
+    position: relative;
+  }
+
+  footer {
+    text-align: center;
+  }
+
+  [class^="icon-"],
+  [class*=" icon-"] {
+    text-decoration: none;
+  }
+
+  .icon {
+    text-decoration: none;
+  }
+
+  @media screen and (width < 640px) {
+    p,
+    ul {
+      font-size: 14px;
     }
-
-    :root {
-        --tangrey: #8e878c;
-        --neutralgrey: #9f94a0;
-        --lightgrey: #bbb8bb;
-        --pink: #dcb8b0;
-        --peach: #e5cab7;
-        --blue: #9bb0cd;
-        --lightblue: #cad5db;
-        --dark: #120f19;
-        --bold: #947b82;
-        --spacing-inline: clamp(20px, 4vw, 80px);
-        font-family: "0xProto", monospace;
-    }
-
-    ::selection {
-        background: var(--blue);
-        color: var(--dark);
-    }
-
-    body {
-        margin: 0;
-        min-height: 100vh;
-        background-color: var(--dark);
-        color: white;
-    }
-
-    h1 {
-        font-size: 2.125em;
-    }
-
-    h2 {
-        font-size: 1.4em;
-        margin-bottom: 0.83em;
-    }
-
-    p {
-        margin-top: 1em;
-        margin-bottom: 1em;
-    }
-
-    b {
-        color: var(--bold);
-        font-weight: 700;
-    }
-
-    header {
-        padding-top: 5.5vh;
-    }
-
-    a {
-        text-decoration: underline;
-    }
-
-    pre {
-        font-family: "0xProto", monospace;
-        width: max-content;
-        max-width: min(80ch, calc(100vw - (5 * var(--spacing-inline))));
-        overflow-x: auto;
-    }
-
-    header {
-        position: relative;
-    }
-
-    footer {
-        text-align: center;
-    }
-
-    [class^="icon-"],
-    [class*=" icon-"] {
-        text-decoration: none;
-    }
-
-    .icon {
-        text-decoration: none;
-    }
-
-
-    @media screen and (width < 640px) {
-
-        p,
-        ul {
-            font-size: 14px;
-        }
-    }
+  }
 }
 
 @layer components {
+  h1 {
+    @apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-white;
+  }
 
-    h1 {
-        @apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-white;
-    }
+  h2 {
+    @apply mt-0 text-xl transition-all duration-100 md:text-2xl;
+  }
 
-    h2 {
-        @apply mt-0 text-xl transition-all duration-100 md:text-2xl;
-    }
+  h3 {
+    @apply text-base transition-all duration-100 md:text-lg;
+  }
 
-    h3 {
-        @apply text-base transition-all duration-100 md:text-lg
-    }
+  hr {
+    @apply w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white;
+  }
 
-    hr {
-        @apply w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white;
-    }
+  p,
+  ul,
+  span,
+  div {
+    @apply text-black dark:text-white;
+  }
 
-    p,
-    ul,
-    span,
-    div {
-        @apply text-black dark:text-white;
-    }
+  ul {
+    @apply list-disc list-inside;
+  }
 
-    ul {
-        @apply list-disc list-inside
-    }
+  ol:not(.relative):not(.footnotes ol) {
+    @apply list-decimal ml-14;
+  }
 
-    ol:not(.relative):not(.footnotes ol) {
-        @apply list-decimal ml-14
-    }
+  li {
+    @apply my-1;
+  }
 
-    li {
-        @apply my-1
-    }
+  h2,
+  h4,
+  a,
+  b {
+    @apply text-light-300 dark:text-palette-300;
+  }
 
-    h2,
-    h4,
-    a,
-    b {
-        @apply text-light-300 dark:text-palette-300
-    }
+  a {
+    @apply underline-offset-4 hover:no-underline hover:bg-palette-200 hover:dark:bg-palette-300 hover:dark:text-black;
+  }
 
-    a {
-        @apply underline-offset-4 hover:no-underline hover:bg-palette-200 hover:dark:bg-palette-300 hover:dark:text-black
-    }
+  input {
+    @apply my-4 bg-white p-2 font-normal rounded-md dark:bg-palette-900;
+  }
 
-    input {
-        @apply my-4 bg-white p-2 font-normal rounded-md dark:bg-palette-900
-    }
+  code:not(pre code) {
+    @apply px-1 py-0.5 rounded font-normal text-sm;
+    @apply bg-palette-200 text-light-300;
+    @apply dark:bg-white/10 dark:text-palette-400;
+  }
 
-    code:not(pre code) {
-        @apply px-1 py-0.5 rounded font-normal text-sm;
-        @apply bg-palette-200 text-light-300;
-        @apply dark:bg-white/10 dark:text-palette-400;
-    }
+  blockquote {
+    @apply border-l-4 border-palette-300 pl-4 pr-2 italic;
+    @apply bg-palette-100/20 dark:bg-white/5;
+    @apply my-4 py-2;
+    @apply text-palette-800 dark:text-palette-200;
+  }
 
-    blockquote {
-        @apply border-l-4 border-palette-300 pl-4 pr-2 italic;
-        @apply bg-palette-100/20 dark:bg-white/5;
-        @apply my-4 py-2;
-        @apply text-palette-800 dark:text-palette-200;
-    }
+  blockquote ol {
+    @apply text-palette-800 dark:text-palette-200;
+    @apply list-decimal ml-6;
+  }
 
-    blockquote ol {
-        @apply text-palette-800 dark:text-palette-200;
-        @apply list-decimal ml-6;
-    }
+  details > :nth-child(n + 2),
+  #expand-content p {
+    @apply pl-4 border-l p-2;
+  }
 
-    details > :nth-child(n+2),
-    #expand-content p {
-        @apply pl-4 border-l p-2
-    }
+  pre {
+    @apply px-1 py-0.5 my-4 rounded font-normal text-xs;
+  }
 
-    pre {
-        @apply px-1 py-0.5 my-4 rounded font-normal text-xs;
-    }
-
-    #ascii-404 {
-        @apply text-center;
-        display: inline-block;
-    }
+  #ascii-404 {
+    @apply text-center;
+    display: inline-block;
+  }
 }
 
-
 .footnotes {
-    margin: auto;
-    width: 91.667%;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    padding-bottom: 5.5vh;
+  margin: auto;
+  width: 91.667%;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 5.5vh;
 
-    @media (width >=64rem) {
-        width: 50%;
-    }
+  @media (width >=64rem) {
+    width: 50%;
+  }
 }
