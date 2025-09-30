@@ -9,27 +9,23 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
-    <main>
-        <body>
-            <h2><a class="icon" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>blog</a>&nbsp;<a class="icon" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1"></i>Tags</a></h2>
-            <p>I'm happy you're here ^^</p>
-            <Columns columns={1}>
-                {
-                    posts.map((post) => (
-                        <Post
-                            name={post.data.title}
-                            url={`/blog/${post.id.replace(".mdx", "")}`}
-                            image={post.data.image.url}
-                            description={post.data.description}
-                            date={new Date(post.data.pubDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })}
-                        />
-                    ))
-                }
-            </Columns>
-        </body>
-    </main>
+    <h2><a class="icon" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>blog</a>&nbsp;<a class="icon" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1"></i>Tags</a></h2>
+    <p>I'm happy you're here ^^</p>
+    <Columns columns={1}>
+        {
+            posts.map((post) => (
+                <Post
+                    name={post.data.title}
+                    url={`/blog/${post.id.replace(".mdx", "")}`}
+                    image={post.data.image.url}
+                    description={post.data.description}
+                    date={new Date(post.data.pubDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    })}
+                />
+            ))
+        }
+    </Columns>
 </Layout>

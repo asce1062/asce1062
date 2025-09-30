@@ -22,12 +22,10 @@ const { posts } = Astro.props;
 ---
 
 <Layout title={tag} ogImage="social-preview.png" description=`bleep bloop found ${posts.length} ${ posts.length == 1 ? "post" : "posts"}`>
-    <main>
-        <p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
-        <ul>
-            <Columns columns={1}>
-                {posts.map((post) => <Post name={post.data.title} url={`/blog/${post.id.replace(".mdx", "")}`} image={post.data.image.url} description={post.data.description} date={post.data.pubDate.toISOString().slice(0, 10)} />)}
-            </Columns>
-        </ul>
-    </main>
+    <p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
+    <ul>
+        <Columns columns={1}>
+            {posts.map((post) => <Post name={post.data.title} url={`/blog/${post.id.replace(".mdx", "")}`} image={post.data.image.url} description={post.data.description} date={post.data.pubDate.toISOString().slice(0, 10)} />)}
+        </Columns>
+    </ul>
 </Layout>

@@ -81,10 +81,12 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
         </style>
     </head>
 
-    <body class="z-1 min-w-full flex flex-col items-center py-6 bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] pt-0 font-proto text-white">
-        <div id="primary" class="z-2 w-full prose prose-invert px-4 sm:px-6 md:px-8 mx-auto mt-12 mb-6 relative" style="grid-template-rows: auto 1fr auto">
+    <body class="z-1 min-w-full min-h-screen flex flex-col items-center mt-6 bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] font-proto text-white">
+        <div id="primary" class="z-2 w-full prose prose-invert px-4 sm:px-6 md:px-8 mx-auto relative flex-grow flex flex-col min-h-screen">
             <Header />
-            <slot />
+            <main class="flex-grow">
+                <slot />
+            </main>
             <Footer />
         </div>
     </body>

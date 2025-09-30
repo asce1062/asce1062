@@ -53,10 +53,6 @@
     font-weight: 700;
   }
 
-  header {
-    padding-top: 5.5vh;
-  }
-
   a {
     text-decoration: underline;
   }
@@ -99,7 +95,7 @@
   }
 
   h2 {
-    @apply mt-0 text-xl transition-all duration-100 md:text-2xl;
+    @apply text-xl transition-all duration-100 md:text-2xl;
   }
 
   h3 {
@@ -280,6 +276,7 @@
   padding-left: 2rem;
   padding-right: 2rem;
   padding-bottom: 5.5vh;
+  @apply text-black dark:text-white;
 
   @media (width >=64rem) {
     width: 50%;
