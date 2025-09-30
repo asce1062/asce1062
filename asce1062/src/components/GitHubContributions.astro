@@ -1,0 +1,32 @@
+---
+interface Props {
+    username?: string;
+}
+
+const { username = "asce1062" } = Astro.props;
+---
+
+<div>
+    <h2><i class="icon-github"></i> My heatmap of contributions on GitHub</h2>
+    <div>
+        <iframe id="github-contributions" src={`https://jandee.vercel.app/${username}?scheme=dark`} width="100%" title="GitHub Contributions" allowtransparency="true"></iframe>
+    </div>
+</div>
+
+<script>
+    function updateGitHubContributionsTheme() {
+        const iframe = document.getElementById("github-contributions") as HTMLIFrameElement;
+        const currentTheme = document.documentElement.getAttribute("data-theme");
+        const scheme = currentTheme === "dark" ? "dark" : "light";
+
+        if (iframe) {
+            iframe.src = iframe.src.replace(/scheme=(dark|light)/, `scheme=${scheme}`);
+        }
+    }
+
+    // Initial load
+    document.addEventListener("DOMContentLoaded", updateGitHubContributionsTheme);
+
+    // Theme changes
+    document.addEventListener("set-theme", updateGitHubContributionsTheme);
+</script>

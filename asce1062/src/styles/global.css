@@ -285,3 +285,7 @@
     width: 50%;
   }
 }
+
+iframe {
+  color-scheme: auto;
+}

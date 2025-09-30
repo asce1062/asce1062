@@ -25,6 +25,8 @@ export default defineConfig({
     syntaxHighlight: false,
     rehypePlugins: [
       [
+        // https://rehype-pretty.pages.dev/
+        // https://github.com/rehype-pretty/rehype-pretty-code/tree/master/examples/astro
         rehypePrettyCode,
         {
           theme: {
