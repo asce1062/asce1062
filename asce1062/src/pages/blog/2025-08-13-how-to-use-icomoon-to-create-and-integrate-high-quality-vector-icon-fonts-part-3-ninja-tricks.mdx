@@ -54,13 +54,13 @@ Need to rotate, flip, resize, or rename an icon before adding it to your font? I
 <ImageView image = "/src/assets/blog/icomoon/select-icon.png" altText="Select Icon"></ImageView>
 
 - Use the edit icon toolbox modal to:
-1. Rotate/Mirror
+1. `Rotate/Mirror`
     - Spin your icon or flip it horizontally/vertically
-2. Move
+2. `Move`
     - Shift the icon’s position on the canvas without changing its shape
-3. Scale
+3. `Scale`
     - Resize the icon proportionally or stretch it if needed
-4. Canvas/Alignment
+4. `Canvas/Alignment`
     - Adjust the icon’s canvas size and alignment so it sits perfectly in your design
 <ImageView image = "/src/assets/blog/icomoon/edit-icon-modal.png" altText="Edit Icon Toolbox Modal"></ImageView>
 >
@@ -136,17 +136,14 @@ You may import this file both via the **Import Icons** button in the app, or via
 This one puzzled me recently, so I thought I’d save you the trouble. Let’s say you have an icon in your HTML, and you want to change it dynamically. For example, toggling between a pause icon and a play icon on a button.
 
 With IcoMoon’s newer class-based approach, we don’t have to mess with HTML entities. We can just swap out icon classes directly.
-
-`HTML`
-```html
+```html title="HTML"
 <a href="#" id="pausePlayButton" class="btn">
   <i class="icon-play mr-2" id="playPauseIcon" aria-hidden="true"></i>
   Play
 </a>
 ```
 
-`JavaScript (jQuery)`
-```javascript
+```javascript title="JavaScript (jQuery)"
 $("#pausePlayButton").click(function (e) {
   e.preventDefault();
 
@@ -164,9 +161,7 @@ What’s happening here:
 - We also update the button text so the user knows the current state.
 
 If you're curious how it looked in my final implementation
-
-`HTML`
-```html
+```html title="HTML" /icon-play/#v /icon-pause/#i
 <button id="playPauseBtn" class="flex items-center gap-2">
   <i id="playPauseIcon" class="icon-play"></i>
   Play
@@ -197,7 +192,7 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 
 <br/>
 - Extendable base class
-```scss
+```scss title="SASS"
 %icon {
   font-family: 'icomoon' !important;
   speak: none;
@@ -213,7 +208,7 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 
 <br/>
 - Flexible mixin for class-based icons
-```scss
+```scss title="mixin"
 @mixin icon-class($class, $pseudo: null) {
   @if $pseudo {
     &::#{$pseudo} {
@@ -234,39 +229,34 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 <br/>
 #### Inline Icon (HTML element)
 <br/>
-- `SCSS`
-```scss
+```scss title="SASS"
 .button-play {
   @include icon-class('icon-play');
 }
 ```
 <br/>
-- `HTML`
-```html
+```html title="HTML"
 <button class="button-play">Play</button>
 ```
 <br/>
 <br/>
 #### Pseudo-Element icon
 <br/>
-- `SCSS`
-```scss
+```scss title="SASS"
 .button-play::before {
   @include icon-class('icon-play', before);
   margin-right: 0.5rem;
 }
 ```
 <br/>
-- `HTML`
-```html
+```html title="HTML"
 <button class="button-play">Play</button>
 ```
 <br/>
 <br/>
 #### Play/Pause toggle practical example
 <br/>
-- `SCSS`
-```scss
+```scss title="SASS"
 .button-toggle {
   display: flex;
   align-items: center;
@@ -282,13 +272,11 @@ You can also create mixins that work both for inline icons and pseudo-elements (
 }
 ```
 <br/>
-- `HTML`
-```html
+```html title="HTML"
 <button id="playPauseBtn" class="button-toggle">Play</button>
 ```
 <br/>
-- `JavaScript`
-```javascript
+```javascript title="javascript"
 const btn = document.getElementById('playPauseBtn');
 
 btn.addEventListener('click', () => {

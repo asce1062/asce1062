@@ -74,13 +74,13 @@ Design change? Client requests a new icon? No sweat. If you’ve kept your IcoMo
 These days, I write all my styles in `SASS`, which makes managing icon fonts even easier.
 
 1. Define variables in `_variables.scss`
-```scss
+```scss title="_variables.scss"
 $icon-font: "icomoon"; // Your icon font name
 $icon-github: "\efc4"; // Unicode for your github icon
 ```
 
 2. Use pseudo-elements to insert icons
-```scss
+```scss title="SASS"
 .foo {
   &:before {
     content: $icon-github;
@@ -92,7 +92,7 @@ $icon-github: "\efc4"; // Unicode for your github icon
 ```
 
 3. Or extend classes directly from IcoMoon’s `style.css`:
-```scss
+```scss title="style.css"
 .foo {
   &:before {
     @extend .icon-github; //found in the downloaded style.css
@@ -103,8 +103,8 @@ $icon-github: "\efc4"; // Unicode for your github icon
 <br/>
 <br/>
 # **Creating a Silent Extendable Icon Class**
-For ultimate reusability, I like to make a silent extendable %icon class
-```scss
+For ultimate reusability, I like to make a silent extendable `%icon` class
+```scss title="SASS"
 %icon {
   font-family: $icon-font;
   speak: none;
@@ -117,7 +117,7 @@ For ultimate reusability, I like to make a silent extendable %icon class
 ```
 
 Then use it wherever you need an icon
-```scss
+```scss title="SASS"
 .foo {
   &:before {
     @extend %icon;

@@ -171,7 +171,7 @@ Let’s walk through each one.
 ### **Loading the Icon Font with CSS**
 
 Open the `style.css` file that came in your IcoMoon download. Near the top, you’ll find a `@font-face` rule that looks something like this:
-```css
+```css title="style.css" showLineNumbers
 @font-face {
   font-family: 'icomoon';
   src:  url('fonts/icomoon.eot?tsq330');
@@ -188,7 +188,7 @@ Open the `style.css` file that came in your IcoMoon download. Near the top, you�
 This block tells the browser where to find your icon font files and what to call it (icomoon, in this case).
 
 Depending on how your project is structured, you might need to tweak the file paths. For example, if your **CSS** lives in a `/css/` directory and your **fonts** are in `/fonts/`, you'll likely need to insert `../` into the fonts path like:
-```css
+```css title="style.css" showLineNumbers "../fonts"#v
 @font-face {
   font-family: 'icomoon';
   src:  url('../fonts/icomoon.eot?tsq330');
@@ -217,13 +217,13 @@ Let’s look at both.
 #### **Using class names (Most Common)**
 
 The most common (and current) way to insert icons is by using class names that follow the `icon-` naming pattern. Like: `.icon-github`, `.icon-linkedin`, etc.
-```html
+```html title="HTML"
 <span class="icon-github"></span>
 ```
 You can use a `<span>`, `<i>`, or any other inline element. Just be sure to target an icon class that exists in your **CSS**, and that your `/css/style.css` is _**loaded correctly**_.
 
 IcoMoon's generated CSS includes a rule like this:
-```css
+```css title="CSS"
 [class^="icon-"], [class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'icomoon' !important;
@@ -246,7 +246,7 @@ This rule ensures that any element with a class starting with `icon-` gets rende
 #### **Using Pseudo-Elements in CSS**
 
 If you’re working in a context where you can’t change the HTML easily (say, within a CMS or framework), you can also apply icons directly in CSS using pseudo-elements:
-```css
+```css title="CSS"
 .icon-github:before {
   content: "\efc4";
   font-family: 'icomoon';
@@ -256,7 +256,7 @@ If you’re working in a context where you can’t change the HTML easily (say, 
 This adds the icon before the content of any element with the class `.icon-github`.
 
 You can style the icon just like text:
-```css
+```css title="CSS"
 .icon-github:before {
   content: "\efc4";
   font-family: 'icomoon';

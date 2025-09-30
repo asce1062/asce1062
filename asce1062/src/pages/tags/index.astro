@@ -12,7 +12,7 @@ const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
         <div>
             <h2>tag index</h2>
             <p>indexed {tags.length} {tags.length == 1 ? "tag" : "tags!"}</p>
-            <Columns>
+            <Columns columns={1}>
                 <ul class="list-disc list-inside">
                     {
                         tags.map((tag) => (

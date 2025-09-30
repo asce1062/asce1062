@@ -25,7 +25,7 @@ const { posts } = Astro.props;
     <main>
         <p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
         <ul>
-            <Columns>
+            <Columns columns={1}>
                 {posts.map((post) => <Post name={post.data.title} url={`/blog/${post.id.replace(".mdx", "")}`} image={post.data.image.url} description={post.data.description} date={post.data.pubDate.toISOString().slice(0, 10)} />)}
             </Columns>
         </ul>
