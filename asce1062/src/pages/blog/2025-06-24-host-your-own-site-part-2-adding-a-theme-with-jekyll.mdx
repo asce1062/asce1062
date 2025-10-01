@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/your-own-site.png"
     alt: "stake your spot on the internet"
 tags: ["github", "howto", "hosting", "jekyll"]
+permalink: "2025-06-24-host-your-own-site-part-2-adding-a-theme-with-jekyll"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 import ImageView from "../../components/ImageView.astro";
@@ -16,7 +17,8 @@ import ImageView from "../../components/ImageView.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 # PT.2 Theming your webbed site

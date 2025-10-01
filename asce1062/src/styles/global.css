@@ -102,9 +102,9 @@
     @apply text-base transition-all duration-100 md:text-lg;
   }
 
-  hr {
+  /* hr {
     @apply w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white;
-  }
+  } */
 
   p,
   ul,

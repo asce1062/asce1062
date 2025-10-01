@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/progress.png"
     alt: "progress over perfection"
 tags: ["motivation"]
+permalink: "2025-06-21-trust-the-process"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

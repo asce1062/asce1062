@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/it-will-be-okay-in-the-end.png"
     alt: "the breaking is not your ending"
 tags: ["motivation"]
+permalink: "2025-08-21-if-its-not-okay-its-not-the-end"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

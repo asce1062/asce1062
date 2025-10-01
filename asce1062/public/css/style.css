@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?n1bxp0');
-  src:  url('../fonts/icomoon.eot?n1bxp0#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.ttf?n1bxp0') format('truetype'),
-    url('../fonts/icomoon.woff?n1bxp0') format('woff'),
-    url('../fonts/icomoon.svg?n1bxp0#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?g4772u');
+  src:  url('../fonts/icomoon.eot?g4772u#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.ttf?g4772u') format('truetype'),
+    url('../fonts/icomoon.woff?g4772u') format('woff'),
+    url('../fonts/icomoon.svg?g4772u#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,27 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-chevron-left:before {
+  content: "\e922";
+}
+.icon-chevron-right:before {
+  content: "\e923";
+}
+.icon-pinterest:before {
+  content: "\e924";
+}
+.icon-telegram:before {
+  content: "\e925";
+}
+.icon-twitter-x:before {
+  content: "\e926";
+}
+.icon-facebook:before {
+  content: "\e927";
+}
+.icon-whatsapp:before {
+  content: "\e928";
+}
 .icon-activity:before {
   content: "\e91f";
 }

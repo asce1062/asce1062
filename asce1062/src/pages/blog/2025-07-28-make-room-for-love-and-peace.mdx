@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/walk-free.png"
     alt: "you can't walk in love while dragging hate. One will have to go"
 tags: ["motivation"]
+permalink: "2025-07-28-make-room-for-love-and-peace"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

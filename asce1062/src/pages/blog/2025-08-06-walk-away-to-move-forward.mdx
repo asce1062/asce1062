@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/let-wounds-heal.png"
     alt: "you can’t force closure from a past that won’t offer it"
 tags: ["motivation"]
+permalink: "2025-08-06-walk-away-to-move-forward"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

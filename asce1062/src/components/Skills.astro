@@ -21,7 +21,7 @@ import type { SkillsSection, SkillCategory } from "../types";
                     <div>
                         {section.categories.map((category: SkillCategory) => (
                             <div class="mt-4">
-                                <h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed ">{category.categoryTitle}</h3>
+                                <h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed">{category.categoryTitle}</h3>
                                 <div class="flex flex-wrap gap-2">
                                     {category.skills.map((skill: string) => (
                                         <code class="text-xs">{skill}</code>

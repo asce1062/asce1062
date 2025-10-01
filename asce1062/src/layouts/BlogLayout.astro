@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PreviewImage from "../components/PreviewImage.astro";
+import { getCollection } from "astro:content";
 import "../styles/global.css";
 
 interface Props {
@@ -10,9 +11,24 @@ interface Props {
     alt: string;
     description: string;
     tags: Array<any>;
+    currentPost: string;
 }
 
-const { title, date, image, alt, description, tags } = Astro.props;
+const { title, date, image, alt, description, tags, currentPost } = Astro.props;
+const currentUrl = Astro.url.href;
+const encodedTitle = encodeURIComponent(title);
+const encodedUrl = encodeURIComponent(currentUrl);
+
+// Get all blog posts and sort by date
+const allPosts = await getCollection("blog");
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+// Find current post using permalink
+const currentPostIndex = sortedPosts.findIndex((p) => p.id === currentPost);
+
+const previousPost = currentPostIndex !== -1 && currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
+
+const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[currentPostIndex - 1] : null;
 ---
 
 <Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
@@ -28,6 +44,130 @@ const { title, date, image, alt, description, tags } = Astro.props;
             ))
         }
     </span>
-    <hr />
+    <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
     <slot />
+    <hr class="my-8 border-dashed border-palette-700 dark:border-white" />
+    <div class="mt-4 mb-8 sm:my-8">
+        <div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
+            <div class="flex flex-col flex-wrap items-center justify-center gap-1 sm:items-start text-palette-800">
+                <b class="italic">Share this post on:</b>
+                <br />
+                <div class="text-center">
+                    <a href={`https://wa.me/?text=${encodedTitle} ${encodedUrl}`} target="_blank" rel="noopener noreferrer" class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" aria-label="Share on WhatsApp">
+                        <i class="icon-whatsapp text-2xl"></i>
+                    </a>
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} target="_blank" rel="noopener noreferrer" class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" aria-label="Share on Facebook">
+                        <i class="icon-facebook text-2xl"></i>
+                    </a>
+                    <a
+                        href={`https://x.com/intent/post?text=${encodedTitle}&url=${encodedUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
+                        aria-label="Share on X/Twitter">
+                        <i class="icon-twitter-x text-2xl"></i>
+                    </a>
+                    <a
+                        href={`https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
+                        aria-label="Share on Telegram">
+                        <i class="icon-telegram text-2xl"></i>
+                    </a>
+                    <a
+                        href={`https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
+                        aria-label="Share on Pinterest">
+                        <i class="icon-pinterest text-2xl"></i>
+                    </a>
+                    <a href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`} class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" aria-label="Share via Email">
+                        <i class="icon-envelope-at text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+            <b>
+                <button id="back-to-top" class="focus-outline py-1 whitespace-nowrap hover:opacity-75">
+                    <i class="icon-chevron-up text-2xl"></i>
+                    Back to Top
+                </button>
+            </b>
+        </div>
+        <hr class="my-6 border-dashed border-palette-700 dark:border-white" />
+    </div>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {
+            previousPost && (
+                <a href={`/blog/${previousPost.id}`} class="icon flex w-full gap-1 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
+                    <i class="icon-chevron-left text-xl" />
+                    <div>
+                        <b class="text-palette-800">Previous Post</b>
+                        <div class="text-sm text-accent/85">{previousPost.data.title}</div>
+                    </div>
+                </a>
+            )
+        }
+        {
+            nextPost && (
+                <a href={`/blog/${nextPost.id}`} class="icon flex w-full justify-end gap-1 text-right sm:col-start-2 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
+                    <div>
+                        <b>Next Post</b>
+                        <div class="text-sm text-accent/85">{nextPost.data.title}</div>
+                    </div>
+                    <i class="icon-chevron-right text-xl" />
+                </a>
+            )
+        }
+    </div>
+    <hr class="my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
 </Layout>
+
+<script>
+    function backToTop() {
+        document.querySelector("#back-to-top")?.addEventListener("click", () => {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        });
+    }
+
+    function createProgressBar() {
+        const progressContainer = document.createElement("div");
+        progressContainer.className = "progress-container fixed top-0 z-20 h-1 w-full";
+        progressContainer.style.backgroundColor = "transparent";
+
+        const progressBar = document.createElement("div");
+        progressBar.className = "progress-bar h-1 w-0 transition-all duration-150";
+        progressBar.id = "myBar";
+        // #dcb8b0, #e5cab7, #9bb0cd, #cad5db, #947b82, #8e878c, #9f94a0
+        progressBar.style.background = "linear-gradient(to right, #9f94a0, #8e878c, #947b82, #cad5db, #9bb0cd, #e5cab7, #dcb8b0)";
+        progressBar.style.width = "0%";
+
+        progressContainer.appendChild(progressBar);
+
+        document.body.appendChild(progressContainer);
+    }
+
+    function updateScrollProgress() {
+        const updateProgress = () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = Math.min((winScroll / height) * 100, 100);
+
+            const myBar = document.getElementById("myBar");
+            if (myBar) {
+                myBar.style.width = scrolled + "%";
+            }
+        };
+
+        document.addEventListener("scroll", updateProgress);
+        updateProgress();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        backToTop();
+        createProgressBar();
+        updateScrollProgress();
+    });
+</script>

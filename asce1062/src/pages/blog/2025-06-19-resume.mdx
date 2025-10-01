@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/profile.jpg"
     alt: "Alex Mbugua Ngugi"
 tags: ["resume"]
+permalink: "2025-06-19-resume"
 ---
 
 import BlogLayout from "../../layouts/BlogLayout.astro";
@@ -18,7 +19,8 @@ import Skills from "../../components/Skills.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 Alex is a results-driven, articulate, and analytical Full-Stack Engineer with extensive experience designing and deploying secure, scalable cloud architectures for high-impact platforms.
 Demonstrates expertise in authentication systems, infrastructure as code (IaC), and Agile methodologies, driving successful technology initiatives impacting millions of users.

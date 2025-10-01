@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/shine.png"
     alt: "discipline is what keeps you moving when passion fades"
 tags: ["motivation"]
+permalink: "2025-06-30-shine-authentically"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

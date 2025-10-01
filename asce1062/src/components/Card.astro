@@ -26,7 +26,7 @@ const { name, url, repo, description, tools } = Astro.props;
                 ))
             }
         </div>
-        <hr class="bg-transparent" />
+        <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white bg-transparent" />
         <div class="bottom-0 mt-auto text-sm sm:text-base font-bold *:hover:bg-transparent *:hover:decoration-offset-4 *:hover:dark:bg-transparent *:text-light-300 *:dark:hover:text-palette-300">
             <a class="icon float-left" href={repo} aria-label=`Visit the GitHub repository for ${name}` target="_blank" rel="noopener noreferrer">
                 <i class="icon-github mr-2"></i><span class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">view source</span>

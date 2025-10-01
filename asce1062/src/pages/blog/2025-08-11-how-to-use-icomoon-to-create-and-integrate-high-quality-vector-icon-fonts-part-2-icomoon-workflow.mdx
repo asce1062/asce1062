@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/icomoon.png"
     alt: "icomoon tips for organizing, updating, and styling custom icon fonts"
 tags: ["icomoon", "icons", "howto", "tools"]
+permalink: "2025-08-11-how-to-use-icomoon-to-create-and-integrate-high-quality-vector-icon-fonts-part-2-icomoon-workflow"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 import ImageView from "../../components/ImageView.astro";
@@ -16,7 +17,8 @@ import ImageView from "../../components/ImageView.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 # Part 2: IcoMoon Workflow: How to Create & Manage Custom Icon Fonts Easily.

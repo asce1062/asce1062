@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/current-of-life.png"
     alt: "growth means leaving behind versions of yourself that once felt comfortable"
 tags: ["motivation"]
+permalink: "2025-07-24-grow-beyond-yesterday"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 

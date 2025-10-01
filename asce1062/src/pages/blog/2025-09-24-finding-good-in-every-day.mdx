@@ -6,6 +6,7 @@ image:
     url: "/src/assets/blog/finding-good-in-every-day.png"
     alt: "even the hard days hold gentle things"
 tags: ["motivation"]
+permalink: "2025-09-24-finding-good-in-every-day"
 ---
 import BlogLayout from "../../layouts/BlogLayout.astro";
 
@@ -15,7 +16,8 @@ import BlogLayout from "../../layouts/BlogLayout.astro";
     image={frontmatter.image.url}
     alt={frontmatter.image.alt}
     date={(frontmatter.pubDate).toString().slice(0,10)}
-    tags={frontmatter.tags}>
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
 
 <span>
 
