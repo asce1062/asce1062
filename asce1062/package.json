@@ -12,31 +12,31 @@
     "deploy": "gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check"
+    "check": "astro check",
+    "knip": "knip"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/mdx": "^4.3.6",
-    "@astrojs/react": "^4.4.0",
     "@astrojs/rss": "^4.0.12",
     "@astrojs/sitemap": "^3.6.0",
     "@astrojs/tailwind": "^6.0.2",
     "@rehype-pretty/transformers": "^0.13.2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@stefanprobst/remark-extract-toc": "^2.2.0",
     "astro": "^5.14.1",
     "astro-og-canvas": "^0.7.0",
-    "devicon": "^2.16.0",
     "gh-pages": "^6.3.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "rehype-accessible-emojis": "^0.3.2",
     "rehype-pretty-code": "^0.14.1",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3"
+    "remark-slug": "^7.0.1",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@types/node": "^24.6.2",
     "astro-themes": "^0.2.6",
+    "knip": "^5.64.1",
     "prettier": "^3.6.2",
-    "prettier-plugin-astro": "^0.14.1"
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.9.3"
   }
 }

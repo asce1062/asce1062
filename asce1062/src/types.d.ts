@@ -43,4 +43,14 @@ export interface Frontmatter {
   };
   pubDate: string;
   tags: string[];
+  permalink: string;
 }
+
+export interface TableOfContentsEntry {
+  value: string;
+  depth: number;
+  id?: string;
+  children?: Array<TableOfContentsEntry>;
+}
+
+export type TableOfContents = Array<TableOfContentsEntry>;

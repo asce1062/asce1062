@@ -2,10 +2,7 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
-import rehypePrettyCode from "rehype-pretty-code";
-import lightTheme from "./public/theme/rosepine-dawn.json";
-import darkTheme from "./public/theme/rosepine-dark.json";
-import { transformerCopyButton } from "@rehype-pretty/transformers";
+import markdownConfig from "./markdown.config";
 
 // https://astro.build/config
 export default defineConfig({
@@ -21,26 +18,5 @@ export default defineConfig({
     }),
     mdx(),
   ],
-  markdown: {
-    syntaxHighlight: false,
-    rehypePlugins: [
-      [
-        // https://rehype-pretty.pages.dev/
-        // https://github.com/rehype-pretty/rehype-pretty-code/tree/master/examples/astro
-        rehypePrettyCode,
-        {
-          theme: {
-            dark: darkTheme,
-            light: lightTheme,
-          },
-          transformers: [
-            transformerCopyButton({
-              visibility: "always",
-              feedbackDuration: 2_500,
-            }),
-          ],
-        },
-      ],
-    ],
-  },
+  markdown: markdownConfig,
 });

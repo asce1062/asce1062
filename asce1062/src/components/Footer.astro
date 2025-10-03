@@ -3,16 +3,20 @@ const colours = ["bg-palette-50", "bg-palette-100", "bg-palette-200", "bg-palett
 ---
 
 <footer>
-    <p>
-        <div class="!flex !flex-wrap justify-between">
-            <b><a class="icon text-xs" href="/" aria-label="Visit the Home page"><i class="icon-house-heart mr-1"></i>Home</a></b>
-            <b><a class="icon text-xs" href="/now" aria-label="Visit the Now page"><i class="icon-hourglass-split mr-1"></i>Now</a></b>
-            <b><a class="icon text-xs" href="/projects" aria-label="Visit the Projects page"><i class="icon-kanban mr-1"></i>Projects</a></b>
-            <b><a class="icon text-xs" href="/blog" aria-label="Visit the Blog page"><i class="icon-bookmark-heart mr-1"></i>Blog</a></b>
-            <b><a class="icon text-xs" href="/guestbook" aria-label="Visit the Guestbook page"><i class="icon-journal-bookmark mr-1"></i>Guestbook</a></b>
-            <b><a class="icon text-xs" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>RSS Feed</a></b>
+    <hr class="mt-4 mb-8 sm:my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
+    <div class="flex flex-col items-center justify-center gap-6">
+        <div class="flex flex-col flex-wrap items-center justify-center gap-1 text-palette-800">
+            <div class="text-center">
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/" aria-label="Visit the Home page"><i class="icon-house-heart mr-1 text-2xl"></i>Home</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/now" aria-label="Visit the Now page"><i class="icon-hourglass-split mr-1 text-2xl"></i>Now</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/projects" aria-label="Visit the Projects page"><i class="icon-kanban mr-1 text-2xl"></i>Projects</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/blog" aria-label="Visit the Blog page"><i class="icon-bookmark-heart mr-1 text-2xl"></i>Blog</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1 text-2xl"></i>Tags</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/guestbook" aria-label="Visit the Guestbook page"><i class="icon-journal-bookmark mr-1 text-2xl"></i>Guestbook</a>
+                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1 text-2xl"></i>RSS Feed</a>
+            </div>
         </div>
-    </p>
+    </div>
     <div class="mx-auto mt-4">
         {colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100 `}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
         <i><span class="block pt-2 text-xs">this website is <a href="https://github.com/asce1062/asce1062/tree/main/asce1062" target="_blank" rel="noopener noreferrer">open source</a>. made with astro and tailwindcss</span></i>

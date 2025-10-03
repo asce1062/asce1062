@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import PreviewImage from "../components/PreviewImage.astro";
 import { getCollection } from "astro:content";
+import type { TableOfContents, TableOfContentsEntry } from "../types";
 import "../styles/global.css";
 
 interface Props {
@@ -12,9 +13,10 @@ interface Props {
     description: string;
     tags: Array<any>;
     currentPost: string;
+    tableOfContents?: TableOfContents;
 }
 
-const { title, date, image, alt, description, tags, currentPost } = Astro.props;
+const { title, date, image, alt, description, tags, currentPost, tableOfContents } = Astro.props;
 const currentUrl = Astro.url.href;
 const encodedTitle = encodeURIComponent(title);
 const encodedUrl = encodeURIComponent(currentUrl);
@@ -45,6 +47,43 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
         }
     </span>
     <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
+    {
+        tableOfContents && tableOfContents.length > 0 && (
+            <>
+                <h1>Table of Contents</h1>
+                <div class="table-of-contents mt-4 mb-8 sm:my-8">
+                    <details>
+                        <summary>Open Table of Contents</summary>
+                        <ul>
+                            {tableOfContents.map((item) => (
+                                <li>
+                                    <a href={`#${item.id}`}>{item.value}</a>
+                                    {item.children && item.children.length > 0 && (
+                                        <ul>
+                                            {item.children.map((child: TableOfContentsEntry) => (
+                                                <li>
+                                                    <a href={`#${child.id}`}>{child.value}</a>
+                                                    {child.children && child.children.length > 0 && (
+                                                        <ul>
+                                                            {child.children.map((grandchild: TableOfContentsEntry) => (
+                                                                <li>
+                                                                    <a href={`#${grandchild.id}`}>{grandchild.value}</a>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </details>
+                </div>
+            </>
+        )
+    }
     <slot />
     <hr class="my-8 border-dashed border-palette-700 dark:border-white" />
     <div class="mt-4 mb-8 sm:my-8">
@@ -121,7 +160,6 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
             )
         }
     </div>
-    <hr class="my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
 </Layout>
 
 <script>

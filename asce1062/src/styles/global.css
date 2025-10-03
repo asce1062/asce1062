@@ -158,7 +158,7 @@
     @apply list-decimal ml-6;
   }
 
-  details > :nth-child(n + 2),
+  details:not(.table-of-contents details) > :nth-child(n + 2),
   #expand-content p {
     @apply pl-4 border-l p-2;
   }
@@ -263,15 +263,37 @@
   figure {
     @apply mb-6 mt-1;
   }
+
   pre,
   code,
   figure {
     @apply overflow-x-auto px-2 py-1;
   }
+
+  .table-of-contents ul {
+    @apply list-disc ml-4 space-y-4;
+  }
+
+  .table-of-contents ul ul {
+    @apply ml-8 my-4;
+  }
+
+  .table-of-contents li {
+    @apply my-4;
+  }
+
+  .table-of-contents a {
+    @apply underline decoration-dashed underline-offset-8;
+  }
+
+  .table-of-contents summary {
+    @apply cursor-pointer;
+  }
 }
 
 .footnotes {
   margin: auto;
+  margin-top: 2rem;
   width: 91.667%;
   padding-left: 2rem;
   padding-right: 2rem;
