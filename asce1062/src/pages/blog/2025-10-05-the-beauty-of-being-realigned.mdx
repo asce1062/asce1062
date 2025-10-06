@@ -1,0 +1,36 @@
+---
+title: "The Beauty of Being Realigned"
+pubDate: 2025-10-05
+description: "The path you didn’t plan might be the one that leads you home"
+image:
+    url: "/src/assets/blog/the-beauty-of-realignment.png"
+    alt: "what slips away makes room for what’s true"
+tags: ["motivation"]
+permalink: "2025-10-05-the-beauty-of-being-realigned"
+---
+import BlogLayout from "../../layouts/BlogLayout.astro";
+
+<BlogLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+<span>
+
+- Perhaps losing what you thought you wanted helped you find what you truly needed
+- Sometimes what feels like a setback is just life realigning your path
+- You mourn the job, the relationship, the dream, thinking you've lost everything
+- But maybe that closed door wasn't rejection it was redirection, because what we want and what we need aren't always the same
+- And it's only in the absence of what we chased that we find the quiet truth of what we are meant for
+- So if you're hurting from what slipped away, remember this, nothing is subtracted from you, it's replaced with purpose
+- What you thought was the end might just be the beginning of what's real[^1]
+- A heart that trusts in it's purpose, never walks blindly, it walks faithfully
+
+[^1]:1. Proverbs 16:9 - In their hearts humans plan their course, but the Lord establishes their steps.
+
+</span>
+</BlogLayout>

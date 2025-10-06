@@ -2,6 +2,7 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
+import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
 
 // https://astro.build/config
@@ -17,6 +18,7 @@ export default defineConfig({
       filter: (page) => page !== "https://alexmbugu.me/404",
     }),
     mdx(),
+    pagefind(),
   ],
   markdown: markdownConfig,
 });

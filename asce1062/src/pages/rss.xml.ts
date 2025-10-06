@@ -24,6 +24,7 @@ import icomoonImg from "../assets/blog/icomoon.png";
 import itWillBeOkayImg from "../assets/blog/it-will-be-okay-in-the-end.png";
 import stepByStepImg from "../assets/blog/step-by-step.png";
 import goodInEverydayImg from "../assets/blog/finding-good-in-every-day.png";
+import beautyOfRealignmentImg from "../assets/blog/the-beauty-of-realignment.png";
 
 // Map blog images for optimization
 const imageMap = {
@@ -45,6 +46,7 @@ const imageMap = {
   "/src/assets/blog/it-will-be-okay-in-the-end.png": itWillBeOkayImg,
   "/src/assets/blog/step-by-step.png": stepByStepImg,
   "/src/assets/blog/finding-good-in-every-day.png": goodInEverydayImg,
+  "/src/assets/blog/the-beauty-of-realignment.png": beautyOfRealignmentImg,
 };
 
 export async function GET(context: { site: string | URL }) {

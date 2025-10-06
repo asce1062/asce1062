@@ -1,0 +1,240 @@
+/*
+Tailwind theme variables
+Override some Pagefind UI default theme elements
+Match our site theme
+*/
+#pagefind-search {
+  --pagefind-ui-font: "0xProto", monospace;
+  --pagefind-ui-text: theme(colors.palette.700);
+  --pagefind-ui-background: theme(colors.light.100);
+  --pagefind-ui-border: theme(colors.palette.300);
+  --pagefind-ui-primary: theme(colors.palette.500);
+  --pagefind-ui-tag: theme(colors.light.200);
+  --pagefind-ui-border-radius: 0.5rem;
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-image-border-radius: 0.5rem;
+  --pagefind-ui-image-box-ratio: 3 / 2;
+  --pagefind-ui-scale: 0.8;
+}
+
+/* Dark theme override */
+[data-theme="dark"] #pagefind-search {
+  --pagefind-ui-text: theme(colors.light.100);
+  --pagefind-ui-background: theme(colors.palette.900);
+  --pagefind-ui-border: theme(colors.palette.800);
+  --pagefind-ui-primary: theme(colors.palette.400);
+  --pagefind-ui-tag: theme(colors.palette.800);
+}
+
+/* Search Input Styling   */
+.pagefind-ui__form {
+  position: relative;
+}
+
+.pagefind-ui__form:before {
+  content: "\f0e1" !important;
+  font-family: "icomoon" !important;
+  color: var(--pagefind-ui-text) !important;
+  background-color: var(--pagefind-ui-text) !important;
+  width: calc(18px * var(--pagefind-ui-scale)) !important;
+  height: calc(18px * var(--pagefind-ui-scale)) !important;
+  top: calc(23px * var(--pagefind-ui-scale)) !important;
+  left: calc(20px * var(--pagefind-ui-scale)) !important;
+  position: absolute;
+  display: block !important;
+  opacity: 0.7;
+  z-index: 9;
+  pointer-events: none;
+  line-height: 1;
+  background: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Compact Search Input */
+.pagefind-ui__search-input {
+  height: calc(64px * var(--pagefind-ui-scale));
+  padding: 0 calc(70px * var(--pagefind-ui-scale)) 0
+    calc(54px * var(--pagefind-ui-scale));
+  background-color: var(--pagefind-ui-background);
+  border: var(--pagefind-ui-border-width) solid var(--pagefind-ui-border);
+  border-radius: var(--pagefind-ui-border-radius);
+  font-size: calc(21px * var(--pagefind-ui-scale));
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  font-weight: 700;
+}
+
+.pagefind-ui__search-input:focus {
+  outline: 1px solid var(--pagefind-ui-primary);
+  outline-offset: 2px;
+}
+
+/* Compact "Clear" Button */
+.pagefind-ui__search-clear {
+  position: absolute;
+  right: 0.25rem;
+  top: 0.15rem;
+  height: 1.8rem;
+  padding: 0 0.6rem;
+  background: transparent;
+  color: var(--pagefind-ui-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.pagefind-ui__search-clear:hover {
+  opacity: 1;
+}
+
+/* Search Results Styling */
+.pagefind-ui__message {
+  box-sizing: content-box;
+  font-size: calc(16px * var(--pagefind-ui-scale));
+  height: calc(24px * var(--pagefind-ui-scale));
+  padding: calc(20px * var(--pagefind-ui-scale)) 0;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.pagefind-ui__results {
+  padding: 0;
+  margin-top: 1.5rem;
+}
+
+.pagefind-ui__result {
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--pagefind-ui-border);
+  transition: background-color 0.15s ease;
+}
+
+.pagefind-ui__result:last-of-type {
+  border-bottom: none !important;
+}
+
+/* Target pagefind-search context */
+#pagefind-search .pagefind-ui__result:last-of-type {
+  border-bottom: none !important;
+}
+
+.pagefind-ui__result-title {
+  display: inline-block;
+  font-weight: 700;
+  font-size: calc(21px * var(--pagefind-ui-scale));
+  margin-top: 0;
+  margin-bottom: 0;
+  color: var(--bold);
+}
+
+/* Ensure Pagefind links match global link styling */
+#pagefind-search .pagefind-ui__result a,
+#pagefind-search .pagefind-ui__result-link,
+#pagefind-search .pagefind-ui__result-title a {
+  @apply text-light-300 dark:text-palette-300;
+  @apply underline decoration-dashed underline-offset-8;
+  @apply hover:no-underline hover:bg-palette-200 hover:dark:bg-palette-300 hover:dark:text-black;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Add vertical spacing between link/title and excerpt */
+#pagefind-search .pagefind-ui__result-title {
+  @apply mb-2;
+}
+
+#pagefind-search .pagefind-ui__result-excerpt {
+  @apply mb-4;
+}
+
+/* Ensure nested result arrow stays visible in both themes */
+.pagefind-ui__result-nested .pagefind-ui__result-link::before {
+  content: "⤷ ";
+  position: absolute;
+  top: 0;
+  transform: translateY(-0.3em);
+  right: calc(100% + 0.1em);
+  @apply text-light-300 dark:text-palette-300;
+}
+
+.pagefind-ui__result-excerpt {
+  display: inline-block;
+  font-weight: 400;
+  font-size: calc(16px * var(--pagefind-ui-scale));
+  margin-top: calc(4px * var(--pagefind-ui-scale));
+  margin-bottom: 0;
+  min-width: calc(250px * var(--pagefind-ui-scale));
+}
+
+.pagefind-ui__result mark {
+  background: var(--pagefind-ui-primary);
+  color: var(--pagefind-ui-background);
+  padding: 0 0.1em;
+  border-radius: 2px;
+}
+
+/* Tags styling with reduced corner roundness */
+/* Increase specificity to override Pagefind’s internal styles */
+#pagefind-search .pagefind-ui__result-tags .pagefind-ui__result-tag,
+.pagefind-ui__result .pagefind-ui__result-tag,
+li.pagefind-ui__result-tag.svelte-4xnkmf {
+  @apply p-1 inline-block rounded;
+}
+
+/* Ensure search results wrap gracefully and remain within viewport */
+#pagefind-search,
+#pagefind-search .pagefind-ui__results,
+#pagefind-search .pagefind-ui__result,
+#pagefind-search .pagefind-ui__result-inner {
+  @apply max-w-full w-full break-words overflow-visible;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Handle long URLs, tags, and highlighted words */
+#pagefind-search .pagefind-ui__result-excerpt,
+#pagefind-search .pagefind-ui__result-title a,
+#pagefind-search .pagefind-ui__result mark,
+#pagefind-search .pagefind-ui__result-tag {
+  @apply break-words whitespace-normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Responsive stacking for smaller viewports */
+@media (max-width: 640px) {
+  #pagefind-search .pagefind-ui__result {
+    @apply flex-col gap-2;
+  }
+
+  #pagefind-search .pagefind-ui__result-inner {
+    @apply w-full;
+  }
+
+  #pagefind-search .pagefind-ui__result-title {
+    @apply text-base;
+  }
+
+  #pagefind-search .pagefind-ui__result-excerpt {
+    @apply text-sm leading-relaxed;
+  }
+
+  #pagefind-search .pagefind-ui__result-tags {
+    @apply flex-wrap;
+  }
+}

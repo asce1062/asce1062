@@ -1,0 +1,87 @@
+---
+import "@pagefind/default-ui/css/ui.css";
+import "../styles/search.css";
+// Simple path join function to replace node:path
+function joinPath(base: string, path: string): string {
+    const normalizedBase = base.endsWith("/") ? base : base + "/";
+    const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+    return normalizedBase + normalizedPath;
+}
+
+interface Props {
+    readonly id?: string;
+    readonly className?: string;
+}
+
+const { id, className } = Astro.props as Props;
+const bundlePath = joinPath(import.meta.env.BASE_URL || "/", "pagefind/");
+const divProps = {
+    ...(id ? { id } : {}),
+    ...(className ? { class: className } : {}),
+};
+---
+
+<div {...divProps} data-pagefind-ui data-bundle-path={bundlePath}></div>
+
+<script>
+    // @ts-ignore - Pagefind module declaration
+    import { PagefindUI } from "@pagefind/default-ui";
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const allSelector = "[data-pagefind-ui]";
+        for (const el of document.querySelectorAll(allSelector)) {
+            const elSelector = [...(el.id ? [`#${el.id}`] : []), ...[...el.classList.values()].map((c) => `.${c}`), allSelector].join("");
+            const bundlePath = el.getAttribute("data-bundle-path");
+
+            new PagefindUI({
+                element: elSelector,
+                bundlePath,
+                showImages: false,
+                showSubResults: true,
+                debounceTimeoutMs: 120,
+                translations: {
+                    placeholder: "Search",
+                    zero_results: "No matches found",
+                    search_label: "Search site",
+                    clear_search: "Clear",
+                },
+            });
+
+            // handle query param linking
+            const input = el.querySelector("input[type='text']");
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            const query = params.get("q");
+
+            if (query && input) {
+                (input as HTMLInputElement).value = query;
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+
+            input?.addEventListener("input", (e) => {
+                const val = (e.target as HTMLInputElement).value;
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(url.search);
+
+                if (val.trim()) {
+                    params.set("q", val);
+                    window.history.replaceState({}, "", `${url.pathname}?${params}`);
+                } else {
+                    params.delete("q");
+                    const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
+                    window.history.replaceState({}, "", newUrl);
+                }
+            });
+
+            // handle clear button click
+            const clearButton = el.querySelector(".pagefind-ui__search-clear");
+            clearButton?.addEventListener("click", () => {
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(url.search);
+                params.delete("q");
+                const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
+                window.history.replaceState({}, "", newUrl);
+            });
+        }
+    });
+</script>
