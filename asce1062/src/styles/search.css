@@ -122,11 +122,11 @@ Match our site theme
   transition: background-color 0.15s ease;
 }
 
+/* Target pagefind-search context */
 .pagefind-ui__result:last-of-type {
   border-bottom: none !important;
 }
 
-/* Target pagefind-search context */
 #pagefind-search .pagefind-ui__result:last-of-type {
   border-bottom: none !important;
 }

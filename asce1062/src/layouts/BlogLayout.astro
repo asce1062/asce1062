@@ -35,20 +35,18 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
 
 <Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
     <article data-pagefind-body>
-        <header data-pagefind-ignore>
-            <h2 data-pagefind-meta="title">{title}</h2>
-            <span data-pagefind-meta="date" data-pagefind-ignore><i><b>{date}</b> | {description}</i></span>
-            <PreviewImage src={image} altText={alt} data-pagefind-ignore />
-            <span data-pagefind-ignore>
-                tags: {
-                    tags.map((tag) => (
-                        <a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
-                            {tag}
-                        </a>
-                    ))
-                }
-            </span>
-        </header>
+        <h2 data-pagefind-meta="title">{title}</h2>
+        <span data-pagefind-meta="date"><i><b>{date}</b> | {description}</i></span>
+        <PreviewImage src={image} altText={alt} />
+        <span>
+            tags: {
+                tags.map((tag) => (
+                    <a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
+                        {tag}
+                    </a>
+                ))
+            }
+        </span>
         <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
         {
             tableOfContents && tableOfContents.length > 0 && (
@@ -89,7 +87,7 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
         }
         <slot />
         <hr class="my-8 border-dashed border-palette-700 dark:border-white" />
-        <div class="mt-4 mb-8 sm:my-8">
+        <div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
             <div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
                 <div class="flex flex-col flex-wrap items-center justify-center gap-1 sm:items-start text-palette-800">
                     <b class="italic">Share this post on:</b>
@@ -144,7 +142,7 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
             </div>
             <hr class="my-6 border-dashed border-palette-700 dark:border-white" />
         </div>
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {
                 previousPost && (
                     <a href={`/blog/${previousPost.id}`} class="icon flex w-full gap-1 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">

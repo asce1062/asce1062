@@ -292,17 +292,10 @@
 }
 
 .footnotes {
-  margin: auto;
   margin-top: 2rem;
-  width: 91.667%;
-  padding-left: 2rem;
-  padding-right: 2rem;
   padding-bottom: 5.5vh;
   @apply text-black dark:text-white;
-
-  @media (width >=64rem) {
-    width: 50%;
-  }
+  @apply prose px-4 sm:px-6 md:px-8 mx-auto;
 }
 
 iframe {
