@@ -289,6 +289,12 @@
   .table-of-contents summary {
     @apply cursor-pointer;
   }
+
+  kbd {
+    @apply inline-block px-2 py-1 text-xs bg-palette-200 dark:bg-palette-700;
+    @apply border border-palette-300 dark:border-palette-600 rounded;
+    @apply text-palette-700 dark:text-palette-300;
+  }
 }
 
 .footnotes {

@@ -34,9 +34,9 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
 ---
 
 <Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
-    <article data-pagefind-body>
+    <article data-pagefind-body data-pagefind-sort="date">
         <h2 data-pagefind-meta="title">{title}</h2>
-        <span data-pagefind-meta="date"><i><b>{date}</b> | {description}</i></span>
+        <span data-pagefind-meta="date" data-pagefind-sort="date:{date}"><i><b>{date}</b> | {description}</i></span>
         <PreviewImage src={image} altText={alt} />
         <span>
             tags: {

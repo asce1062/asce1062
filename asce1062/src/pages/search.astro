@@ -5,19 +5,42 @@ import Expand from "@/components/Expand.astro";
 ---
 
 <Layout title="Search" ogImage="social-preview.png" description="Find articles, topics and ideas by Alex Mbugua">
-    <section id="pagefind-search" class="py-6">
+    <section id="pagefind-search">
         <h1>Search</h1>
-        <p class="mt-2 mb-2 italic text-palette-100 dark:text-light-200 opacity-90">Find articles, topics and ideas...</p>
+        <p class="italic text-palette-100 dark:text-light-200 opacity-90">Find articles, topics and ideas...</p>
         <div class="mb-8">
             <Expand title="Search Tips">
                 <div slot="content">
-                    <p><b><em>Indexed:</em></b> Search using content, date, description, excerpt, tag or title</p>
-                    <p><b><em>Exact phrases:</em></b> Use quotes like <code>"table of contents"</code></p>
-                    <p><b><em>Multiple terms:</em></b> Search for <code>astro components</code> to find posts containing both words</p>
+                    <p><b><em>Indexed:</em></b> Search by content, dates, description, excerpts, tags or titles</p>
+                    <p><b><em>Exact phrases:</em></b> Use quotes like <code>"I'm happy you're here"</code></p>
                     <p><b><em>Fuzzy matching:</em></b> Partial matches like <code>config</code> will find <b class="italic text-sm">"configuration"</b></p>
+                    <p><b><em>Multiple terms:</em></b> Search for <code>using icomoon</code> to find posts containing both words</p>
+                    <p><b><em>Shortcuts:</em></b> Use <kbd>Ctrl+K</kbd> or <kbd>Cmd+K</kbd> for quick access</p>
                 </div>
             </Expand>
         </div>
         <SearchField id="searchbox" />
     </section>
 </Layout>
+
+<script>
+    // Handle Ctrl+K / Cmd+K keyboard shortcut
+    // Listens for the keyboard shortcut immediately
+    document.addEventListener("keydown", (e) => {
+        // Check for Ctrl+K (Windows/Linux) or Cmd+K (Mac)
+        // Find the search input when the shortcut is pressed
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+            e.preventDefault();
+            const searchInput = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement;
+            if (searchInput) {
+                searchInput.focus();
+            } else {
+                // Fall back to a delayed attempt if Pagefind hasn't loaded the input yet
+                setTimeout(() => {
+                    const delayedInput = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement;
+                    delayedInput?.focus();
+                }, 100);
+            }
+        }
+    });
+</script>
