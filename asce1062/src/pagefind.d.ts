@@ -6,6 +6,8 @@ declare module "@pagefind/default-ui" {
       showImages?: boolean;
       showSubResults?: boolean;
       debounceTimeoutMs?: number;
+      autofocus?: boolean;
+      showEmptyFilters?: boolean;
       sort?: {
         [key: string]: "asc" | "desc";
       };

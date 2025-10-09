@@ -92,42 +92,153 @@ const entries = await getGuestEntries();
         <PrivacyPolicy />
         {
             Array.isArray(entries) &&
-                entries.map((entry: any) => (
-                    <article class="entry" style="max-width: 80ch; margin: 0 auto; padding: 6vmin 5.5vmin 5.5vmin;">
-                        <h2>
-                            {entry.human_fields.Url && <a href={entry.human_fields.Url}>{entry.name}</a>}
-                            {!entry.human_fields.Url && entry.name}
-                        </h2>
-                        <p>{entry.body}</p>
-                        <time style="display: block; width: fit-content; margin: 0 0 3vmin auto;">
-                            {new Date(entry.created_at).toLocaleDateString("en-gb", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                            })}
-                        </time>
-                    </article>
-                ))
+                entries.map((entry: any) => {
+                    const initials = entry.name
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2);
+                    return (
+                        <article class="entry">
+                            <div class="entry-avatar">{initials}</div>
+                            <div class="entry-bubble">
+                                <div class="entry-header">
+                                    <h2>
+                                        {entry.human_fields.Url && <a href={entry.human_fields.Url}>{entry.name}</a>}
+                                        {!entry.human_fields.Url && entry.name}
+                                    </h2>
+                                    <time>
+                                        {new Date(entry.created_at).toLocaleDateString("en-gb", {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        })}
+                                    </time>
+                                </div>
+                                <p>{entry.body}</p>
+                            </div>
+                        </article>
+                    );
+                })
         }
     </p>
-
     <style>
         .entry {
-            margin: 5vmin 0;
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .entry-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Light mode avatar */
+        html[data-theme="light"] .entry-avatar,
+        .entry-avatar {
+            background-color: var(--blue);
+            color: var(--dark);
+        }
+
+        /* Dark mode avatar */
+        html[data-theme="dark"] .entry-avatar {
+            background-color: var(--tangrey);
+            color: var(--lightgrey);
+        }
+        .entry-bubble {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+            line-height: 1.625;
+            padding: 1rem;
+            border-radius: 0 1rem 1rem 1rem;
+        }
+
+        /* Light mode bubble */
+        html[data-theme="light"] .entry-bubble,
+        .entry-bubble {
+            border: 1px solid var(--lightgrey);
+            background-color: transparent;
+        }
+
+        /* Dark mode bubble */
+        html[data-theme="dark"] .entry-bubble {
+            border-color: var(--tangrey);
+            background-color: transparent;
+        }
+
+        .entry-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
         }
 
         .entry h2 {
-            margin-bottom: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0;
         }
 
+        /* Light mode h2 */
+        html[data-theme="light"] .entry h2,
+        .entry h2 {
+            @apply text-light-300;
+        }
+
+        /* Dark mode h2 */
+        html[data-theme="dark"] .entry h2,
+        .entry h2 {
+            color: var(--peach);
+        }
+
+        /* Light mode h2 links */
+        html[data-theme="light"] .entry h2 a,
+        .entry h2 a {
+            text-decoration-style: wavy;
+            text-decoration-thickness: 0.07rem;
+        }
+
+        /* Dark mode h2 links */
+        html[data-theme="dark"] .entry h2 a {
+            text-decoration-style: wavy;
+            text-decoration-thickness: 0.07rem;
+        }
+        .entry time {
+            font-size: 0.75rem;
+            font-weight: 400;
+            display: inline;
+            margin: 0;
+            width: auto;
+            color: var(--tangrey);
+        }
         .entry p {
+            font-size: 0.875rem;
+            font-weight: 400;
             white-space: pre-line;
+            margin: 0;
         }
 
-        time {
-            display: block;
-            width: fit-content;
-            margin: 0 0 3vmin auto;
+        /* Light mode p */
+        html[data-theme="light"] .entry p,
+        .entry p {
+            color: var(--dark);
+        }
+
+        /* Dark mode p */
+        html[data-theme="dark"] .entry p {
+            color: white;
         }
 
         .blink {
