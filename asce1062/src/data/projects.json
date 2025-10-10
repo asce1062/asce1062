@@ -12,6 +12,17 @@
     ]
   },
   {
+    "name": "Pixel art icon constructor",
+    "url": "/8biticon",
+    "repo": "https://github.com/asce1062/asce1062/tree/main/asce1062/src/components/AvatarGenerator.astro",
+    "description": "Create your own 8-bit pixel art avatar! Interactive generator with hundreds of customizable options.",
+    "tools": [
+      { "name": "Astro", "icon": "icon-astro" },
+      { "name": "Typescript", "icon": "icon-typescript" },
+      { "name": "Canvas API", "icon": "icon-html" }
+    ]
+  },
+  {
     "name": "Auth0 Provider",
     "url": "https://registry.terraform.io/providers/auth0/auth0/latest/docs",
     "repo": "https://github.com/auth0/terraform-provider-auth0",

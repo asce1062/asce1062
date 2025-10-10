@@ -8,6 +8,18 @@
     src: url("/fonts/0xProto/0xProtoNerdFont-Regular.ttf") format("truetype");
   }
 
+  @font-face {
+    font-family: "uni0553";
+    src: url("/fonts/uni0553/uni0553.eot");
+    src:
+      url("/fonts/uni0553/uni0553.eot?#iefix") format("embedded-opentype"),
+      url("/fonts/uni0553/uni0553.woff") format("woff"),
+      url("/fonts/uni0553/uni0553.ttf") format("truetype"),
+      url("/fonts/uni0553/uni0553.svg#uni_05_53regular") format("svg");
+    font-weight: normal;
+    font-style: normal;
+  }
+
   :root {
     --tangrey: #8e878c;
     --neutralgrey: #9f94a0;
