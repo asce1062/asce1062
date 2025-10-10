@@ -1,0 +1,19 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AvatarGeneratorComponent from "../components/AvatarGenerator.astro";
+---
+
+<Layout title="8bit Pixel art Avatar Generator" ogImage="social-preview.png" description="Create your own 8-bit pixel art avatar">
+    <h1 class="font-retro">8bit Pixel Art Avatar Generator</h1>
+    <p>
+        Customizable avatars for everyone.<br />
+        Create your own <kbd class="font-retro">400x400</kbd> unique pixel art avatar!
+    </p>
+    <AvatarGeneratorComponent />
+    <p class="mt-8">
+        <b><em class="font-retro">Heavily inspired</em></b> by <a class="font-retro" href="https://old.8biticon.com/" target="_blank" rel="noopener noreferrer">old.8biticon.com</a>, whose sources can be found on
+        <a class="icon font-retro" href="https://github.com/matveyco/8biticon" target="_blank" rel="noopener noreferrer">
+            <i class="icon-github"></i> Github
+        </a>
+    </p>
+</Layout>

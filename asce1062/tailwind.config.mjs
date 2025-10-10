@@ -5,6 +5,7 @@ export default {
   theme: {
     fontFamily: {
       proto: ["0xProto", "monospace"],
+      retro: ["uni0553", "monospace"],
     },
     extend: {
       colors: {
