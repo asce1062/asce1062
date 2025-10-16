@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?qpwi2v');
-  src:  url('../fonts/icomoon.eot?qpwi2v#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.ttf?qpwi2v') format('truetype'),
-    url('../fonts/icomoon.woff?qpwi2v') format('woff'),
-    url('../fonts/icomoon.svg?qpwi2v#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?chzdh7');
+  src:  url('../fonts/icomoon.eot?chzdh7#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.ttf?chzdh7') format('truetype'),
+    url('../fonts/icomoon.woff?chzdh7') format('woff'),
+    url('../fonts/icomoon.svg?chzdh7#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,24 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-background-dark:before {
+  content: "\e94f";
+}
+.icon-mouth-dark:before {
+  content: "\e951";
+}
+.icon-hair-dark:before {
+  content: "\e952";
+}
+.icon-eyes-dark:before {
+  content: "\e953";
+}
+.icon-clothes-dark:before {
+  content: "\e954";
+}
+.icon-face-dark:before {
+  content: "\e955";
+}
 .icon-background:before {
   content: "\e929";
   color: #000;
@@ -118,6 +136,35 @@
 .icon-face:before {
   content: "\e93d";
   color: #000;
+}
+.icon-male-dark .path1:before {
+  content: "\e956";
+  color: rgb(219, 194, 158);
+}
+.icon-male-dark .path2:before {
+  content: "\e957";
+  margin-left: -1.2421875em;
+  color: rgb(0, 0, 0);
+}
+.icon-male-dark .path3:before {
+  content: "\e958";
+  margin-left: -1.2421875em;
+  color: rgb(0, 0, 0);
+}
+.icon-male-dark .path4:before {
+  content: "\e959";
+  margin-left: -1.2421875em;
+  color: rgb(120, 33, 33);
+}
+.icon-male-dark .path5:before {
+  content: "\e95a";
+  margin-left: -1.2421875em;
+  color: rgb(120, 33, 33);
+}
+.icon-male-dark .path6:before {
+  content: "\e95b";
+  margin-left: -1.2421875em;
+  color: rgb(120, 33, 33);
 }
 .icon-male .path1:before {
   content: "\e93e";
