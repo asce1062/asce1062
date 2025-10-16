@@ -45,7 +45,7 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
 		<span>
 			tags: {
 				tags.map((tag) => (
-					<a class="mr-2 inline-block" href={`/tags/${tag}`} data-pagefind-meta="tag">
+					<a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
 						{tag}
 					</a>
 				))

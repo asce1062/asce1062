@@ -11,9 +11,12 @@ import { sortPostsByDate, getPostUrl } from "@/lib/blog/utils";
 const images = import.meta.glob<{ default: ImageMetadata }>("../assets/blog/*.{jpg,jpeg,png,webp}", { eager: true });
 
 // Create image map from dynamic imports
+// Normalize paths to match frontmatter format: /src/assets/blog/filename.ext
 const imageMap = Object.entries(images).reduce(
 	(acc, [path, module]) => {
-		acc[path] = module.default;
+		// Convert ../assets/blog/filename.ext to /src/assets/blog/filename.ext
+		const normalizedPath = path.replace("../assets/", "/src/assets/");
+		acc[normalizedPath] = module.default;
 		return acc;
 	},
 	{} as Record<string, ImageMetadata>

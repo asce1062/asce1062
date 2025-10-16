@@ -20,7 +20,7 @@ const colours = [
 				{
 					mainNavigation.map((link) => (
 						<a
-							class={`icon group inline-block hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`}
+							class={`icon group hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`}
 							href={link.href}
 							aria-label={link.ariaLabel}>
 							<i class={`${link.icon} mr-0 text-2xl`} />
@@ -39,14 +39,10 @@ const colours = [
 				</span>
 			))
 		}
+		<!-- prettier-ignore -->
 		<i>
 			<span class="block pt-2 text-xs">
-				{siteMetadata.footerText.split("open source")[0]}<a
-					href={siteMetadata.githubRepo}
-					target="_blank"
-					rel="noopener noreferrer">
-					open source
-				</a>{siteMetadata.footerText.split("open source")[1]}
+				{siteMetadata.footerText.split("open source")[0]}<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.footerText.split("open source")[1]}
 			</span>
 		</i>
 	</div>
