@@ -18,16 +18,30 @@ export interface ShortcutConfig {
  */
 export function registerShortcut(config: ShortcutConfig): () => void {
   const handler = (e: KeyboardEvent) => {
-    // Check if all required modifier keys match
+    // Check if key matches (case-insensitive)
+    const keyMatch = e.key.toLowerCase() === config.key.toLowerCase();
+    if (!keyMatch) return;
+
+    // Special handling: if both ctrl and meta are specified, match EITHER (Ctrl OR Cmd)
+    const hasCtrlOrMeta = config.ctrl && config.meta;
+    if (hasCtrlOrMeta) {
+      // Match Ctrl+Key on Windows/Linux OR Cmd+Key on Mac
+      const modifierMatch =
+        (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+      if (modifierMatch) {
+        e.preventDefault();
+        config.callback();
+      }
+      return;
+    }
+
+    // Standard modifier key checking for other combinations
     const ctrlMatch = config.ctrl ? e.ctrlKey : !e.ctrlKey;
     const metaMatch = config.meta ? e.metaKey : !e.metaKey;
     const shiftMatch = config.shift ? e.shiftKey : !e.shiftKey;
     const altMatch = config.alt ? e.altKey : !e.altKey;
 
-    // Check if key matches (case-insensitive)
-    const keyMatch = e.key.toLowerCase() === config.key.toLowerCase();
-
-    if (keyMatch && ctrlMatch && metaMatch && shiftMatch && altMatch) {
+    if (ctrlMatch && metaMatch && shiftMatch && altMatch) {
       e.preventDefault();
       config.callback();
     }

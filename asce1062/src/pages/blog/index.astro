@@ -3,9 +3,10 @@ import Layout from "../../layouts/Layout.astro";
 import Columns from "@/components/Columns.astro";
 import Post from "../../components/Post.astro";
 import { getCollection } from "astro:content";
+import { sortPostsByDate, formatPostDate, getPostUrl } from "@/lib/blog/utils";
 
-const posts = await getCollection("blog");
-posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const allPosts = await getCollection("blog");
+const posts = sortPostsByDate(allPosts);
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
@@ -26,20 +27,6 @@ posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
     </div>
     <p>I'm happy you're here ^^</p>
     <Columns columns={1}>
-        {
-            posts.map((post) => (
-                <Post
-                    name={post.data.title}
-                    url={`/blog/${post.id.replace(".mdx", "")}`}
-                    image={post.data.image.url}
-                    description={post.data.description}
-                    date={new Date(post.data.pubDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    })}
-                />
-            ))
-        }
+        {posts.map((post) => <Post name={post.data.title} url={getPostUrl(post.id)} image={post.data.image.url} description={post.data.description} date={formatPostDate(post.data.pubDate, "long")} />)}
     </Columns>
 </Layout>

@@ -1,61 +1,30 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import fs from "fs";
 import path from "path";
 import { BLOG_TITLE, BLOG_DESCRIPTION } from "../config";
+import { sortPostsByDate, getPostUrl } from "@/lib/blog/utils";
 
-// Import all blog images
-import escapeRoomImg from "../assets/blog/2u-escape-room.jpg";
-import profileImg from "../assets/blog/profile.jpg";
-import timeImg from "../assets/blog/time.png";
-import progressImg from "../assets/blog/progress.png";
-import yourOwnSiteImg from "../assets/blog/your-own-site.png";
-import hindsightImg from "../assets/blog/hindsight.png";
-import perspectiveImg from "../assets/blog/perspective.png";
-import purposeImg from "../assets/blog/purpose.png";
-import shineImg from "../assets/blog/shine.png";
-import startTodayImg from "../assets/blog/start-today.png";
-import bePresentImg from "../assets/blog/be-present.png";
-import currentOfLifeImg from "../assets/blog/current-of-life.png";
-import letWoundsHealImg from "../assets/blog/let-wounds-heal.png";
-import walkFreeImg from "../assets/blog/walk-free.png";
-import icomoonImg from "../assets/blog/icomoon.png";
-import itWillBeOkayImg from "../assets/blog/it-will-be-okay-in-the-end.png";
-import stepByStepImg from "../assets/blog/step-by-step.png";
-import goodInEverydayImg from "../assets/blog/finding-good-in-every-day.png";
-import beautyOfRealignmentImg from "../assets/blog/the-beauty-of-realignment.png";
+// Dynamically import all blog images
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/blog/*.{jpg,jpeg,png,webp}",
+  { eager: true },
+);
 
-// Map blog images for optimization
-const imageMap = {
-  "/src/assets/blog/2u-escape-room.jpg": escapeRoomImg,
-  "/src/assets/blog/profile.jpg": profileImg,
-  "/src/assets/blog/time.png": timeImg,
-  "/src/assets/blog/progress.png": progressImg,
-  "/src/assets/blog/your-own-site.png": yourOwnSiteImg,
-  "/src/assets/blog/hindsight.png": hindsightImg,
-  "/src/assets/blog/perspective.png": perspectiveImg,
-  "/src/assets/blog/purpose.png": purposeImg,
-  "/src/assets/blog/shine.png": shineImg,
-  "/src/assets/blog/start-today.png": startTodayImg,
-  "/src/assets/blog/be-present.png": bePresentImg,
-  "/src/assets/blog/current-of-life.png": currentOfLifeImg,
-  "/src/assets/blog/let-wounds-heal.png": letWoundsHealImg,
-  "/src/assets/blog/walk-free.png": walkFreeImg,
-  "/src/assets/blog/icomoon.png": icomoonImg,
-  "/src/assets/blog/it-will-be-okay-in-the-end.png": itWillBeOkayImg,
-  "/src/assets/blog/step-by-step.png": stepByStepImg,
-  "/src/assets/blog/finding-good-in-every-day.png": goodInEverydayImg,
-  "/src/assets/blog/the-beauty-of-realignment.png": beautyOfRealignmentImg,
-};
+// Create image map from dynamic imports
+const imageMap = Object.entries(images).reduce(
+  (acc, [path, module]) => {
+    acc[path] = module.default;
+    return acc;
+  },
+  {} as Record<string, ImageMetadata>,
+);
 
 export async function GET(context: { site: string | URL }) {
   const blog = await getCollection("blog");
-
-  // Sort posts by publication date (newest first)
-  const sortedPosts = blog.sort(
-    (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
-  );
+  const sortedPosts = sortPostsByDate(blog);
 
   // Process images to get optimized URLs
   const postsWithOptimizedImages = await Promise.all(
@@ -96,7 +65,7 @@ export async function GET(context: { site: string | URL }) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: `<img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>${post.data.description}`,
-      link: `/blog/${post.id.replace(".mdx", "")}/`,
+      link: `${getPostUrl(post.id)}/`,
       categories: post.data.tags,
     })),
     customData: `

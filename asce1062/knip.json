@@ -7,6 +7,7 @@
     "src/scripts/blogInteractions.ts",
     "src/scripts/keyboardShortcuts.ts",
     "src/scripts/themeManager.ts",
+    "src/scripts/guestbookCounter.ts",
     "src/data/navigation.ts"
   ],
   "entry": [

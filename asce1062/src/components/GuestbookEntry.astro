@@ -1,0 +1,33 @@
+---
+import type { GuestEntry } from "@/lib/api/guestbook";
+import { getInitials, formatEntryDate } from "@/lib/api/guestbook";
+
+interface Props {
+    entry: GuestEntry;
+}
+
+const { entry } = Astro.props;
+const initials = getInitials(entry.name);
+const formattedDate = formatEntryDate(entry.created_at);
+---
+
+<article class="entry">
+    <div class="entry-avatar">{initials}</div>
+    <div class="entry-bubble">
+        <div class="entry-header">
+            <h2>
+                {
+                    entry.human_fields.Url ? (
+                        <a href={entry.human_fields.Url} target="_blank" rel="noopener noreferrer">
+                            {entry.name}
+                        </a>
+                    ) : (
+                        entry.name
+                    )
+                }
+            </h2>
+            <time datetime={entry.created_at}>{formattedDate}</time>
+        </div>
+        <p>{entry.body}</p>
+    </div>
+</article>
