@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreDependencies": ["pagefind"],
+  "ignore": [
+    "public/fonts/icomoon/**",
+    "scripts/**",
+    "src/scripts/blogInteractions.ts",
+    "src/scripts/keyboardShortcuts.ts",
+    "src/scripts/themeManager.ts",
+    "src/data/navigation.ts"
+  ],
+  "entry": [
+    "markdown.config.ts",
+    "src/pages/**/*.{astro,mdx}",
+    "src/layouts/**/*.astro",
+    "src/components/**/*.astro"
+  ],
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  }
+}
