@@ -1,5 +1,7 @@
 ---
 import ThemeSwitcher from "../components/ThemeSwitcher.astro";
+import { socialLinks, contactLinks, siteMetadata } from "@/data/navigation";
+
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
 ---
@@ -25,27 +27,47 @@ const link = url.pathname.split("/").filter((i) => i);
             }
         </span>
     </div>
-    <h1>hi, i'm Alex.</h1>
+    <h1>{siteMetadata.greeting}</h1>
     <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
     <div class="flex flex-col justify-between text-sm leading-7 sm:leading-5 transition-all duration-300 sm:flex-row sm:text-base">
+        <!-- Social Links -->
         <div class="text-palette-800">
-            <b>
-                <a class="icon" href="https://github.com/asce1062" target="_blank" rel="noopener noreferrer"><i class="icon-github mr-2"></i>asce1062</a>
-            </b>
-            <br />
-            <b>
-                <a class="icon" href="https://www.linkedin.com/in/alex-mbugua" target="_blank" rel="noopener noreferrer"><i class="icon-linkedin mr-2"></i>Alex Mbugua</a>
-            </b>
+            {
+                socialLinks.map((link) => (
+                    <>
+                        <b>
+                            <a class="icon" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.ariaLabel}>
+                                <i class={`${link.icon} mr-0`} />
+                                {link.name}
+                            </a>
+                        </b>
+                        <br />
+                    </>
+                ))
+            }
         </div>
+
+        <!-- Contact & Resume Links -->
         <div class="text-palette-800">
             <b>
-                <a class="icon" href="/blog/2025-06-19-resume"><i class="icon-eye mr-2"></i>Resume</a>
-                |
-                <a class="icon" href="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf" download="Alex Mbugua Ngugi - Resume.pdf"><i class="icon-cloud-download mr-2"></i>Resume.pdf</a>
+                {
+                    contactLinks.slice(0, 2).map((link, index) => (
+                        <>
+                            {index > 0 && " | "}
+                            <a class="icon" href={link.href} aria-label={link.ariaLabel} {...(link.download && { download: link.name })}>
+                                <i class={`${link.icon} mr-0`} />
+                                {link.name}
+                            </a>
+                        </>
+                    ))
+                }
             </b>
             <br />
             <b>
-                <a class="icon" href="mailto:alex.mbugua@outlook.com"><i class="icon-envelope-at mr-2"></i>alex.mbugua@outlook.com</a>
+                <a class="icon" href={contactLinks[2].href} aria-label={contactLinks[2].ariaLabel}>
+                    <i class={`${contactLinks[2].icon} mr-0`}></i>
+                    {contactLinks[2].name}
+                </a>
             </b>
         </div>
     </div>

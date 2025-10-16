@@ -1,5 +1,10 @@
 ---
-
+import GenderSelector from "@/components/avatar/GenderSelector.astro";
+import AvatarCanvas from "@/components/avatar/AvatarCanvas.astro";
+import AvatarActions from "@/components/avatar/AvatarActions.astro";
+import LayerTabs from "@/components/avatar/LayerTabs.astro";
+import LayerGrid from "@/components/avatar/LayerGrid.astro";
+import "@/styles/avatar.css";
 ---
 
 <div class="avatar-generator">
@@ -7,754 +12,291 @@
     <div class="generator-layout">
         <!-- Avatar Preview -->
         <div class="preview-section">
-            <!-- Gender Selection -->
-            <!-- prettier-ignore -->
-            <div class="gender-selection">
-                <label class="gender-option">
-                    <span class="icon-male-dark hidden dark:inline text-2xl"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span></span>
-                    <span class="icon-male dark:hidden text-2xl"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span></span>
-                    <span class="font-retro">Male</span>
-                    <input type="radio" name="gender" value="male" checked />
-                </label>
-                <label class="gender-option">
-                    <span class="icon-female text-2xl"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"></span><span class="path9"></span><span class="path10"></span></span>
-                    <span class="font-retro">Female</span>
-                    <input type="radio" name="gender" value="female" />
-                </label>
-            </div>
-
-            <div class="preview-container">
-                <canvas id="avatar-canvas" width="400" height="400"></canvas>
-                <div id="loading-indicator" class="loading hidden">
-                    <span class="font-retro">Loading...</span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button id="randomize-btn" class="btn btn-primary font-retro">Randomize</button>
-                <button id="download-btn" class="btn btn-secondary font-retro">Download</button>
-                <a id="share-btn" class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" style="cursor: pointer;" aria-label="Share Avatar">
-                    <i class="icon-share text-2xl"></i>
-                </a>
-            </div>
-
-            <!-- Share Notification -->
-            <div id="share-notification" class="share-notification hidden">
-                <span class="font-retro">Link copied!</span>
-                <button id="close-notification" class="close-btn" aria-label="Close notification">
-                    <i class="icon-x"></i>
-                </button>
-            </div>
+            <GenderSelector />
+            <AvatarCanvas />
+            <AvatarActions />
         </div>
 
         <!-- Layer Selection -->
-        <!-- prettier-ignore -->
         <div class="selection-section">
-            <div class="layer-tabs">
-                <button class="layer-tab active" data-layer="face">
-                    <b>
-                        <i class="icon-face-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Face</span>
-                </button>
-                <button class="layer-tab" data-layer="clothes">
-                    <b>
-                        <i class="icon-clothes-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Clothes</span>
-                </button>
-                <button class="layer-tab" data-layer="hair">
-                    <b>
-                        <i class="icon-hair-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Hair</span>
-                </button>
-                <button class="layer-tab" data-layer="eye">
-                    <b>
-                        <i class="icon-eyes-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Eyes</span>
-                </button>
-                <button class="layer-tab" data-layer="mouth">
-                    <b>
-                        <i class="icon-mouth-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Mouth</span>
-                </button>
-                <button class="layer-tab" data-layer="background">
-                    <b>
-                        <i class="icon-background-dark text-3xl"></i>
-                    </b>
-                    <span class="layer-tab-text">Background</span>
-                </button>
-            </div>
-        <div class="layer-content" id="layer-content">
-            <!-- Layer items will be generated dynamically -->
+            <LayerTabs />
+            <LayerGrid />
         </div>
     </div>
-    </div>
-
-    <style>
-        .avatar-generator {
-            width: 100%;
-            max-width: 100%;
-        }
-
-        .gender-selection {
-            display: flex;
-            justify-content: center;
-            gap: 8rem;
-        }
-
-        .gender-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .gender-option:hover {
-            transform: scale(1.05);
-        }
-
-        .gender-option input[type="radio"] {
-            cursor: pointer;
-            accent-color: var(--blue, #9bb0cd);
-            transform: translateY(-0.5em);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.375rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background-color: var(--blue, #9bb0cd);
-            color: var(--dark, #120f19);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--lightblue, #cad5db);
-        }
-
-        .btn-secondary {
-            background-color: var(--pink, #dcb8b0);
-            color: var(--dark, #120f19);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--peach, #e5cab7);
-        }
-
-        .generator-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .preview-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .preview-container {
-            position: relative;
-            background: transparent;
-            padding: 1rem;
-        }
-
-        .loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-        }
-
-        .loading.hidden {
-            display: none;
-        }
-
-        .selection-section {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .layer-tabs {
-            display: inline-flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border-bottom: 2px solid transparent;
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
-            transition: all 0.2s;
-            color: var(--neutralgrey, #9f94a0);
-        }
-
-        .layer-tab {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.25rem;
-            background: transparent;
-            border-bottom: 2px solid transparent;
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
-            transition: all 0.2s;
-            color: var(--neutralgrey, #9f94a0);
-        }
-
-        .layer-tab:hover {
-            color: var(--lightgrey, #bbb8bb);
-            border-bottom-color: var(--lightgrey, #bbb8bb);
-        }
-
-        .layer-tab.active {
-            color: var(--blue, #9bb0cd);
-            border-bottom-color: var(--blue, #9bb0cd);
-        }
-
-        .layer-tab-text {
-            font-family: "uni0553";
-            font-size: 0.9rem;
-        }
-
-        .layer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 0.75rem;
-            max-height: 510px;
-            overflow-y: auto;
-            padding: 1.5rem 1rem;
-            background: transparent;
-            margin-top: 1rem;
-        }
-
-        .share-notification {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.5rem;
-            background-color: var(--blue, #9bb0cd);
-            color: var(--dark, #120f19);
-            border-radius: 0.25rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            font-weight: 600;
-            z-index: 1000;
-            animation: slideInFromRight 0.3s ease-out;
-        }
-
-        .share-notification.hidden {
-            display: none;
-        }
-
-        .share-notification.fadeOut {
-            animation: slideOutToRight 0.3s ease-out forwards;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--dark, #120f19);
-            cursor: pointer;
-            padding: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.2s;
-        }
-
-        .close-btn:hover {
-            opacity: 0.7;
-        }
-
-        @keyframes slideInFromRight {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideOutToRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .generator-layout {
-                grid-template-columns: 1fr;
-            }
-
-            #avatar-canvas {
-                max-width: 100%;
-                height: auto;
-            }
-
-            .layer-tabs {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-                padding: 0.25rem;
-                border-bottom: 2px solid transparent;
-                border-top-left-radius: 0.5rem;
-                border-top-right-radius: 0.5rem;
-                transition: all 0.2s;
-            }
-
-            .layer-content {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
-                gap: 0.75rem !important;
-                max-height: 400px;
-                background: transparent;
-            }
-
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.875rem;
-            }
-
-            .share-notification {
-                top: 1rem;
-                right: 1rem;
-                padding: 0.75rem 1rem;
-                font-size: 0.875rem;
-                gap: 0.75rem;
-            }
-
-            .close-btn {
-                font-size: 0.875rem;
-            }
-
-            .layer-tab-text {
-                font-size: 0.8rem;
-            }
-        }
-    </style>
-
-    <script>
-        import type { Gender, AvatarState } from "../data/avatarConfig";
-        import { avatarConfig, getImagePath, getRandomState, getDefaultState } from "../data/avatarConfig";
-
-        class AvatarGenerator {
-            private canvas: HTMLCanvasElement;
-            private ctx: CanvasRenderingContext2D;
-            private currentGender: Gender = "male";
-            private currentState: AvatarState;
-            private currentLayer: string;
-            private imageCache: Map<string, HTMLImageElement> = new Map();
-            private isLoading: boolean = false;
-            private notificationTimeout: number | null = null;
-
-            // Cached DOM elements
-            private genderRadios: NodeListOf<Element>;
-            private layerTabs: NodeListOf<Element>;
-            private layerContent: HTMLElement | null;
-            private loadingIndicator: HTMLElement | null;
-            private shareNotification: HTMLElement | null;
-
-            constructor() {
-                this.canvas = document.getElementById("avatar-canvas") as HTMLCanvasElement;
-                this.ctx = this.canvas.getContext("2d")!;
-                this.currentState = getDefaultState(this.currentGender);
-                this.currentLayer = avatarConfig[this.currentGender][0].name;
-
-                // Cache DOM elements
-                this.genderRadios = document.querySelectorAll('input[name="gender"]');
-                this.layerTabs = document.querySelectorAll(".layer-tab");
-                this.layerContent = document.getElementById("layer-content");
-                this.loadingIndicator = document.getElementById("loading-indicator");
-                this.shareNotification = document.getElementById("share-notification");
-
-                this.init();
-            }
-
-            private async init() {
-                this.setupEventListeners();
-                this.loadFromURL();
-                await this.preloadImages();
-                this.renderLayerItems();
-                await this.renderAvatar();
-            }
-
-            private setupEventListeners() {
-                // Gender radio buttons
-                this.genderRadios.forEach((radio) => {
-                    radio.addEventListener("change", (e) => {
-                        const target = e.target as HTMLInputElement;
-                        if (target.checked) {
-                            this.changeGender(target.value as Gender);
-                        }
-                    });
-                });
-
-                // Layer tabs
-                this.layerTabs.forEach((tab) => {
-                    tab.addEventListener("click", () => {
-                        const layer = (tab as HTMLElement).dataset.layer;
-                        if (layer) {
-                            this.switchLayer(layer);
-                        }
-                    });
-                });
-
-                // Randomize
-                const randomizeBtn = document.getElementById("randomize-btn");
-                randomizeBtn?.addEventListener("click", () => this.randomize());
-
-                // Download
-                const downloadBtn = document.getElementById("download-btn");
-                downloadBtn?.addEventListener("click", () => this.download());
-
-                // Share
-                const shareBtn = document.getElementById("share-btn");
-                shareBtn?.addEventListener("click", () => this.shareAvatar());
-
-                // Close notification
-                const closeNotificationBtn = document.getElementById("close-notification");
-                closeNotificationBtn?.addEventListener("click", () => this.hideNotification());
-            }
-
-            private switchLayer(layerName: string) {
-                this.currentLayer = layerName;
-
-                // Update active state on tabs
-                this.layerTabs.forEach((tab) => {
-                    tab.classList.remove("active");
-                    if ((tab as HTMLElement).dataset.layer === layerName) {
-                        tab.classList.add("active");
-                    }
-                });
-
-                this.renderLayerItems();
-            }
-
-            private async preloadImages() {
-                this.setLoading(true);
-                const layers = avatarConfig[this.currentGender];
-                const promises: Promise<void>[] = [];
-
-                for (const layer of layers) {
-                    for (let i = 1; i <= layer.count; i++) {
-                        const path = getImagePath(this.currentGender, layer.name, i);
-                        if (!this.imageCache.has(path)) {
-                            promises.push(this.loadImage(path));
-                        }
-                    }
-                }
-
-                await Promise.all(promises);
-                this.setLoading(false);
-            }
-
-            private loadImage(path: string): Promise<void> {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        this.imageCache.set(path, img);
-                        resolve();
-                    };
-                    img.onerror = () => {
-                        console.error(`Failed to load image: ${path}`);
-                        resolve(); // Don't reject, just continue
-                    };
-                    img.src = path;
-                });
-            }
-
-            private renderLayerItems() {
-                if (!this.layerContent) return;
-
-                this.layerContent.innerHTML = "";
-                const layer = avatarConfig[this.currentGender].find((l) => l.name === this.currentLayer);
-                if (!layer) return;
-
-                for (let i = 1; i <= layer.count; i++) {
-                    const item = document.createElement("div");
-                    item.className = "layer-item";
-                    item.style.cssText = "aspect-ratio: 1; border: 1px solid transparent; border-radius: 0.15rem; cursor: pointer; transition: all 0.2s;";
-                    item.dataset.index = i.toString();
-
-                    if (this.currentState[this.currentLayer] === i) {
-                        item.classList.add("selected");
-                        item.style.cssText += " border-color: var(--pink, #dcb8b0); box-shadow: 0 0 0 1px var(--pink, #dcb8b0);";
-                    }
-
-                    // For non-background layers, create a composite preview with background
-                    if (this.currentLayer !== "background") {
-                        const canvas = document.createElement("canvas");
-                        canvas.width = 80;
-                        canvas.height = 80;
-                        canvas.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-                        const ctx = canvas.getContext("2d")!;
-
-                        // Draw background first
-                        const bgPath = getImagePath(this.currentGender, "background", this.currentState["background"]);
-                        const bgImg = this.imageCache.get(bgPath);
-                        if (bgImg && bgImg.complete) {
-                            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-                        }
-
-                        // Draw the current layer item on top
-                        const itemPath = getImagePath(this.currentGender, layer.name, i);
-                        const itemImg = this.imageCache.get(itemPath);
-                        if (itemImg && itemImg.complete) {
-                            ctx.drawImage(itemImg, 0, 0, canvas.width, canvas.height);
-                        }
-
-                        item.appendChild(canvas);
-                    } else {
-                        // For background layer, just show the background image
-                        const img = document.createElement("img");
-                        img.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-                        const path = getImagePath(this.currentGender, layer.name, i);
-                        img.src = path;
-                        img.alt = `${layer.title} ${i}`;
-                        item.appendChild(img);
-                    }
-
-                    const number = document.createElement("span");
-                    number.className = "layer-item-number";
-                    number.style.cssText = "display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
-                    number.textContent = i.toString();
-                    item.appendChild(number);
-
-                    // Add hover effects
-                    item.addEventListener("mouseenter", () => {
-                        const currentBorder = item.style.borderColor;
-                        if (currentBorder !== "var(--pink, #dcb8b0)" && currentBorder !== "rgb(220, 184, 176)") {
-                            item.style.borderColor = "var(--blue, #9bb0cd)";
-                        }
-                        item.style.transform = "scale(1.05)";
-                    });
-
-                    item.addEventListener("mouseleave", () => {
-                        if (!item.classList.contains("selected")) {
-                            item.style.borderColor = "transparent";
-                        }
-                        item.style.transform = "scale(1)";
-                    });
-
-                    item.addEventListener("click", async () => {
-                        this.currentState[this.currentLayer] = i;
-                        this.renderLayerItems();
-                        await this.renderAvatar();
-                        this.updateURL();
-                    });
-
-                    this.layerContent.appendChild(item);
-                }
-            }
-
-            private async renderAvatar() {
-                // Clear the canvas to transparent
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-                const layers = avatarConfig[this.currentGender];
-
-                // Sort layers by zIndex (background = 0 renders first, face = 1, etc.)
-                const sortedLayers = [...layers].sort((a, b) => a.zIndex - b.zIndex);
-
-                // Render layers in zIndex order (background image will set the background)
-                for (const layer of sortedLayers) {
-                    const index = this.currentState[layer.name];
-                    const path = getImagePath(this.currentGender, layer.name, index);
-                    const img = this.imageCache.get(path);
-
-                    if (img && img.complete) {
-                        this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
-                    }
-                }
-            }
-
-            private async changeGender(newGender: Gender) {
-                if (this.currentGender === newGender) return;
-
-                this.currentGender = newGender;
-                this.currentState = getDefaultState(this.currentGender);
-                this.currentLayer = avatarConfig[this.currentGender][0].name;
-
-                // Reset to first tab
-                this.layerTabs.forEach((tab, index) => {
-                    tab.classList.toggle("active", index === 0);
-                });
-
-                await this.preloadImages();
-                this.renderLayerItems();
-                await this.renderAvatar();
-                this.updateURL();
-            }
-
-            private async randomize() {
-                this.currentState = getRandomState(this.currentGender);
-                this.renderLayerItems();
-                await this.renderAvatar();
-                this.updateURL();
-            }
-
-            private download() {
-                this.canvas.toBlob((blob) => {
-                    if (!blob) return;
-
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "8biticon.png";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, "image/png");
-            }
-
-            private setLoading(loading: boolean) {
-                this.isLoading = loading;
-                if (this.loadingIndicator) {
-                    this.loadingIndicator.classList.toggle("hidden", !loading);
-                }
-            }
-
-            private updateURL() {
-                const layers = avatarConfig[this.currentGender];
-                const avatarParts: number[] = [];
-
-                // Build avatar string in layer order: face-clothes-hair-eyes-mouth-background
-                layers.forEach((layer) => {
-                    avatarParts.push(this.currentState[layer.name]);
-                });
-
-                const avatarString = avatarParts.join("-");
-                const url = new URL(window.location.href);
-                url.searchParams.set("gender", this.currentGender);
-                url.searchParams.set("avatar", avatarString);
-
-                // Update URL without reloading page
-                window.history.replaceState({}, "", url.toString());
-            }
-
-            private loadFromURL() {
-                const url = new URL(window.location.href);
-                const gender = url.searchParams.get("gender") as Gender;
-                const avatarString = url.searchParams.get("avatar");
-
-                // Load gender if valid
-                if (gender && (gender === "male" || gender === "female")) {
-                    this.currentGender = gender;
-
-                    // Update gender radio button
-                    this.genderRadios.forEach((radio) => {
-                        const input = radio as HTMLInputElement;
-                        input.checked = input.value === gender;
-                    });
-                }
-
-                // Load avatar state if valid
-                if (avatarString) {
-                    const parts = avatarString.split("-").map(Number);
-                    const layers = avatarConfig[this.currentGender];
-
-                    if (parts.length === layers.length) {
-                        // Validate and apply each part
-                        layers.forEach((layer, index) => {
-                            const value = parts[index];
-                            if (value >= 1 && value <= layer.count) {
-                                this.currentState[layer.name] = value;
-                            }
-                        });
-                    }
-                }
-            }
-
-            private async shareAvatar() {
-                try {
-                    // Copy current URL to clipboard
-                    await navigator.clipboard.writeText(window.location.href);
-                    this.showNotification();
-                } catch (err) {
-                    console.error("Failed to copy URL to clipboard:", err);
-                }
-            }
-
-            private showNotification() {
-                if (!this.shareNotification) return;
-
-                // Clear any existing timeout
-                if (this.notificationTimeout) {
-                    clearTimeout(this.notificationTimeout);
-                    this.notificationTimeout = null;
-                }
-
-                // Remove fadeOut class and hidden class to show notification
-                this.shareNotification.classList.remove("fadeOut", "hidden");
-
-                // Set timeout to auto-dismiss after 3 seconds
-                this.notificationTimeout = window.setTimeout(() => {
-                    this.hideNotification();
-                }, 3000);
-            }
-
-            private hideNotification() {
-                if (!this.shareNotification) return;
-
-                // Clear timeout if exists
-                if (this.notificationTimeout) {
-                    clearTimeout(this.notificationTimeout);
-                    this.notificationTimeout = null;
-                }
-
-                // Add fadeOut animation
-                this.shareNotification.classList.add("fadeOut");
-
-                // Wait for animation to complete before hiding
-                setTimeout(() => {
-                    this.shareNotification!.classList.add("hidden");
-                    this.shareNotification!.classList.remove("fadeOut");
-                }, 300); // Match animation duration
-            }
-        }
-
-        // Initialize when DOM is ready
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => new AvatarGenerator());
-        } else {
-            new AvatarGenerator();
-        }
-    </script>
 </div>
+
+<script>
+    /**
+     * Performance Note:
+     * Astro automatically bundles and optimizes this script for production.
+     * The script is loaded asynchronously and only executes after DOMContentLoaded.
+     * Image preloading is handled lazily via the AvatarRenderer.
+     */
+    import { AvatarRenderer } from "@/scripts/avatarRenderer";
+    import { AvatarStateManager } from "@/scripts/avatarStateManager";
+    import type { Gender } from "@/data/avatarConfig";
+    import { avatarConfig, getImagePath } from "@/data/avatarConfig";
+
+    /**
+     * Main Avatar Generator Controller
+     * Coordinates state management, rendering, and UI interactions
+     */
+    class AvatarGeneratorController {
+        private renderer: AvatarRenderer;
+        private stateManager: AvatarStateManager;
+        private genderRadios: NodeListOf<Element>;
+        private layerTabs: NodeListOf<Element>;
+        private layerContent: HTMLElement | null;
+        private shareNotification: HTMLElement | null;
+        private notificationTimeout: number | null = null;
+
+        constructor() {
+            // Initialize renderer and state manager
+            this.renderer = new AvatarRenderer("avatar-canvas", "loading-indicator");
+            this.stateManager = new AvatarStateManager("male");
+
+            // Cache DOM elements
+            this.genderRadios = document.querySelectorAll('input[name="gender"]');
+            this.layerTabs = document.querySelectorAll(".layer-tab");
+            this.layerContent = document.getElementById("layer-content");
+            this.shareNotification = document.getElementById("share-notification");
+
+            // Set state change callback
+            this.stateManager.setOnStateChange(() => this.onStateChange());
+
+            this.init();
+        }
+
+        /**
+         * Initialize the avatar generator
+         */
+        private async init(): Promise<void> {
+            this.setupEventListeners();
+            await this.renderer.preloadImages(this.stateManager.getGender());
+            this.renderLayerItems();
+            await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
+        }
+
+        /**
+         * Setup all event listeners
+         */
+        private setupEventListeners(): void {
+            // Gender radio buttons
+            this.genderRadios.forEach((radio) => {
+                radio.addEventListener("change", async (e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.checked) {
+                        await this.changeGender(target.value as Gender);
+                    }
+                });
+            });
+
+            // Layer tabs
+            this.layerTabs.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    const layer = (tab as HTMLElement).dataset.layer;
+                    if (layer) {
+                        this.switchLayer(layer);
+                    }
+                });
+            });
+
+            // Randomize button
+            const randomizeBtn = document.getElementById("randomize-btn");
+            randomizeBtn?.addEventListener("click", () => this.randomize());
+
+            // Download button
+            const downloadBtn = document.getElementById("download-btn");
+            downloadBtn?.addEventListener("click", () => this.download());
+
+            // Share button
+            const shareBtn = document.getElementById("share-btn");
+            shareBtn?.addEventListener("click", () => this.shareAvatar());
+
+            // Close notification button
+            const closeNotificationBtn = document.getElementById("close-notification");
+            closeNotificationBtn?.addEventListener("click", () => this.hideNotification());
+        }
+
+        /**
+         * Handle state changes
+         */
+        private async onStateChange(): Promise<void> {
+            this.renderLayerItems();
+            await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
+        }
+
+        /**
+         * Change gender
+         */
+        private async changeGender(newGender: Gender): Promise<void> {
+            await this.renderer.preloadImages(newGender);
+            await this.stateManager.changeGender(newGender);
+
+            // Reset to first tab
+            this.layerTabs.forEach((tab, index) => {
+                tab.classList.toggle("active", index === 0);
+            });
+        }
+
+        /**
+         * Switch active layer tab
+         */
+        private switchLayer(layerName: string): void {
+            this.stateManager.setCurrentLayer(layerName);
+
+            // Update active state on tabs
+            this.layerTabs.forEach((tab) => {
+                tab.classList.remove("active");
+                if ((tab as HTMLElement).dataset.layer === layerName) {
+                    tab.classList.add("active");
+                }
+            });
+
+            this.renderLayerItems();
+        }
+
+        /**
+         * Render layer selection items
+         */
+        private renderLayerItems(): void {
+            if (!this.layerContent) return;
+
+            this.layerContent.innerHTML = "";
+            const gender = this.stateManager.getGender();
+            const currentLayer = this.stateManager.getCurrentLayer();
+            const state = this.stateManager.getState();
+
+            const layer = avatarConfig[gender].find((l) => l.name === currentLayer);
+            if (!layer) return;
+
+            for (let i = 1; i <= layer.count; i++) {
+                const item = document.createElement("div");
+                item.className = "layer-item";
+                item.style.cssText = "aspect-ratio: 1; border: 1px solid transparent; border-radius: 0.15rem; cursor: pointer; transition: all 0.2s;";
+                item.dataset.index = i.toString();
+
+                // Highlight selected item
+                if (state[currentLayer] === i) {
+                    item.classList.add("selected");
+                    item.style.cssText += " border-color: var(--pink, #dcb8b0); box-shadow: 0 0 0 1px var(--pink, #dcb8b0);";
+                }
+
+                // Render thumbnail
+                if (currentLayer !== "background") {
+                    const thumbnail = this.renderer.renderThumbnail(gender, layer.name, i, state["background"]);
+                    thumbnail.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+                    item.appendChild(thumbnail);
+                } else {
+                    const img = document.createElement("img");
+                    img.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+                    const path = getImagePath(gender, layer.name, i);
+                    img.src = path;
+                    img.alt = `${layer.title} ${i}`;
+                    item.appendChild(img);
+                }
+
+                // Add item number
+                const number = document.createElement("span");
+                number.className = "layer-item-number";
+                number.style.cssText = "display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
+                number.textContent = i.toString();
+                item.appendChild(number);
+
+                // Add hover effects
+                item.addEventListener("mouseenter", () => {
+                    const currentBorder = item.style.borderColor;
+                    if (currentBorder !== "var(--pink, #dcb8b0)" && currentBorder !== "rgb(220, 184, 176)") {
+                        item.style.borderColor = "var(--blue, #9bb0cd)";
+                    }
+                    item.style.transform = "scale(1.05)";
+                });
+
+                item.addEventListener("mouseleave", () => {
+                    if (!item.classList.contains("selected")) {
+                        item.style.borderColor = "transparent";
+                    }
+                    item.style.transform = "scale(1)";
+                });
+
+                // Handle click
+                item.addEventListener("click", async () => {
+                    await this.stateManager.updateLayerValue(currentLayer, i);
+                });
+
+                this.layerContent.appendChild(item);
+            }
+        }
+
+        /**
+         * Randomize avatar
+         */
+        private async randomize(): Promise<void> {
+            await this.stateManager.randomize();
+        }
+
+        /**
+         * Download avatar
+         */
+        private download(): void {
+            this.renderer.downloadAvatar("8biticon.png");
+        }
+
+        /**
+         * Share avatar
+         */
+        private async shareAvatar(): Promise<void> {
+            try {
+                const url = this.stateManager.getShareURL();
+                await navigator.clipboard.writeText(url);
+                this.showNotification();
+            } catch (err) {
+                console.error("Failed to copy URL to clipboard:", err);
+            }
+        }
+
+        /**
+         * Show share notification
+         */
+        private showNotification(): void {
+            if (!this.shareNotification) return;
+
+            if (this.notificationTimeout) {
+                clearTimeout(this.notificationTimeout);
+                this.notificationTimeout = null;
+            }
+
+            this.shareNotification.classList.remove("fadeOut", "hidden");
+
+            this.notificationTimeout = window.setTimeout(() => {
+                this.hideNotification();
+            }, 3000);
+        }
+
+        /**
+         * Hide share notification
+         */
+        private hideNotification(): void {
+            if (!this.shareNotification) return;
+
+            if (this.notificationTimeout) {
+                clearTimeout(this.notificationTimeout);
+                this.notificationTimeout = null;
+            }
+
+            this.shareNotification.classList.add("fadeOut");
+
+            setTimeout(() => {
+                this.shareNotification!.classList.add("hidden");
+                this.shareNotification!.classList.remove("fadeOut");
+            }, 300);
+        }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => new AvatarGeneratorController());
+    } else {
+        new AvatarGeneratorController();
+    }
+</script>

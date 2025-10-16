@@ -1,9 +1,12 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import PreviewImage from "../components/PreviewImage.astro";
+import Layout from "@/layouts/Layout.astro";
+import PreviewImage from "@/components/PreviewImage.astro";
+import SocialShareButtons from "@/components/blog/SocialShareButtons.astro";
+import TableOfContentsComponent from "@/components/blog/TableOfContents.astro";
+import PostNavigation from "@/components/blog/PostNavigation.astro";
 import { getCollection } from "astro:content";
-import type { TableOfContents, TableOfContentsEntry } from "../types";
-import "../styles/global.css";
+import type { TableOfContents } from "@/types";
+import "@/styles/global.css";
 
 interface Props {
     title: string;
@@ -18,8 +21,6 @@ interface Props {
 
 const { title, date, image, alt, description, tags, currentPost, tableOfContents } = Astro.props;
 const currentUrl = Astro.url.href;
-const encodedTitle = encodeURIComponent(title);
-const encodedUrl = encodeURIComponent(currentUrl);
 
 // Get all blog posts and sort by date
 const allPosts = await getCollection("blog");
@@ -36,7 +37,9 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
 <Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
     <article data-pagefind-body data-pagefind-sort="date">
         <h2 data-pagefind-meta="title">{title}</h2>
-        <span data-pagefind-meta="date" data-pagefind-sort="date:{date}"><i><b>{date}</b> | {description}</i></span>
+        <span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
+            <i><b>{date}</b> | {description}</i>
+        </span>
         <PreviewImage src={image} altText={alt} />
         <span>
             tags: {
@@ -48,91 +51,16 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
             }
         </span>
         <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
-        {
-            tableOfContents && tableOfContents.length > 0 && (
-                <>
-                    <h1>Table of Contents</h1>
-                    <div class="table-of-contents mt-4 mb-8 sm:my-8">
-                        <details>
-                            <summary>Open Table of Contents</summary>
-                            <ul>
-                                {tableOfContents.map((item) => (
-                                    <li>
-                                        <a href={`#${item.id}`}>{item.value}</a>
-                                        {item.children && item.children.length > 0 && (
-                                            <ul>
-                                                {item.children.map((child: TableOfContentsEntry) => (
-                                                    <li>
-                                                        <a href={`#${child.id}`}>{child.value}</a>
-                                                        {child.children && child.children.length > 0 && (
-                                                            <ul>
-                                                                {child.children.map((grandchild: TableOfContentsEntry) => (
-                                                                    <li>
-                                                                        <a href={`#${grandchild.id}`}>{grandchild.value}</a>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </details>
-                    </div>
-                </>
-            )
-        }
+
+        <TableOfContentsComponent tableOfContents={tableOfContents} />
+
         <slot />
+
         <hr class="my-8 border-dashed border-palette-700 dark:border-white" />
+
         <div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
             <div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
-                <div class="flex flex-col flex-wrap items-center justify-center gap-1 sm:items-start text-palette-800">
-                    <b class="italic">Share this post on:</b>
-                    <br />
-                    <div class="text-center">
-                        <a href={`https://wa.me/?text=${encodedTitle} ${encodedUrl}`} target="_blank" rel="noopener noreferrer" class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" aria-label="Share on WhatsApp">
-                            <i class="icon-whatsapp text-2xl"></i>
-                        </a>
-                        <a
-                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
-                            aria-label="Share on Facebook">
-                            <i class="icon-facebook text-2xl"></i>
-                        </a>
-                        <a
-                            href={`https://x.com/intent/post?text=${encodedTitle}&url=${encodedUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
-                            aria-label="Share on X/Twitter">
-                            <i class="icon-twitter-x text-2xl"></i>
-                        </a>
-                        <a
-                            href={`https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
-                            aria-label="Share on Telegram">
-                            <i class="icon-telegram text-2xl"></i>
-                        </a>
-                        <a
-                            href={`https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1"
-                            aria-label="Share on Pinterest">
-                            <i class="icon-pinterest text-2xl"></i>
-                        </a>
-                        <a href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`} class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" aria-label="Share via Email">
-                            <i class="icon-envelope-at text-2xl"></i>
-                        </a>
-                    </div>
-                </div>
+                <SocialShareButtons title={title} url={currentUrl} />
                 <b>
                     <button id="back-to-top" class="focus-outline py-1 whitespace-nowrap hover:opacity-75">
                         <i class="icon-chevron-up text-2xl"></i>
@@ -142,77 +70,15 @@ const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[curr
             </div>
             <hr class="my-6 border-dashed border-palette-700 dark:border-white" />
         </div>
-        <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {
-                previousPost && (
-                    <a href={`/blog/${previousPost.id}`} class="icon flex w-full gap-1 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
-                        <i class="icon-chevron-left text-xl" />
-                        <div>
-                            <b class="text-palette-800">Previous Post</b>
-                            <div class="text-sm text-accent/85">{previousPost.data.title}</div>
-                        </div>
-                    </a>
-                )
-            }
-            {
-                nextPost && (
-                    <a href={`/blog/${nextPost.id}`} class="icon flex w-full justify-end gap-1 text-right sm:col-start-2 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
-                        <div>
-                            <b>Next Post</b>
-                            <div class="text-sm text-accent/85">{nextPost.data.title}</div>
-                        </div>
-                        <i class="icon-chevron-right text-xl" />
-                    </a>
-                )
-            }
-        </div>
+
+        <PostNavigation previousPost={previousPost} nextPost={nextPost} />
     </article>
 </Layout>
 
 <script>
-    function backToTop() {
-        document.querySelector("#back-to-top")?.addEventListener("click", () => {
-            document.body.scrollTop = 0; // For Safari
-            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-        });
-    }
-
-    function createProgressBar() {
-        const progressContainer = document.createElement("div");
-        progressContainer.className = "progress-container fixed top-0 z-20 h-1 w-full";
-        progressContainer.style.backgroundColor = "transparent";
-
-        const progressBar = document.createElement("div");
-        progressBar.className = "progress-bar h-1 w-0 transition-all duration-150";
-        progressBar.id = "myBar";
-        // #dcb8b0, #e5cab7, #9bb0cd, #cad5db, #947b82, #8e878c, #9f94a0
-        progressBar.style.background = "linear-gradient(to right, #9f94a0, #8e878c, #947b82, #cad5db, #9bb0cd, #e5cab7, #dcb8b0)";
-        progressBar.style.width = "0%";
-
-        progressContainer.appendChild(progressBar);
-
-        document.body.appendChild(progressContainer);
-    }
-
-    function updateScrollProgress() {
-        const updateProgress = () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = Math.min((winScroll / height) * 100, 100);
-
-            const myBar = document.getElementById("myBar");
-            if (myBar) {
-                myBar.style.width = scrolled + "%";
-            }
-        };
-
-        document.addEventListener("scroll", updateProgress);
-        updateProgress();
-    }
+    import { initBlogInteractions } from "@/scripts/blogInteractions";
 
     document.addEventListener("DOMContentLoaded", () => {
-        backToTop();
-        createProgressBar();
-        updateScrollProgress();
+        initBlogInteractions();
     });
 </script>

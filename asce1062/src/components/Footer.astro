@@ -1,4 +1,6 @@
 ---
+import { mainNavigation, siteMetadata } from "@/data/navigation";
+
 const colours = ["bg-palette-50", "bg-palette-100", "bg-palette-200", "bg-palette-300", "bg-palette-400", "bg-palette-500", "bg-palette-600"];
 ---
 
@@ -7,19 +9,23 @@ const colours = ["bg-palette-50", "bg-palette-100", "bg-palette-200", "bg-palett
     <div class="flex flex-col items-center justify-center gap-6">
         <div class="flex flex-col flex-wrap items-center justify-center gap-1 text-palette-800">
             <div class="text-center">
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/" aria-label="Visit the Home page"><i class="icon-house-heart mr-1 text-2xl"></i>Home</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/now" aria-label="Visit the Now page"><i class="icon-hourglass-split mr-1 text-2xl"></i>Now</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/projects" aria-label="Visit the Projects page"><i class="icon-kanban mr-1 text-2xl"></i>Projects</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/blog" aria-label="Visit the Blog page"><i class="icon-bookmark-heart mr-1 text-2xl"></i>Blog</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1 text-2xl"></i>Tags</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/search" aria-label="Search the site"><i class="icon-search-heart mr-1 text-2xl"></i>Search</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1" href="/guestbook" aria-label="Visit the Guestbook page"><i class="icon-journal-bookmark mr-1 text-2xl"></i>Guestbook</a>
-                <a class="icon group inline-block hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1 text-2xl"></i>RSS Feed</a>
+                {
+                    mainNavigation.map((link) => (
+                        <a class={`icon group inline-block hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`} href={link.href} aria-label={link.ariaLabel}>
+                            <i class={`${link.icon} mr-0 text-2xl`} />
+                            {link.name}
+                        </a>
+                    ))
+                }
             </div>
         </div>
     </div>
     <div class="mx-auto mt-4">
-        {colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100 `}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
-        <i><span class="block pt-2 text-xs">this website is <a href="https://github.com/asce1062/asce1062/tree/main/asce1062" target="_blank" rel="noopener noreferrer">open source</a>. made with astro and tailwindcss</span></i>
+        {colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100`}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
+        <i>
+            <span class="block pt-2 text-xs">
+                {siteMetadata.footerText.split("open source")[0]}<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.footerText.split("open source")[1]}
+            </span>
+        </i>
     </div>
 </footer>

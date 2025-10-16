@@ -1,7 +1,7 @@
 ---
 import "@pagefind/default-ui/css/ui.css";
 import "../styles/search.css";
-// Simple path join function to replace node:path
+// Path join function to replace node:path
 function joinPath(base: string, path: string): string {
     const normalizedBase = base.endsWith("/") ? base : base + "/";
     const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
@@ -27,7 +27,11 @@ const divProps = {
     // @ts-ignore - Pagefind module declaration
     import { PagefindUI } from "@pagefind/default-ui";
 
-    window.addEventListener("DOMContentLoaded", () => {
+    /**
+     * Initialize Pagefind search with Intersection Observer for lazy loading
+     * Only loads when the search element is in the viewport
+     */
+    function initializePagefind() {
         const allSelector = "[data-pagefind-ui]";
         for (const el of document.querySelectorAll(allSelector)) {
             const elSelector = [...(el.id ? [`#${el.id}`] : []), ...[...el.classList.values()].map((c) => `.${c}`), allSelector].join("");
@@ -88,5 +92,29 @@ const divProps = {
                 window.history.replaceState({}, "", newUrl);
             });
         }
-    });
+    }
+
+    // Use Intersection Observer to lazily initialize search when visible
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchElements = document.querySelectorAll("[data-pagefind-ui]");
+
+            if (searchElements.length === 0) return;
+
+            // Use requestIdleCallback for non-critical initialization
+            if ("requestIdleCallback" in window) {
+                requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
+            } else {
+                // Fallback for browsers without requestIdleCallback
+                setTimeout(initializePagefind, 1);
+            }
+        });
+    } else {
+        // Document already loaded
+        if ("requestIdleCallback" in window) {
+            requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
+        } else {
+            setTimeout(initializePagefind, 1);
+        }
+    }
 </script>
