@@ -1,31 +1,53 @@
 ---
 import { mainNavigation, siteMetadata } from "@/data/navigation";
 
-const colours = ["bg-palette-50", "bg-palette-100", "bg-palette-200", "bg-palette-300", "bg-palette-400", "bg-palette-500", "bg-palette-600"];
+const colours = [
+	"bg-palette-50",
+	"bg-palette-100",
+	"bg-palette-200",
+	"bg-palette-300",
+	"bg-palette-400",
+	"bg-palette-500",
+	"bg-palette-600",
+];
 ---
 
 <footer>
-    <hr class="mt-4 mb-8 sm:my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
-    <div class="flex flex-col items-center justify-center gap-6">
-        <div class="flex flex-col flex-wrap items-center justify-center gap-1 text-palette-800">
-            <div class="text-center">
-                {
-                    mainNavigation.map((link) => (
-                        <a class={`icon group inline-block hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`} href={link.href} aria-label={link.ariaLabel}>
-                            <i class={`${link.icon} mr-0 text-2xl`} />
-                            {link.name}
-                        </a>
-                    ))
-                }
-            </div>
-        </div>
-    </div>
-    <div class="mx-auto mt-4">
-        {colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100`}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
-        <i>
-            <span class="block pt-2 text-xs">
-                {siteMetadata.footerText.split("open source")[0]}<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.footerText.split("open source")[1]}
-            </span>
-        </i>
-    </div>
+	<hr class="mt-4 mb-8 sm:my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
+	<div class="flex flex-col items-center justify-center gap-6">
+		<div class="flex flex-col flex-wrap items-center justify-center gap-1 text-palette-800">
+			<div class="text-center">
+				{
+					mainNavigation.map((link) => (
+						<a
+							class={`icon group inline-block hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`}
+							href={link.href}
+							aria-label={link.ariaLabel}>
+							<i class={`${link.icon} mr-0 text-2xl`} />
+							{link.name}
+						</a>
+					))
+				}
+			</div>
+		</div>
+	</div>
+	<div class="mx-auto mt-4">
+		{
+			colours.map((colour) => (
+				<span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100`}>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				</span>
+			))
+		}
+		<i>
+			<span class="block pt-2 text-xs">
+				{siteMetadata.footerText.split("open source")[0]}<a
+					href={siteMetadata.githubRepo}
+					target="_blank"
+					rel="noopener noreferrer">
+					open source
+				</a>{siteMetadata.footerText.split("open source")[1]}
+			</span>
+		</i>
+	</div>
 </footer>

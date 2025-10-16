@@ -6,60 +6,60 @@
 import type { TableOfContents, TableOfContentsEntry } from "@/types";
 
 interface Props {
-    tableOfContents?: TableOfContents;
+	tableOfContents?: TableOfContents;
 }
 
 const { tableOfContents } = Astro.props;
 
 // Helper function to render nested TOC entries recursively
 function renderTocEntry(entry: TableOfContentsEntry) {
-    return {
-        entry,
-        hasChildren: entry.children && entry.children.length > 0,
-    };
+	return {
+		entry,
+		hasChildren: entry.children && entry.children.length > 0,
+	};
 }
 ---
 
 {
-    tableOfContents && tableOfContents.length > 0 && (
-        <>
-            <h1>Table of Contents</h1>
-            <div class="table-of-contents mt-4 mb-8 sm:my-8">
-                <details>
-                    <summary>Open Table of Contents</summary>
-                    <ul>
-                        {tableOfContents.map((item) => {
-                            const { entry, hasChildren } = renderTocEntry(item);
-                            return (
-                                <li>
-                                    <a href={`#${entry.id}`}>{entry.value}</a>
-                                    {hasChildren && (
-                                        <ul>
-                                            {entry.children!.map((child: TableOfContentsEntry) => {
-                                                const childData = renderTocEntry(child);
-                                                return (
-                                                    <li>
-                                                        <a href={`#${child.id}`}>{child.value}</a>
-                                                        {childData.hasChildren && (
-                                                            <ul>
-                                                                {child.children!.map((grandchild: TableOfContentsEntry) => (
-                                                                    <li>
-                                                                        <a href={`#${grandchild.id}`}>{grandchild.value}</a>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                    )}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </details>
-            </div>
-        </>
-    )
+	tableOfContents && tableOfContents.length > 0 && (
+		<>
+			<h1>Table of Contents</h1>
+			<div class="table-of-contents mt-4 mb-8 sm:my-8">
+				<details>
+					<summary>Open Table of Contents</summary>
+					<ul>
+						{tableOfContents.map((item) => {
+							const { entry, hasChildren } = renderTocEntry(item);
+							return (
+								<li>
+									<a href={`#${entry.id}`}>{entry.value}</a>
+									{hasChildren && (
+										<ul>
+											{entry.children!.map((child: TableOfContentsEntry) => {
+												const childData = renderTocEntry(child);
+												return (
+													<li>
+														<a href={`#${child.id}`}>{child.value}</a>
+														{childData.hasChildren && (
+															<ul>
+																{child.children!.map((grandchild: TableOfContentsEntry) => (
+																	<li>
+																		<a href={`#${grandchild.id}`}>{grandchild.value}</a>
+																	</li>
+																))}
+															</ul>
+														)}
+													</li>
+												);
+											})}
+										</ul>
+									)}
+								</li>
+							);
+						})}
+					</ul>
+				</details>
+			</div>
+		</>
+	)
 }

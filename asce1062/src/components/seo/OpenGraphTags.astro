@@ -3,13 +3,13 @@
  * Handles Open Graph and Twitter Card meta tags
  */
 
-import { SITE_AUTHOR } from "@/config";
+import { SITE_AUTHOR } from "@/config/site-config";
 
 interface Props {
-    title: string;
-    description: string;
-    url: string;
-    image: string;
+	title: string;
+	description: string;
+	url: string;
+	image?: string;
 }
 
 const { title, description, url, image } = Astro.props;
@@ -20,8 +20,8 @@ const { title, description, url, image } = Astro.props;
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={image} />
-<meta property="og:image:alt" content={`${title} - ${description}`} />
+{image && <meta property="og:image" content={image} />}
+{image && <meta property="og:image:alt" content={`${title} - ${description}`} />}
 <meta property="og:site_name" content={SITE_AUTHOR} />
 <meta property="og:locale" content="en_US" />
 
@@ -30,7 +30,7 @@ const { title, description, url, image } = Astro.props;
 <meta property="twitter:url" content={url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={image} />
-<meta property="twitter:image:alt" content={`${title} - ${description}`} />
+{image && <meta property="twitter:image" content={image} />}
+{image && <meta property="twitter:image:alt" content={`${title} - ${description}`} />}
 <meta property="twitter:creator" content="@asce1062" />
 <meta property="twitter:site" content="@asce1062" />

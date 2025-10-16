@@ -1,37 +1,41 @@
 ---
 const { skillsSections } = Astro.props;
-import type { SkillsSection, SkillCategory } from "../types";
+import type { SkillsSection, SkillCategory } from "@/types";
 ---
 
 <div class="space-y-6">
-    {
-        skillsSections.map((section: SkillsSection) => (
-            <div>
-                <h1 class="font-bold mb-1 text-gray-900 dark:text-white underline decoration-4">{section.sectionTitle}</h1>
+	{
+		skillsSections.map((section: SkillsSection) => (
+			<div>
+				<h1 class="font-bold mb-1 text-gray-900 dark:text-white underline decoration-4">{section.sectionTitle}</h1>
 
-                {section.items && (
-                    <div class="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                        {section.items.map((item: string) => (
-                            <div class="p-1 ml-0 mr-2 inline-block rounded bg-light-100 text-palette-700 dark:bg-palette-600 dark:text-palette-900">{item}</div>
-                        ))}
-                    </div>
-                )}
+				{section.items && (
+					<div class="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+						{section.items.map((item: string) => (
+							<div class="p-1 ml-0 mr-2 inline-block rounded bg-light-100 text-palette-700 dark:bg-palette-600 dark:text-palette-900">
+								{item}
+							</div>
+						))}
+					</div>
+				)}
 
-                {section.categories && (
-                    <div>
-                        {section.categories.map((category: SkillCategory) => (
-                            <div class="mt-4">
-                                <h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed">{category.categoryTitle}</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    {category.skills.map((skill: string) => (
-                                        <code class="text-xs">{skill}</code>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        ))
-    }
+				{section.categories && (
+					<div>
+						{section.categories.map((category: SkillCategory) => (
+							<div class="mt-4">
+								<h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed">
+									{category.categoryTitle}
+								</h3>
+								<div class="flex flex-wrap gap-2">
+									{category.skills.map((skill: string) => (
+										<code class="text-xs">{skill}</code>
+									))}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+			</div>
+		))
+	}
 </div>

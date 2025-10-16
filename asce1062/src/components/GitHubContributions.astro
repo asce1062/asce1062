@@ -1,32 +1,38 @@
 ---
 interface Props {
-    username?: string;
+	username?: string;
 }
 
 const { username = "asce1062" } = Astro.props;
 ---
 
 <div>
-    <h2><i class="icon-github"></i> Heatmap of my contributions on GitHub</h2>
-    <div class="h-48 overflow-auto">
-        <iframe id="github-contributions" src={`https://jandee.vercel.app/${username}?scheme=dark`} title="GitHub Contributions" allowtransparency="true" class="w-full min-w-[900px] h-full"></iframe>
-    </div>
+	<h2><i class="icon-github"></i> Heatmap of my contributions on GitHub</h2>
+	<div class="h-48 overflow-auto">
+		<iframe
+			id="github-contributions"
+			src={`https://jandee.vercel.app/${username}?scheme=dark`}
+			title="GitHub Contributions"
+			allowtransparency="true"
+			class="w-full min-w-[900px] h-full">
+		</iframe>
+	</div>
 </div>
 
 <script>
-    function updateGitHubContributionsTheme() {
-        const iframe = document.getElementById("github-contributions") as HTMLIFrameElement;
-        const currentTheme = document.documentElement.getAttribute("data-theme");
-        const scheme = currentTheme === "dark" ? "dark" : "light";
+	function updateGitHubContributionsTheme() {
+		const iframe = document.getElementById("github-contributions") as HTMLIFrameElement;
+		const currentTheme = document.documentElement.getAttribute("data-theme");
+		const scheme = currentTheme === "dark" ? "dark" : "light";
 
-        if (iframe) {
-            iframe.src = iframe.src.replace(/scheme=(dark|light)/, `scheme=${scheme}`);
-        }
-    }
+		if (iframe) {
+			iframe.src = iframe.src.replace(/scheme=(dark|light)/, `scheme=${scheme}`);
+		}
+	}
 
-    // Initial load
-    document.addEventListener("DOMContentLoaded", updateGitHubContributionsTheme);
+	// Initial load
+	document.addEventListener("DOMContentLoaded", updateGitHubContributionsTheme);
 
-    // Theme changes
-    document.addEventListener("set-theme", updateGitHubContributionsTheme);
+	// Theme changes
+	document.addEventListener("set-theme", updateGitHubContributionsTheme);
 </script>

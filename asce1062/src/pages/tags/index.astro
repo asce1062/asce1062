@@ -1,6 +1,6 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import Columns from "../../components/Columns.astro";
+import Layout from "@/layouts/Layout.astro";
+import Columns from "@/components/ui/Columns.astro";
 import { getCollection } from "astro:content";
 import { getAllTags } from "@/lib/blog/utils";
 
@@ -8,20 +8,23 @@ const allPosts = await getCollection("blog");
 const tags = getAllTags(allPosts);
 ---
 
-<Layout title="Tag Index" ogImage="social-preview.png" description=`bleep bloop indexed ${ tags.length == 1 ? "tag" : "tags!"}`>
-    <div>
-        <h2>tag index</h2>
-        <p>indexed {tags.length} {tags.length == 1 ? "tag" : "tags!"}</p>
-        <Columns columns={1}>
-            <ul class="list-disc list-inside">
-                {
-                    tags.map((tag) => (
-                        <li>
-                            <a href={`/tags/${tag}`}>{tag}</a>
-                        </li>
-                    ))
-                }
-            </ul>
-        </Columns>
-    </div>
+<Layout
+	title="Tag Index"
+	ogImage="social-preview.png"
+	description=`bleep bloop indexed ${ tags.length == 1 ? "tag" : "tags!"}`>
+	<div>
+		<h2>tag index</h2>
+		<p>indexed {tags.length} {tags.length == 1 ? "tag" : "tags!"}</p>
+		<Columns columns={1}>
+			<ul class="list-disc list-inside">
+				{
+					tags.map((tag) => (
+						<li>
+							<a href={`/tags/${tag}`}>{tag}</a>
+						</li>
+					))
+				}
+			</ul>
+		</Columns>
+	</div>
 </Layout>

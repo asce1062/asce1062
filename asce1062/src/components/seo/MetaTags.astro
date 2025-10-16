@@ -3,14 +3,14 @@
  * Handles core SEO meta tags for the site
  */
 
-import { SITE_AUTHOR } from "@/config";
+import { SITE_AUTHOR } from "@/config/site-config";
 
 interface Props {
-    title: string;
-    description: string;
-    canonical: string;
-    rssUrl: string;
-    generator: string;
+	title: string;
+	description: string;
+	canonical: string;
+	rssUrl: string;
+	generator: string;
 }
 
 const { title, description, canonical, rssUrl, generator } = Astro.props;
@@ -30,7 +30,10 @@ const { title, description, canonical, rssUrl, generator } = Astro.props;
 <meta name="title" content={title} />
 <meta name="description" content={description} />
 <meta name="author" content={SITE_AUTHOR} />
-<meta name="keywords" content="leader, mentor, engineer, chip musician, site, portfolio, blog, guestbook, Alex Mbugua, Alex Ngugi, Alex Mbugua Ngugi, asce1062, Alex.Immer" />
+<meta
+	name="keywords"
+	content="leader, mentor, engineer, chip musician, site, portfolio, blog, guestbook, Alex Mbugua, Alex Ngugi, Alex Mbugua Ngugi, asce1062, Alex.Immer"
+/>
 
 <!-- Language and Region -->
 <meta name="language" content="English" />

@@ -8,8 +8,8 @@
  * Used for blog post data throughout the application
  */
 export interface Posts {
-  url: string;
-  frontmatter: Frontmatter;
+	url: string;
+	frontmatter: Frontmatter;
 }
 
 /**
@@ -17,12 +17,12 @@ export interface Posts {
  * Metadata for blog posts
  */
 export interface Frontmatter {
-  title: string;
-  description: string;
-  image: ImageMetadata;
-  pubDate: string | Date;
-  tags: readonly string[];
-  permalink?: string;
+	title: string;
+	description: string;
+	image: ImageMetadata;
+	pubDate: string | Date;
+	tags: readonly string[];
+	permalink?: string;
 }
 
 /**
@@ -30,8 +30,8 @@ export interface Frontmatter {
  * Structured image data with required alt text
  */
 export interface ImageMetadata {
-  url: string;
-  alt: string;
+	url: string;
+	alt: string;
 }
 
 /**
@@ -39,15 +39,15 @@ export interface ImageMetadata {
  * Used for resume/timeline components
  */
 export interface TimelineEntry {
-  readonly title: string;
-  readonly date: string;
-  readonly descriptions: readonly string[];
-  readonly moreInformation?: string;
+	readonly title: string;
+	readonly date: string;
+	readonly descriptions: readonly string[];
+	readonly moreInformation?: string;
 }
 
 export interface TimelineSection {
-  readonly sectionTitle: string;
-  readonly entries: readonly TimelineEntry[];
+	readonly sectionTitle: string;
+	readonly entries: readonly TimelineEntry[];
 }
 
 /**
@@ -55,14 +55,14 @@ export interface TimelineSection {
  * Used for skills sections in resume
  */
 export interface SkillCategory {
-  readonly categoryTitle: string;
-  readonly skills: readonly string[];
+	readonly categoryTitle: string;
+	readonly skills: readonly string[];
 }
 
 export interface SkillsSection {
-  readonly sectionTitle: string;
-  readonly items?: readonly string[];
-  readonly categories?: readonly SkillCategory[];
+	readonly sectionTitle: string;
+	readonly items?: readonly string[];
+	readonly categories?: readonly SkillCategory[];
 }
 
 /**
@@ -70,10 +70,10 @@ export interface SkillsSection {
  * Hierarchical content structure for blog posts
  */
 export interface TableOfContentsEntry {
-  readonly value: string;
-  readonly depth: number;
-  readonly id?: string;
-  readonly children?: readonly TableOfContentsEntry[];
+	readonly value: string;
+	readonly depth: number;
+	readonly id?: string;
+	readonly children?: readonly TableOfContentsEntry[];
 }
 
 export type TableOfContents = readonly TableOfContentsEntry[];
@@ -86,26 +86,26 @@ export type TableOfContents = readonly TableOfContentsEntry[];
  * Post Component Props
  */
 export interface PostProps {
-  readonly name: string;
-  readonly url: string;
-  readonly image: string;
-  readonly description: string;
-  readonly date: string;
+	readonly name: string;
+	readonly url: string;
+	readonly image: string;
+	readonly description: string;
+	readonly date: string;
 }
 
 /**
  * Image View Component Props
  */
 export interface ImageViewProps {
-  readonly image: string;
-  readonly altText: string;
-  readonly maxWidth?: string;
+	readonly image: string;
+	readonly altText: string;
+	readonly maxWidth?: string;
 }
 
 /**
  * Preview Image Component Props
  */
 export interface PreviewImageProps {
-  readonly src: string;
-  readonly altText: string;
+	readonly src: string;
+	readonly altText: string;
 }

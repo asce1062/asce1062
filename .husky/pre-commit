@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+# Change to the project directory where node_modules and package.json are located
+cd asce1062
+
+# Run lint-staged for file-specific linting and formatting
+npx lint-staged

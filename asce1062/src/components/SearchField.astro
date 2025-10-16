@@ -1,120 +1,123 @@
 ---
 import "@pagefind/default-ui/css/ui.css";
-import "../styles/search.css";
+import "@/styles/components/search.css";
 // Path join function to replace node:path
 function joinPath(base: string, path: string): string {
-    const normalizedBase = base.endsWith("/") ? base : base + "/";
-    const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-    return normalizedBase + normalizedPath;
+	const normalizedBase = base.endsWith("/") ? base : base + "/";
+	const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+	return normalizedBase + normalizedPath;
 }
 
 interface Props {
-    readonly id?: string;
-    readonly className?: string;
+	readonly id?: string;
+	readonly className?: string;
 }
 
 const { id, className } = Astro.props as Props;
 const bundlePath = joinPath(import.meta.env.BASE_URL || "/", "pagefind/");
 const divProps = {
-    ...(id ? { id } : {}),
-    ...(className ? { class: className } : {}),
+	...(id ? { id } : {}),
+	...(className ? { class: className } : {}),
 };
 ---
 
 <div {...divProps} data-pagefind-ui data-bundle-path={bundlePath}></div>
 
 <script>
-    // @ts-ignore - Pagefind module declaration
-    import { PagefindUI } from "@pagefind/default-ui";
+	import { PagefindUI } from "@pagefind/default-ui";
 
-    /**
-     * Initialize Pagefind search with Intersection Observer for lazy loading
-     * Only loads when the search element is in the viewport
-     */
-    function initializePagefind() {
-        const allSelector = "[data-pagefind-ui]";
-        for (const el of document.querySelectorAll(allSelector)) {
-            const elSelector = [...(el.id ? [`#${el.id}`] : []), ...[...el.classList.values()].map((c) => `.${c}`), allSelector].join("");
-            const bundlePath = el.getAttribute("data-bundle-path");
+	/**
+	 * Initialize Pagefind search with Intersection Observer for lazy loading
+	 * Only loads when the search element is in the viewport
+	 */
+	function initializePagefind() {
+		const allSelector = "[data-pagefind-ui]";
+		for (const el of document.querySelectorAll(allSelector)) {
+			const elSelector = [
+				...(el.id ? [`#${el.id}`] : []),
+				...[...el.classList.values()].map((c) => `.${c}`),
+				allSelector,
+			].join("");
+			const bundlePath = el.getAttribute("data-bundle-path") || undefined;
 
-            new PagefindUI({
-                element: elSelector,
-                bundlePath,
-                showImages: false,
-                showSubResults: true,
-                debounceTimeoutMs: 120,
-                autofocus: true,
-                showEmptyFilters: false,
-                sort: {
-                    date: "desc",
-                },
-                translations: {
-                    placeholder: "Search",
-                    zero_results: "No matches found",
-                    search_label: "Search site",
-                    clear_search: "Clear",
-                },
-            });
+			new PagefindUI({
+				element: elSelector,
+				bundlePath,
+				showImages: false,
+				showSubResults: true,
+				debounceTimeoutMs: 120,
+				autofocus: true,
+				showEmptyFilters: false,
+				sort: {
+					date: "desc",
+				},
+				translations: {
+					placeholder: "Search",
+					zero_results: "No matches found",
+					search_label: "Search site",
+					clear_search: "Clear",
+				},
+			});
 
-            // handle query param linking
-            const input = el.querySelector("input[type='text']");
-            const url = new URL(window.location.href);
-            const params = new URLSearchParams(url.search);
-            const query = params.get("q");
+			// handle query param linking
+			const input = el.querySelector("input[type='text']");
+			const url = new URL(window.location.href);
+			const params = new URLSearchParams(url.search);
+			const query = params.get("q");
 
-            if (query && input) {
-                (input as HTMLInputElement).value = query;
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-            }
+			if (query && input) {
+				(input as HTMLInputElement).value = query;
+				input.dispatchEvent(new Event("input", { bubbles: true }));
+			}
 
-            input?.addEventListener("input", (e) => {
-                const val = (e.target as HTMLInputElement).value;
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
+			input?.addEventListener("input", (e) => {
+				const val = (e.target as HTMLInputElement).value;
+				const url = new URL(window.location.href);
+				const params = new URLSearchParams(url.search);
 
-                if (val.trim()) {
-                    params.set("q", val);
-                    window.history.replaceState({}, "", `${url.pathname}?${params}`);
-                } else {
-                    params.delete("q");
-                    const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
-                    window.history.replaceState({}, "", newUrl);
-                }
-            });
+				if (val.trim()) {
+					params.set("q", val);
+					window.history.replaceState({}, "", `${url.pathname}?${params}`);
+				} else {
+					params.delete("q");
+					const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
+					window.history.replaceState({}, "", newUrl);
+				}
+			});
 
-            // handle clear button click
-            const clearButton = el.querySelector(".pagefind-ui__search-clear");
-            clearButton?.addEventListener("click", () => {
-                const url = new URL(window.location.href);
-                const params = new URLSearchParams(url.search);
-                params.delete("q");
-                const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
-                window.history.replaceState({}, "", newUrl);
-            });
-        }
-    }
+			// handle clear button click
+			const clearButton = el.querySelector(".pagefind-ui__search-clear");
+			clearButton?.addEventListener("click", () => {
+				const url = new URL(window.location.href);
+				const params = new URLSearchParams(url.search);
+				params.delete("q");
+				const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
+				window.history.replaceState({}, "", newUrl);
+			});
+		}
+	}
 
-    // Use Intersection Observer to lazily initialize search when visible
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-            const searchElements = document.querySelectorAll("[data-pagefind-ui]");
+	// Use Intersection Observer to lazily initialize search when visible
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", () => {
+			const searchElements = document.querySelectorAll("[data-pagefind-ui]");
 
-            if (searchElements.length === 0) return;
+			if (searchElements.length === 0) return;
 
-            // Use requestIdleCallback for non-critical initialization
-            if ("requestIdleCallback" in window) {
-                requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
-            } else {
-                // Fallback for browsers without requestIdleCallback
-                setTimeout(initializePagefind, 1);
-            }
-        });
-    } else {
-        // Document already loaded
-        if ("requestIdleCallback" in window) {
-            requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
-        } else {
-            setTimeout(initializePagefind, 1);
-        }
-    }
+			// Use requestIdleCallback for non-critical initialization
+			if ("requestIdleCallback" in window) {
+				requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
+			} else {
+				// Fallback for browsers without requestIdleCallback
+				setTimeout(initializePagefind, 1);
+			}
+		});
+	} else {
+		// Document already loaded
+		if ("requestIdleCallback" in window) {
+			requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
+		} else {
+			setTimeout(initializePagefind, 1);
+		}
+	}
 </script>

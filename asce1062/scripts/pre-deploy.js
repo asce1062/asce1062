@@ -20,46 +20,40 @@ const distDir = path.join(__dirname, "../dist");
  *
  */
 function fixHtmlFile(filePath) {
-  let content = fs.readFileSync(filePath, "utf-8");
-  const original = content;
+	let content = fs.readFileSync(filePath, "utf-8");
+	const original = content;
 
-  // Remove leading slash and underscore (/_astro) on paths references to astro on index.html
-  content = content
-    .replace(/href="\/_(astro\/[^"]+\.css)"/g, 'href="$1"')
-    .replace(/src="\/_(astro\/[^"]+\.webp)"/g, 'src="$1"')
-    .replace(/(href|src)="\/(favicon\.ico|sitemap-index\.xml)"/g, '$1="$2"');
+	// Remove leading slash and underscore (/_astro) on paths references to astro on index.html
+	content = content
+		.replace(/href="\/_(astro\/[^"]+\.css)"/g, 'href="$1"')
+		.replace(/src="\/_(astro\/[^"]+\.webp)"/g, 'src="$1"')
+		.replace(/(href|src)="\/(favicon\.ico|sitemap-index\.xml)"/g, '$1="$2"');
 
-  // Determine relative path depth to distDir
-  const fileDir = path.dirname(filePath);
-  const relativePath = path.relative(distDir, fileDir);
-  const depth = relativePath === "" ? 0 : relativePath.split(path.sep).length;
+	// Determine relative path depth to distDir
+	const fileDir = path.dirname(filePath);
+	const relativePath = path.relative(distDir, fileDir);
+	const depth = relativePath === "" ? 0 : relativePath.split(path.sep).length;
 
-  if (path.basename(filePath) === "index.html" && depth > 0) {
-    const prefix = "../".repeat(depth); // e.g., "../../" for 2 levels
+	if (path.basename(filePath) === "index.html" && depth > 0) {
+		const prefix = "../".repeat(depth); // e.g., "../../" for 2 levels
 
-    content = content
-      // Update css/ paths
-      .replace(/href="(css\/[^"]+)"/g, (_, p1) => `href="${prefix}${p1}"`)
-      // Update href="astro/*.css paths
-      .replace(/href="(astro\/[^"]+)"/g, (_, p1) => `href="${prefix}${p1}"`)
-      // update src="astro/*.webp paths
-      .replace(/src="(astro\/[^"]+\.webp)"/g, (_, p1) => `src="${prefix}${p1}"`)
-      // Update resume PDF path
-      .replace(
-        /href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g,
-        (_, p1) => `href="${prefix}${p1}"`,
-      )
-      // Fix favicon + sitemap references
-      .replace(
-        /(href|src)="(favicon\.ico|sitemap-index\.xml)"/g,
-        (_, attr, file) => `${attr}="${prefix}${file}"`,
-      );
-  }
+		content = content
+			// Update css/ paths
+			.replace(/href="(css\/[^"]+)"/g, (_, p1) => `href="${prefix}${p1}"`)
+			// Update href="astro/*.css paths
+			.replace(/href="(astro\/[^"]+)"/g, (_, p1) => `href="${prefix}${p1}"`)
+			// update src="astro/*.webp paths
+			.replace(/src="(astro\/[^"]+\.webp)"/g, (_, p1) => `src="${prefix}${p1}"`)
+			// Update resume PDF path
+			.replace(/href="(Alex%20Mbugua%20Ngugi%20-%20Resume\.pdf)"/g, (_, p1) => `href="${prefix}${p1}"`)
+			// Fix favicon + sitemap references
+			.replace(/(href|src)="(favicon\.ico|sitemap-index\.xml)"/g, (_, attr, file) => `${attr}="${prefix}${file}"`);
+	}
 
-  if (content !== original) {
-    console.log(`✅ Fixed paths in HTML: ${filePath}`);
-    fs.writeFileSync(filePath, content);
-  }
+	if (content !== original) {
+		console.log(`✅ Fixed paths in HTML: ${filePath}`);
+		fs.writeFileSync(filePath, content);
+	}
 }
 
 /**
@@ -69,30 +63,27 @@ function fixHtmlFile(filePath) {
  *
  */
 function fixCssFile(filePath) {
-  let content = fs.readFileSync(filePath, "utf-8");
-  const original = content;
-  content = content.replace(
-    /url\(\s*['"]?\/([^)'"]+)['"]?\s*\)/g,
-    "url(../$1)",
-  );
+	let content = fs.readFileSync(filePath, "utf-8");
+	const original = content;
+	content = content.replace(/url\(\s*['"]?\/([^)'"]+)['"]?\s*\)/g, "url(../$1)");
 
-  if (content !== original) {
-    console.log(`✅ Fixed url() path in CSS: ${filePath}`);
-    fs.writeFileSync(filePath, content);
-  }
+	if (content !== original) {
+		console.log(`✅ Fixed url() path in CSS: ${filePath}`);
+		fs.writeFileSync(filePath, content);
+	}
 }
 
 function walkAndFix(dir) {
-  for (const file of fs.readdirSync(dir)) {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      walkAndFix(fullPath);
-    } else if (file.endsWith(".html")) {
-      fixHtmlFile(fullPath);
-    } else if (file.endsWith(".css")) {
-      fixCssFile(fullPath);
-    }
-  }
+	for (const file of fs.readdirSync(dir)) {
+		const fullPath = path.join(dir, file);
+		if (fs.statSync(fullPath).isDirectory()) {
+			walkAndFix(fullPath);
+		} else if (file.endsWith(".html")) {
+			fixHtmlFile(fullPath);
+		} else if (file.endsWith(".css")) {
+			fixCssFile(fullPath);
+		}
+	}
 }
 
 // Main

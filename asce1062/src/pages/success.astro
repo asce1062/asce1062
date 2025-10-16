@@ -1,12 +1,15 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import ImageView from "../components/ImageView.astro";
+import Layout from "@/layouts/Layout.astro";
+import ImageView from "@/components/ui/ImageView.astro";
 ---
 
 <Layout title="success" ogImage="social-preview.png" description="Thank you for signing my guestbook!">
-    <div class="text-center">
-        <ImageView image="/src/assets/guestbook/success.png" altText="Yatta^^ やった!" />
-        <h1>Thank you for signing my guestbook!</h1>
-        <p>Go back to the <a href="/guestbook" aria-label="Visit the Guestbook page">guestbook and leave another note</a> or view other pages on my site :]</p>
-    </div>
+	<div class="text-center">
+		<ImageView image="/src/assets/guestbook/success.png" altText="Yatta^^ やった!" />
+		<h1>Thank you for signing my guestbook!</h1>
+		<p>
+			Go back to the <a href="/guestbook" aria-label="Visit the Guestbook page">guestbook and leave another note</a> or view
+			other pages on my site :]
+		</p>
+	</div>
 </Layout>

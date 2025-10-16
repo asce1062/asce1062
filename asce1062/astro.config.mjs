@@ -7,18 +7,32 @@ import markdownConfig from "./markdown.config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://alexmbugua.me/",
-  //output: "server",
-  build: {
-    assets: "astro",
-  },
-  integrations: [
-    tailwind({ applyBaseStyles: true }),
-    sitemap({
-      filter: (page) => page !== "https://alexmbugu.me/404",
-    }),
-    mdx(),
-    pagefind(),
-  ],
-  markdown: markdownConfig,
+	site: "https://alexmbugua.me/",
+	build: {
+		assets: "astro",
+		inlineStylesheets: "auto", // Optimize CSS delivery
+	},
+	integrations: [
+		tailwind({
+			applyBaseStyles: true,
+			nesting: true, // Enable CSS nesting
+		}),
+		sitemap({
+			filter: (page) => !page.includes("/404") && !page.includes("/success"),
+			changefreq: "weekly",
+			priority: 0.7,
+			lastmod: new Date(),
+		}),
+		mdx(),
+		pagefind(),
+	],
+	markdown: markdownConfig,
+	vite: {
+		build: {
+			cssMinify: "lightningcss", // Faster CSS minification
+		},
+	},
+	experimental: {
+		contentIntellisense: true, // Better IDE support
+	},
 });

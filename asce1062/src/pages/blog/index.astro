@@ -1,7 +1,7 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import Columns from "@/components/Columns.astro";
-import Post from "../../components/Post.astro";
+import Layout from "@/layouts/Layout.astro";
+import Columns from "@/components/ui/Columns.astro";
+import Post from "@/components/Post.astro";
 import { getCollection } from "astro:content";
 import { sortPostsByDate, formatPostDate, getPostUrl } from "@/lib/blog/utils";
 
@@ -10,23 +10,48 @@ const posts = sortPostsByDate(allPosts);
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
-    <div class="flex flex-col justify-center gap-6">
-        <div class="flex flex-wrap justify-between items-center gap-1 text-palette-800">
-            <div class="flex items-center gap-1">
-                <h2>
-                    <a class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1" href="/rss.xml" aria-label="Subscribe to my blog"><i class="icon-rss mr-1"></i>blog</a>
-                    <a class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1" href="/tags" aria-label="Visit the Blog Tags page"><i class="icon-bookmarks mr-1"></i>Tags</a>
-                </h2>
-            </div>
-            <div>
-                <h2>
-                    <a class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1" href="/search" aria-label="Visit the Search page"><i class="icon-search-heart mr-1"></i>Search</a>
-                </h2>
-            </div>
-        </div>
-    </div>
-    <p>I'm happy you're here ^^</p>
-    <Columns columns={1}>
-        {posts.map((post) => <Post name={post.data.title} url={getPostUrl(post.id)} image={post.data.image.url} description={post.data.description} date={formatPostDate(post.data.pubDate, "long")} />)}
-    </Columns>
+	<div class="flex flex-col justify-center gap-6">
+		<div class="flex flex-wrap justify-between items-center gap-1 text-palette-800">
+			<div class="flex items-center gap-1">
+				<h2>
+					<a
+						class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1"
+						href="/rss.xml"
+						aria-label="Subscribe to my blog">
+						<i class="icon-rss mr-1"></i>blog
+					</a>
+					<a
+						class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1"
+						href="/tags"
+						aria-label="Visit the Blog Tags page">
+						<i class="icon-bookmarks mr-1"></i>Tags
+					</a>
+				</h2>
+			</div>
+			<div>
+				<h2>
+					<a
+						class="icon group inline-block hover:text-accent scale-90 p-2 sm:p-1"
+						href="/search"
+						aria-label="Visit the Search page">
+						<i class="icon-search-heart mr-1"></i>Search
+					</a>
+				</h2>
+			</div>
+		</div>
+	</div>
+	<p>I'm happy you're here ^^</p>
+	<Columns columns={1}>
+		{
+			posts.map((post) => (
+				<Post
+					name={post.data.title}
+					url={getPostUrl(post.id)}
+					image={post.data.image.url}
+					description={post.data.description}
+					date={formatPostDate(post.data.pubDate, "long")}
+				/>
+			))
+		}
+	</Columns>
 </Layout>

@@ -4,299 +4,303 @@ import AvatarCanvas from "@/components/avatar/AvatarCanvas.astro";
 import AvatarActions from "@/components/avatar/AvatarActions.astro";
 import LayerTabs from "@/components/avatar/LayerTabs.astro";
 import LayerGrid from "@/components/avatar/LayerGrid.astro";
-import "@/styles/avatar.css";
+import "@/styles/components/avatar.css";
 ---
 
 <div class="avatar-generator">
-    <!-- Main Generator Layout -->
-    <div class="generator-layout">
-        <!-- Avatar Preview -->
-        <div class="preview-section">
-            <GenderSelector />
-            <AvatarCanvas />
-            <AvatarActions />
-        </div>
+	<!-- Main Generator Layout -->
+	<div class="generator-layout">
+		<!-- Avatar Preview -->
+		<div class="preview-section">
+			<GenderSelector />
+			<AvatarCanvas />
+			<AvatarActions />
+		</div>
 
-        <!-- Layer Selection -->
-        <div class="selection-section">
-            <LayerTabs />
-            <LayerGrid />
-        </div>
-    </div>
+		<!-- Layer Selection -->
+		<div class="selection-section">
+			<LayerTabs />
+			<LayerGrid />
+		</div>
+	</div>
 </div>
 
 <script>
-    /**
-     * Performance Note:
-     * Astro automatically bundles and optimizes this script for production.
-     * The script is loaded asynchronously and only executes after DOMContentLoaded.
-     * Image preloading is handled lazily via the AvatarRenderer.
-     */
-    import { AvatarRenderer } from "@/scripts/avatarRenderer";
-    import { AvatarStateManager } from "@/scripts/avatarStateManager";
-    import type { Gender } from "@/data/avatarConfig";
-    import { avatarConfig, getImagePath } from "@/data/avatarConfig";
+	/**
+	 * Performance Note:
+	 * Astro automatically bundles and optimizes this script for production.
+	 * The script is loaded asynchronously and only executes after DOMContentLoaded.
+	 * Image preloading is handled lazily via the AvatarRenderer.
+	 */
+	import { AvatarRenderer } from "@/scripts/avatarRenderer";
+	import { AvatarStateManager } from "@/scripts/avatarStateManager";
+	import type { Gender } from "@/data/avatarConfig";
+	import { avatarConfig, getImagePath } from "@/data/avatarConfig";
 
-    /**
-     * Main Avatar Generator Controller
-     * Coordinates state management, rendering, and UI interactions
-     */
-    class AvatarGeneratorController {
-        private renderer: AvatarRenderer;
-        private stateManager: AvatarStateManager;
-        private genderRadios: NodeListOf<Element>;
-        private layerTabs: NodeListOf<Element>;
-        private layerContent: HTMLElement | null;
-        private shareNotification: HTMLElement | null;
-        private notificationTimeout: number | null = null;
+	/**
+	 * Main Avatar Generator Controller
+	 * Coordinates state management, rendering, and UI interactions
+	 */
+	class AvatarGeneratorController {
+		private renderer: AvatarRenderer;
+		private stateManager: AvatarStateManager;
+		private genderRadios: NodeListOf<Element>;
+		private layerTabs: NodeListOf<Element>;
+		private layerContent: HTMLElement | null;
+		private shareNotification: HTMLElement | null;
+		private notificationTimeout: number | null = null;
 
-        constructor() {
-            // Initialize renderer and state manager
-            this.renderer = new AvatarRenderer("avatar-canvas", "loading-indicator");
-            this.stateManager = new AvatarStateManager("male");
+		constructor() {
+			// Initialize renderer and state manager
+			this.renderer = new AvatarRenderer("avatar-canvas", "loading-indicator");
+			this.stateManager = new AvatarStateManager("male");
 
-            // Cache DOM elements
-            this.genderRadios = document.querySelectorAll('input[name="gender"]');
-            this.layerTabs = document.querySelectorAll(".layer-tab");
-            this.layerContent = document.getElementById("layer-content");
-            this.shareNotification = document.getElementById("share-notification");
+			// Cache DOM elements
+			this.genderRadios = document.querySelectorAll('input[name="gender"]');
+			this.layerTabs = document.querySelectorAll(".layer-tab");
+			this.layerContent = document.getElementById("layer-content");
+			this.shareNotification = document.getElementById("share-notification");
 
-            // Set state change callback
-            this.stateManager.setOnStateChange(() => this.onStateChange());
+			// Set state change callback
+			this.stateManager.setOnStateChange(() => this.onStateChange());
 
-            this.init();
-        }
+			this.init();
+		}
 
-        /**
-         * Initialize the avatar generator
-         */
-        private async init(): Promise<void> {
-            this.setupEventListeners();
-            await this.renderer.preloadImages(this.stateManager.getGender());
-            this.renderLayerItems();
-            await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
-        }
+		/**
+		 * Initialize the avatar generator
+		 */
+		private async init(): Promise<void> {
+			this.setupEventListeners();
+			await this.renderer.preloadImages(this.stateManager.getGender());
+			this.renderLayerItems();
+			await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
+		}
 
-        /**
-         * Setup all event listeners
-         */
-        private setupEventListeners(): void {
-            // Gender radio buttons
-            this.genderRadios.forEach((radio) => {
-                radio.addEventListener("change", async (e) => {
-                    const target = e.target as HTMLInputElement;
-                    if (target.checked) {
-                        await this.changeGender(target.value as Gender);
-                    }
-                });
-            });
+		/**
+		 * Setup all event listeners
+		 */
+		private setupEventListeners(): void {
+			// Gender radio buttons
+			this.genderRadios.forEach((radio) => {
+				radio.addEventListener("change", async (e) => {
+					const target = e.target as HTMLInputElement;
+					if (target.checked) {
+						await this.changeGender(target.value as Gender);
+					}
+				});
+			});
 
-            // Layer tabs
-            this.layerTabs.forEach((tab) => {
-                tab.addEventListener("click", () => {
-                    const layer = (tab as HTMLElement).dataset.layer;
-                    if (layer) {
-                        this.switchLayer(layer);
-                    }
-                });
-            });
+			// Layer tabs
+			this.layerTabs.forEach((tab) => {
+				tab.addEventListener("click", () => {
+					const layer = (tab as HTMLElement).dataset.layer;
+					if (layer) {
+						this.switchLayer(layer);
+					}
+				});
+			});
 
-            // Randomize button
-            const randomizeBtn = document.getElementById("randomize-btn");
-            randomizeBtn?.addEventListener("click", () => this.randomize());
+			// Randomize button
+			const randomizeBtn = document.getElementById("randomize-btn");
+			randomizeBtn?.addEventListener("click", () => this.randomize());
 
-            // Download button
-            const downloadBtn = document.getElementById("download-btn");
-            downloadBtn?.addEventListener("click", () => this.download());
+			// Download button
+			const downloadBtn = document.getElementById("download-btn");
+			downloadBtn?.addEventListener("click", () => this.download());
 
-            // Share button
-            const shareBtn = document.getElementById("share-btn");
-            shareBtn?.addEventListener("click", () => this.shareAvatar());
+			// Share button
+			const shareBtn = document.getElementById("share-btn");
+			shareBtn?.addEventListener("click", () => this.shareAvatar());
 
-            // Close notification button
-            const closeNotificationBtn = document.getElementById("close-notification");
-            closeNotificationBtn?.addEventListener("click", () => this.hideNotification());
-        }
+			// Close notification button
+			const closeNotificationBtn = document.getElementById("close-notification");
+			closeNotificationBtn?.addEventListener("click", () => this.hideNotification());
+		}
 
-        /**
-         * Handle state changes
-         */
-        private async onStateChange(): Promise<void> {
-            this.renderLayerItems();
-            await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
-        }
+		/**
+		 * Handle state changes
+		 */
+		private async onStateChange(): Promise<void> {
+			this.renderLayerItems();
+			await this.renderer.renderAvatar(this.stateManager.getGender(), this.stateManager.getState());
+		}
 
-        /**
-         * Change gender
-         */
-        private async changeGender(newGender: Gender): Promise<void> {
-            await this.renderer.preloadImages(newGender);
-            await this.stateManager.changeGender(newGender);
+		/**
+		 * Change gender
+		 */
+		private async changeGender(newGender: Gender): Promise<void> {
+			await this.renderer.preloadImages(newGender);
+			await this.stateManager.changeGender(newGender);
 
-            // Reset to first tab
-            this.layerTabs.forEach((tab, index) => {
-                tab.classList.toggle("active", index === 0);
-            });
-        }
+			// Reset to first tab
+			this.layerTabs.forEach((tab, index) => {
+				tab.classList.toggle("active", index === 0);
+			});
+		}
 
-        /**
-         * Switch active layer tab
-         */
-        private switchLayer(layerName: string): void {
-            this.stateManager.setCurrentLayer(layerName);
+		/**
+		 * Switch active layer tab
+		 */
+		private switchLayer(layerName: string): void {
+			this.stateManager.setCurrentLayer(layerName);
 
-            // Update active state on tabs
-            this.layerTabs.forEach((tab) => {
-                tab.classList.remove("active");
-                if ((tab as HTMLElement).dataset.layer === layerName) {
-                    tab.classList.add("active");
-                }
-            });
+			// Update active state on tabs
+			this.layerTabs.forEach((tab) => {
+				tab.classList.remove("active");
+				if ((tab as HTMLElement).dataset.layer === layerName) {
+					tab.classList.add("active");
+				}
+			});
 
-            this.renderLayerItems();
-        }
+			this.renderLayerItems();
+		}
 
-        /**
-         * Render layer selection items
-         */
-        private renderLayerItems(): void {
-            if (!this.layerContent) return;
+		/**
+		 * Render layer selection items
+		 */
+		private renderLayerItems(): void {
+			if (!this.layerContent) return;
 
-            this.layerContent.innerHTML = "";
-            const gender = this.stateManager.getGender();
-            const currentLayer = this.stateManager.getCurrentLayer();
-            const state = this.stateManager.getState();
+			this.layerContent.innerHTML = "";
+			const gender = this.stateManager.getGender();
+			const currentLayer = this.stateManager.getCurrentLayer();
+			const state = this.stateManager.getState();
 
-            const layer = avatarConfig[gender].find((l) => l.name === currentLayer);
-            if (!layer) return;
+			const layer = avatarConfig[gender].find((l) => l.name === currentLayer);
+			if (!layer) return;
 
-            for (let i = 1; i <= layer.count; i++) {
-                const item = document.createElement("div");
-                item.className = "layer-item";
-                item.style.cssText = "aspect-ratio: 1; border: 1px solid transparent; border-radius: 0.15rem; cursor: pointer; transition: all 0.2s;";
-                item.dataset.index = i.toString();
+			for (let i = 1; i <= layer.count; i++) {
+				const item = document.createElement("div");
+				item.className = "layer-item";
+				item.style.cssText =
+					"aspect-ratio: 1; border: 1px solid transparent; border-radius: 0.15rem; cursor: pointer; transition: all 0.2s;";
+				item.dataset.index = i.toString();
 
-                // Highlight selected item
-                if (state[currentLayer] === i) {
-                    item.classList.add("selected");
-                    item.style.cssText += " border-color: var(--pink, #dcb8b0); box-shadow: 0 0 0 1px var(--pink, #dcb8b0);";
-                }
+				// Highlight selected item
+				if (state[currentLayer] === i) {
+					item.classList.add("selected");
+					item.style.cssText += " border-color: var(--pink, #dcb8b0); box-shadow: 0 0 0 1px var(--pink, #dcb8b0);";
+				}
 
-                // Render thumbnail
-                if (currentLayer !== "background") {
-                    const thumbnail = this.renderer.renderThumbnail(gender, layer.name, i, state["background"]);
-                    thumbnail.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-                    item.appendChild(thumbnail);
-                } else {
-                    const img = document.createElement("img");
-                    img.style.cssText = "width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-                    const path = getImagePath(gender, layer.name, i);
-                    img.src = path;
-                    img.alt = `${layer.title} ${i}`;
-                    item.appendChild(img);
-                }
+				// Render thumbnail
+				if (currentLayer !== "background") {
+					const thumbnail = this.renderer.renderThumbnail(gender, layer.name, i, state["background"]);
+					thumbnail.style.cssText =
+						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+					item.appendChild(thumbnail);
+				} else {
+					const img = document.createElement("img");
+					img.style.cssText =
+						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+					const path = getImagePath(gender, layer.name, i);
+					img.src = path;
+					img.alt = `${layer.title} ${i}`;
+					item.appendChild(img);
+				}
 
-                // Add item number
-                const number = document.createElement("span");
-                number.className = "layer-item-number";
-                number.style.cssText = "display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
-                number.textContent = i.toString();
-                item.appendChild(number);
+				// Add item number
+				const number = document.createElement("span");
+				number.className = "layer-item-number";
+				number.style.cssText =
+					"display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
+				number.textContent = i.toString();
+				item.appendChild(number);
 
-                // Add hover effects
-                item.addEventListener("mouseenter", () => {
-                    const currentBorder = item.style.borderColor;
-                    if (currentBorder !== "var(--pink, #dcb8b0)" && currentBorder !== "rgb(220, 184, 176)") {
-                        item.style.borderColor = "var(--blue, #9bb0cd)";
-                    }
-                    item.style.transform = "scale(1.05)";
-                });
+				// Add hover effects
+				item.addEventListener("mouseenter", () => {
+					const currentBorder = item.style.borderColor;
+					if (currentBorder !== "var(--pink, #dcb8b0)" && currentBorder !== "rgb(220, 184, 176)") {
+						item.style.borderColor = "var(--blue, #9bb0cd)";
+					}
+					item.style.transform = "scale(1.05)";
+				});
 
-                item.addEventListener("mouseleave", () => {
-                    if (!item.classList.contains("selected")) {
-                        item.style.borderColor = "transparent";
-                    }
-                    item.style.transform = "scale(1)";
-                });
+				item.addEventListener("mouseleave", () => {
+					if (!item.classList.contains("selected")) {
+						item.style.borderColor = "transparent";
+					}
+					item.style.transform = "scale(1)";
+				});
 
-                // Handle click
-                item.addEventListener("click", async () => {
-                    await this.stateManager.updateLayerValue(currentLayer, i);
-                });
+				// Handle click
+				item.addEventListener("click", async () => {
+					await this.stateManager.updateLayerValue(currentLayer, i);
+				});
 
-                this.layerContent.appendChild(item);
-            }
-        }
+				this.layerContent.appendChild(item);
+			}
+		}
 
-        /**
-         * Randomize avatar
-         */
-        private async randomize(): Promise<void> {
-            await this.stateManager.randomize();
-        }
+		/**
+		 * Randomize avatar
+		 */
+		private async randomize(): Promise<void> {
+			await this.stateManager.randomize();
+		}
 
-        /**
-         * Download avatar
-         */
-        private download(): void {
-            this.renderer.downloadAvatar("8biticon.png");
-        }
+		/**
+		 * Download avatar
+		 */
+		private download(): void {
+			this.renderer.downloadAvatar("8biticon.png");
+		}
 
-        /**
-         * Share avatar
-         */
-        private async shareAvatar(): Promise<void> {
-            try {
-                const url = this.stateManager.getShareURL();
-                await navigator.clipboard.writeText(url);
-                this.showNotification();
-            } catch (err) {
-                console.error("Failed to copy URL to clipboard:", err);
-            }
-        }
+		/**
+		 * Share avatar
+		 */
+		private async shareAvatar(): Promise<void> {
+			try {
+				const url = this.stateManager.getShareURL();
+				await navigator.clipboard.writeText(url);
+				this.showNotification();
+			} catch (err) {
+				console.error("Failed to copy URL to clipboard:", err);
+			}
+		}
 
-        /**
-         * Show share notification
-         */
-        private showNotification(): void {
-            if (!this.shareNotification) return;
+		/**
+		 * Show share notification
+		 */
+		private showNotification(): void {
+			if (!this.shareNotification) return;
 
-            if (this.notificationTimeout) {
-                clearTimeout(this.notificationTimeout);
-                this.notificationTimeout = null;
-            }
+			if (this.notificationTimeout) {
+				clearTimeout(this.notificationTimeout);
+				this.notificationTimeout = null;
+			}
 
-            this.shareNotification.classList.remove("fadeOut", "hidden");
+			this.shareNotification.classList.remove("fadeOut", "hidden");
 
-            this.notificationTimeout = window.setTimeout(() => {
-                this.hideNotification();
-            }, 3000);
-        }
+			this.notificationTimeout = window.setTimeout(() => {
+				this.hideNotification();
+			}, 3000);
+		}
 
-        /**
-         * Hide share notification
-         */
-        private hideNotification(): void {
-            if (!this.shareNotification) return;
+		/**
+		 * Hide share notification
+		 */
+		private hideNotification(): void {
+			if (!this.shareNotification) return;
 
-            if (this.notificationTimeout) {
-                clearTimeout(this.notificationTimeout);
-                this.notificationTimeout = null;
-            }
+			if (this.notificationTimeout) {
+				clearTimeout(this.notificationTimeout);
+				this.notificationTimeout = null;
+			}
 
-            this.shareNotification.classList.add("fadeOut");
+			this.shareNotification.classList.add("fadeOut");
 
-            setTimeout(() => {
-                this.shareNotification!.classList.add("hidden");
-                this.shareNotification!.classList.remove("fadeOut");
-            }, 300);
-        }
-    }
+			setTimeout(() => {
+				this.shareNotification!.classList.add("hidden");
+				this.shareNotification!.classList.remove("fadeOut");
+			}, 300);
+		}
+	}
 
-    // Initialize when DOM is ready
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => new AvatarGeneratorController());
-    } else {
-        new AvatarGeneratorController();
-    }
+	// Initialize when DOM is ready
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", () => new AvatarGeneratorController());
+	} else {
+		new AvatarGeneratorController();
+	}
 </script>

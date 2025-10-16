@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Run lint-staged for file-specific linting and formatting
+npx lint-staged

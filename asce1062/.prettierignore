@@ -1,7 +1,25 @@
-*.mdx
-*.astro/
-*dist/
-*public/
-*.vscode/
+# Build outputs
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Public assets
+public/
+
+# IDE
+.vscode/
+.idea/
+
+# Package files
 package-lock.json
-package.json
+pnpm-lock.yaml
+yarn.lock
+
+# Generated files
+.DS_Store
+*.log
+
+# Blog posts
+*.mdx

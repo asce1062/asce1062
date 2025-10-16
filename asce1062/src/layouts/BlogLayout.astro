@@ -9,14 +9,14 @@ import type { TableOfContents } from "@/types";
 import "@/styles/global.css";
 
 interface Props {
-    title: string;
-    date: string;
-    image: string;
-    alt: string;
-    description: string;
-    tags: Array<any>;
-    currentPost: string;
-    tableOfContents?: TableOfContents;
+	title: string;
+	date: string;
+	image: string;
+	alt: string;
+	description: string;
+	tags: Array<any>;
+	currentPost: string;
+	tableOfContents?: TableOfContents;
 }
 
 const { title, date, image, alt, description, tags, currentPost, tableOfContents } = Astro.props;
@@ -29,56 +29,57 @@ const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.getTime() - a.data.pu
 // Find current post using permalink
 const currentPostIndex = sortedPosts.findIndex((p) => p.id === currentPost);
 
-const previousPost = currentPostIndex !== -1 && currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
+const previousPost =
+	currentPostIndex !== -1 && currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
 
 const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[currentPostIndex - 1] : null;
 ---
 
 <Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
-    <article data-pagefind-body data-pagefind-sort="date">
-        <h2 data-pagefind-meta="title">{title}</h2>
-        <span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
-            <i><b>{date}</b> | {description}</i>
-        </span>
-        <PreviewImage src={image} altText={alt} />
-        <span>
-            tags: {
-                tags.map((tag) => (
-                    <a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
-                        {tag}
-                    </a>
-                ))
-            }
-        </span>
-        <hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
+	<article data-pagefind-body data-pagefind-sort="date">
+		<h2 data-pagefind-meta="title">{title}</h2>
+		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
+			<i><b>{date}</b> | {description}</i>
+		</span>
+		<PreviewImage src={image} altText={alt} />
+		<span>
+			tags: {
+				tags.map((tag) => (
+					<a class="mr-2 inline-block" href={`/tags/${tag}`} data-pagefind-meta="tag">
+						{tag}
+					</a>
+				))
+			}
+		</span>
+		<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
 
-        <TableOfContentsComponent tableOfContents={tableOfContents} />
+		<TableOfContentsComponent tableOfContents={tableOfContents} />
 
-        <slot />
+		<slot />
 
-        <hr class="my-8 border-dashed border-palette-700 dark:border-white" />
+		<hr class="my-8 border-dashed border-palette-700 dark:border-white" />
 
-        <div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
-            <div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
-                <SocialShareButtons title={title} url={currentUrl} />
-                <b>
-                    <button id="back-to-top" class="focus-outline py-1 whitespace-nowrap hover:opacity-75">
-                        <i class="icon-chevron-up text-2xl"></i>
-                        Back to Top
-                    </button>
-                </b>
-            </div>
-            <hr class="my-6 border-dashed border-palette-700 dark:border-white" />
-        </div>
+		<div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
+			<div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
+				<SocialShareButtons title={title} url={currentUrl} />
+				<b>
+					<button id="back-to-top" class="focus-outline py-1 whitespace-nowrap hover:opacity-75">
+						<i class="icon-chevron-up text-2xl"></i>
+						Back to Top
+					</button>
+				</b>
+			</div>
+			<hr class="my-6 border-dashed border-palette-700 dark:border-white" />
+		</div>
 
-        <PostNavigation previousPost={previousPost} nextPost={nextPost} />
-    </article>
+		<PostNavigation previousPost={previousPost} nextPost={nextPost} />
+	</article>
 </Layout>
 
 <script>
-    import { initBlogInteractions } from "@/scripts/blogInteractions";
+	import { initBlogInteractions } from "@/scripts/blogInteractions";
 
-    document.addEventListener("DOMContentLoaded", () => {
-        initBlogInteractions();
-    });
+	document.addEventListener("DOMContentLoaded", () => {
+		initBlogInteractions();
+	});
 </script>

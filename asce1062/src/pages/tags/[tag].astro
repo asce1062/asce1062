@@ -1,32 +1,45 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import Post from "../../components/Post.astro";
-import Columns from "../../components/Columns.astro";
+import Layout from "@/layouts/Layout.astro";
+import Post from "@/components/Post.astro";
+import Columns from "@/components/ui/Columns.astro";
 import { getCollection } from "astro:content";
 import { sortPostsByDate, getAllTags, getPostUrl, formatPostDate } from "@/lib/blog/utils";
 
 export async function getStaticPaths() {
-    const allPosts = await getCollection("blog");
-    const sortedPosts = sortPostsByDate(allPosts);
-    const uniqueTags = getAllTags(allPosts);
-    return uniqueTags.map((tag: string) => {
-        const filteredPosts = sortedPosts.filter((post) => post.data.tags.includes(tag));
-        return {
-            params: { tag },
-            props: { posts: filteredPosts },
-        };
-    });
+	const allPosts = await getCollection("blog");
+	const sortedPosts = sortPostsByDate(allPosts);
+	const uniqueTags = getAllTags(allPosts);
+	return uniqueTags.map((tag: string) => {
+		const filteredPosts = sortedPosts.filter((post) => post.data.tags.includes(tag));
+		return {
+			params: { tag },
+			props: { posts: filteredPosts },
+		};
+	});
 }
 
 const { tag } = Astro.params;
 const { posts } = Astro.props;
 ---
 
-<Layout title={tag} ogImage="social-preview.png" description=`bleep bloop found ${posts.length} ${ posts.length == 1 ? "post" : "posts"}`>
-    <p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
-    <ul>
-        <Columns columns={1}>
-            {posts.map((post) => <Post name={post.data.title} url={getPostUrl(post.id)} image={post.data.image.url} description={post.data.description} date={formatPostDate(post.data.pubDate, "short")} />)}
-        </Columns>
-    </ul>
+<Layout
+	title={tag}
+	ogImage="social-preview.png"
+	description=`bleep bloop found ${posts.length} ${ posts.length == 1 ? "post" : "posts"}`>
+	<p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
+	<ul>
+		<Columns columns={1}>
+			{
+				posts.map((post) => (
+					<Post
+						name={post.data.title}
+						url={getPostUrl(post.id)}
+						image={post.data.image.url}
+						description={post.data.description}
+						date={formatPostDate(post.data.pubDate, "short")}
+					/>
+				))
+			}
+		</Columns>
+	</ul>
 </Layout>

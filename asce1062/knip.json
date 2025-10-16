@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignoreDependencies": ["pagefind"],
+  "ignoreDependencies": ["pagefind", "lightningcss"],
   "ignore": [
     "public/fonts/icomoon/**",
     "scripts/**",
@@ -10,12 +10,7 @@
     "src/scripts/guestbookCounter.ts",
     "src/data/navigation.ts"
   ],
-  "entry": [
-    "markdown.config.ts",
-    "src/pages/**/*.{astro,mdx}",
-    "src/layouts/**/*.astro",
-    "src/components/**/*.astro"
-  ],
+  "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {
     "interface": true,
     "type": true
