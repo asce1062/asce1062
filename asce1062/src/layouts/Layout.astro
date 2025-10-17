@@ -61,9 +61,10 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 
-		<!-- Service Worker Registration -->
-		<script is:inline>
-			if ("serviceWorker" in navigator) {
+		<!-- Service Worker Registration (Production Only) -->
+		<script is:inline define:vars={{ isProd: import.meta.env.PROD }}>
+			// Only register service worker in production to avoid 404 errors in development
+			if ("serviceWorker" in navigator && isProd) {
 				navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error) => {
 					console.error("Service Worker registration failed:", error);
 				});

@@ -58,10 +58,27 @@ export default defineConfig({
 						purpose: "maskable",
 					},
 				],
+				screenshots: [
+					{
+						src: "/screenshots/alexmbugua.me-desktop-1920x1590.png",
+						sizes: "1920x1590",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Alex Mbugua's space on the internet - Desktop View",
+					},
+					{
+						src: "/screenshots/alexmbugua.me-mobile-1440x3040.png",
+						sizes: "1440x3040",
+						type: "image/png",
+						form_factor: "narrow",
+						label: "Alex Mbugua's space on the internet - Mobile View",
+					},
+				],
 			},
 			workbox: {
 				navigateFallback: "/404",
-				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,webp,jpg,woff2,ttf,eot,woff}"],
+				navigateFallbackDenylist: [/\.xml$/], // Don't redirect XML files (RSS, sitemap) to 404
+				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg,woff2,ttf,eot,woff}"],
 				globIgnores: ["**/fonts/icomoon/**", "**/fonts/icomoon"],
 				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
 				runtimeCaching: [
