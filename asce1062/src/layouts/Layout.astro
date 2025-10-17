@@ -4,6 +4,7 @@ import Footer from "@/components/Footer.astro";
 import MetaTags from "@/components/seo/MetaTags.astro";
 import OpenGraphTags from "@/components/seo/OpenGraphTags.astro";
 import Themes from "astro-themes";
+import { pwaInfo } from "virtual:pwa-info";
 import "@/styles/global.css";
 import { DEFAULT_DESCRIPTION, SITE_TITLE_SUFFIX } from "@/config/site-config";
 
@@ -34,6 +35,18 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 		<OpenGraphTags title={pageTitle} description={pageDescription} url={permalink} image={ogImageURL} />
 		<link href="/css/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
+
+		<!-- PWA Manifest -->
+		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
+
+		<!-- Service Worker Registration -->
+		<script is:inline>
+			if ("serviceWorker" in navigator) {
+				window.addEventListener("load", () => {
+					navigator.serviceWorker.register("/sw.js", { scope: "/" });
+				});
+			}
+		</script>
 
 		<!-- Critical CSS for FOUC (Flash of Unstyled Content) prevention -->
 		<style is:inline>

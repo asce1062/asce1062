@@ -26,6 +26,13 @@ const { title, description, canonical, rssUrl, generator } = Astro.props;
 <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title="Alex Mbugua's Blog" href={rssUrl} />
 
+<!-- PWA Theme Colors -->
+<meta name="theme-color" content="#ded9e3" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#120f19" media="(prefers-color-scheme: dark)" />
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />

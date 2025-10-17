@@ -4,6 +4,7 @@ import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
+import AstroPWA from "@vite-pwa/astro";
 
 // https://astro.build/config
 export default defineConfig({
@@ -25,6 +26,93 @@ export default defineConfig({
 		}),
 		mdx(),
 		pagefind(),
+		AstroPWA({
+			mode: "production",
+			base: "/",
+			scope: "/",
+			includeAssets: ["favicon.ico"],
+			registerType: "autoUpdate",
+			manifest: {
+				name: "Alex Mbugua - Leader, Mentor, Engineer, Chip Musician",
+				short_name: "Alex Mbugua",
+				description: "Building secure, performant, scalable solutions in the cloud",
+				theme_color: "#120f19",
+				background_color: "#120f19",
+				display: "standalone",
+				start_url: "/",
+				icons: [
+					{
+						src: "/pwa-192x192.png",
+						sizes: "192x192",
+						type: "image/png",
+					},
+					{
+						src: "/pwa-512x512.png",
+						sizes: "512x512",
+						type: "image/png",
+					},
+					{
+						src: "/pwa-maskable-512x512.png",
+						sizes: "512x512",
+						type: "image/png",
+						purpose: "maskable",
+					},
+				],
+			},
+			workbox: {
+				navigateFallback: "/404",
+				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,webp,jpg,woff2,ttf,eot,woff}"],
+				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
+				runtimeCaching: [
+					{
+						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "google-fonts-cache",
+							expiration: {
+								maxEntries: 10,
+								maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					{
+						urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "gstatic-fonts-cache",
+							expiration: {
+								maxEntries: 10,
+								maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					{
+						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "image-cache",
+							expiration: {
+								maxEntries: 60,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+						},
+					},
+				],
+			},
+			devOptions: {
+				enabled: true,
+				navigateFallbackAllowlist: [/^\//],
+			},
+			experimental: {
+				directoryAndTrailingSlashHandler: true,
+			},
+		}),
 	],
 	markdown: markdownConfig,
 	vite: {

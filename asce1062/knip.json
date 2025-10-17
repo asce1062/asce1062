@@ -1,6 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignoreDependencies": ["pagefind", "lightningcss"],
+  "ignoreDependencies": [
+    "pagefind",
+    "lightningcss",
+    "@netlify/plugin-sitemap",
+    "@netlify/plugin-lighthouse",
+    "netlify-plugin-checklinks",
+    "netlify-plugin-submit-sitemap",
+    "vite-plugin-pwa"
+  ],
   "ignore": [
     "public/fonts/icomoon/**",
     "scripts/**",
