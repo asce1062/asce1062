@@ -62,6 +62,7 @@ export default defineConfig({
 			workbox: {
 				navigateFallback: "/404",
 				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,webp,jpg,woff2,ttf,eot,woff}"],
+				globIgnores: ["**/fonts/icomoon/**", "**/fonts/icomoon"],
 				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
 				runtimeCaching: [
 					{
