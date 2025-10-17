@@ -5,6 +5,7 @@ import SocialShareButtons from "@/components/blog/SocialShareButtons.astro";
 import TableOfContentsComponent from "@/components/blog/TableOfContents.astro";
 import PostNavigation from "@/components/blog/PostNavigation.astro";
 import { getCollection } from "astro:content";
+import { estimateReadingTime } from "@/lib/blog/utils";
 import type { TableOfContents } from "@/types";
 import "@/styles/global.css";
 
@@ -33,9 +34,20 @@ const previousPost =
 	currentPostIndex !== -1 && currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
 
 const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[currentPostIndex - 1] : null;
+
+// Estimate reading time based on title and description
+const readingTime = estimateReadingTime(title, description);
 ---
 
-<Layout title={title} ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png` description={description}>
+<Layout
+	title={title}
+	ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png`
+	description={description}
+	type="article"
+	datePublished={new Date(date).toISOString()}
+	tags={tags}
+	category={tags && tags.length > 0 ? tags[0] : undefined}
+	readingTime={readingTime}>
 	<article data-pagefind-body data-pagefind-sort="date">
 		<h2 data-pagefind-meta="title">{title}</h2>
 		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">

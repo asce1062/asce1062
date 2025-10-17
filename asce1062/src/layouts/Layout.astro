@@ -12,9 +12,15 @@ interface Props {
 	title: string;
 	description?: string;
 	ogImage?: string;
+	type?: "website" | "article";
+	datePublished?: string;
+	dateModified?: string;
+	tags?: string[];
+	category?: string;
+	readingTime?: string;
 }
 
-const { title, description, ogImage } = Astro.props;
+const { title, description, ogImage, type, datePublished, dateModified, tags, category, readingTime } = Astro.props;
 const permalink = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
 const rssURL = new URL("rss.xml", Astro.site);
@@ -32,7 +38,23 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 			rssUrl={rssURL.href}
 			generator={Astro.generator}
 		/>
-		<OpenGraphTags title={pageTitle} description={pageDescription} url={permalink} image={ogImageURL} />
+		<OpenGraphTags
+			title={pageTitle}
+			description={pageDescription}
+			url={permalink}
+			image={ogImageURL}
+			type={type}
+			datePublished={datePublished}
+			dateModified={dateModified}
+			tags={tags}
+			category={category}
+			readingTime={readingTime}
+		/>
+
+		<!-- Security Headers -->
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
+		<meta name="color-scheme" content="dark light" />
+
 		<link href="/css/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
 
@@ -42,8 +64,8 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 		<!-- Service Worker Registration -->
 		<script is:inline>
 			if ("serviceWorker" in navigator) {
-				window.addEventListener("load", () => {
-					navigator.serviceWorker.register("/sw.js", { scope: "/" });
+				navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error) => {
+					console.error("Service Worker registration failed:", error);
 				});
 			}
 		</script>
@@ -63,16 +85,35 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 					visibility 0.2s linear,
 					opacity 0.2s linear;
 			}
+
+			/* Skip to main content link accessibility styles */
+			.skip-link {
+				position: absolute;
+				top: -40px;
+				left: 0;
+				background: #120f19;
+				color: white;
+				padding: 8px 16px;
+				text-decoration: none;
+				border-radius: 0 0 4px 0;
+				z-index: 100;
+			}
+
+			.skip-link:focus {
+				top: 0;
+			}
 		</style>
 	</head>
 
 	<body
 		class="z-1 min-w-full min-h-screen flex flex-col items-center mt-6 bg-[#e8e5f0] dark:bg-palette-700 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')] font-proto text-white">
+		<!-- Skip to main content link for accessibility -->
+		<a href="#main-content" class="skip-link">Skip to main content</a>
 		<div
 			id="primary"
 			class="z-2 w-full prose prose-invert px-4 sm:px-6 md:px-8 mx-auto relative flex-grow flex flex-col min-h-screen">
 			<Header />
-			<main class="flex-grow">
+			<main id="main-content" class="flex-grow">
 				<slot />
 			</main>
 			<Footer />

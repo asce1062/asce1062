@@ -44,3 +44,21 @@ export function getAllTags(posts: CollectionEntry<"blog">[]): string[] {
 	const tags = posts.map((post) => post.data.tags).flat();
 	return [...new Set(tags)].sort();
 }
+
+/**
+ * Calculate reading time estimation for a blog post
+ * Based on average reading speed of 200 words per minute
+ * Uses title and description length as a rough heuristic since MDX pages can't be easily parsed
+ */
+export function estimateReadingTime(title: string, description: string): string {
+	// Rough estimation: typical blog posts are 500-1500 words
+	// We'll use title + description length as indicator
+	const combinedText = `${title} ${description}`;
+	const wordCount = combinedText.split(/\s+/).length;
+
+	// Estimate full article is 30-50x the description length
+	const estimatedArticleWords = wordCount * 40;
+	const minutes = Math.max(1, Math.ceil(estimatedArticleWords / 200));
+
+	return `${minutes} min read`;
+}

@@ -1,29 +1,194 @@
 ---
 /**
- * Handles Open Graph and Twitter Card meta tags
+ * Handles Open Graph, Twitter Card meta tags, and JSON-LD structured data
  */
 
-import { SITE_AUTHOR } from "@/config/site-config";
+import { SITE_AUTHOR, DEFAULT_DESCRIPTION } from "@/config/site-config";
 
 interface Props {
 	title: string;
 	description: string;
 	url: string;
 	image?: string;
+	type?: "website" | "article";
+	datePublished?: string;
+	dateModified?: string;
+	tags?: string[];
+	category?: string;
+	readingTime?: string;
 }
 
-const { title, description, url, image } = Astro.props;
+const {
+	title,
+	description,
+	url,
+	image,
+	type = "website",
+	datePublished,
+	dateModified,
+	tags,
+	category,
+	readingTime,
+} = Astro.props;
+const isArticle = type === "article";
+const siteUrl = "https://alexmbugua.me";
+
+// Open Graph image dimensions
+const ogImageWidth = isArticle ? 1200 : 400;
+const ogImageHeight = isArticle ? 630 : 400;
+const ogImageType = "image/png";
+
+// Format published date for Twitter label
+const formattedDate = datePublished
+	? new Date(datePublished).toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		})
+	: undefined;
+
+const socialProfiles = [
+	"https://github.com/asce1062",
+	"https://www.linkedin.com/in/alex-mbugua",
+	"https://x.com/alex_immer",
+	"https://discord.com/users/asce1062",
+	"https://www.facebook.com/kaizoku.asce",
+	"https://www.youtube.com/@asce1062",
+	"https://soundcloud.com/aleximmer",
+	"https://asce1062.github.io",
+	"https://alexmbugua.me",
+	"https://steamcommunity.com/id/alexasce",
+	"https://www.reddit.com/user/asce1062/",
+];
+
+// Extract reading time number for timeRequired (e.g., "3 min read" -> 3)
+const readingTimeMinutes = readingTime ? parseInt(readingTime.match(/\d+/)?.[0] || "1") : undefined;
+
+// Estimate word count based on reading time (200 words per minute)
+const estimatedWordCount = readingTimeMinutes ? readingTimeMinutes * 200 : undefined;
+
+const blogPostingSchema = {
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	headline: title,
+	description: description,
+	image: image,
+	url: url,
+	datePublished: datePublished,
+	dateModified: dateModified || datePublished,
+	author: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: siteUrl,
+		sameAs: socialProfiles,
+	},
+	publisher: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: siteUrl,
+	},
+	keywords: tags?.join(", "),
+	wordCount: estimatedWordCount,
+	timeRequired: readingTimeMinutes ? `PT${readingTimeMinutes}M` : undefined,
+	mainEntityOfPage: {
+		"@type": "WebPage",
+		"@id": url,
+	},
+	inLanguage: "en-US",
+};
+
+const webSiteSchema = {
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	name: `${SITE_AUTHOR} - ${title}`,
+	description: description,
+	url: siteUrl,
+	image: image,
+	author: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: siteUrl,
+		jobTitle: "Full-Stack Engineer",
+		description: DEFAULT_DESCRIPTION,
+		sameAs: socialProfiles,
+	},
+	publisher: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: siteUrl,
+	},
+	potentialAction: {
+		"@type": "SearchAction",
+		target: {
+			"@type": "EntryPoint",
+			urlTemplate: `${siteUrl}/search?q={search_term_string}`,
+		},
+		"query-input": "required name=search_term_string",
+	},
+	inLanguage: "en-US",
+};
+
+// Organization schema (for professional identity)
+const organizationSchema = {
+	"@context": "https://schema.org",
+	"@type": "Organization",
+	name: SITE_AUTHOR,
+	url: siteUrl,
+	logo: `${siteUrl}/pwa-512x512.png`,
+	description: DEFAULT_DESCRIPTION,
+	founder: {
+		"@type": "Person",
+		name: SITE_AUTHOR,
+		url: siteUrl,
+	},
+	sameAs: socialProfiles,
+};
+
+// BreadcrumbList schema for blog posts
+const pathSegments = url
+	.replace(siteUrl, "")
+	.split("/")
+	.filter((segment) => segment);
+const breadcrumbSchema =
+	isArticle && pathSegments.length > 0
+		? {
+				"@context": "https://schema.org",
+				"@type": "BreadcrumbList",
+				itemListElement: [
+					{
+						"@type": "ListItem",
+						position: 1,
+						name: "Home",
+						item: siteUrl,
+					},
+					...pathSegments.map((segment, index) => ({
+						"@type": "ListItem",
+						position: index + 2,
+						name: segment === "blog" ? "Blog" : segment.replace(/-/g, " "),
+						item: `${siteUrl}/${pathSegments.slice(0, index + 1).join("/")}`,
+					})),
+				],
+			}
+		: null;
 ---
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
+<meta property="og:type" content={isArticle ? "article" : "website"} />
 <meta property="og:url" content={url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 {image && <meta property="og:image" content={image} />}
+{image && <meta property="og:image:width" content={ogImageWidth.toString()} />}
+{image && <meta property="og:image:height" content={ogImageHeight.toString()} />}
+{image && <meta property="og:image:type" content={ogImageType} />}
 {image && <meta property="og:image:alt" content={`${title} - ${description}`} />}
 <meta property="og:site_name" content={SITE_AUTHOR} />
 <meta property="og:locale" content="en_US" />
+{isArticle && datePublished && <meta property="article:published_time" content={datePublished} />}
+{isArticle && dateModified && <meta property="article:modified_time" content={dateModified} />}
+{isArticle && <meta property="article:author" content={siteUrl} />}
+{isArticle && category && <meta property="article:section" content={category} />}
+{isArticle && tags?.map((tag) => <meta property="article:tag" content={tag} />)}
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
@@ -34,3 +199,16 @@ const { title, description, url, image } = Astro.props;
 {image && <meta property="twitter:image:alt" content={`${title} - ${description}`} />}
 <meta property="twitter:creator" content="@asce1062" />
 <meta property="twitter:site" content="@asce1062" />
+{isArticle && readingTime && <meta name="twitter:label1" content="Reading time" />}
+{isArticle && readingTime && <meta name="twitter:data1" content={readingTime} />}
+{isArticle && formattedDate && <meta name="twitter:label2" content="Published" />}
+{isArticle && formattedDate && <meta name="twitter:data2" content={formattedDate} />}
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:text={JSON.stringify(isArticle ? blogPostingSchema : webSiteSchema)} is:inline />
+
+<!-- Organization Schema -->
+<script type="application/ld+json" set:text={JSON.stringify(organizationSchema)} is:inline />
+
+<!-- BreadcrumbList Schema (for articles only) -->
+{breadcrumbSchema && <script type="application/ld+json" set:text={JSON.stringify(breadcrumbSchema)} is:inline />}
