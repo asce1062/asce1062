@@ -51,7 +51,62 @@ command = "npm run build"
 command = "npm run build"
 
 # Redirects and rewrites
-# Note: SPA/404 fallback should be last and only applies to production builds
+# Order matters: more specific rules first, catch-all rules last
+
+# Enforce HTTPS
+[[redirects]]
+from = "http://*alexmbugua.me/*"
+to = "https://alexmbugua.me/:splat"
+status = 301
+force = true
+
+# RSS Feed Shortcuts
+[[redirects]]
+from = "/rss"
+to = "/rss.xml"
+status = 301
+
+[[redirects]]
+from = "/feed"
+to = "/rss.xml"
+status = 301
+
+[[redirects]]
+from = "/atom.xml"
+to = "/rss.xml"
+status = 301
+
+# Sitemap Shortcuts
+[[redirects]]
+from = "/sitemap.xml"
+to = "/sitemap-index.xml"
+status = 301
+
+[[redirects]]
+from = "/sitemap"
+to = "/sitemap-index.xml"
+status = 301
+
+# Resume Shortcut
+[[redirects]]
+from = "/resume"
+to = "/blog/2025-06-19-resume/"
+status = 301
+
+# Legacy Blog Patterns
+# /blog/YYYY/MM/DD/slug -> /blog/YYYY-MM-DD-slug/
+[[redirects]]
+from = "/blog/:year/:month/:day/:slug"
+to = "/blog/:year-:month-:day-:slug/"
+status = 301
+
+# Trailing Slash Normalization for blog posts
+[[redirects]]
+from = "/blog/:slug"
+to = "/blog/:slug/"
+status = 301
+
+# 404 fallback (must be last)
 [[redirects]]
 from = "/*"
 to = "/404.html"
@@ -59,6 +114,28 @@ status = 404
 force = false
 
 # Headers
+# Content-Type headers for specific files
+[[headers]]
+for = "/rss.xml"
+[headers.values]
+Content-Type = "application/rss+xml; charset=UTF-8"
+
+[[headers]]
+for = "/sitemap-index.xml"
+[headers.values]
+Content-Type = "application/xml; charset=UTF-8"
+
+[[headers]]
+for = "/sitemap-0.xml"
+[headers.values]
+Content-Type = "application/xml; charset=UTF-8"
+
+[[headers]]
+for = "/robots.txt"
+[headers.values]
+Content-Type = "text/plain; charset=UTF-8"
+
+# Security headers for all pages
 [[headers]]
 for = "/*"
 [headers.values]

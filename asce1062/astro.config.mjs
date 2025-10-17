@@ -77,7 +77,15 @@ export default defineConfig({
 			},
 			workbox: {
 				navigateFallback: "/404",
-				navigateFallbackDenylist: [/\.xml$/], // Don't redirect XML files (RSS, sitemap) to 404
+				navigateFallbackDenylist: [
+					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
+					/^\/rss$/, // Allow /rss → /rss.xml redirect
+					/^\/feed$/, // Allow /feed → /rss.xml redirect
+					/^\/atom\.xml$/, // Allow /atom.xml → /rss.xml redirect
+					/^\/sitemap$/, // Allow /sitemap → /sitemap-index.xml redirect
+					/^\/resume$/, // Allow /resume → /blog/2025-06-19-resume/ redirect
+					/^\/blog\/\d{4}\/\d{2}\/\d{2}\//, // Allow legacy blog patterns /blog/YYYY/MM/DD/slug
+				],
 				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg,woff2,ttf,eot,woff}"],
 				globIgnores: ["**/fonts/icomoon/**", "**/fonts/icomoon"],
 				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
