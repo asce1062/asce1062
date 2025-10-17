@@ -23,3 +23,6 @@ yarn.lock
 
 # Blog posts
 *.mdx
+
+# Netlify
+.netlify

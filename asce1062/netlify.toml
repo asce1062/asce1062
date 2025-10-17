@@ -1,0 +1,148 @@
+# Netlify Configuration
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+# Build command
+command = "npm run build"
+
+# Publish directory (output directory after build)
+publish = "dist"
+
+# Functions directory (if using Netlify Functions)
+# functions = "netlify/functions"
+
+[build.environment]
+# Node version
+NODE_VERSION = "22"
+
+# Build optimization
+NPM_FLAGS = "--legacy-peer-deps"
+
+# Local development configuration
+[dev]
+# Command to run for local development
+command = "npm run dev"
+
+# Port that Astro dev server runs on
+targetPort = 4321
+
+# Port for Netlify Dev proxy
+port = 8888
+
+# Auto-open browser
+autoLaunch = false
+
+# Disable framework detection to prevent interference with Astro's routing
+framework = "#custom"
+
+# Production context (main branch)
+[context.production]
+command = "npm run build"
+
+[context.production.environment]
+NODE_ENV = "production"
+
+# Deploy Preview context (pull requests)
+[context.deploy-preview]
+command = "npm run build"
+
+# Branch deploys
+[context.branch-deploy]
+command = "npm run build"
+
+# Redirects and rewrites
+# Note: SPA/404 fallback should be last and only applies to production builds
+[[redirects]]
+from = "/*"
+to = "/404.html"
+status = 404
+force = false
+
+# Headers
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+for = "/astro/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.js"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/fonts/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.woff2"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.png"
+[headers.values]
+Cache-Control = "public, max-age=604800"
+
+[[headers]]
+for = "/*.jpg"
+[headers.values]
+Cache-Control = "public, max-age=604800"
+
+[[headers]]
+for = "/*.webp"
+[headers.values]
+Cache-Control = "public, max-age=604800"
+
+# Netlify Plugins
+# Generate and manage sitemap
+[[plugins]]
+package = "@netlify/plugin-sitemap"
+
+# Run Lighthouse performance audits
+[[plugins]]
+package = "@netlify/plugin-lighthouse"
+
+[plugins.inputs]
+# Lighthouse performance budgets
+[plugins.inputs.thresholds]
+performance = 0.9
+accessibility = 0.9
+best-practices = 0.9
+seo = 0.9
+
+# Check for broken links during build
+[[plugins]]
+package = "netlify-plugin-checklinks"
+
+[plugins.inputs]
+# Skip checking 404 pages and other known patterns
+skipPatterns = ["/404", "/404/", "/404.html"]
+# Don't fail the build on broken links (just warn)
+checkExternal = false
+
+# Submit sitemap to search engines
+[[plugins]]
+package = "netlify-plugin-submit-sitemap"
+
+[plugins.inputs]
+baseUrl = "https://alexmbugua.me"
+sitemapPath = "/sitemap-index.xml"
+providers = ["google", "bing", "yandex"]
+
+# Form handling (if using Netlify Forms)
+# No configuration needed - Netlify auto-detects forms in HTML
