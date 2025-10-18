@@ -85,6 +85,8 @@ export default defineConfig({
 					/^\/sitemap$/, // Allow /sitemap → /sitemap-index.xml redirect
 					/^\/resume$/, // Allow /resume → /blog/2025-06-19-resume/ redirect
 					/^\/blog\/\d{4}\/\d{2}\/\d{2}\//, // Allow legacy blog patterns /blog/YYYY/MM/DD/slug
+					/^\/search(\?.*)?$/, // Allow search page with query parameters
+					/^\/8biticon(\?.*)?$/, // Allow avatar generator with query parameters
 				],
 				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg,woff2,ttf,eot,woff}"],
 				globIgnores: ["**/fonts/icomoon/**", "**/fonts/icomoon"],

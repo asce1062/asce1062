@@ -16,6 +16,7 @@
     "src/scripts/keyboardShortcuts.ts",
     "src/scripts/themeManager.ts",
     "src/scripts/guestbookCounter.ts",
+    "src/scripts/copyToClipboard.ts",
     "src/data/navigation.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],

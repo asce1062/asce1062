@@ -68,5 +68,44 @@ const shareLinks = [
 				</a>
 			))
 		}
+		<a
+			id="copy-share-link-btn"
+			data-url={url}
+			data-title={title}
+			class="no-underline group hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer"
+			aria-label="Copy link to clipboard">
+			<i class="icon-share text-2xl"></i>
+		</a>
+		<!-- Copy Link Notification -->
+		<div id="copy-share-notification" class="share-notification hidden">
+			<b class="font-retro">Link copied!</b>
+			<a id="close-share-notification" class="close-btn no-underline cursor-pointer" aria-label="Close notification">
+				<i class="icon-x"></i>
+			</a>
+		</div>
 	</div>
 </div>
+
+<script>
+	import { CopyToClipboard } from "@/scripts/copyToClipboard";
+
+	const copyLinkBtn = document.getElementById("copy-share-link-btn");
+	const closeNotificationBtn = document.getElementById("close-share-notification");
+
+	const clipboard = new CopyToClipboard({
+		notificationId: "copy-share-notification",
+	});
+
+	copyLinkBtn?.addEventListener("click", async () => {
+		const url = copyLinkBtn.getAttribute("data-url");
+		const title = copyLinkBtn.getAttribute("data-title");
+		if (url && title) {
+			const shareText = `${title}\n${url}`;
+			await clipboard.copy(shareText);
+		}
+	});
+
+	closeNotificationBtn?.addEventListener("click", () => {
+		clipboard.hideNotification();
+	});
+</script>
