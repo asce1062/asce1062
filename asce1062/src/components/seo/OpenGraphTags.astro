@@ -128,6 +128,34 @@ const webSiteSchema = {
 	inLanguage: "en-US",
 };
 
+// Person schema (for personal identity)
+const personSchema = {
+	"@context": "https://schema.org",
+	"@type": "Person",
+	name: SITE_AUTHOR,
+	url: siteUrl,
+	image: `${siteUrl}/pwa-512x512.png`,
+	jobTitle: "Full-Stack Engineer",
+	description: DEFAULT_DESCRIPTION,
+	email: "tnkratos@gmail.com",
+	knowsAbout: [
+		"Software Engineering",
+		"Cloud Architecture",
+		"Security",
+		"Performance Optimization",
+		"Scalable Solutions",
+		"Full-Stack Development",
+		"Leadership",
+		"Mentoring",
+		"Chip Music",
+	],
+	alumniOf: {
+		"@type": "CollegeOrUniversity",
+		name: "Jomo Kenyatta University Of Agriculture And Technology",
+	},
+	sameAs: socialProfiles,
+};
+
 // Organization schema (for professional identity)
 const organizationSchema = {
 	"@context": "https://schema.org",
@@ -206,6 +234,9 @@ const breadcrumbSchema =
 
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json" set:text={JSON.stringify(isArticle ? blogPostingSchema : webSiteSchema)} is:inline />
+
+<!-- Person Schema -->
+<script type="application/ld+json" set:text={JSON.stringify(personSchema)} is:inline />
 
 <!-- Organization Schema -->
 <script type="application/ld+json" set:text={JSON.stringify(organizationSchema)} is:inline />

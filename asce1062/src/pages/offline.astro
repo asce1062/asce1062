@@ -1,0 +1,76 @@
+---
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Offline" ogImage="social-preview.png" description="You are currently offline">
+	<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+		<h1 class="text-4xl font-bold mb-4 font-retro">You're Offline</h1>
+		<p class="text-xl mb-8">
+			It looks like you've lost your internet connection.<br />
+			Don't worry, you can still browse cached pages!
+		</p>
+		<div id="offline-status" class="mb-4 text-sm opacity-70"></div>
+		<div class="flex flex-col gap-4">
+			<a href="/" class="btn btn-primary">Go to Home</a>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	import { OfflineManager } from "@/scripts/offlineManager";
+
+	const statusEl = document.getElementById("offline-status");
+
+	// Save the referrer as the last page if available
+	if (document.referrer && document.referrer !== window.location.href) {
+		OfflineManager.saveLastPage(document.referrer);
+	}
+
+	// Update status display
+	function updateStatus(online: boolean) {
+		if (statusEl) {
+			if (online) {
+				statusEl.textContent = "✓ Connection restored! Redirecting...";
+			} else {
+				statusEl.textContent = "✗ You are currently offline";
+			}
+		}
+	}
+
+	// Listen for online/offline events
+	OfflineManager.setupListeners(
+		() => {
+			updateStatus(true);
+			// Auto-redirect when connection is restored
+			setTimeout(() => {
+				OfflineManager.tryRedirectToLastPage();
+			}, 1000); // Show "connection restored" message for 1 second
+		},
+		() => {
+			updateStatus(false);
+		}
+	);
+
+	// Show initial status
+	updateStatus(OfflineManager.isOnline());
+</script>
+
+<style>
+	.btn {
+		display: inline-block;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.25rem;
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.2s;
+	}
+
+	.btn-primary {
+		background-color: var(--pink, #dcb8b0);
+		color: var(--palette-700, #120f19);
+	}
+
+	.btn-primary:hover {
+		background-color: var(--blue, #9bb0cd);
+	}
+</style>

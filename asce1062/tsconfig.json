@@ -4,11 +4,17 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
+      "@/layouts/*": ["./src/layouts/*"],
+      "@/pages/*": ["./src/pages/*"],
       "@/lib/*": ["./src/lib/*"],
+      "@/scripts/*": ["./src/scripts/*"],
       "@/styles/*": ["./src/styles/*"],
-      "@/config/*": ["./src/config/*"]
+      "@/config/*": ["./src/config/*"],
+      "@/data/*": ["./src/data/*"],
+      "@/assets/*": ["./src/assets/*"],
+      "@/content/*": ["./src/content/*"]
     },
-    "types": ["astro/client", "@types/node"],
+    "types": ["astro/client"],
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noUnusedLocals": true,

@@ -76,7 +76,13 @@ export default defineConfig({
 				],
 			},
 			workbox: {
-				navigateFallback: "/404",
+				// SW lifecycle
+				cleanupOutdatedCaches: true,
+				clientsClaim: true,
+				skipWaiting: true,
+
+				// Offline fallback
+				navigateFallback: "/offline",
 				navigateFallbackDenylist: [
 					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
 					/^\/rss$/, // Allow /rss → /rss.xml redirect
@@ -88,10 +94,34 @@ export default defineConfig({
 					/^\/search(\?.*)?$/, // Allow search page with query parameters
 					/^\/8biticon(\?.*)?$/, // Allow avatar generator with query parameters
 				],
-				globPatterns: ["**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg,woff2,ttf,eot,woff}"],
-				globIgnores: ["**/fonts/icomoon/**", "**/fonts/icomoon"],
+
+				// Precaching configuration
+				globPatterns: [
+					"**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg}",
+					"**/fonts/**/*.{woff2,ttf,eot,woff}", // Include fonts in precache
+				],
+				globIgnores: [
+					"**/fonts/icomoon/**", // Exclude icomoon backup directory
+					"**/8bit/img/**", // Large avatar assets - cache at runtime
+				],
 				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
 				runtimeCaching: [
+					// Local fonts (all fonts except icomoon backup directory)
+					{
+						urlPattern: /\/fonts\/.*\.(ttf|woff|woff2|eot|otf|svg)(\?.*)?$/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "local-fonts-cache",
+							expiration: {
+								maxEntries: 30,
+								maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					// External fonts (Google)
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
 						handler: "CacheFirst",
@@ -120,14 +150,33 @@ export default defineConfig({
 							},
 						},
 					},
+					// 8bit avatar images (runtime cache due to large size)
+					{
+						urlPattern: /\/8bit\/img\/.*\.png$/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "avatar-assets-cache",
+							expiration: {
+								maxEntries: 500,
+								maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					// Other images
 					{
 						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
 						handler: "CacheFirst",
 						options: {
 							cacheName: "image-cache",
 							expiration: {
-								maxEntries: 60,
+								maxEntries: 100,
 								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
 							},
 						},
 					},
@@ -135,7 +184,8 @@ export default defineConfig({
 			},
 			devOptions: {
 				enabled: true,
-				navigateFallbackAllowlist: [/^\//],
+				navigateFallback: "/offline",
+				type: "module",
 			},
 			experimental: {
 				directoryAndTrailingSlashHandler: true,
