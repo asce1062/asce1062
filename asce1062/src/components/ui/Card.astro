@@ -1,63 +1,97 @@
 ---
+import { getLanguageIcon } from "@/lib/utils/languageIcons";
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
 interface Props {
 	name: string;
 	url: string;
 	repo: string;
 	description: string;
 	tools: Array<any>;
+	stars?: number;
+	fork?: boolean;
+	image?: ImageMetadata;
+	imagePath?: string; // Base path to search for images (e.g., "/src/assets/projects/projectname")
 }
 
-const { name, url, repo, description, tools } = Astro.props;
+const { name, url, repo, description, tools, stars, fork, image, imagePath } = Astro.props;
+
+// If imagePath is provided but no image, try to find the image
+let resolvedImage = image;
+if (!resolvedImage && imagePath) {
+	const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/projects/*.{jpeg,jpg,png,gif}");
+	const extensions = [".jpg", ".jpeg", ".png", ".gif"];
+
+	for (const ext of extensions) {
+		const fullPath = imagePath + ext;
+		if (images[fullPath]) {
+			resolvedImage = (await images[fullPath]()).default;
+			break;
+		}
+	}
+}
 ---
 
 <div
-	class="hover:scale-[101%] relative flex flex-col overflow-auto rounded-lg bg-white/20 dark:bg-palette-900 border border-black/20 dark:border-white/20">
-	<div class="p-4 h-full flex flex-col">
+	class="hover:scale-[101%] relative flex flex-col overflow-auto rounded-lg bg-white/20 border border-black/20 dark:border-white/20 dark:bg-palette-900/10">
+	{
+		resolvedImage && (
+			<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+		)
+	}
+	<div class="p-4 h-full flex flex-col gap-2">
 		<a
-			class="no-underline text-sm sm:text-base transition-all duration-300 font-bold hover:bg-transparent"
+			class="no-underline text-sm sm:text-base transition-all duration-300 font-bold hover:bg-transparent group flex flex-row justify-between items-center gap-4"
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer">
-			{name}
+			<span
+				class="flex flex-row gap-2 items-center group-hover:text-palette-900 transition-all duration-300 text-light-300 dark:text-palette-300 break-all flex-1 min-w-0">
+				{name}
+				{fork && <i class="icon-git" />}
+			</span>
+			{
+				stars !== undefined && (
+					<span class="flex flex-row gap-2 items-center group-hover:text-palette-900 transition-all duration-300 flex-shrink-0">
+						{stars}
+						<i class="icon-star" />
+					</span>
+				)
+			}
 		</a>
 		<div class="grow">
 			<p>{description}</p>
 		</div>
-		<!-- prettier-ignore -->
-		<div>
-            {
-                tools.map((tools) => (
-                    <span class="text-sm sm:text-base transition-all duration-300 my-1 ml-0 mr-2 inline-block max-h-8 rounded-lg bg-light-100 text-palette-700 dark:bg-palette-600 p-1 dark:text-palette-900">
-                        <i class={`${tools.icon} mr-1`} />{tools.name}
-                    </span>
-                ))
-            }
-        </div>
-		<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white bg-transparent" />
-		<div
-			class="bottom-0 mt-auto text-sm sm:text-base font-bold *:hover:bg-transparent *:hover:decoration-offset-4 *:hover:dark:bg-transparent *:text-light-300 *:dark:hover:text-palette-300">
-			<a
-				class="icon float-left"
-				href={repo}
-				aria-label=`Visit the GitHub repository for ${name}`
-				target="_blank"
-				rel="noopener noreferrer">
-				<i class="icon-github mr-2"></i><span
-					class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">
-					view source
-				</span>
-			</a>
-			<a
-				class="icon float-right"
-				href={url}
-				aria-label=`Visit the external site for ${name}`
-				target="_blank"
-				rel="noopener noreferrer">
-				<i class="icon-link mr-2"></i><span
-					class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">
-					visit
-				</span>
-			</a>
+
+		<div class="flex flex-col gap-2">
+			{
+				tools && tools.length > 0 && (
+					<div class="flex flex-wrap gap-2">
+						{tools.map((tool) => {
+							const iconClass = getLanguageIcon(tool.name) || tool.icon;
+							return (
+								<span class="text-xs sm:text-sm transition-all duration-300 rounded-lg bg-palette-200 text-palette-700 dark:bg-palette-600 px-2 py-1 dark:text-palette-900 font-bold flex items-center gap-1">
+									{iconClass && <i class={iconClass} />}
+									{tool.name}
+								</span>
+							);
+						})}
+					</div>
+				)
+			}
+			<div
+				class="text-sm sm:text-base font-bold *:hover:bg-transparent *:hover:decoration-offset-4 *:hover:dark:bg-transparent *:text-light-300 *:dark:hover:text-palette-300">
+				<a
+					class="icon hover:text-accent transition-colors"
+					href={repo}
+					target="_blank"
+					rel="noopener noreferrer"
+					aria-label={`Visit the GitHub repository for ${name}`}>
+					<i class="icon-github mr-2"></i>
+					<span class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">view source</span>
+				</a>
+			</div>
 		</div>
 	</div>
 </div>

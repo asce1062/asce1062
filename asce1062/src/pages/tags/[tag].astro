@@ -26,8 +26,8 @@ const { posts } = Astro.props;
 	title={tag}
 	ogImage="social-preview.png"
 	description=`bleep bloop found ${posts.length} ${ posts.length == 1 ? "post" : "posts"}`>
-	<p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
-	<ul>
+	<div class="flex flex-col gap-4">
+		<p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
 		<Columns columns={1}>
 			{
 				posts.map((post) => (
@@ -37,9 +37,10 @@ const { posts } = Astro.props;
 						image={post.data.image.url}
 						description={post.data.description}
 						date={formatPostDate(post.data.pubDate, "short")}
+						tags={post.data.tags}
 					/>
 				))
 			}
 		</Columns>
-	</ul>
+	</div>
 </Layout>

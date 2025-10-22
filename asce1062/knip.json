@@ -17,7 +17,8 @@
     "src/scripts/themeManager.ts",
     "src/scripts/guestbookCounter.ts",
     "src/scripts/copyToClipboard.ts",
-    "src/data/navigation.ts"
+    "src/data/navigation.ts",
+    "src/lib/api/github.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {

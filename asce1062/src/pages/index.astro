@@ -2,7 +2,17 @@
 import Layout from "@/layouts/Layout.astro";
 import Card from "@/components/ui/Card.astro";
 import Columns from "@/components/ui/Columns.astro";
-import projects from "@/data/projects.json";
+import { getFeaturedProjects } from "@/lib/api/github";
+
+const projectBlacklist = ["fundAI", "findme", "d-v-nsm-nt-a-tp-t-"];
+
+const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PAT, {
+	blacklist: projectBlacklist,
+	sortBy: "stars",
+	includeLanguages: true,
+	excludeForks: false,
+});
+
 const displayProjects = projects.slice(0, 4);
 ---
 
@@ -36,8 +46,16 @@ const displayProjects = projects.slice(0, 4);
 	<h2>showcase</h2>
 	<Columns columns={2}>
 		{
-			displayProjects.map(({ name, url, repo, description, tools }) => (
-				<Card name={name} url={url} repo={repo} description={description} tools={tools} />
+			displayProjects.map((project) => (
+				<Card
+					name={project.name}
+					url={project.homepage || project.html_url}
+					repo={project.html_url}
+					description={project.description}
+					tools={project.languages?.map((lang) => ({ name: lang, icon: "" })) || []}
+					stars={project.stargazers_count}
+					fork={project.fork}
+				/>
 			))
 		}
 	</Columns>

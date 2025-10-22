@@ -3,38 +3,48 @@ import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import Card from "@/components/ui/Card.astro";
 import GitHubContributions from "@/components/GitHubContributions.astro";
-import projects from "@/data/projects.json";
+import { getFeaturedProjects } from "@/lib/api/github";
+
+const projectBlacklist = ["fundAI", "findme", "d-v-nsm-nt-a-tp-t-"];
+
+const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PAT, {
+	blacklist: projectBlacklist,
+	sortBy: "recent",
+	includeLanguages: true,
+	excludeForks: false,
+});
 ---
 
 <Layout
 	title="Projects"
 	ogImage="social-preview.png"
-	description="Personal project and contributions to open source codebases">
+	description="Personal projects and contributions to open source codebases">
 	<h2>my projects</h2>
-	<p>disclaimer 0: ordered in no particular order</p>
-	<p>disclaimer 1: mostly by recent activity and relation</p>
-	<p>
-		disclaimer 2: potentially out of date! check my <a
-			href="https://github.com/asce1062"
-			target="_blank"
-			rel="noopener noreferrer">
-			github
-		</a> for more
-	</p>
-	<Columns columns={2}>
+	<p>projects sorted by most recently pushed to repository, fetched live from GitHub</p>
+	<Columns columns={1}>
 		{
-			projects.map(({ name, url, repo, description, tools }) => (
-				<Card name={name} url={url} repo={repo} description={description} tools={tools} />
+			projects.map((project: any) => (
+				<Card
+					name={project.name}
+					url={project.homepage || project.html_url}
+					repo={project.html_url}
+					description={project.description}
+					tools={project.languages?.map((lang: string) => ({ name: lang, icon: "" })) || []}
+					stars={project.stargazers_count}
+					fork={project.fork}
+					imagePath={"/src/assets/projects/" + project.name.toLowerCase()}
+				/>
 			))
 		}
 	</Columns>
 	<p>
-		you may also wish to view my contributions to <a
+		you may also wish to view my occasional contributions to
+		<a
 			href="https://github.com/pulls?q=is%3Apr+author%3Aasce1062+archived%3Afalse+"
 			target="_blank"
 			rel="noopener noreferrer">
 			other open-source repositories
-		</a> (might need a github account to view).
+		</a> (might need a GitHub account to view).
 	</p>
 	<br />
 	<GitHubContributions username="asce1062" />
