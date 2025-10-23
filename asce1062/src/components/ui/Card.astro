@@ -1,5 +1,6 @@
 ---
 import { getLanguageIcon } from "@/lib/utils/languageIcons";
+import { getGitHubOgImage } from "@/lib/api/github";
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
@@ -31,6 +32,9 @@ if (!resolvedImage && imagePath) {
 		}
 	}
 }
+
+// Generate GitHub OpenGraph fallback URL from repo URL if no local image found
+const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 ---
 
 <div
@@ -38,6 +42,11 @@ if (!resolvedImage && imagePath) {
 	{
 		resolvedImage && (
 			<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+		)
+	}
+	{
+		!resolvedImage && githubOgUrl && (
+			<img src={githubOgUrl} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
 		)
 	}
 	<div class="p-4 h-full flex flex-col gap-2">
@@ -60,7 +69,7 @@ if (!resolvedImage && imagePath) {
 				)
 			}
 		</a>
-		<div class="grow">
+		<div class="grow break-all">
 			<p>{description}</p>
 		</div>
 

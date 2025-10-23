@@ -42,7 +42,7 @@ const colours = [
 		<!-- prettier-ignore -->
 		<i>
 			<span class="block pt-2 text-xs">
-				{siteMetadata.footerText.split("open source")[0]}<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.footerText.split("open source")[1]}
+				<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.commitHash && <i> on commit <a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">{siteMetadata.commitHash}</a></i>}. made with <a href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">astro</a>
 			</span>
 		</i>
 	</div>

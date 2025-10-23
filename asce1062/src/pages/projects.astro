@@ -21,7 +21,7 @@ const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PA
 	description="Personal projects and contributions to open source codebases">
 	<h2>my projects</h2>
 	<p>projects sorted by most recently pushed to repository, fetched live from GitHub</p>
-	<Columns columns={1}>
+	<Columns columns={2}>
 		{
 			projects.map((project: any) => (
 				<Card

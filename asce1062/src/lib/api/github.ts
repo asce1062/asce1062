@@ -183,3 +183,26 @@ export async function getFeaturedProjects(
 
 	return filtered;
 }
+
+/**
+ * Get GitHub OpenGraph preview image URL
+ * @param repoUrl - GitHub repository URL (e.g., https://github.com/owner/repo)
+ * @returns OpenGraph image URL or null if invalid
+ */
+export function getGitHubOgImage(repoUrl: string): string | null {
+	try {
+		const url = new URL(repoUrl);
+		const pathParts = url.pathname.split("/").filter(Boolean);
+
+		if (pathParts.length >= 2) {
+			const owner = pathParts[0];
+			const repoName = pathParts[1];
+			return `https://opengraph.githubassets.com/1/${owner}/${repoName}`;
+		}
+
+		return null;
+	} catch (_e) {
+		// Invalid URL
+		return null;
+	}
+}

@@ -127,12 +127,35 @@ export const contactLinks: NavigationLink[] = [
 ];
 
 /**
+ * Get the current commit hash from environment variable
+ * Returns full hash or null if not set
+ * Uses COMMIT_REF (Netlify's environment variable)
+ */
+function getFullCommitHash(): string | null {
+	return import.meta.env.COMMIT_REF || null;
+}
+
+/**
+ * Get the shortened commit hash (first 7 characters)
+ */
+function getShortCommitHash(): string | null {
+	const hash = getFullCommitHash();
+	return hash ? hash.substring(0, 7) : null;
+}
+
+/**
  * Site metadata
  */
+const fullCommitHash = getFullCommitHash();
+const shortCommitHash = getShortCommitHash();
+
 export const siteMetadata = {
 	author: "Alex Mbugua",
 	greeting: "hi, i'm Alex.",
 	email: "alex.mbugua@outlook.com",
 	githubRepo: "https://github.com/asce1062/asce1062/tree/main/asce1062",
-	footerText: "this website is open source. made with astro and tailwindcss",
+	astroUrl: "https://astro.build",
+	commitHash: shortCommitHash,
+	commitHashFull: fullCommitHash,
+	commitUrl: fullCommitHash ? `https://github.com/asce1062/asce1062/commit/${fullCommitHash}` : null,
 };

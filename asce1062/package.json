@@ -10,7 +10,7 @@
     "format": "prettier --write . --ignore-path .prettierignore",
     "lint": "eslint . --ext .js,.ts,.astro",
     "lint:fix": "eslint . --ext .js,.ts,.astro --fix",
-    "predeploy": "astro check && astro build",
+    "predeploy": "astro check && COMMIT_REF=$(git rev-parse HEAD) astro build",
     "deploy": "gh-pages -d dist --branch alexmbugua --nojekyll --cname alexmbugua.me --dotfiles",
     "deploy:netlify": "netlify deploy --prod",
     "deploy:netlify:preview": "netlify deploy",

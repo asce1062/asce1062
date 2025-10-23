@@ -59,19 +59,103 @@ export default defineConfig({
 					},
 				],
 				screenshots: [
+					// Mobile screenshots
+					// Narrow form factor
+					// Maximum 5
 					{
-						src: "/screenshots/alexmbugua.me-desktop-1920x1590.png",
-						sizes: "1920x1590",
-						type: "image/png",
-						form_factor: "wide",
-						label: "Alex Mbugua's space on the internet - Desktop View",
-					},
-					{
-						src: "/screenshots/alexmbugua.me-mobile-1440x3040.png",
-						sizes: "1440x3040",
+						src: "/screenshots/mobile/home.png",
+						sizes: "1242x2688",
 						type: "image/png",
 						form_factor: "narrow",
-						label: "Alex Mbugua's space on the internet - Mobile View",
+						label: "Home - Alex Mbugua's Portfolio",
+					},
+					{
+						src: "/screenshots/mobile/blog.png",
+						sizes: "1242x2688",
+						type: "image/png",
+						form_factor: "narrow",
+						label: "Blog - Technical articles and thoughts",
+					},
+					{
+						src: "/screenshots/mobile/now.png",
+						sizes: "1242x2688",
+						type: "image/png",
+						form_factor: "narrow",
+						label: "Now - What I'm currently working on",
+					},
+					{
+						src: "/screenshots/mobile/8biticon.png",
+						sizes: "1242x2688",
+						type: "image/png",
+						form_factor: "narrow",
+						label: "8bit Avatar Generator - Create pixel art avatars",
+					},
+					{
+						src: "/screenshots/mobile/guestbook.png",
+						sizes: "1242x2688",
+						type: "image/png",
+						form_factor: "narrow",
+						label: "Guestbook - Leave a message",
+					},
+
+					// Desktop screenshots
+					// Wide form factor
+					// Maximum 8
+					{
+						src: "/screenshots/desktop/home.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Home - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/now.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Now - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/guestbook.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Guestbook - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/8biticon.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "8bit Avatar Generator - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/blog.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Blog - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/blog-2025-10-05-the-beauty-of-being-realigned.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Blog Post - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/search.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Search - Desktop View",
+					},
+					{
+						src: "/screenshots/desktop/projects.png",
+						sizes: "1280x720",
+						type: "image/png",
+						form_factor: "wide",
+						label: "Projects - Desktop View",
 					},
 				],
 			},
