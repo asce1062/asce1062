@@ -34,6 +34,9 @@ const { username = "asce1062" } = Astro.props;
 	// Initial load
 	document.addEventListener("DOMContentLoaded", updateGitHubContributionsTheme);
 
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", updateGitHubContributionsTheme);
+
 	// Theme changes
 	document.addEventListener("set-theme", updateGitHubContributionsTheme);
 </script>

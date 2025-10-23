@@ -158,4 +158,5 @@ export const siteMetadata = {
 	commitHash: shortCommitHash,
 	commitHashFull: fullCommitHash,
 	commitUrl: fullCommitHash ? `https://github.com/asce1062/asce1062/commit/${fullCommitHash}` : null,
+	buildTime: new Date().toISOString(),
 };

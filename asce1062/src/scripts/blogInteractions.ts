@@ -27,6 +27,11 @@ export function initBackToTop(): void {
  * The progress bar uses a gradient matching the site's color palette
  */
 export function createProgressBar(): void {
+	// Check if progress bar already exists
+	if (document.getElementById("myBar")) {
+		return;
+	}
+
 	const progressContainer = document.createElement("div");
 	progressContainer.className = "progress-container fixed top-0 z-20 h-1 w-full";
 	progressContainer.style.backgroundColor = "transparent";
@@ -65,6 +70,17 @@ function updateProgress(): void {
 export function initScrollProgress(): void {
 	document.addEventListener("scroll", updateProgress);
 	updateProgress(); // Initial update
+}
+
+/**
+ * Removes the progress bar from the page
+ * Called when navigating away from blog posts
+ */
+export function removeProgressBar(): void {
+	const progressBar = document.getElementById("myBar");
+	if (progressBar && progressBar.parentElement) {
+		progressBar.parentElement.remove();
+	}
 }
 
 /**

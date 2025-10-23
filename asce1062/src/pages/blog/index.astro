@@ -3,7 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import Post from "@/components/Post.astro";
 import { getCollection } from "astro:content";
-import { sortPostsByDate, formatPostDate, getPostUrl } from "@/lib/blog/utils";
+import { sortPostsByDate, formatPostDate, getPostUrl, estimateReadingTime } from "@/lib/blog/utils";
 
 const allPosts = await getCollection("blog");
 const posts = sortPostsByDate(allPosts);
@@ -45,6 +45,7 @@ const posts = sortPostsByDate(allPosts);
 					description={post.data.description}
 					date={formatPostDate(post.data.pubDate, "long")}
 					tags={post.data.tags}
+					readingTime={estimateReadingTime(post.body)}
 				/>
 			))
 		}

@@ -12,14 +12,19 @@
 <script>
 	import { initThemeSwitcher, handleThemeToggle } from "@/scripts/themeManager";
 
-	// Initialize theme icon on DOM ready
-	document.addEventListener("DOMContentLoaded", () => {
+	function setupThemeToggle() {
 		initThemeSwitcher();
-	});
 
-	// Handle theme toggle button click
-	const themeButton = document.getElementById("theme-toggle-btn");
-	themeButton?.addEventListener("click", () => {
-		handleThemeToggle();
-	});
+		// Handle theme toggle button click
+		const themeButton = document.getElementById("theme-toggle-btn");
+		themeButton?.addEventListener("click", () => {
+			handleThemeToggle();
+		});
+	}
+
+	// Initialize on first load
+	document.addEventListener("DOMContentLoaded", setupThemeToggle);
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", setupThemeToggle);
 </script>

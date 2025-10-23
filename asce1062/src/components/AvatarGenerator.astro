@@ -297,10 +297,17 @@ import "@/styles/components/avatar.css";
 		}
 	}
 
-	// Initialize when DOM is ready
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", () => new AvatarGeneratorController());
-	} else {
+	function initAvatarGenerator() {
 		new AvatarGeneratorController();
 	}
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initAvatarGenerator);
+	} else {
+		initAvatarGenerator();
+	}
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", initAvatarGenerator);
 </script>

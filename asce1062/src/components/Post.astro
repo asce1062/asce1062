@@ -9,9 +9,10 @@ interface Props {
 	description: string;
 	date: string;
 	tags: string[];
+	readingTime?: string;
 }
 
-const { name, url, image, description, date, tags } = Astro.props;
+const { name, url, image, description, date, tags, readingTime } = Astro.props;
 const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{jpeg,jpg,png,gif}");
 ---
 
@@ -44,7 +45,10 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 					))
 				}
 			</div>
-			<span class="flex flex-wrap justify-center md:justify-start">{date}</span>
+			<span class="flex flex-wrap gap-2 justify-center md:justify-start text-sm opacity-70">
+				{date}
+				{readingTime && <span>• {readingTime}</span>}
+			</span>
 		</div>
 	</div>
 </div>

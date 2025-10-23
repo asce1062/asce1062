@@ -139,11 +139,36 @@ Content-Type = "text/plain; charset=UTF-8"
 [[headers]]
 for = "/*"
 [headers.values]
+# Content Security Policy - Protects against XSS and other injection attacks
+# Note: 'unsafe-inline' is needed for Astro's hydration and astro-themes
+# 'data:' is required for Astro's ClientRouter (view transitions)
+Content-Security-Policy = """
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' data:;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: https: blob:;
+  font-src 'self' data:;
+  connect-src 'self' https://jandee.vercel.app https://opengraph.githubassets.com;
+  frame-src https://jandee.vercel.app;
+  worker-src 'self' blob:;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+  upgrade-insecure-requests;
+"""
+# Prevents clickjacking attacks
 X-Frame-Options = "DENY"
+# Legacy XSS protection (browsers now use CSP instead)
 X-XSS-Protection = "1; mode=block"
+# Prevents MIME type sniffing
 X-Content-Type-Options = "nosniff"
+# Controls referrer information
 Referrer-Policy = "strict-origin-when-cross-origin"
-Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+# Feature policy to restrict browser features
+Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+# Strict Transport Security - Forces HTTPS
+Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 
 [[headers]]
 for = "/astro/*"

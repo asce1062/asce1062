@@ -42,8 +42,10 @@ const colours = [
 		<!-- prettier-ignore -->
 		<i>
 			<span class="block pt-2 text-xs">
-				<a href={siteMetadata.githubRepo} target="_blank" rel="noopener noreferrer">open source</a>{siteMetadata.commitHash && <i> on commit <a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">{siteMetadata.commitHash}</a></i>}. made with <a href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">astro</a>
+				{siteMetadata.commitHash && <i> on commit <a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">{siteMetadata.commitHash}</a></i>}. made with <a href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">astro</a><i> • {new Date(siteMetadata.buildTime).toLocaleDateString()}</i>
 			</span>
 		</i>
+
+
 	</div>
 </footer>

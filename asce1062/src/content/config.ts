@@ -53,7 +53,7 @@ const blogSchema = z.object({
  * Blog Collection Definition
  */
 const blogCollection = defineCollection({
-	loader: glob({ pattern: "**/*.mdx", base: "./src/pages/blog" }),
+	loader: glob({ pattern: "**/*.mdx", base: "./src/content/blog" }),
 	schema: blogSchema,
 });
 

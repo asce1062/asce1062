@@ -190,6 +190,21 @@ export default defineConfig({
 				],
 				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
 				runtimeCaching: [
+					// GitHub OpenGraph images for project cards
+					{
+						urlPattern: /^https:\/\/opengraph\.githubassets\.com\/.*/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "github-og-images-cache",
+							expiration: {
+								maxEntries: 1000,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
 					// Local fonts (all fonts except icomoon backup directory)
 					{
 						urlPattern: /\/fonts\/.*\.(ttf|woff|woff2|eot|otf|svg)(\?.*)?$/i,
@@ -241,7 +256,7 @@ export default defineConfig({
 						options: {
 							cacheName: "avatar-assets-cache",
 							expiration: {
-								maxEntries: 500,
+								maxEntries: 1000,
 								maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
 							},
 							cacheableResponse: {
@@ -256,7 +271,7 @@ export default defineConfig({
 						options: {
 							cacheName: "image-cache",
 							expiration: {
-								maxEntries: 100,
+								maxEntries: 1000,
 								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
 							},
 							cacheableResponse: {

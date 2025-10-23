@@ -46,19 +46,53 @@ export function getAllTags(posts: CollectionEntry<"blog">[]): string[] {
 }
 
 /**
- * Calculate reading time estimation for a blog post
+ * Calculate accurate reading time for a blog post
  * Based on average reading speed of 200 words per minute
- * Uses title and description length as a rough heuristic since MDX pages can't be easily parsed
+ * @param content - Raw MDX content from entry.body
+ * @returns Formatted reading time string (e.g., "4 min read")
  */
-export function estimateReadingTime(title: string, description: string): string {
-	// Rough estimation: typical blog posts are 500-1500 words
-	// We'll use title + description length as indicator
-	const combinedText = `${title} ${description}`;
-	const wordCount = combinedText.split(/\s+/).length;
+export function estimateReadingTime(content: string | undefined): string {
+	if (!content) {
+		return "1 min read"; // Fallback for empty content
+	}
 
-	// Estimate full article is 30-50x the description length
-	const estimatedArticleWords = wordCount * 40;
-	const minutes = Math.max(1, Math.ceil(estimatedArticleWords / 200));
+	const wordsPerMinute = 200;
+
+	// Remove MDX frontmatter (between --- markers)
+	let cleanedContent = content.replace(/^---[\s\S]*?---/m, "");
+
+	// Remove imports
+	cleanedContent = cleanedContent.replace(/^import\s+.*?from\s+['"].*?['"];?\s*/gm, "");
+
+	// Remove JSX/HTML tags
+	cleanedContent = cleanedContent.replace(/<[^>]+>/g, "");
+
+	// Remove code blocks (```...```)
+	cleanedContent = cleanedContent.replace(/```[\s\S]*?```/g, "");
+
+	// Remove inline code (`...`)
+	cleanedContent = cleanedContent.replace(/`[^`]+`/g, "");
+
+	// Remove markdown links but keep text: [text](url) → text
+	cleanedContent = cleanedContent.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+
+	// Remove markdown images: ![alt](url)
+	cleanedContent = cleanedContent.replace(/!\[([^\]]*)\]\([^)]+\)/g, "");
+
+	// Remove HTML comments
+	cleanedContent = cleanedContent.replace(/<!--[\s\S]*?-->/g, "");
+
+	// Remove markdown headers (#, ##, etc.) but keep text
+	cleanedContent = cleanedContent.replace(/^#{1,6}\s+/gm, "");
+
+	// Clean up extra whitespace
+	cleanedContent = cleanedContent.trim().replace(/\s+/g, " ");
+
+	// Count words
+	const wordCount = cleanedContent.split(/\s+/).filter((word) => word.length > 0).length;
+
+	// Calculate reading time
+	const minutes = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 
 	return `${minutes} min read`;
 }

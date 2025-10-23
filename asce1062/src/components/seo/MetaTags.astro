@@ -29,7 +29,10 @@ const { title, description, canonical, rssUrl, generator } = Astro.props;
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 
 <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+<!-- RSS Feed Auto-Discovery -->
 <link rel="alternate" type="application/rss+xml" title="Alex Mbugua's Blog" href={rssUrl} />
+<link rel="alternate" type="application/atom+xml" title="Alex Mbugua's Blog (Atom)" href={rssUrl} />
 
 <!-- PWA Theme Colors -->
 <meta name="theme-color" content="#ded9e3" media="(prefers-color-scheme: light)" />
@@ -76,3 +79,7 @@ const { title, description, canonical, rssUrl, generator } = Astro.props;
 <meta name="distribution" content="Global" />
 <meta name="revisit-after" content="7 days" />
 <meta name="format-detection" content="telephone=no" />
+
+<!-- Security Headers -->
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta name="color-scheme" content="dark light" />

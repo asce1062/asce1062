@@ -29,14 +29,15 @@ const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.getTime() - a.data.pu
 
 // Find current post using permalink
 const currentPostIndex = sortedPosts.findIndex((p) => p.id === currentPost);
+const currentEntry = sortedPosts[currentPostIndex];
 
 const previousPost =
 	currentPostIndex !== -1 && currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
 
 const nextPost = currentPostIndex !== -1 && currentPostIndex > 0 ? allPosts[currentPostIndex - 1] : null;
 
-// Estimate reading time based on title and description
-const readingTime = estimateReadingTime(title, description);
+// Calculate accurate reading time from entry body
+const readingTime = currentEntry ? estimateReadingTime(currentEntry.body) : "";
 ---
 
 <Layout
@@ -51,7 +52,7 @@ const readingTime = estimateReadingTime(title, description);
 	<article data-pagefind-body data-pagefind-sort="date">
 		<h2 data-pagefind-meta="title">{title}</h2>
 		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
-			<i><b>{date}</b> | {description}</i>
+			<i><b>{date}</b>{readingTime && ` • ${readingTime}`} | {description}</i>
 		</span>
 		<PreviewImage src={image} altText={alt} />
 		<span>
@@ -89,9 +90,22 @@ const readingTime = estimateReadingTime(title, description);
 </Layout>
 
 <script>
-	import { initBlogInteractions } from "@/scripts/blogInteractions";
+	import { initBlogInteractions, removeProgressBar } from "@/scripts/blogInteractions";
 
-	document.addEventListener("DOMContentLoaded", () => {
-		initBlogInteractions();
-	});
+	function setupBlogInteractions() {
+		// Only initialize if we're on a blog post page (check for back-to-top button)
+		const backToTopButton = document.querySelector("#back-to-top");
+		if (backToTopButton) {
+			initBlogInteractions();
+		} else {
+			// Remove progress bar if we're not on a blog post
+			removeProgressBar();
+		}
+	}
+
+	// Initialize on first load
+	document.addEventListener("DOMContentLoaded", setupBlogInteractions);
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", setupBlogInteractions);
 </script>

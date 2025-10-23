@@ -65,6 +65,38 @@
 		color: var(--dark);
 	}
 
+	/*
+  ============================================
+  Dark Mode Transitions
+  ============================================
+  */
+
+	html {
+		transition:
+			background-color 0.3s ease,
+			color 0.3s ease;
+	}
+
+	* {
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease,
+			color 0.2s ease;
+	}
+
+	/* Disable transitions for elements that shouldn't animate */
+	*:where([class*="transition-"], [class*="duration-"], [class*="animate-"], img, video, iframe, canvas, svg) {
+		transition: none;
+	}
+
+	/* Respect prefers-reduced-motion */
+	@media (prefers-reduced-motion: reduce) {
+		html,
+		* {
+			transition: none !important;
+		}
+	}
+
 	body {
 		margin: 0;
 		min-height: 100vh;

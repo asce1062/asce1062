@@ -4,6 +4,7 @@ import Footer from "@/components/Footer.astro";
 import MetaTags from "@/components/seo/MetaTags.astro";
 import OpenGraphTags from "@/components/seo/OpenGraphTags.astro";
 import Themes from "astro-themes";
+import { ClientRouter } from "astro:transitions";
 import { pwaInfo } from "virtual:pwa-info";
 import "@/styles/global.css";
 import { DEFAULT_DESCRIPTION, SITE_TITLE_SUFFIX } from "@/config/site-config";
@@ -31,6 +32,7 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 <!doctype html>
 <html lang="en">
 	<head>
+		<ClientRouter />
 		<MetaTags
 			title={pageTitle}
 			description={pageDescription}
@@ -50,10 +52,6 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 			category={category}
 			readingTime={readingTime}
 		/>
-
-		<!-- Security Headers -->
-		<meta name="referrer" content="strict-origin-when-cross-origin" />
-		<meta name="color-scheme" content="dark light" />
 
 		<link href="/css/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
@@ -114,7 +112,8 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 			id="primary"
 			class="z-2 w-full prose prose-invert px-4 sm:px-6 md:px-8 mx-auto relative flex-grow flex flex-col min-h-screen">
 			<Header />
-			<main id="main-content" class="flex-grow">
+			<!-- https://docs.astro.build/en/guides/view-transitions/#built-in-animation-directives -->
+			<main id="main-content" class="flex-grow" transition:animate="fade">
 				<slot />
 			</main>
 			<Footer />
