@@ -1,0 +1,24 @@
+---
+// Floating back to top button that appears when scrolling down
+---
+
+<button
+	id="back-to-top"
+	class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full bg-palette-300 dark:bg-palette-600 text-palette-900 shadow-lg opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 hover:bg-palette-400 dark:hover:bg-palette-500 focus-outline"
+	aria-label="Back to top">
+	<i class="icon-chevron-up text-xl md:text-2xl"></i>
+</button>
+
+<script>
+	import { initBackToTop } from "@/scripts/backToTop";
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initBackToTop);
+	} else {
+		initBackToTop();
+	}
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", initBackToTop);
+</script>

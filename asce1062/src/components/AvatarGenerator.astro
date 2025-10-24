@@ -298,6 +298,10 @@ import "@/styles/components/avatar.css";
 	}
 
 	function initAvatarGenerator() {
+		// Only initialize if avatar canvas exists on the page
+		const avatarCanvas = document.getElementById("avatar-canvas");
+		if (!avatarCanvas) return;
+
 		new AvatarGeneratorController();
 	}
 

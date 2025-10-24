@@ -73,14 +73,8 @@ const readingTime = currentEntry ? estimateReadingTime(currentEntry.body) : "";
 		<hr class="my-8 border-dashed border-palette-700 dark:border-white" />
 
 		<div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
-			<div class="my-4 flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end sm:gap-4">
+			<div class="my-4 flex flex-col items-center justify-center gap-6 sm:flex-row sm:items-end sm:gap-4">
 				<SocialShareButtons title={title} url={currentUrl} />
-				<b>
-					<button id="back-to-top" class="focus-outline py-1 whitespace-nowrap hover:opacity-75">
-						<i class="icon-chevron-up text-2xl"></i>
-						Back to Top
-					</button>
-				</b>
 			</div>
 			<hr class="my-6 border-dashed border-palette-700 dark:border-white" />
 		</div>
@@ -88,24 +82,3 @@ const readingTime = currentEntry ? estimateReadingTime(currentEntry.body) : "";
 		<PostNavigation previousPost={previousPost} nextPost={nextPost} />
 	</article>
 </Layout>
-
-<script>
-	import { initBlogInteractions, removeProgressBar } from "@/scripts/blogInteractions";
-
-	function setupBlogInteractions() {
-		// Only initialize if we're on a blog post page (check for back-to-top button)
-		const backToTopButton = document.querySelector("#back-to-top");
-		if (backToTopButton) {
-			initBlogInteractions();
-		} else {
-			// Remove progress bar if we're not on a blog post
-			removeProgressBar();
-		}
-	}
-
-	// Initialize on first load
-	document.addEventListener("DOMContentLoaded", setupBlogInteractions);
-
-	// Reinitialize after view transitions
-	document.addEventListener("astro:page-load", setupBlogInteractions);
-</script>

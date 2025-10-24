@@ -12,18 +12,36 @@
 <script>
 	import { initThemeSwitcher, handleThemeToggle } from "@/scripts/themeManager";
 
+	// Store the click handler so we can remove it later
+	let themeToggleHandler: (() => void) | null = null;
+
 	function setupThemeToggle() {
 		initThemeSwitcher();
 
-		// Handle theme toggle button click
 		const themeButton = document.getElementById("theme-toggle-btn");
-		themeButton?.addEventListener("click", () => {
+		if (!themeButton) return;
+
+		// Remove old event listener if it exists
+		if (themeToggleHandler) {
+			themeButton.removeEventListener("click", themeToggleHandler);
+		}
+
+		// Create new handler
+		themeToggleHandler = () => {
 			handleThemeToggle();
-		});
+		};
+
+		// Add new event listener
+		themeButton.addEventListener("click", themeToggleHandler);
 	}
 
 	// Initialize on first load
-	document.addEventListener("DOMContentLoaded", setupThemeToggle);
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupThemeToggle);
+	} else {
+		// DOM already loaded, run immediately
+		setupThemeToggle();
+	}
 
 	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", setupThemeToggle);

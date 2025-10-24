@@ -12,7 +12,7 @@
   "ignore": [
     "public/fonts/icomoon/**",
     "scripts/**",
-    "src/scripts/blogInteractions.ts",
+    "src/scripts/scrollProgress.ts",
     "src/scripts/keyboardShortcuts.ts",
     "src/scripts/themeManager.ts",
     "src/scripts/guestbookCounter.ts",

@@ -33,6 +33,12 @@ export function toggleTheme(): Theme {
 	const currentTheme = getCurrentTheme();
 	const newTheme: Theme = currentTheme === "light" ? "dark" : "light";
 
+	// Update localStorage first
+	localStorage.setItem("theme", newTheme);
+
+	// Update data-theme attribute
+	document.documentElement.setAttribute("data-theme", newTheme);
+
 	// Dispatch custom event for astro-themes integration
 	document.dispatchEvent(new CustomEvent("set-theme", { detail: newTheme }));
 
