@@ -1,6 +1,6 @@
 ---
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
-import { socialLinks, contactLinks, siteMetadata } from "@/data/navigation";
+import { mainNavigation, siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
@@ -29,50 +29,27 @@ const link = url.pathname.split("/").filter((i) => i);
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
 	<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
-	<div class="flex flex-col justify-between leading-7 sm:leading-5 transition-all duration-300 sm:flex-row">
-		<!-- Social Links -->
-		<div class="text-palette-800">
+	<div class="flex flex-col items-center justify-center gap-6">
+		<div class="flex flex-row flex-wrap items-center justify-center sm:justify-start gap-0.5 text-palette-800">
 			{
-				socialLinks.map((link) => (
-					<>
-						<b>
-							<a class="icon" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.ariaLabel}>
-								<i class={`${link.icon} mr-2 text-xl`} />
-								{link.name}
-							</a>
-						</b>
-						<br />
-					</>
+				mainNavigation.map((link) => (
+					<a
+						class={`no-underline group hover:text-accent scale-90 px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1`}
+						href={link.href}
+						aria-label={link.ariaLabel}>
+						{link.multiPathIcon && link.pathCount ? (
+							<span class={`${link.icon} mr-0 text-2xl`}>
+								{Array.from({ length: link.pathCount }, (_, i) => (
+									<span class={`path${i + 1}`} />
+								))}
+							</span>
+						) : (
+							<i class={`${link.icon} mr-0 text-2xl`} />
+						)}
+						{link.name}
+					</a>
 				))
 			}
-		</div>
-
-		<!-- Contact & Resume Links -->
-		<div class="text-palette-800">
-			<b>
-				{
-					contactLinks.slice(0, 2).map((link, index) => (
-						<>
-							{index > 0 && " | "}
-							<a
-								class="icon"
-								href={link.href}
-								aria-label={link.ariaLabel}
-								{...(link.download && { download: link.name })}>
-								<i class={`${link.icon} mr-2 text-xl`} />
-								{link.name}
-							</a>
-						</>
-					))
-				}
-			</b>
-			<br />
-			<b>
-				<a class="icon" href={contactLinks[2].href} aria-label={contactLinks[2].ariaLabel}>
-					<i class={`${contactLinks[2].icon} mr-2 text-xl`}></i>
-					{contactLinks[2].name}
-				</a>
-			</b>
 		</div>
 	</div>
 	<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />

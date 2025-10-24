@@ -1,5 +1,5 @@
 ---
-import { mainNavigation, siteMetadata } from "@/data/navigation";
+import { socialLinks, contactLinks, siteMetadata } from "@/data/navigation";
 
 const colours = [
 	"bg-palette-50",
@@ -14,21 +14,50 @@ const colours = [
 
 <footer>
 	<hr class="mt-4 mb-8 sm:my-8 border-border border-palette-700 dark:border-white" aria-hidden="true" />
-	<div class="flex flex-col items-center justify-center gap-6">
-		<div class="flex flex-col flex-wrap items-center justify-center gap-1 text-palette-800">
-			<div class="text-center">
+	<div class="flex flex-col justify-between leading-7 sm:leading-5 transition-all duration-300 sm:flex-row">
+		<!-- Social Links -->
+		<div class="text-palette-800">
+			{
+				socialLinks.map((link) => (
+					<>
+						<b>
+							<a class="icon" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.ariaLabel}>
+								<i class={`${link.icon} mr-2 text-xl`} />
+								{link.name}
+							</a>
+						</b>
+						<br />
+					</>
+				))
+			}
+		</div>
+
+		<!-- Contact & Resume Links -->
+		<div class="text-palette-800">
+			<b>
 				{
-					mainNavigation.map((link) => (
-						<a
-							class={`no-underline group hover:text-accent scale-90 p-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:p-1`}
-							href={link.href}
-							aria-label={link.ariaLabel}>
-							<i class={`${link.icon} mr-0 text-2xl`} />
-							{link.name}
-						</a>
+					contactLinks.slice(0, 2).map((link, index) => (
+						<>
+							{index > 0 && " | "}
+							<a
+								class="icon"
+								href={link.href}
+								aria-label={link.ariaLabel}
+								{...(link.download && { download: link.name })}>
+								<i class={`${link.icon} mr-2 text-xl`} />
+								{link.name}
+							</a>
+						</>
 					))
 				}
-			</div>
+			</b>
+			<br />
+			<b>
+				<a class="icon" href={contactLinks[2].href} aria-label={contactLinks[2].ariaLabel}>
+					<i class={`${contactLinks[2].icon} mr-2 text-xl`}></i>
+					{contactLinks[2].name}
+				</a>
+			</b>
 		</div>
 	</div>
 	<div class="mx-auto mt-4">

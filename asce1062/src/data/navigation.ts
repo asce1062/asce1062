@@ -11,6 +11,8 @@ export interface NavigationLink {
 	external?: boolean;
 	download?: boolean;
 	animation?: "rotate-left" | "rotate-right";
+	multiPathIcon?: boolean; // For icons with multiple path elements
+	pathCount?: number; // Number of path elements for multi-path icons
 }
 
 export interface SocialLink extends NavigationLink {
@@ -18,7 +20,7 @@ export interface SocialLink extends NavigationLink {
 }
 
 /**
- * Main site navigation links (Footer)
+ * Main site navigation links (Header)
  */
 export const mainNavigation: NavigationLink[] = [
 	{
@@ -77,10 +79,19 @@ export const mainNavigation: NavigationLink[] = [
 		ariaLabel: "Subscribe to my blog",
 		animation: "rotate-right",
 	},
+	{
+		name: "8biticon",
+		href: "/8biticon",
+		icon: "icon-female",
+		ariaLabel: "Create your own 8-bit pixel avatar",
+		animation: "rotate-right",
+		multiPathIcon: true,
+		pathCount: 10,
+	},
 ];
 
 /**
- * Social media links (Header)
+ * Social media links (Footer)
  */
 export const socialLinks: SocialLink[] = [
 	{
@@ -102,7 +113,7 @@ export const socialLinks: SocialLink[] = [
 ];
 
 /**
- * Contact and resume links (Header)
+ * Contact and resume links (Footer)
  */
 export const contactLinks: NavigationLink[] = [
 	{
