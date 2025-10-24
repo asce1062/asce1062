@@ -175,8 +175,8 @@ export default defineConfig({
 					/^\/sitemap$/, // Allow /sitemap → /sitemap-index.xml redirect
 					/^\/resume$/, // Allow /resume → /blog/2025-06-19-resume/ redirect
 					/^\/blog\/\d{4}\/\d{2}\/\d{2}\//, // Allow legacy blog patterns /blog/YYYY/MM/DD/slug
-					/^\/search(\?.*)?$/, // Allow search page with query parameters
-					/^\/8biticon(\?.*)?$/, // Allow avatar generator with query parameters
+					/^\/search/, // Allow search page with or without query parameters
+					/^\/8biticon/, // Allow avatar generator with or without query parameters
 				],
 
 				// Precaching configuration

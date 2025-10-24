@@ -17,6 +17,7 @@
     "src/scripts/themeManager.ts",
     "src/scripts/guestbookCounter.ts",
     "src/scripts/copyToClipboard.ts",
+    "src/scripts/shareManager.ts",
     "src/data/navigation.ts",
     "src/lib/api/github.ts"
   ],

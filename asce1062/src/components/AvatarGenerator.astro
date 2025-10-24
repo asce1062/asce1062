@@ -34,6 +34,7 @@ import "@/styles/components/avatar.css";
 	 */
 	import { AvatarRenderer } from "@/scripts/avatarRenderer";
 	import { AvatarStateManager } from "@/scripts/avatarStateManager";
+	import { copyToClipboard, initShareNotification } from "@/scripts/shareManager";
 	import type { Gender } from "@/data/avatarConfig";
 	import { avatarConfig, getImagePath } from "@/data/avatarConfig";
 
@@ -47,8 +48,6 @@ import "@/styles/components/avatar.css";
 		private genderRadios: NodeListOf<Element>;
 		private layerTabs: NodeListOf<Element>;
 		private layerContent: HTMLElement | null;
-		private shareNotification: HTMLElement | null;
-		private notificationTimeout: number | null = null;
 
 		constructor() {
 			// Initialize renderer and state manager
@@ -59,7 +58,6 @@ import "@/styles/components/avatar.css";
 			this.genderRadios = document.querySelectorAll('input[name="gender"]');
 			this.layerTabs = document.querySelectorAll(".layer-tab");
 			this.layerContent = document.getElementById("layer-content");
-			this.shareNotification = document.getElementById("share-notification");
 
 			// Set state change callback
 			this.stateManager.setOnStateChange(() => this.onStateChange());
@@ -108,14 +106,13 @@ import "@/styles/components/avatar.css";
 			// Download button
 			const downloadBtn = document.getElementById("download-btn");
 			downloadBtn?.addEventListener("click", () => this.download());
+		}
 
-			// Share button
-			const shareBtn = document.getElementById("share-btn");
-			shareBtn?.addEventListener("click", () => this.shareAvatar());
-
-			// Close notification button
-			const closeNotificationBtn = document.getElementById("close-notification");
-			closeNotificationBtn?.addEventListener("click", () => this.hideNotification());
+		/**
+		 * Get state manager for share functionality
+		 */
+		public getStateManager(): AvatarStateManager {
+			return this.stateManager;
 		}
 
 		/**
@@ -245,56 +242,27 @@ import "@/styles/components/avatar.css";
 		private download(): void {
 			this.renderer.downloadAvatar("8biticon.png");
 		}
+	}
 
-		/**
-		 * Share avatar
-		 */
-		private async shareAvatar(): Promise<void> {
-			try {
-				const url = this.stateManager.getShareURL();
-				await navigator.clipboard.writeText(url);
-				this.showNotification();
-			} catch (err) {
-				console.error("Failed to copy URL to clipboard:", err);
+	let controllerInstance: AvatarGeneratorController | null = null;
+
+	function setupAvatarShare() {
+		const shareBtn = document.getElementById("share-btn");
+		if (!shareBtn || !controllerInstance) return;
+
+		// Initialize share notification
+		initShareNotification("avatar-share-notification");
+
+		// Remove old event listener if it exists
+		shareBtn.replaceWith(shareBtn.cloneNode(true));
+		const newShareBtn = document.getElementById("share-btn");
+
+		newShareBtn?.addEventListener("click", async () => {
+			const url = controllerInstance?.getStateManager().getShareURL();
+			if (url) {
+				await copyToClipboard(url, "avatar-share-notification");
 			}
-		}
-
-		/**
-		 * Show share notification
-		 */
-		private showNotification(): void {
-			if (!this.shareNotification) return;
-
-			if (this.notificationTimeout) {
-				clearTimeout(this.notificationTimeout);
-				this.notificationTimeout = null;
-			}
-
-			this.shareNotification.classList.remove("fadeOut", "hidden");
-
-			this.notificationTimeout = window.setTimeout(() => {
-				this.hideNotification();
-			}, 3000);
-		}
-
-		/**
-		 * Hide share notification
-		 */
-		private hideNotification(): void {
-			if (!this.shareNotification) return;
-
-			if (this.notificationTimeout) {
-				clearTimeout(this.notificationTimeout);
-				this.notificationTimeout = null;
-			}
-
-			this.shareNotification.classList.add("fadeOut");
-
-			setTimeout(() => {
-				this.shareNotification!.classList.add("hidden");
-				this.shareNotification!.classList.remove("fadeOut");
-			}, 300);
-		}
+		});
 	}
 
 	function initAvatarGenerator() {
@@ -302,7 +270,8 @@ import "@/styles/components/avatar.css";
 		const avatarCanvas = document.getElementById("avatar-canvas");
 		if (!avatarCanvas) return;
 
-		new AvatarGeneratorController();
+		controllerInstance = new AvatarGeneratorController();
+		setupAvatarShare();
 	}
 
 	// Initialize on first load

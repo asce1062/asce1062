@@ -1,0 +1,21 @@
+---
+/**
+ * Reusable share notification component
+ * Shows a dismissible notification when content is copied to clipboard
+ */
+
+interface Props {
+	id: string;
+	message?: string;
+}
+
+const { id, message = "Link copied!" } = Astro.props;
+---
+
+<!-- Share Notification -->
+<div id={id} class="share-notification hidden">
+	<span class="font-retro">{message}</span>
+	<button id={`${id}-close`} class="close-btn" aria-label="Close notification">
+		<i class="icon-x"></i>
+	</button>
+</div>

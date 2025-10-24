@@ -2,6 +2,7 @@
 /**
  * Action buttons for randomize, download, and share functionality
  */
+import ShareNotification from "@/components/ShareNotification.astro";
 ---
 
 <div class="action-buttons">
@@ -15,10 +16,4 @@
 	</a>
 </div>
 
-<!-- Share Notification -->
-<div id="share-notification" class="share-notification hidden">
-	<span class="font-retro">Link copied!</span>
-	<button id="close-notification" class="close-btn" aria-label="Close notification">
-		<i class="icon-x"></i>
-	</button>
-</div>
+<ShareNotification id="avatar-share-notification" />
