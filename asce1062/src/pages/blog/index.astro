@@ -10,31 +10,11 @@ const posts = sortPostsByDate(allPosts);
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
-	<div class="flex flex-col justify-center gap-6">
-		<div class="flex flex-wrap justify-between items-center gap-1 text-palette-800">
-			<div class="flex items-center gap-1">
-				<h2 class="flex flex-row gap-2 items-center">
-					<a class="icon group hover:text-accent scale-90 p-2 sm:p-1" href="/rss.xml" aria-label="Subscribe to my blog">
-						blog <i class="icon-rss ml-2"></i>
-					</a>
-					<a
-						class="icon group hover:text-accent scale-90 p-2 sm:p-1"
-						href="/tags"
-						aria-label="Visit the Blog Tags page">
-						Tags<i class="icon-bookmarks ml-2"></i>
-					</a>
-				</h2>
-			</div>
-			<div>
-				<h2>
-					<a class="icon group hover:text-accent scale-90 p-2 sm:p-1" href="/search" aria-label="Visit the Search page">
-						<i class="icon-search-heart mr-2"></i>Search
-					</a>
-				</h2>
-			</div>
-		</div>
-	</div>
-	<p>I'm happy you're here ^^</p>
+	<h2>I'm happy you're here ^^</h2>
+	<ul>
+		<li>Your mind is for having ideas, not holding them.</li>
+		<li>A place to capture, organize, distill and express what I consume.</li>
+	</ul>
 	<Columns columns={1}>
 		{
 			posts.map((post) => (

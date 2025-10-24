@@ -4,6 +4,16 @@ import { mainNavigation, siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
+const currentPath = Astro.url.pathname;
+
+// Function to check if a link is active
+function isActive(linkHref: string): boolean {
+	// Home page exact match
+	if (linkHref === "/" && currentPath === "/") return true;
+	// Other pages - check if current path starts with link href
+	if (linkHref !== "/" && currentPath.startsWith(linkHref)) return true;
+	return false;
+}
 ---
 
 <header>
@@ -28,29 +38,77 @@ const link = url.pathname.split("/").filter((i) => i);
 		</span>
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
-	<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
-	<div class="flex flex-col items-center justify-center gap-6">
-		<div class="flex flex-row flex-wrap items-center justify-center sm:justify-start gap-0.5 text-palette-800">
+	<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-900 dark:bg-white" />
+	<div class="flex flex-col items-center justify-center gap-6 min-h-[3rem]">
+		<div
+			id="nav-container"
+			class="flex flex-row flex-wrap items-center justify-center sm:justify-start gap-0.5 text-palette-800">
 			{
-				mainNavigation.map((link) => (
-					<a
-						class={`no-underline group hover:text-accent scale-90 px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1`}
-						href={link.href}
-						aria-label={link.ariaLabel}>
-						{link.multiPathIcon && link.pathCount ? (
-							<span class={`${link.icon} mr-0 text-2xl`}>
-								{Array.from({ length: link.pathCount }, (_, i) => (
-									<span class={`path${i + 1}`} />
-								))}
-							</span>
-						) : (
-							<i class={`${link.icon} mr-0 text-2xl`} />
-						)}
-						{link.name}
-					</a>
-				))
+				mainNavigation.map((link, index) => {
+					const active = isActive(link.href);
+					return (
+						<a
+							data-nav-item
+							data-index={index}
+							class={`no-underline group hover:text-accent scale-90 px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1 ${active ? "active-nav-item" : ""}`}
+							href={link.href}
+							aria-label={link.ariaLabel}
+							aria-current={active ? "page" : undefined}>
+							{link.multiPathIcon && link.pathCount ? (
+								<span class={`${link.icon} mr-0 text-2xl`}>
+									{Array.from({ length: link.pathCount }, (_, i) => (
+										<span class={`path${i + 1}`} />
+									))}
+								</span>
+							) : (
+								<i class={`${link.icon} mr-0 text-2xl`} />
+							)}
+							{link.name}
+						</a>
+					);
+				})
 			}
+			<button
+				id="nav-toggle"
+				type="button"
+				class="no-underline group hover:text-accent scale-90 px-1.5 py-2 sm:px-1 sm:py-1 cursor-pointer hidden w-full text-center font-bold text-light-300 dark:text-palette-300"
+				aria-label="Toggle navigation"
+				aria-expanded="false">
+				<i id="nav-toggle-icon" class="icon-chevron-bar-down mr-0 text-2xl transition-transform duration-300"></i>
+			</button>
 		</div>
 	</div>
-	<hr class="w-full h-[1.25px] my-4 bg-palette-700 dark:bg-white" />
+	<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-900 dark:bg-white" />
 </header>
+
+<script>
+	import { initCollapsibleNav } from "@/scripts/collapsibleNav";
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initCollapsibleNav);
+	} else {
+		initCollapsibleNav();
+	}
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", initCollapsibleNav);
+</script>
+
+<style>
+	/* Smooth transitions for nav items */
+	[data-nav-item] {
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
+	}
+
+	/* Wavy underline for active navigation item */
+	.active-nav-item {
+		text-decoration: underline;
+		text-decoration-style: wavy;
+		text-decoration-color: var(--accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 4px;
+	}
+</style>
