@@ -1,0 +1,2 @@
+import{i as r,c}from"./shareManager.CWvGNRdp.js";function n(){const t=document.getElementById("blog-share-btn");if(!t)return;r("blog-share-notification"),t.replaceWith(t.cloneNode(!0));const e=document.getElementById("blog-share-btn");e?.addEventListener("click",async()=>{const o=e.getAttribute("data-url"),a=e.getAttribute("data-title");if(o&&a){const i=`${a}
+${o}`;await c(i,"blog-share-notification")}})}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",n):n();document.addEventListener("astro:page-load",n);
