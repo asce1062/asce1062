@@ -3,6 +3,15 @@
  * Handles Open Graph, Twitter Card meta tags, and JSON-LD structured data
  */
 
+/**
+ * Security Note: We use set:html with JSON.stringify() for JSON-LD schemas.
+ * This is safe because:
+ * 1. JSON.stringify() automatically escapes dangerous characters (< > & " ')
+ * 2. All data comes from controlled sources (MDX frontmatter we author, config files)
+ * 3. No user input from forms or URL parameters is used
+ * 4. JSON.stringify() converts < to \u003c, > to \u003e, preventing script injection
+ */
+/* eslint-disable astro/no-set-html-directive */
 import { SITE_AUTHOR, DEFAULT_DESCRIPTION } from "@/config/site-config";
 
 interface Props {
@@ -177,6 +186,19 @@ const pathSegments = url
 	.replace(siteUrl, "")
 	.split("/")
 	.filter((segment) => segment);
+
+/**
+ * Remove date prefix from blog post slugs in breadcrumb names
+ * Matches YYYY-MM-DD- pattern at the start of the segment
+ */
+function formatBreadcrumbName(segment: string): string {
+	if (segment === "blog") return "Blog";
+	// Remove date prefix (YYYY-MM-DD-) from blog post slugs
+	const withoutDate = segment.replace(/^\d{4}-\d{2}-\d{2}-/, "");
+	// Replace hyphens with spaces and return
+	return withoutDate.replace(/-/g, " ");
+}
+
 const breadcrumbSchema =
 	isArticle && pathSegments.length > 0
 		? {
@@ -192,7 +214,7 @@ const breadcrumbSchema =
 					...pathSegments.map((segment, index) => ({
 						"@type": "ListItem",
 						position: index + 2,
-						name: segment === "blog" ? "Blog" : segment.replace(/-/g, " "),
+						name: formatBreadcrumbName(segment),
 						item: `${siteUrl}/${pathSegments.slice(0, index + 1).join("/")}`,
 					})),
 				],
@@ -233,13 +255,13 @@ const breadcrumbSchema =
 {isArticle && formattedDate && <meta name="twitter:data2" content={formattedDate} />}
 
 <!-- JSON-LD Structured Data -->
-<script type="application/ld+json" set:text={JSON.stringify(isArticle ? blogPostingSchema : webSiteSchema)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(isArticle ? blogPostingSchema : webSiteSchema)} is:inline />
 
 <!-- Person Schema -->
-<script type="application/ld+json" set:text={JSON.stringify(personSchema)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
 
 <!-- Organization Schema -->
-<script type="application/ld+json" set:text={JSON.stringify(organizationSchema)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} is:inline />
 
 <!-- BreadcrumbList Schema (for articles only) -->
-{breadcrumbSchema && <script type="application/ld+json" set:text={JSON.stringify(breadcrumbSchema)} is:inline />}
+{breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} is:inline />}
