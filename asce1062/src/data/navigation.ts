@@ -86,7 +86,7 @@ export const mainNavigation: NavigationLink[] = [
 		href: "/rss.xml",
 		icon: "icon-rss",
 		ariaLabel: "Subscribe to my blog",
-		animation: "rotate-right",
+		animation: "rotate-left",
 	},
 ];
 
