@@ -404,7 +404,7 @@
   */
 
 	.table-of-contents ul {
-		@apply list-disc ml-4 space-y-4;
+		@apply list-disc ml-2 space-y-4 list-outside pl-5;
 	}
 
 	.table-of-contents ul ul {
