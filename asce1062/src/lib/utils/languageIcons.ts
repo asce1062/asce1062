@@ -35,6 +35,7 @@ export function getLanguageIcon(language: string): string | null {
 		Prolog: "icon-prolog",
 		Vim: "icon-vim",
 		"Vim Script": "icon-vim",
+		HCL: "icon-terraform",
 
 		// Frameworks/Tools
 		Astro: "icon-astro",
