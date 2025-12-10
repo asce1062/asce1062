@@ -10,3 +10,15 @@ declare module "virtual:pwa-info" {
 	}
 	export const pwaInfo: PwaInfo | undefined;
 }
+
+// Music Service Environment Variables
+interface ImportMetaEnv {
+	readonly MUSIC_CLIENT_ID: string;
+	readonly MUSIC_CLIENT_SECRET: string;
+	readonly PUBLIC_MUSIC_CDN_URL: string;
+	readonly PUBLIC_MUSIC_API_URL: string;
+}
+
+interface ImportMeta {
+	readonly env: ImportMetaEnv;
+}

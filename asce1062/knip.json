@@ -19,7 +19,12 @@
     "src/scripts/copyToClipboard.ts",
     "src/scripts/shareManager.ts",
     "src/data/navigation.ts",
-    "src/lib/api/github.ts"
+    "src/lib/api/github.ts",
+    "src/lib/music/auth.ts",
+    "src/lib/music/toast.ts",
+    "src/lib/music/trackListUtils.ts",
+    "src/lib/music/utils/sortingUtils.ts",
+    "src/lib/formatCode.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {

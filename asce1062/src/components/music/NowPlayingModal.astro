@@ -1,0 +1,611 @@
+---
+/**
+ * Now Playing Modal
+ * Full-screen overlay showing large album artwork and full playback controls
+ * Triggered by clicking the mini player
+ */
+---
+
+<!-- Modal Backdrop (blur + transparency) -->
+<div
+	id="now-playing-modal"
+	transition:persist
+	class="fixed inset-0 z-[60] hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="now-playing-title">
+	<!-- Backdrop with blur -->
+	<div
+		id="now-playing-backdrop"
+		class="absolute inset-0 bg-palette-700/80 dark:bg-palette-900/80 backdrop-blur-xl"
+		aria-hidden="true">
+	</div>
+
+	<!-- Modal Content -->
+	<div class="relative h-full w-full overflow-y-auto">
+		<div class="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
+			<!-- Header -->
+			<div class="w-full max-w-2xl flex justify-between items-center mb-8">
+				<a
+					id="now-playing-collapse"
+					class="no-underline icon group hover:text-black scale-90 cursor-pointer transition-colors p-2 -ml-2"
+					aria-label="Collapse to mini player"
+					title="Collapse (ESC)">
+					<i class="icon-chevron-down text-2xl hover:text-black"></i>
+				</a>
+
+				<a
+					id="now-playing-menu"
+					class="no-underline icon group hover:text-black scale-90 cursor-pointer transition-colors p-2 -ml-2 transition-colors p-2 -mr-2"
+					aria-label="More options"
+					title="More options">
+					<i class="icon-three-dots-vertical text-2xl hover:text-black"></i>
+				</a>
+			</div>
+
+			<!-- Album Artwork (transparent background) -->
+			<div class="relative mb-8 group">
+				<div class="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
+					<!-- Album artwork (no background, transparent) -->
+					<img
+						id="now-playing-artwork"
+						src=""
+						alt="Album artwork"
+						class="relative w-full h-full object-cover"
+						loading="eager"
+					/>
+				</div>
+			</div>
+
+			<!-- Track Info -->
+			<div class="text-center mb-8 max-w-xl px-4">
+				<h2 id="now-playing-title" class="font-bold truncate">No track playing</h2>
+				<p id="now-playing-artist" class="text-lg sm:text-xl text-palette-50 dark:text-palette-200 truncate">-</p>
+				<p id="now-playing-album" class="text-sm text-palette-50 dark:text-palette-200 opacity-70 truncate">-</p>
+			</div>
+
+			<!-- Quick Actions -->
+			<div class="flex items-center justify-center gap-6 sm:gap-8 mb-8">
+				<button
+					id="np-shuffle-btn"
+					class="flex flex-col items-center gap-1 text-palette-100 hover:text-palette-500 transition-colors"
+					aria-label="Toggle shuffle"
+					title="Shuffle (S)">
+					<i class="icon-shuffle text-xl"></i>
+					<span class="text-xs text-palette-50 dark:text-palette-200">Shuffle</span>
+				</button>
+
+				<button
+					id="np-favorite-btn"
+					class="flex flex-col items-center gap-1 text-palette-100 hover:text-palette-300 transition-colors"
+					aria-label="Add to favorites"
+					title="Favorite (F)">
+					<i class="icon-heart text-xl"></i>
+					<span class="text-xs text-palette-50 dark:text-palette-200">Favorite</span>
+				</button>
+
+				<button
+					id="np-queue-btn"
+					class="flex flex-col items-center gap-1 text-palette-100 hover:text-palette-500 transition-colors"
+					aria-label="Show queue"
+					title="Queue (Q)">
+					<i class="icon-music-note-list text-xl"></i>
+					<span class="text-xs text-palette-50 dark:text-palette-200">Queue</span>
+				</button>
+			</div>
+
+			<!-- Progress Bar -->
+			<div class="w-full max-w-2xl mb-6 px-4">
+				<div class="flex items-center gap-3">
+					<span
+						id="np-current-time"
+						class="text-sm text-palette-50 dark:text-palette-200 font-mono min-w-[3rem] text-right">
+						0:00
+					</span>
+					<input
+						id="np-progress-bar"
+						type="range"
+						min="0"
+						max="100"
+						value="0"
+						step="0.1"
+						class="flex-1 music-progress-slider h-2 appearance-none cursor-pointer"
+						aria-label="Seek"
+					/>
+					<span id="np-duration" class="text-sm text-palette-50 dark:text-palette-200 font-mono min-w-[3rem]">
+						0:00
+					</span>
+				</div>
+			</div>
+
+			<!-- Playback Controls -->
+			<div class="flex items-center justify-center gap-4 sm:gap-6 mb-8">
+				<button
+					id="np-prev-btn"
+					class="text-palette-200 hover:text-white transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label="Previous track"
+					title="Previous (P)">
+					<i class="icon-skip-backward text-3xl sm:text-4xl"></i>
+				</button>
+
+				<button
+					id="np-play-pause-btn"
+					class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-palette-500 hover:bg-palette-600 text-white flex items-center justify-center transition-all hover:scale-110 shadow-lg"
+					aria-label="Play/Pause"
+					title="Play/Pause (Space)">
+					<i class="icon-play-fill text-4xl sm:text-5xl"></i>
+				</button>
+
+				<button
+					id="np-next-btn"
+					class="text-palette-200 hover:text-white transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label="Next track"
+					title="Next (N)">
+					<i class="icon-skip-forward text-3xl sm:text-4xl"></i>
+				</button>
+			</div>
+
+			<!-- Secondary Controls -->
+			<div class="flex items-center justify-center gap-6 sm:gap-8">
+				<button
+					id="np-repeat-btn"
+					class="text-palette-100 hover:text-palette-500 transition-colors"
+					aria-label="Toggle repeat"
+					title="Repeat (R)">
+					<i class="icon-repeat text-xl"></i>
+				</button>
+
+				<!-- Volume Control -->
+				<div class="flex items-center gap-3">
+					<button
+						id="np-volume-btn"
+						class="text-palette-200 hover:text-white transition-colors"
+						aria-label="Mute"
+						title="Mute (M)">
+						<i id="np-volume-icon" class="icon-volume-up text-xl"></i>
+					</button>
+					<input
+						id="np-volume-slider"
+						type="range"
+						min="0"
+						max="100"
+						value="80"
+						class="music-volume-slider w-24 sm:w-32 h-1 bg-palette-900/50 rounded-full appearance-none cursor-pointer"
+						aria-label="Volume"
+					/>
+					<span id="np-volume-level" class="text-xs text-palette-100 font-mono w-8">80%</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	/* eslint-env browser */
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import { formatDuration } from "@/lib/music/auth";
+	import type { Album, MusicState } from "@/types/music";
+
+	/**
+	 * Now Playing Modal Controller
+	 */
+	class NowPlayingModalController {
+		private modal: HTMLElement | null;
+		private backdrop: HTMLElement | null;
+		private unsubscribe: (() => void) | null = null;
+		private abortController: AbortController;
+
+		// Elements
+		private artworkEl: HTMLImageElement | null;
+		private titleEl: HTMLElement | null;
+		private artistEl: HTMLElement | null;
+		private albumEl: HTMLElement | null;
+		private currentTimeEl: HTMLElement | null;
+		private durationEl: HTMLElement | null;
+		private progressBar: HTMLInputElement | null;
+
+		// Track previous state to avoid unnecessary updates
+		private previousTrackId: string | null = null;
+		private previousDuration: number = 0;
+
+		// Control buttons
+		private collapseBtn: HTMLButtonElement | null;
+		private menuBtn: HTMLButtonElement | null;
+		private playPauseBtn: HTMLButtonElement | null;
+		private prevBtn: HTMLButtonElement | null;
+		private nextBtn: HTMLButtonElement | null;
+		private shuffleBtn: HTMLButtonElement | null;
+		private repeatBtn: HTMLButtonElement | null;
+		private queueBtn: HTMLButtonElement | null;
+		private volumeBtn: HTMLButtonElement | null;
+		private volumeIcon: HTMLElement | null;
+		private volumeSlider: HTMLInputElement | null;
+		private volumeLevel: HTMLElement | null;
+
+		constructor() {
+			this.modal = document.getElementById("now-playing-modal");
+			this.backdrop = document.getElementById("now-playing-backdrop");
+
+			// Elements
+			this.artworkEl = document.getElementById("now-playing-artwork") as HTMLImageElement;
+			this.titleEl = document.getElementById("now-playing-title");
+			this.artistEl = document.getElementById("now-playing-artist");
+			this.albumEl = document.getElementById("now-playing-album");
+			this.currentTimeEl = document.getElementById("np-current-time");
+			this.durationEl = document.getElementById("np-duration");
+			this.progressBar = document.getElementById("np-progress-bar") as HTMLInputElement;
+
+			// Buttons
+			this.collapseBtn = document.getElementById("now-playing-collapse") as HTMLButtonElement;
+			this.menuBtn = document.getElementById("now-playing-menu") as HTMLButtonElement;
+			this.playPauseBtn = document.getElementById("np-play-pause-btn") as HTMLButtonElement;
+			this.prevBtn = document.getElementById("np-prev-btn") as HTMLButtonElement;
+			this.nextBtn = document.getElementById("np-next-btn") as HTMLButtonElement;
+			this.shuffleBtn = document.getElementById("np-shuffle-btn") as HTMLButtonElement;
+			this.repeatBtn = document.getElementById("np-repeat-btn") as HTMLButtonElement;
+			this.queueBtn = document.getElementById("np-queue-btn") as HTMLButtonElement;
+			this.volumeBtn = document.getElementById("np-volume-btn") as HTMLButtonElement;
+			this.volumeIcon = document.getElementById("np-volume-icon");
+			this.volumeSlider = document.getElementById("np-volume-slider") as HTMLInputElement;
+			this.volumeLevel = document.getElementById("np-volume-level");
+
+			this.abortController = new AbortController();
+
+			this.init();
+		}
+
+		private init(): void {
+			// Subscribe to state changes
+			this.unsubscribe = musicStore.subscribe((state) => {
+				this.onStateChange(state);
+			});
+
+			// Event listeners
+			this.setupEventListeners();
+		}
+
+		private setupEventListeners(): void {
+			const signal = this.abortController.signal;
+
+			// Close modal
+			this.collapseBtn?.addEventListener("click", () => this.close(), { signal });
+
+			// Click outside to close (check if click is on modal backdrop/wrapper, not content)
+			this.modal?.addEventListener(
+				"click",
+				(e) => {
+					// Close if clicking on the modal container itself or the outer wrappers, but not on content
+					const target = e.target as HTMLElement;
+					if (
+						target === this.modal ||
+						target === this.backdrop ||
+						target.classList.contains("overflow-y-auto") ||
+						(target.classList.contains("flex") && target.classList.contains("min-h-full"))
+					) {
+						this.close();
+					}
+				},
+				{ signal }
+			);
+
+			// Menu button - open track context menu
+			this.menuBtn?.addEventListener(
+				"click",
+				(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					const state = musicStore.getState();
+					if (state.currentTrack && window.trackContextMenu) {
+						const rect = this.menuBtn!.getBoundingClientRect();
+						window.trackContextMenu.openWithTrack(state.currentTrack, rect.left, rect.bottom + 5, [
+							"play-now",
+							"play-next",
+							"add-to-queue",
+						]);
+					}
+				},
+				{ signal }
+			);
+
+			// Playback controls
+			this.playPauseBtn?.addEventListener("click", () => this.togglePlay(), { signal });
+			this.prevBtn?.addEventListener("click", () => this.previous(), { signal });
+			this.nextBtn?.addEventListener("click", () => this.next(), { signal });
+			this.shuffleBtn?.addEventListener("click", () => this.toggleShuffle(), { signal });
+			this.repeatBtn?.addEventListener("click", () => this.cycleRepeat(), { signal });
+			this.queueBtn?.addEventListener("click", () => window.queueDrawer?.toggle(), { signal });
+
+			// Progress
+			this.progressBar?.addEventListener("input", () => this.seek(), { signal });
+
+			// Volume
+			this.volumeBtn?.addEventListener("click", () => this.toggleMute(), { signal });
+			this.volumeSlider?.addEventListener(
+				"input",
+				(e) => {
+					const volume = parseInt((e.target as HTMLInputElement).value) / 100;
+					window.musicSDK?.playback.setVolume(volume);
+				},
+				{ signal }
+			);
+
+			// Keyboard shortcuts
+			document.addEventListener(
+				"keydown",
+				(e) => {
+					if (!this.isOpen()) return;
+
+					switch (e.key) {
+						case "Escape":
+							e.preventDefault();
+							this.close();
+							break;
+						case " ":
+							if (e.target instanceof HTMLInputElement) return;
+							e.preventDefault();
+							this.togglePlay();
+							break;
+					}
+				},
+				{ signal }
+			);
+
+			// Back button/edge swipe handling - close modal instead of navigating
+			// When user swipes from edge or presses back, close modal and stay on page
+			window.addEventListener(
+				"popstate",
+				() => {
+					// If modal is open, close it (history already went back)
+					if (this.isOpen()) {
+						// Close without calling history.back() since navigation already happened
+						this.modal?.classList.remove("music-modal-enter-active");
+						setTimeout(() => {
+							this.modal?.classList.add("hidden");
+							this.modal?.classList.remove("music-modal-enter");
+							document.body.style.overflow = "";
+						}, 300);
+					}
+				},
+				{ signal }
+			);
+
+			// Mini player click to open
+			const miniPlayer = document.getElementById("mini-player");
+			miniPlayer?.addEventListener(
+				"click",
+				(e) => {
+					// Don't open if clicking on controls
+					if ((e.target as HTMLElement).closest("button, input")) {
+						return;
+					}
+
+					// Don't open if user is selecting text
+					const selection = window.getSelection();
+					if (selection && selection.toString().length > 0) {
+						return;
+					}
+
+					this.open();
+				},
+				{ signal }
+			);
+		}
+
+		private onStateChange(state: MusicState): void {
+			if (!state.currentTrack) return;
+
+			// Update artwork - get album artwork via album_id (tracks don't have cover art directly)
+			const album = state.albums.find((a: Album) => a.album_id === state.currentTrack?.album_id);
+			const artwork = album?.cdn_cover_url || "";
+			if (this.artworkEl) this.artworkEl.src = artwork;
+			// Update track info
+			if (this.titleEl) this.titleEl.textContent = state.currentTrack.track_name;
+			if (this.artistEl) this.artistEl.textContent = state.currentTrack.artist;
+			if (this.albumEl) this.albumEl.textContent = state.currentTrack.album;
+
+			// Update play/pause button
+			const playIcon = state.isPlaying ? "icon-pause" : "icon-play-fill";
+			const icon = this.playPauseBtn?.querySelector("i");
+			if (icon) icon.className = playIcon;
+
+			// Check if track changed
+			const trackChanged = state.currentTrack.track_id !== this.previousTrackId;
+
+			// Update duration only when track changes
+			if (trackChanged && state.duration > 0) {
+				this.previousTrackId = state.currentTrack.track_id;
+				this.previousDuration = state.duration;
+				if (this.durationEl) this.durationEl.textContent = formatDuration(state.duration);
+			}
+
+			// Use stored duration for progress calculation (prevents duration reset issues)
+			const duration = this.previousDuration || state.duration;
+			const progress = duration > 0 ? (state.currentTime / duration) * 100 : 0;
+
+			// Update progress bar - always keep thumb at actual playback position
+			if (this.progressBar && duration > 0) {
+				const oldValue = parseFloat(this.progressBar.value) || 0;
+				const newValue = progress;
+
+				// Debug: Log significant backwards jumps
+				if (oldValue > 5 && newValue < 1) {
+					console.error("🔴 MODAL THUMB JUMP DETECTED:", {
+						from: `${oldValue.toFixed(1)}%`,
+						to: `${newValue.toFixed(1)}%`,
+						currentTime: state.currentTime.toFixed(2),
+						duration: duration.toFixed(2),
+						isSeeking: state.isSeeking,
+						isPlaying: state.isPlaying,
+					});
+				}
+
+				this.progressBar.value = progress.toString();
+			}
+
+			// Update current time
+			if (this.currentTimeEl) this.currentTimeEl.textContent = formatDuration(state.currentTime);
+
+			// Update shuffle
+			const shuffleClass = state.shuffle ? "text-palette-500" : "text-palette-100";
+			this.shuffleBtn?.classList.remove("text-palette-100", "text-palette-500");
+			this.shuffleBtn?.classList.add(shuffleClass);
+
+			// Update repeat
+			const repeatIcon = this.repeatBtn?.querySelector("i");
+			const repeatIconClass = state.repeat === "one" ? "icon-repeat-1" : "icon-repeat";
+			const repeatClass = state.repeat !== "off" ? "text-palette-500" : "text-palette-100";
+			if (repeatIcon) repeatIcon.className = repeatIconClass;
+			this.repeatBtn?.classList.remove("text-palette-100", "text-palette-500");
+			this.repeatBtn?.classList.add(repeatClass);
+
+			// Update volume
+			if (this.volumeSlider) this.volumeSlider.value = (state.volume * 100).toString();
+			if (this.volumeLevel) this.volumeLevel.textContent = `${Math.round(state.volume * 100)}%`;
+			if (this.volumeIcon) {
+				const volumeIconClass =
+					state.isMuted || state.volume === 0
+						? "icon-volume-mute"
+						: state.volume < 0.5
+							? "icon-volume-down"
+							: "icon-volume-up";
+				this.volumeIcon.className = volumeIconClass;
+			}
+
+			// Enable/disable navigation
+			const hasQueue = state.queue.length > 0;
+			if (this.prevBtn) this.prevBtn.disabled = !hasQueue;
+			if (this.nextBtn) this.nextBtn.disabled = !hasQueue;
+		}
+
+		// Control methods
+		private togglePlay(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.togglePlay();
+			}
+		}
+
+		private previous(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.previous();
+			}
+		}
+
+		private next(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.next();
+			}
+		}
+
+		private toggleShuffle(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.toggleShuffle();
+			}
+		}
+
+		private cycleRepeat(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.cycleRepeat();
+			}
+		}
+
+		private seek(): void {
+			if (!this.progressBar) return;
+			if (window.musicPlayer) {
+				const state = musicStore.getState();
+				const seekTime = (parseFloat(this.progressBar.value) / 100) * state.duration;
+				window.musicPlayer.seek(seekTime);
+			}
+		}
+
+		private toggleMute(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.toggleMute();
+			}
+		}
+
+		public open(): void {
+			if (!this.modal) return;
+			this.modal.classList.remove("hidden");
+			this.modal.classList.add("music-modal-enter");
+			document.body.style.overflow = "hidden";
+
+			// Push history state for back button handling
+			// This allows back button/swipe to close modal instead of navigating
+			history.pushState({ nowPlayingModal: true }, "");
+
+			// Animate entrance
+			requestAnimationFrame(() => {
+				this.modal?.classList.add("music-modal-enter-active");
+			});
+		}
+
+		public close(): void {
+			if (!this.modal) return;
+
+			// If we opened the modal (pushed state), go back to close it
+			// This will trigger popstate which will actually close the modal
+			// If popstate already fired (from edge swipe/back button), this does nothing
+			if (this.isOpen() && history.state?.nowPlayingModal) {
+				history.back();
+			} else {
+				// Manual close (called from popstate or modal wasn't opened with state)
+				this.modal.classList.remove("music-modal-enter-active");
+				setTimeout(() => {
+					this.modal?.classList.add("hidden");
+					this.modal?.classList.remove("music-modal-enter");
+					document.body.style.overflow = "";
+				}, 300);
+			}
+		}
+
+		private isOpen(): boolean {
+			return !this.modal?.classList.contains("hidden");
+		}
+
+		public destroy(): void {
+			// Abort all event listeners
+			this.abortController.abort();
+
+			// Unsubscribe from store
+			if (this.unsubscribe) {
+				this.unsubscribe();
+			}
+		}
+	}
+
+	// Initialize with singleton pattern
+	let nowPlayingInstance: NowPlayingModalController | null = null;
+
+	function initNowPlaying() {
+		// Check if modal element exists
+		if (!document.getElementById("now-playing-modal")) {
+			return;
+		}
+
+		// Clean up old instance if it exists
+		if (nowPlayingInstance) {
+			// Call destroy to clean up event listeners
+			nowPlayingInstance.destroy();
+			// The controller will be garbage collected
+			nowPlayingInstance = null;
+		}
+
+		nowPlayingInstance = new NowPlayingModalController();
+
+		// Expose globally for other components to open it
+		window.nowPlayingModal = nowPlayingInstance;
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initNowPlaying);
+	} else {
+		initNowPlaying();
+	}
+
+	// Only reinitialize if page actually changed
+	document.addEventListener("astro:page-load", () => {
+		if (document.getElementById("now-playing-modal")) {
+			initNowPlaying();
+		}
+	});
+</script>

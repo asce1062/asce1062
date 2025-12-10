@@ -1,0 +1,589 @@
+---
+/**
+ * Album Detail Modal
+ * Shows album artwork, metadata, and track list
+ * Allows playing individual tracks or shuffling the album
+ */
+---
+
+<!-- Modal Backdrop -->
+<div
+	id="album-detail-modal"
+	transition:persist
+	class="fixed inset-0 z-[60] hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="album-detail-title">
+	<!-- Backdrop with blur -->
+	<div
+		id="album-detail-backdrop"
+		class="absolute inset-0 bg-light-100/80 dark:bg-palette-700/80 backdrop-blur-xl"
+		aria-hidden="true">
+	</div>
+
+	<!-- Modal Content -->
+	<div class="relative h-full w-full overflow-y-auto">
+		<div class="min-h-full flex items-center justify-center p-4">
+			<div
+				class="relative w-full max-w-3xl bg-light-100/80 dark:bg-palette-900/80 backdrop-blur-md border border-palette-700 dark:border-palette-100 shadow-2xl">
+				<!-- Header -->
+				<div class="flex items-center justify-between p-6 border-b dark:border-palette-100 border-palette-700">
+					<h2 id="album-detail-title" class="font-retro text-2xl">Album Details</h2>
+					<div class="flex items-center gap-2">
+						<a
+							id="album-detail-menu"
+							class="no-underline icon group p-2 transition-colors cursor-pointer"
+							aria-label="More options"
+							title="More options">
+							<i class="icon-three-dots-vertical text-xl"></i>
+						</a>
+						<a
+							id="album-detail-close"
+							class="no-underline icon group p-2 transition-colors cursor-pointer"
+							aria-label="Close"
+							title="Close (ESC)">
+							<i class="icon-x text-2xl"></i>
+						</a>
+					</div>
+				</div>
+
+				<!-- Album Info Section -->
+				<div class="p-6 flex flex-col sm:flex-row gap-6 border-b dark:border-palette-100 border-palette-700">
+					<!-- Album Artwork (transparent) -->
+					<div class="flex-shrink-0">
+						<div class="relative w-48 h-48 sm:w-56 sm:h-56 mx-auto sm:mx-0">
+							<img
+								id="album-detail-artwork"
+								src=""
+								alt="Album artwork"
+								class="w-full h-full object-contain"
+								loading="eager"
+							/>
+						</div>
+					</div>
+
+					<!-- Album Metadata -->
+					<div class="flex-1 flex flex-col justify-center">
+						<h2 id="album-detail-album-name" class="font-retro font-bold text-2xl sm:text-3xl">Album Name</h2>
+						<h3 id="album-detail-artist" class="font-retro text-lg">Artist Name</h3>
+
+						<div class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+							<ul class="text-palette-50 dark:text-palette-200">
+								<li id="album-detail-year"><i class="icon-calendar-event"></i> 2025</li>
+								<li id="album-detail-genre"><i class="icon-file-music"></i> Genre</li>
+								<li id="album-detail-track-count"><i class="icon-disc"></i> 0 tracks</li>
+								<li id="album-detail-duration"><i class="icon-clock"></i> 0:00</li>
+							</ul>
+						</div>
+
+						<!-- Description (if available) -->
+						<p
+							id="album-detail-description"
+							class="text-sm text-palette-100 dark:text-palette-200 opacity-80 leading-relaxed hidden mt-2 mb-2">
+						</p>
+
+						<!-- Action Buttons -->
+						<div class="flex flex-wrap gap-3 mt-4">
+							<button
+								id="album-detail-play-all"
+								class="px-6 py-2.5 bg-palette-300 dark:bg-palette-600 text-palette-900 shadow-lg transition-all duration-300 hover:bg-palette-400 dark:hover:bg-palette-500 text-black dark:text-black font-bold transition-all flex items-center gap-2 shadow-lg hover:shadow-xl">
+								<i class="icon-play-fill"></i>
+								Play All
+							</button>
+							<button
+								id="album-detail-shuffle"
+								class="px-6 py-2.5 bg-palette-900 text-white dark:text-white hover:bg-palette-700 hover:text-white border border-palette-700 hover:border-palette-500 font-bold transition-all flex items-center gap-2">
+								<i class="icon-shuffle"></i>
+								Shuffle
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Track List -->
+				<div class="p-6">
+					<!-- Track List Container -->
+					<div id="album-detail-track-list" class="music-scrollbar space-y-1 max-h-96 overflow-y-auto">
+						<!-- Tracks will be rendered here -->
+						<div class="text-center py-8 text-palette-100 dark:text-palette-200">
+							<i class="icon-music-note-list text-4xl mb-2 block"></i>
+							<p>Loading tracks...</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	/* eslint-env browser */
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import { generateTrackList } from "@/lib/music/trackListUtils";
+	import type { Album, Track } from "@/types/music";
+
+	/**
+	 * Album Detail Modal Controller
+	 */
+	class AlbumDetailModalController {
+		private modal: HTMLElement | null;
+		private backdrop: HTMLElement | null;
+		private currentAlbumId: string | null = null;
+		private currentTracks: Track[] = [];
+
+		// Elements
+		private closeBtn: HTMLButtonElement | null;
+		private artworkEl: HTMLImageElement | null;
+		private albumNameEl: HTMLElement | null;
+		private artistEl: HTMLElement | null;
+		private yearEl: HTMLElement | null;
+		private genreEl: HTMLElement | null;
+		private trackCountEl: HTMLElement | null;
+		private durationEl: HTMLElement | null;
+		private descriptionEl: HTMLElement | null;
+		private trackListEl: HTMLElement | null;
+		private playAllBtn: HTMLButtonElement | null;
+		private shuffleBtn: HTMLButtonElement | null;
+
+		constructor() {
+			this.modal = document.getElementById("album-detail-modal");
+			this.backdrop = document.getElementById("album-detail-backdrop");
+			this.closeBtn = document.getElementById("album-detail-close") as HTMLButtonElement;
+			this.artworkEl = document.getElementById("album-detail-artwork") as HTMLImageElement;
+			this.albumNameEl = document.getElementById("album-detail-album-name");
+			this.artistEl = document.getElementById("album-detail-artist");
+			this.yearEl = document.getElementById("album-detail-year");
+			this.genreEl = document.getElementById("album-detail-genre");
+			this.trackCountEl = document.getElementById("album-detail-track-count");
+			this.durationEl = document.getElementById("album-detail-duration");
+			this.descriptionEl = document.getElementById("album-detail-description");
+			this.trackListEl = document.getElementById("album-detail-track-list");
+			this.playAllBtn = document.getElementById("album-detail-play-all") as HTMLButtonElement;
+			this.shuffleBtn = document.getElementById("album-detail-shuffle") as HTMLButtonElement;
+
+			this.init();
+		}
+
+		private init(): void {
+			// Close handlers
+			this.closeBtn?.addEventListener("click", () => this.close());
+
+			// Click outside to close (check if click is on modal backdrop/wrapper, not content)
+			this.modal?.addEventListener("click", (e) => {
+				// Close if clicking on the modal container itself or the outer wrappers, but not on content
+				const target = e.target as HTMLElement;
+				if (
+					target === this.modal ||
+					target === this.backdrop ||
+					target.classList.contains("overflow-y-auto") ||
+					(target.classList.contains("flex") && target.classList.contains("items-center"))
+				) {
+					this.close();
+				}
+			});
+
+			// Action buttons
+			this.playAllBtn?.addEventListener("click", () => this.playAll());
+			this.shuffleBtn?.addEventListener("click", () => this.shuffleAlbum());
+
+			// Keyboard
+			document.addEventListener("keydown", (e) => {
+				if (!this.isOpen()) return;
+				if (e.key === "Escape") {
+					e.preventDefault();
+					this.close();
+				}
+			});
+
+			// Listen for album card clicks (both grid and list view)
+			document.addEventListener("click", async (e) => {
+				const albumCard = (e.target as HTMLElement).closest(".album-card, .album-list-item");
+				if (albumCard) {
+					// Check if it's a right-click or if the click is on a button or track menu
+					const target = e.target as HTMLElement;
+					if (target.closest("button") || target.closest(".track-menu-btn")) return;
+
+					e.preventDefault();
+					const albumId = albumCard.getAttribute("data-album-id");
+					if (albumId) {
+						await this.open(albumId);
+					}
+				}
+			});
+
+			// Back button/edge swipe handling - close modal instead of navigating
+			// When user swipes from edge or presses back, close modal and stay on page
+			window.addEventListener("popstate", () => {
+				// If modal is open, close it (history already went back)
+				if (this.isOpen()) {
+					// Close without calling history.back() since navigation already happened
+					this.modal?.classList.remove("music-modal-enter-active");
+					setTimeout(() => {
+						this.modal?.classList.add("hidden");
+						this.modal?.classList.remove("music-modal-enter");
+						document.body.style.overflow = "";
+						this.currentAlbumId = null;
+						this.currentTracks = [];
+					}, 300);
+				}
+			});
+
+			// Subscribe to state changes to update play/pause icons
+			musicStore.subscribe(() => {
+				this.updateTrackIndicators();
+			});
+		}
+
+		private updateTrackIndicators(): void {
+			// Only proceed if modal is actually open (not hidden)
+			if (!this.modal || this.modal.classList.contains("hidden")) {
+				return;
+			}
+
+			const state = musicStore.getState();
+			const currentTrack = state.currentTrack;
+			const isPlaying = state.isPlaying;
+
+			// Hide all play/pause icons first
+			const allIcons = this.modal.querySelectorAll(".track-play-icon, .track-pause-icon");
+			allIcons.forEach((icon) => {
+				icon.classList.add("hidden");
+			});
+
+			// Show icon for currently playing track
+			if (currentTrack && currentTrack.track_id) {
+				const playIcon = this.modal.querySelector(
+					`.track-play-icon[data-track-id="${currentTrack.track_id}"]`
+				) as HTMLElement;
+				const pauseIcon = this.modal.querySelector(
+					`.track-pause-icon[data-track-id="${currentTrack.track_id}"]`
+				) as HTMLElement;
+
+				// Show pause icon if playing, otherwise show play icon
+				if (isPlaying === true && pauseIcon) {
+					pauseIcon.classList.remove("hidden");
+				} else if (isPlaying === false && playIcon) {
+					playIcon.classList.remove("hidden");
+				}
+			}
+		}
+
+		public async open(albumId: string): Promise<void> {
+			if (!this.modal || !window.musicSDK) return;
+
+			this.currentAlbumId = albumId;
+
+			try {
+				// Get album data
+				const state = musicStore.getState();
+				const album = state.albums.find((a: Album) => a.album_id === albumId);
+
+				if (!album) {
+					console.error("Album not found:", albumId);
+					return;
+				}
+
+				// Fetch tracks
+				const tracks = await window.musicSDK.getAlbumTracks(albumId);
+				this.currentTracks = tracks;
+
+				// Update UI
+				this.updateAlbumInfo(album, tracks);
+
+				// Show modal
+				this.modal.classList.remove("hidden");
+				this.modal.classList.add("music-modal-enter");
+				document.body.style.overflow = "hidden";
+
+				// Push history state for back button/edge swipe handling
+				history.pushState({ albumDetailModal: true }, "");
+
+				// Animate entrance
+				requestAnimationFrame(() => {
+					this.modal?.classList.add("music-modal-enter-active");
+				});
+			} catch (error) {
+				console.error("Failed to load album details:", error);
+			}
+		}
+
+		private updateAlbumInfo(album: Album, tracks: Track[]): void {
+			// Artwork
+			if (this.artworkEl) {
+				this.artworkEl.src = album.cdn_cover_url;
+			}
+
+			// Basic info
+			if (this.albumNameEl) this.albumNameEl.textContent = album.album;
+			if (this.artistEl) this.artistEl.textContent = album.artist;
+
+			// Metadata
+			if (this.yearEl) {
+				this.yearEl.innerHTML = `<i class="icon-calendar-event"></i> ${album.year}`;
+			}
+			if (this.genreEl) {
+				this.genreEl.innerHTML = `<i class="icon-file-music"></i> ${album.genre || "Unknown"}`;
+			}
+			if (this.trackCountEl) {
+				this.trackCountEl.innerHTML = `<i class="icon-disc"></i> ${tracks.length} tracks`;
+			}
+			if (this.durationEl) {
+				this.durationEl.innerHTML = `<i class="icon-clock"></i> ${album.duration || "N/A"}`;
+			}
+
+			// Description
+			if (this.descriptionEl && album.description) {
+				this.descriptionEl.textContent = album.description;
+				this.descriptionEl.classList.remove("hidden");
+			} else {
+				this.descriptionEl?.classList.add("hidden");
+			}
+
+			// Render tracks
+			this.renderTracks(tracks);
+		}
+
+		private renderTracks(tracks: Track[]): void {
+			if (!this.trackListEl) return;
+
+			// Group tracks by disc number (similar to TrackViewController)
+			const discGroups: Record<string, Track[]> = {};
+
+			tracks.forEach((track) => {
+				// Try multiple fields for disc number
+				let discNum = track.disc_number || track.disc || track.part || track.part_position || 1;
+
+				// Convert to number if it's a string number
+				if (typeof discNum === "string" && !isNaN(parseInt(discNum))) {
+					discNum = parseInt(discNum);
+				}
+
+				// Check if this is an extras/bonus track
+				const trackName = (track.track_name || "").toLowerCase();
+				const albumNameLower = (track.album || "").toLowerCase();
+				const cdnUrl = (track.cdn_url || "").toLowerCase();
+				const s3Url = (track.s3_url || "").toLowerCase();
+				const discNumStr = String(discNum).toLowerCase();
+
+				const isExtras =
+					discNumStr.includes("extra") ||
+					trackName.includes("extra") ||
+					trackName.includes("bonus") ||
+					albumNameLower.includes("extra") ||
+					cdnUrl.includes("/extras/") ||
+					s3Url.includes("/extras/");
+
+				if (isExtras) {
+					discNum = 2;
+				}
+
+				const discKey = `Disc ${discNum}`;
+				if (!discGroups[discKey]) {
+					discGroups[discKey] = [];
+				}
+				discGroups[discKey].push(track);
+			});
+
+			// Sort discs numerically
+			const sortedDiscs = Object.keys(discGroups).sort((a, b) => {
+				const numA = parseInt(a.replace("Disc ", ""));
+				const numB = parseInt(b.replace("Disc ", ""));
+				return numA - numB;
+			});
+
+			// Show disc header when there are multiple discs
+			const showDiscHeaders = sortedDiscs.length > 1;
+
+			// Render grouped tracks
+			const contentHTML = sortedDiscs
+				.map((discName, discIndex) => {
+					const discTracks = discGroups[discName].sort((a, b) => {
+						const posA = parseInt(a.track_position || "0", 10);
+						const posB = parseInt(b.track_position || "0", 10);
+						return posA - posB;
+					});
+
+					const tracksHTML = generateTrackList(discTracks, ["number", "title", "duration", "menu"], {
+						showHeader: false,
+						compact: true,
+						containerId: `album-detail-tracks-${discName.replace(" ", "-")}`,
+						albumId: this.currentAlbumId || undefined,
+					});
+
+					const isLastDisc = discIndex === sortedDiscs.length - 1;
+
+					return `
+						<div class="disc-group border-t border-palette-700/50 dark:border-palette-100/50 first:border-t-0 ${isLastDisc ? "last:border-b-0" : ""}">
+							${
+								showDiscHeaders
+									? `<h4 class="font-retro text-sm font-bold text-light-300 dark:text-palette-300 mt-4 mb-2 px-4 uppercase tracking-wide flex items-center gap-2">
+								<i class="icon-disc"></i>
+								${discName}
+							</h4>`
+									: ""
+							}
+							<div class="px-4 pb-2">
+								${tracksHTML}
+							</div>
+						</div>
+					`;
+				})
+				.join("");
+
+			this.trackListEl.innerHTML = contentHTML;
+
+			// Add event listeners
+			this.trackListEl.querySelectorAll(".track-row").forEach((row) => {
+				row.addEventListener("click", async (e) => {
+					// Don't trigger if clicking the menu button
+					if ((e.target as HTMLElement).closest(".track-menu-btn")) return;
+
+					const trackIndex = parseInt(row.getAttribute("data-track-index") || "0");
+					await this.playTrack(trackIndex);
+				});
+
+				// Keyboard support
+				row.addEventListener("keydown", async (e: Event) => {
+					const keyboardEvent = e as KeyboardEvent;
+					if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+						keyboardEvent.preventDefault();
+						const trackIndex = parseInt(row.getAttribute("data-track-index") || "0");
+						await this.playTrack(trackIndex);
+					}
+				});
+			});
+
+			// Update play/pause indicators after rendering
+			requestAnimationFrame(() => {
+				setTimeout(() => {
+					this.updateTrackIndicators();
+				}, 200);
+			});
+
+			// Scroll to active track if present
+			this.scrollToActiveTrack();
+		}
+
+		private scrollToActiveTrack(): void {
+			const state = musicStore.getState();
+			const currentTrack = state.currentTrack;
+
+			// Check if current track is in this modal's tracks
+			if (currentTrack && this.currentTracks.some((t) => t.track_id === currentTrack.track_id)) {
+				// Find the track row element
+				const trackRow = document.querySelector(`#album-detail-modal [data-track-id="${currentTrack.track_id}"]`);
+				if (trackRow && this.trackListEl) {
+					// Use setTimeout to ensure DOM is fully rendered
+					setTimeout(() => {
+						trackRow.scrollIntoView({
+							behavior: "smooth",
+							block: "center",
+						});
+					}, 100);
+				}
+			}
+		}
+
+		private async playTrack(index: number): Promise<void> {
+			if (!window.musicSDK || !this.currentTracks[index]) return;
+
+			const state = musicStore.getState();
+			const clickedTrack = this.currentTracks[index];
+
+			try {
+				// Check if this is the current track
+				if (state.currentTrack && state.currentTrack.track_id === clickedTrack.track_id) {
+					// Toggle play/pause
+					if (state.isPlaying) {
+						window.musicSDK.playback.pause();
+					} else {
+						await window.musicSDK.playback.play();
+					}
+				} else {
+					// Set queue and play new track using PlayerController (validates tracks)
+					await window.musicPlayer?.setQueue(this.currentTracks, index, true);
+				}
+			} catch (error) {
+				console.error("Failed to play track:", error);
+			}
+		}
+
+		private async playAll(): Promise<void> {
+			if (!window.musicPlayer || this.currentTracks.length === 0) return;
+
+			try {
+				// Use PlayerController to validate and play all tracks
+				await window.musicPlayer.setQueue(this.currentTracks, 0, true);
+				this.close();
+			} catch (error) {
+				console.error("Failed to play album:", error);
+			}
+		}
+
+		private async shuffleAlbum(): Promise<void> {
+			if (!window.musicPlayer || this.currentTracks.length === 0) return;
+
+			try {
+				// Enable shuffle mode and play from the beginning (SDK handles shuffle internally)
+				window.musicSDK?.playback.setShuffle(true);
+				await window.musicPlayer.setQueue(this.currentTracks, 0, true);
+				this.close();
+			} catch (error) {
+				console.error("Failed to shuffle album:", error);
+			}
+		}
+
+		public close(): void {
+			if (!this.modal) return;
+
+			// If we opened the modal (pushed state), go back to close it
+			// This will trigger popstate which will actually close the modal
+			// If popstate already fired (from edge swipe/back button), this does nothing
+			if (this.isOpen() && history.state?.albumDetailModal) {
+				history.back();
+			} else {
+				// Manual close (called from popstate or modal wasn't opened with state)
+				this.modal.classList.remove("music-modal-enter-active");
+				setTimeout(() => {
+					this.modal?.classList.add("hidden");
+					this.modal?.classList.remove("music-modal-enter");
+					document.body.style.overflow = "";
+					this.currentAlbumId = null;
+					this.currentTracks = [];
+				}, 300);
+			}
+		}
+
+		private isOpen(): boolean {
+			return !this.modal?.classList.contains("hidden");
+		}
+	}
+
+	// Initialize
+	let albumDetailInstance: AlbumDetailModalController | null = null;
+
+	function initAlbumDetail() {
+		// Check if the modal element exists (confirms we're on the music page)
+		if (!document.getElementById("album-detail-modal")) {
+			return;
+		}
+
+		// Clean up old instance if it exists (handles navigation back to page)
+		if (albumDetailInstance) {
+			albumDetailInstance = null;
+		}
+
+		albumDetailInstance = new AlbumDetailModalController();
+
+		// Expose globally for album covers to open it
+		window.albumModal = albumDetailInstance;
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initAlbumDetail);
+	} else {
+		initAlbumDetail();
+	}
+
+	document.addEventListener("astro:page-load", initAlbumDetail);
+</script>

@@ -1,0 +1,904 @@
+---
+// Floating music indicator (cassette icon) and miniplayer widget
+---
+
+<!-- Floating Miniplayer Widget (appears to left of cassette icon) -->
+<div
+	id="floating-miniplayer"
+	transition:persist
+	class="fixed bottom-[21rem] md:bottom-[20.5rem] right-16 md:right-20 z-40 hidden w-[330px] md:w-[350px] bg-light-100/30 dark:bg-palette-700/30 border border-palette-700/50 dark:border-palette-100/50 hover:border-palette-500 dark:hover:border-palette-600 backdrop-blur-md shadow-lg transition-all"
+	role="dialog"
+	aria-label="Mini player">
+	<!-- Top Action Bar (Expanded Only) -->
+	<div
+		id="expanded-action-bar"
+		class="flex items-center justify-between border-b border-palette-700/30 dark:border-palette-100/30">
+		<a
+			id="floating-player-queue"
+			class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+			aria-label="Queue"
+			title="Queue">
+			<i class="icon-music-note-list text-lg"></i>
+		</a>
+		<div class="flex items-center">
+			<a
+				id="floating-player-toggle"
+				class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+				aria-label="Minimize/Expand"
+				title="Minimize">
+				<i class="icon-chevron-down text-lg"></i>
+			</a>
+			<a
+				id="floating-miniplayer-close"
+				class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+				aria-label="Close mini player"
+				title="Close">
+				<i class="icon-x-lg text-lg"></i>
+			</a>
+		</div>
+	</div>
+
+	<!-- Expanded Content -->
+	<div id="floating-player-expanded" class="p-1">
+		<!-- Track Info & Main Controls Row -->
+		<div class="flex items-center gap-2">
+			<!-- Album Art with Info Button -->
+			<div id="floating-player-artwork-container" class="relative w-16 h-16 flex-shrink-0 group cursor-pointer">
+				<img
+					id="floating-player-artwork"
+					src=""
+					alt="Album artwork"
+					class="w-full h-full object-cover"
+					loading="lazy"
+				/>
+				<div
+					class="absolute inset-0 bg-light-100/80 dark:bg-palette-700/80 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+					<a
+						id="floating-player-artwork-info"
+						class="no-underline"
+						aria-label="Show track details"
+						title="Show track details">
+						<i class="icon-info-circle text-lg"></i>
+					</a>
+				</div>
+			</div>
+
+			<!-- Track Info -->
+			<div class="flex-1 min-w-0">
+				<!-- Track Title -->
+				<div class="marquee-container">
+					<span id="floating-player-title" class="marquee-text text-black dark:text-white text-sm font-bold">
+						No track playing
+					</span>
+				</div>
+				<!-- Artist Name -->
+				<div class="marquee-container">
+					<span id="floating-player-artist" class="marquee-text text-black dark:text-white text-xs">-</span>
+				</div>
+			</div>
+
+			<!-- Playback Controls -->
+			<div class="flex items-center flex-shrink-0">
+				<a
+					id="floating-player-prev"
+					class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+					aria-label="Previous track"
+					title="Previous">
+					<i class="icon-skip-backward text-lg"></i>
+				</a>
+				<a
+					id="floating-player-play-pause"
+					class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+					aria-label="Play/Pause"
+					title="Play/Pause">
+					<i class="icon-play-fill text-xl"></i>
+				</a>
+				<a
+					id="floating-player-next"
+					class="no-underline icon group dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+					aria-label="Next track"
+					title="Next">
+					<i class="icon-skip-forward text-lg"></i>
+				</a>
+			</div>
+		</div>
+
+		<!-- Progress Bar Row -->
+		<div class="flex items-center gap-2">
+			<a
+				id="floating-player-shuffle"
+				class="no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0"
+				data-shuffle="false"
+				aria-label="Shuffle"
+				title="Shuffle">
+				<i
+					class="icon-shuffle text-lg text-palette-100 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors">
+				</i>
+			</a>
+
+			<!-- Progress Bar -->
+			<div class="flex-1 relative group">
+				<input
+					id="floating-player-progress"
+					type="range"
+					min="0"
+					max="100"
+					value="0"
+					step="0.1"
+					class="music-progress-slider w-full h-1 bg-palette-700/50 dark:bg-palette-100/30 appearance-none cursor-pointer"
+					aria-label="Seek"
+				/>
+			</div>
+
+			<a
+				id="floating-player-repeat"
+				class="no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0"
+				data-repeat="off"
+				aria-label="Repeat"
+				title="Repeat">
+				<i
+					class="icon-repeat text-lg text-palette-100 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors">
+				</i>
+			</a>
+		</div>
+	</div>
+
+	<!-- Minimized Content -->
+	<div id="floating-player-minimized" class="p-1 hidden">
+		<div class="flex items-center gap-2">
+			<!-- Album Art with Info Button -->
+			<div id="floating-player-artwork-container-mini" class="relative w-16 h-16 flex-shrink-0 group cursor-pointer">
+				<img
+					id="floating-player-artwork-mini"
+					src=""
+					alt="Album artwork"
+					class="w-full h-full object-cover"
+					loading="lazy"
+				/>
+				<div
+					class="absolute inset-0 bg-light-100/80 dark:bg-palette-700/80 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+					<a
+						id="floating-player-artwork-info-mini"
+						class="no-underline"
+						aria-label="Show track details"
+						title="Show track details">
+						<i class="icon-info-circle text-base"></i>
+					</a>
+				</div>
+			</div>
+
+			<!-- Track Info -->
+			<div class="flex-1 min-w-0">
+				<!-- Track Title -->
+				<div class="marquee-container">
+					<span id="floating-player-title-mini" class="marquee-text text-black dark:text-white text-sm font-bold">
+						No track playing
+					</span>
+				</div>
+				<!-- Time Display -->
+				<span id="floating-player-time" class="text-black dark:text-white text-xs">
+					<span id="floating-player-current-time">0:00</span> / <span id="floating-player-duration">0:00</span>
+				</span>
+			</div>
+
+			<!-- Controls -->
+			<div class="flex items-center flex-shrink-0">
+				<a
+					id="floating-player-play-pause-mini"
+					class="no-underline icon cursor-pointer dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 transition-colors"
+					aria-label="Play/Pause"
+					title="Play/Pause">
+					<i class="icon-play-fill text-xl"></i>
+				</a>
+				<a
+					id="floating-player-toggle-mini"
+					class="no-underline icon dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+					aria-label="Expand"
+					title="Expand">
+					<i class="icon-chevron-up text-lg"></i>
+				</a>
+				<a
+					id="floating-miniplayer-close-mini"
+					class="no-underline icon dark:text-palette-300 hover:text-black dark:hover:text-black scale-90 cursor-pointer transition-colors"
+					aria-label="Close mini player"
+					title="Close">
+					<i class="icon-x-lg text-lg"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Cassette Icon Indicator (below back-to-top button) -->
+<button
+	id="cassette-music-indicator"
+	transition:persist
+	class="fixed bottom-[21rem] md:bottom-[20.5rem] right-4 z-50 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-palette-300 dark:bg-palette-600 text-palette-900 shadow-lg opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 hover:bg-palette-400 dark:hover:bg-palette-500 focus-outline"
+	aria-label="Toggle music player"
+	title="Toggle music player">
+	<i id="cassette-icon" class="icon-cassette text-2xl md:text-3xl"></i>
+	<i
+		id="cassette-mute-icon"
+		class="icon-volume-mute-fill z-60 absolute text-sm md:text-base bg-palette-200 inline-block dark:bg-palette-300 hidden">
+	</i>
+</button>
+
+<!-- Now Playing Modal Indicator (below cassette icon) -->
+<button
+	id="now-playing-indicator"
+	transition:persist
+	class="fixed bottom-[18rem] md:bottom-[17rem] right-4 z-50 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-palette-300 dark:bg-palette-600 text-palette-900 shadow-lg opacity-0 pointer-events-none transition-all duration-300 hover:scale-110 hover:bg-palette-400 dark:hover:bg-palette-500 focus-outline"
+	aria-label="Open now playing"
+	title="Open now playing">
+	<i class="icon-music-player text-xl md:text-2xl"></i>
+</button>
+
+<script>
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import type { Album, MusicState } from "@/types/music";
+
+	let miniplayerVisible = false;
+	let isMinimized = false;
+	let musicStoreUnsubscribe: (() => void) | null = null;
+	let abortController: AbortController | null = null;
+	let previousTrackId: string | null = null;
+	let previousDuration: number = 0;
+
+	function initFloatingMusicControls() {
+		// Cleanup previous listeners and subscriptions before reattaching
+		if (abortController) {
+			abortController.abort();
+			abortController = null;
+		}
+
+		if (musicStoreUnsubscribe) {
+			musicStoreUnsubscribe();
+			musicStoreUnsubscribe = null;
+		}
+
+		// Get ALL DOM elements
+		const cassetteIndicator = document.getElementById("cassette-music-indicator");
+		const cassetteIcon = document.getElementById("cassette-icon");
+		const cassetteMuteIcon = document.getElementById("cassette-mute-icon");
+		const nowPlayingIndicator = document.getElementById("now-playing-indicator");
+		const floatingMiniplayer = document.getElementById("floating-miniplayer");
+		const closeBtn = document.getElementById("floating-miniplayer-close");
+
+		// Expanded view elements
+		const expandedView = document.getElementById("floating-player-expanded");
+		const artwork = document.getElementById("floating-player-artwork") as HTMLImageElement;
+		const title = document.getElementById("floating-player-title");
+		const artist = document.getElementById("floating-player-artist");
+		const playPauseBtn = document.getElementById("floating-player-play-pause");
+		const prevBtn = document.getElementById("floating-player-prev");
+		const nextBtn = document.getElementById("floating-player-next");
+		const shuffleBtn = document.getElementById("floating-player-shuffle");
+		const repeatBtn = document.getElementById("floating-player-repeat");
+		const queueBtn = document.getElementById("floating-player-queue");
+		const progressBar = document.getElementById("floating-player-progress") as HTMLInputElement;
+		const toggleBtn = document.getElementById("floating-player-toggle");
+
+		// Minimized view elements
+		const minimizedView = document.getElementById("floating-player-minimized");
+		const artworkMini = document.getElementById("floating-player-artwork-mini") as HTMLImageElement;
+		const titleMini = document.getElementById("floating-player-title-mini");
+		const playPauseBtnMini = document.getElementById("floating-player-play-pause-mini");
+		const toggleBtnMini = document.getElementById("floating-player-toggle-mini");
+		const closeBtnMini = document.getElementById("floating-miniplayer-close-mini");
+		const currentTimeEl = document.getElementById("floating-player-current-time");
+		const durationEl = document.getElementById("floating-player-duration");
+
+		// Other elements
+		const expandedActionBar = document.getElementById("expanded-action-bar");
+
+		if (!cassetteIndicator || !cassetteIcon || !floatingMiniplayer) {
+			console.error("❌ FloatingMusicControls elements not found!");
+			return;
+		}
+
+		// Create new AbortController for event listeners
+		abortController = new AbortController();
+		const signal = abortController.signal;
+
+		// Update cassette icon visibility and spin animation
+		function updateCassetteIndicator(state: MusicState) {
+			if (!cassetteIndicator || !cassetteIcon) return;
+
+			const hasTrack = state.currentTrack !== null;
+			const isPlaying = state.isPlaying;
+			const isMuted = state.isMuted;
+
+			if (hasTrack && isPlaying) {
+				// Show cassette icon and spin
+				cassetteIndicator.classList.remove("opacity-0", "pointer-events-none");
+				cassetteIcon.classList.add("animate-spin");
+				// Show now playing indicator
+				nowPlayingIndicator?.classList.remove("opacity-0", "pointer-events-none");
+			} else if (hasTrack && !isPlaying) {
+				// Show cassette icon but stop spinning (keep visible for paused music)
+				cassetteIndicator.classList.remove("opacity-0", "pointer-events-none");
+				cassetteIcon.classList.remove("animate-spin");
+				// Show now playing indicator
+				nowPlayingIndicator?.classList.remove("opacity-0", "pointer-events-none");
+			} else {
+				// No track, hide both
+				cassetteIndicator.classList.add("opacity-0", "pointer-events-none");
+				cassetteIcon.classList.remove("animate-spin");
+				nowPlayingIndicator?.classList.add("opacity-0", "pointer-events-none");
+			}
+
+			// Show/hide mute icon
+			if (cassetteMuteIcon) {
+				if (isMuted) {
+					cassetteMuteIcon.classList.remove("hidden");
+				} else {
+					cassetteMuteIcon.classList.add("hidden");
+				}
+			}
+		}
+
+		// Format time helper
+		function formatTime(seconds: number): string {
+			const mins = Math.floor(seconds / 60);
+			const secs = Math.floor(seconds % 60);
+			return `${mins}:${secs.toString().padStart(2, "0")}`;
+		}
+
+		// Toggle minimize/expand
+		function toggleMinimize() {
+			isMinimized = !isMinimized;
+			if (isMinimized) {
+				expandedView?.classList.add("hidden");
+				expandedActionBar?.classList.add("hidden");
+				minimizedView?.classList.remove("hidden");
+			} else {
+				expandedView?.classList.remove("hidden");
+				expandedActionBar?.classList.remove("hidden");
+				minimizedView?.classList.add("hidden");
+			}
+		}
+
+		// Setup marquee for long text
+		function setupMarquee(textElement: HTMLElement) {
+			if (!textElement) return;
+
+			// Remove any existing marquee animation
+			textElement.classList.remove("scrolling");
+			textElement.style.paddingRight = "0px";
+			textElement.style.removeProperty("--container-width");
+
+			// Force reflow
+			void textElement.offsetWidth;
+
+			// Use requestAnimationFrame to ensure proper measurement after text update
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					const container = textElement.parentElement;
+					if (!container) return;
+
+					// Check if text overflows container
+					const textWidth = textElement.scrollWidth;
+					const containerWidth = container.clientWidth;
+
+					if (textWidth > containerWidth) {
+						// Set CSS variable for container width
+						textElement.style.setProperty("--container-width", `${containerWidth}px`);
+						// Add margin to prevent text from being cut off
+						textElement.style.paddingRight = "20px";
+
+						// Force another reflow before adding animation class
+						void textElement.offsetWidth;
+						textElement.classList.add("scrolling");
+					} else {
+						// Reset padding if text doesn't overflow
+						textElement.style.paddingRight = "0px";
+						textElement.classList.remove("scrolling");
+					}
+				});
+			});
+		}
+
+		// Update miniplayer content
+		function updateMiniplayerContent(state: MusicState) {
+			if (!state.currentTrack) return;
+
+			const track = state.currentTrack;
+			const isPlaying = state.isPlaying;
+
+			// Get album artwork via album_id (tracks don't have cover art directly)
+			const album = state.albums.find((a: Album) => a.album_id === track.album_id);
+			const artworkUrl = album?.cdn_cover_url || "";
+
+			// Update expanded view
+			if (artwork) artwork.src = artworkUrl;
+			if (title) {
+				title.textContent = track.track_name || "Unknown Track";
+				setupMarquee(title as HTMLElement);
+			}
+			if (artist) {
+				artist.textContent = track.artist || "Unknown Artist";
+				setupMarquee(artist as HTMLElement);
+			}
+
+			// Update minimized view
+			if (artworkMini) artworkMini.src = artworkUrl;
+			if (titleMini) {
+				titleMini.textContent = track.track_name || "Unknown Track";
+				setupMarquee(titleMini as HTMLElement);
+			}
+
+			// Update play/pause icons
+			if (playPauseBtn) {
+				const icon = playPauseBtn.querySelector("i");
+				if (icon) {
+					icon.className = isPlaying ? "icon-pause text-xl" : "icon-play-fill text-xl";
+				}
+			}
+			if (playPauseBtnMini) {
+				const icon = playPauseBtnMini.querySelector("i");
+				if (icon) {
+					icon.className = isPlaying ? "icon-pause text-xl" : "icon-play-fill text-xl";
+				}
+			}
+
+			// Check if track changed
+			const trackChanged = state.currentTrack.track_id !== previousTrackId;
+
+			// Update duration only when track changes
+			if (trackChanged && state.duration > 0) {
+				previousTrackId = state.currentTrack.track_id;
+				previousDuration = state.duration;
+			}
+
+			// Use stored duration for progress calculation (prevents duration reset issues)
+			const duration = previousDuration || state.duration;
+			const progress = duration > 0 ? (state.currentTime / duration) * 100 : 0;
+
+			// Update progress bar - always keep thumb at actual playback position
+			if (progressBar && duration > 0) {
+				const oldValue = parseFloat(progressBar.value) || 0;
+				const newValue = progress;
+
+				// Debug: Log significant backwards jumps
+				if (oldValue > 5 && newValue < 1) {
+					console.error("🔴 THUMB JUMP DETECTED:", {
+						from: `${oldValue.toFixed(1)}%`,
+						to: `${newValue.toFixed(1)}%`,
+						currentTime: state.currentTime.toFixed(2),
+						duration: duration.toFixed(2),
+						isSeeking: state.isSeeking,
+						isPlaying: state.isPlaying,
+					});
+				}
+
+				progressBar.value = progress.toString();
+			}
+
+			if (currentTimeEl) currentTimeEl.textContent = formatTime(state.currentTime || 0);
+			if (durationEl) durationEl.textContent = formatTime(duration);
+
+			// Update shuffle button state
+			if (shuffleBtn) {
+				const shuffleIcon = shuffleBtn.querySelector("i");
+				shuffleBtn.setAttribute("data-shuffle", state.shuffle.toString());
+				if (state.shuffle) {
+					// Active: add background color and text-black
+					shuffleBtn.className =
+						"no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0 bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300";
+					if (shuffleIcon) {
+						shuffleIcon.className =
+							"icon-shuffle text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+					}
+				} else {
+					// Inactive: normal state
+					shuffleBtn.className =
+						"no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0 hover:bg-palette-200 hover:dark:bg-palette-300";
+					if (shuffleIcon) {
+						shuffleIcon.className =
+							"icon-shuffle text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors";
+					}
+				}
+			}
+
+			// Update repeat button state
+			if (repeatBtn) {
+				const repeatIcon = repeatBtn.querySelector("i");
+				repeatBtn.setAttribute("data-repeat", state.repeat);
+				if (state.repeat === "one") {
+					// Repeat one: add background color, use repeat-1 icon, text-black
+					repeatBtn.className =
+						"no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0 bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300";
+					if (repeatIcon) {
+						repeatIcon.className =
+							"icon-repeat-1 text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+					}
+				} else if (state.repeat === "all") {
+					// Repeat all: add background color, use repeat icon, text-black
+					repeatBtn.className =
+						"no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0 bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300";
+					if (repeatIcon) {
+						repeatIcon.className =
+							"icon-repeat text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+					}
+				} else {
+					// Repeat off: normal state
+					repeatBtn.className =
+						"no-underline icon group scale-90 cursor-pointer transition-colors flex-shrink-0 hover:bg-palette-200 hover:dark:bg-palette-300";
+					if (repeatIcon) {
+						repeatIcon.className =
+							"icon-repeat text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors";
+					}
+				}
+			}
+		}
+
+		// Close miniplayer
+		function closeMiniplayer() {
+			if (!floatingMiniplayer) return;
+
+			// If we opened the miniplayer (pushed state), go back to close it
+			// This will trigger popstate which will actually close the miniplayer
+			// If popstate already fired (from edge swipe/back button), this does nothing
+			if (miniplayerVisible && history.state?.floatingMiniplayer) {
+				history.back();
+			} else {
+				// Manual close (called from popstate or miniplayer wasn't opened with state)
+				miniplayerVisible = false;
+				floatingMiniplayer.classList.add("hidden");
+			}
+		}
+
+		// Toggle miniplayer visibility
+		function toggleMiniplayer() {
+			if (!floatingMiniplayer) return;
+
+			miniplayerVisible = !miniplayerVisible;
+			if (miniplayerVisible) {
+				floatingMiniplayer.classList.remove("hidden");
+				// Push history state for back button/edge swipe handling
+				history.pushState({ floatingMiniplayer: true }, "");
+			} else {
+				closeMiniplayer();
+			}
+		}
+
+		// Click cassette icon to toggle miniplayer
+		cassetteIndicator.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleMiniplayer();
+			},
+			{ signal }
+		);
+
+		// Click now playing indicator to open modal
+		nowPlayingIndicator?.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				if (window.nowPlayingModal) {
+					window.nowPlayingModal.open();
+				} else {
+					console.error("❌ window.nowPlayingModal is not available");
+				}
+			},
+			{ signal }
+		);
+
+		// Close button
+		closeBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				closeMiniplayer();
+			},
+			{ signal }
+		);
+
+		// Click outside to close
+		const documentClickHandler = (e: Event) => {
+			if (
+				miniplayerVisible &&
+				!floatingMiniplayer.contains(e.target as Node) &&
+				!cassetteIndicator.contains(e.target as Node)
+			) {
+				closeMiniplayer();
+			}
+		};
+		document.addEventListener("click", documentClickHandler, { signal });
+
+		// Click anywhere in miniplayer to open now playing modal (except interactive elements)
+		floatingMiniplayer.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+
+				const target = e.target as HTMLElement;
+
+				// Don't open if clicking on interactive elements (buttons, links, inputs)
+				if (target.closest("button, a, input, select, textarea, span")) {
+					return;
+				}
+
+				// Don't open if user is selecting text
+				const selection = window.getSelection();
+				if (selection && selection.toString().length > 0) {
+					return;
+				}
+
+				// Open now playing modal
+				window.nowPlayingModal?.open();
+			},
+			{ signal }
+		);
+
+		// Control button handlers
+		playPauseBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.togglePlay();
+			},
+			{ signal }
+		);
+
+		prevBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.previous();
+			},
+			{ signal }
+		);
+
+		nextBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.next();
+			},
+			{ signal }
+		);
+
+		shuffleBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.toggleShuffle();
+			},
+			{ signal }
+		);
+
+		repeatBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.cycleRepeat();
+			},
+			{ signal }
+		);
+
+		queueBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				// Toggle queue drawer directly
+				if (window.queueDrawer) {
+					window.queueDrawer.toggle();
+				} else {
+					console.error("❌ window.queueDrawer is not available");
+				}
+			},
+			{ signal }
+		);
+
+		// Toggle minimize/expand button
+		toggleBtn?.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleMinimize();
+			},
+			{ signal }
+		);
+
+		// Minimized view play/pause
+		playPauseBtnMini?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				window.musicPlayer?.togglePlay();
+			},
+			{ signal }
+		);
+
+		// Minimized view toggle (expand)
+		toggleBtnMini?.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleMinimize();
+			},
+			{ signal }
+		);
+
+		// Minimized view close button
+		closeBtnMini?.addEventListener(
+			"click",
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				closeMiniplayer();
+			},
+			{ signal }
+		);
+
+		// Progress bar seeking
+		progressBar?.addEventListener(
+			"input",
+			(e) => {
+				const value = parseFloat((e.target as HTMLInputElement).value);
+				const state = musicStore.getState();
+				if (state.duration) {
+					const seekTime = (value / 100) * state.duration;
+					window.musicPlayer?.seek(seekTime);
+				}
+			},
+			{ signal }
+		);
+
+		// Click on album art container to open now playing modal
+		const artworkContainer = document.getElementById("floating-player-artwork-container");
+		const artworkContainerMini = document.getElementById("floating-player-artwork-container-mini");
+
+		artworkContainer?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				if (window.nowPlayingModal) {
+					window.nowPlayingModal.open();
+				} else {
+					console.error("❌ window.nowPlayingModal is not available");
+				}
+				// Minimize the floating player when opening now playing
+				if (miniplayerVisible && !isMinimized) {
+					toggleMinimize();
+				}
+			},
+			{ signal }
+		);
+
+		artworkContainerMini?.addEventListener(
+			"click",
+			(e) => {
+				e.stopPropagation();
+				if (window.nowPlayingModal) {
+					window.nowPlayingModal.open();
+				} else {
+					console.error("❌ window.nowPlayingModal is not available");
+				}
+			},
+			{ signal }
+		);
+
+		// Subscribe to music store changes
+		musicStoreUnsubscribe = musicStore.subscribe((state) => {
+			updateCassetteIndicator(state);
+			updateMiniplayerContent(state);
+		});
+
+		// Global keyboard shortcuts for music playback
+		const keyboardShortcutHandler = (e: KeyboardEvent) => {
+			// Don't trigger if typing in an input or textarea
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+				return;
+			}
+
+			const key = e.key.toLowerCase();
+
+			// Don't trigger spacebar/escape if NowPlayingModal is open (it handles these keys)
+			const nowPlayingModal = document.getElementById("now-playing-modal");
+			const modalIsOpen = nowPlayingModal && !nowPlayingModal.classList.contains("hidden");
+			if (modalIsOpen && (key === " " || key === "escape")) {
+				return;
+			}
+
+			switch (key) {
+				case " ":
+					// Spacebar for play/pause
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.togglePlay();
+					} else {
+						console.warn("⚠️  Music player not initialized. Visit /music page first.");
+					}
+					break;
+				case "n":
+					// Next track
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.next();
+					}
+					break;
+				case "p":
+					// Previous track
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.previous();
+					}
+					break;
+				case "m":
+					// Mute/unmute
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.toggleMute();
+					}
+					break;
+				case "s":
+					// Shuffle
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.toggleShuffle();
+					}
+					break;
+				case "r":
+					// Repeat
+					e.preventDefault();
+					if (window.musicPlayer) {
+						window.musicPlayer.cycleRepeat();
+					}
+					break;
+				case "q":
+					// Queue drawer
+					e.preventDefault();
+					window.queueDrawer?.toggle();
+					break;
+			}
+		};
+		document.addEventListener("keydown", keyboardShortcutHandler, { signal });
+
+		// Back button/edge swipe handling - close miniplayer instead of navigating
+		// When user swipes from edge or presses back, close miniplayer and stay on page
+		window.addEventListener(
+			"popstate",
+			() => {
+				// If miniplayer is open, close it (history already went back)
+				if (miniplayerVisible) {
+					// Close without calling history.back() since navigation already happened
+					miniplayerVisible = false;
+					floatingMiniplayer.classList.add("hidden");
+				}
+			},
+			{ signal }
+		);
+
+		// Subscribe to music store with fresh element references
+		musicStoreUnsubscribe = musicStore.subscribe((state) => {
+			updateCassetteIndicator(state);
+			updateMiniplayerContent(state);
+		});
+
+		// Initial UI update
+		const currentState = musicStore.getState();
+		updateCassetteIndicator(currentState);
+		updateMiniplayerContent(currentState);
+	}
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initFloatingMusicControls);
+	} else {
+		initFloatingMusicControls();
+	}
+
+	// Reinitialize on every page navigation to reconnect UI to SDK
+	document.addEventListener("astro:page-load", () => {
+		initFloatingMusicControls();
+	});
+</script>

@@ -1,0 +1,410 @@
+/* 
+	============================================
+  MUSIC PLAYER STYLES
+*/
+
+:root {
+	/* Palette Gradient - used across all sliders */
+	--music-gradient: linear-gradient(90deg, #9f94a0, #8e878c, #947b82, #cad5db, #9bb0cd, #e5cab7, #dcb8b0);
+
+	/* Focus outline */
+	--music-focus-outline: 2px solid var(--palette-500, #9bb0cd);
+	--music-focus-offset: -2px;
+
+	/* Transitions */
+	--music-transition-standard: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	--music-transition-fast: 0.15s ease;
+
+	/* Scrollbar colors */
+	--music-scrollbar-track: var(--palette-900, #201d29);
+	--music-scrollbar-thumb: var(--palette-700, #120f19);
+	--music-scrollbar-thumb-hover: var(--palette-500, #9bb0cd);
+}
+
+/* 
+	----------------
+  MODAL ANIMATIONS
+  ---------------- 
+*/
+.music-modal-enter {
+	opacity: 0;
+	transform: scale(0.95);
+}
+
+.music-modal-enter-active {
+	opacity: 1;
+	transform: scale(1);
+	transition:
+		opacity var(--music-transition-standard),
+		transform var(--music-transition-standard);
+}
+
+/* 
+	----------------
+  DRAWER ANIMATIONS
+  ---------------- 
+*/
+.music-drawer-panel {
+	transform: translateX(100%);
+	transition: transform var(--music-transition-standard);
+}
+
+.music-drawer-panel.music-drawer-enter-active {
+	transform: translateX(0);
+}
+
+/* 
+	----------------
+	CONTEXT MENU ANIMATIONS
+	---------------- 
+*/
+.music-context-menu {
+	opacity: 0;
+	transform: scale(0.95);
+	transition:
+		opacity var(--music-transition-fast),
+		transform var(--music-transition-fast);
+}
+
+.music-context-menu.music-context-menu-enter-active {
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* 
+	----------------
+	SCROLLBAR STYLING
+	---------------- 
+*/
+.music-scrollbar::-webkit-scrollbar {
+	width: 8px;
+}
+
+.music-scrollbar::-webkit-scrollbar-track {
+	background: var(--music-scrollbar-track);
+	border-radius: 4px;
+}
+
+.music-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--music-scrollbar-thumb);
+	border-radius: 4px;
+	transition: background 0.2s ease;
+}
+
+.music-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--music-scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar */
+.music-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--music-scrollbar-thumb) var(--music-scrollbar-track);
+}
+
+/* 
+	----------------
+	RANGE SLIDER STYLING
+	---------------- 
+*/
+.music-progress-slider,
+.music-volume-slider {
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	outline: none;
+	cursor: pointer;
+}
+
+/* Progress slider track */
+.music-progress-slider::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 4px;
+	background: var(--music-gradient) !important;
+	border-radius: 2px;
+}
+
+.music-progress-slider::-moz-range-track {
+	width: 100%;
+	height: 4px;
+	background: var(--music-gradient) !important;
+	border-radius: 2px;
+}
+
+/* Progress slider thumb */
+.music-progress-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 12px;
+	height: 12px;
+	background: #dcb8b0;
+	border-radius: 50%;
+	cursor: pointer;
+	margin-top: -4px;
+	transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .music-progress-slider::-webkit-slider-thumb {
+	background: #cad5db;
+}
+
+.music-progress-slider::-moz-range-thumb {
+	width: 12px;
+	height: 12px;
+	background: #dcb8b0;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .music-progress-slider::-moz-range-thumb {
+	background: #cad5db;
+}
+
+.music-progress-slider::-webkit-slider-thumb:hover {
+	background: #e5cab7;
+	transform: scale(1.2);
+}
+
+html[data-theme="dark"] .music-progress-slider::-webkit-slider-thumb:hover {
+	background: #9bb0cd;
+}
+
+.music-progress-slider::-moz-range-thumb:hover {
+	background: #e5cab7;
+	transform: scale(1.2);
+}
+
+html[data-theme="dark"] .music-progress-slider::-moz-range-thumb:hover {
+	background: #9bb0cd;
+}
+
+/* Volume slider */
+.music-volume-slider::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 4px;
+	background: var(--music-gradient);
+	border-radius: 2px;
+}
+
+.music-volume-slider::-moz-range-track {
+	width: 100%;
+	height: 4px;
+	background: var(--music-gradient);
+	border-radius: 2px;
+}
+
+.music-volume-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 12px;
+	height: 12px;
+	background: #dcb8b0;
+	border-radius: 50%;
+	cursor: pointer;
+	margin-top: -4px;
+	transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .music-volume-slider::-webkit-slider-thumb {
+	background: #cad5db;
+}
+
+.music-volume-slider::-moz-range-thumb {
+	width: 12px;
+	height: 12px;
+	background: #dcb8b0;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+html[data-theme="dark"] .music-volume-slider::-moz-range-thumb {
+	background: #cad5db;
+}
+
+.music-volume-slider::-webkit-slider-thumb:hover {
+	background: #e5cab7;
+	transform: scale(1.2);
+}
+
+html[data-theme="dark"] .music-volume-slider::-webkit-slider-thumb:hover {
+	background: #9bb0cd;
+}
+
+.music-volume-slider::-moz-range-thumb:hover {
+	background: #e5cab7;
+	transform: scale(1.2);
+}
+
+html[data-theme="dark"] .music-volume-slider::-moz-range-thumb:hover {
+	background: #9bb0cd;
+}
+
+/* 
+	----------------
+	FOCUS STYLES
+	---------------- 
+*/
+.music-focus-outline:focus-visible,
+.track-row:focus-visible,
+.queue-item:focus-visible,
+.menu-item:focus-visible {
+	outline: var(--music-focus-outline);
+	outline-offset: var(--music-focus-offset);
+}
+
+/* 
+	----------------
+	MARQUEE TEXT ANIMATION
+	---------------- 
+*/
+.marquee-container {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+}
+
+.marquee-text {
+	display: inline-block;
+	white-space: nowrap;
+	transition: transform 0.3s ease;
+}
+
+.marquee-text.scrolling {
+	animation: marquee 8s linear infinite;
+}
+
+@keyframes marquee {
+	0% {
+		transform: translateX(0%);
+	}
+	25% {
+		transform: translateX(0%);
+	}
+	75% {
+		transform: translateX(calc(-100% + var(--container-width, 200px)));
+	}
+	100% {
+		transform: translateX(calc(-100% + var(--container-width, 200px)));
+	}
+}
+
+/* 
+	----------------
+	TAB BUTTONS
+	---------------- 
+*/
+.tab-button {
+	font-family: "uni0553";
+	transition:
+		transform var(--music-transition-standard),
+		all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button span {
+	font-family: "uni0553";
+	color: inherit !important;
+}
+
+.tab-button .tab-title {
+	transition: font-size var(--music-transition-standard);
+	display: inline-block;
+	font-family: "uni0553";
+}
+
+/* Mobile padding for carousel */
+@media (max-width: 640px) {
+	#tabs-container {
+		padding-left: calc(50vw - 60px);
+		padding-right: calc(50vw - 60px);
+	}
+}
+
+.tab-button:hover {
+	transform: translateY(-1px);
+}
+
+.tab-button:active {
+	transform: translateY(0);
+}
+
+.tab-button.active {
+	background-color: var(--lightgrey, #bbb8bb);
+	color: black !important;
+	box-shadow: 0 4px 12px rgba(155, 176, 205, 0.3);
+	font-family: "uni0553";
+}
+
+html[data-theme="dark"] .tab-button.active {
+	background-color: var(--pink, #dcb8b0);
+	color: black !important;
+	font-family: "uni0553";
+}
+
+/* 
+	----------------
+	TRACK HIGHLIGHT ANIMATION
+	(for URL deep linking)
+	---------------- 
+*/
+.track-highlight-animation {
+	animation: trackHighlight 2.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+	background-color: rgba(155, 176, 205, 0.15) !important;
+	position: relative !important;
+	z-index: 10 !important;
+}
+
+html[data-theme="dark"] .track-highlight-animation {
+	background-color: rgba(220, 184, 176, 0.1) !important;
+}
+
+@keyframes trackHighlight {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(155, 176, 205, 0);
+	}
+	15% {
+		transform: scale(1.04);
+		box-shadow: 0 0 20px 5px rgba(155, 176, 205, 0.5);
+	}
+	30% {
+		transform: scale(1);
+		box-shadow: 0 0 15px 3px rgba(155, 176, 205, 0.3);
+	}
+	45% {
+		transform: scale(1.04);
+		box-shadow: 0 0 20px 5px rgba(155, 176, 205, 0.5);
+	}
+	60% {
+		transform: scale(1);
+		box-shadow: 0 0 10px 2px rgba(155, 176, 205, 0.2);
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(155, 176, 205, 0);
+	}
+}
+
+/* 
+	----------------
+	VIEW TOGGLE ANIMATION
+  ---------------- 
+*/
+#album-view-toggle i {
+	transition: all 0.2s ease;
+}
+
+#album-view-toggle:hover i {
+	transform: scale(1.1);
+}
+
+/* 
+	----------------
+	SMOOTH TRANSITIONS
+	---------------- 
+*/
+.queue-item {
+	transition: all 0.2s ease;
+}

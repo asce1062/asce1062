@@ -1,0 +1,156 @@
+---
+// Track Details Modal - Shows formatted track metadata as JSON using Shiki
+---
+
+<div
+	id="track-details-modal"
+	transition:persist
+	class="fixed inset-0 bg-light-100/50 dark:bg-palette-700/50 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4"
+	role="dialog"
+	aria-labelledby="track-details-title"
+	aria-modal="true">
+	<div
+		class="bg-light-100 dark:bg-palette-900 border border-palette-700 dark:border-palette-100 max-w-4xl w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+		<!-- Header -->
+		<div
+			class="flex items-center justify-between p-4 border-b border-palette-700 dark:border-palette-100 bg-palette-100 dark:bg-palette-900">
+			<h2 id="track-details-title" class="font-retro font-bold">Track Details</h2>
+			<a
+				id="track-details-close"
+				class="p-2 no-underline icon group hover:text-black scale-90 cursor-pointer transition-colors"
+				aria-label="Close track details">
+				<i class="icon-x-lg text-xl"></i>
+			</a>
+		</div>
+
+		<!-- Content -->
+		<div class="flex-1 overflow-auto p-4">
+			<div id="track-details-content" class="prose dark:prose-invert max-w-none"></div>
+		</div>
+	</div>
+</div>
+
+<script>
+	import { formatJSON } from "@/lib/formatCode";
+	import type { Track } from "@/types/music";
+
+	class TrackDetailsModal {
+		private modal: HTMLElement | null = null;
+		private content: HTMLElement | null = null;
+		private closeBtn: HTMLElement | null = null;
+
+		constructor() {
+			this.modal = document.getElementById("track-details-modal");
+			this.content = document.getElementById("track-details-content");
+			this.closeBtn = document.getElementById("track-details-close");
+
+			if (!this.modal || !this.content) {
+				console.error("TrackDetailsModal: Required elements not found", {
+					modal: this.modal,
+					content: this.content,
+				});
+				return;
+			}
+
+			this.setupEventListeners();
+		}
+
+		private setupEventListeners(): void {
+			this.closeBtn?.addEventListener("click", () => this.close());
+
+			this.modal?.addEventListener("click", (e) => {
+				if (e.target === this.modal) this.close();
+			});
+
+			document.addEventListener("keydown", (e) => {
+				if (e.key === "Escape" && !this.modal?.classList.contains("hidden")) {
+					this.close();
+				}
+			});
+
+			// Back button/edge swipe handling - close modal instead of navigating
+			// When user swipes from edge or presses back, close modal and stay on page
+			window.addEventListener("popstate", () => {
+				// If modal is open, close it (history already went back)
+				if (this.isOpen()) {
+					// Close without calling history.back() since navigation already happened
+					this.modal?.classList.add("hidden");
+					this.modal?.classList.remove("flex");
+				}
+			});
+		}
+
+		public async open(track: Track): Promise<void> {
+			if (!this.modal || !this.content) return;
+
+			const jsonString = JSON.stringify(track, null, 2);
+
+			try {
+				// Format track data as JSON with syntax highlighting
+				const html = await formatJSON(track, {
+					theme: "auto", // Auto-detects light/dark mode via CSS
+					showCopyButton: true,
+					keepBackground: true,
+				});
+
+				// Set content with formatted code (includes copy button)
+				this.content.innerHTML = html;
+			} catch (err) {
+				console.error("Failed to highlight JSON:", err);
+				this.content.innerHTML = `<pre><code>${jsonString}</code></pre>`;
+			}
+
+			this.modal.classList.remove("hidden");
+			this.modal.classList.add("flex");
+
+			// Push history state for back button/edge swipe handling
+			history.pushState({ trackDetailsModal: true }, "");
+
+			this.closeBtn?.focus();
+		}
+
+		public close(): void {
+			if (!this.modal) return;
+
+			// If we opened the modal (pushed state), go back to close it
+			// This will trigger popstate which will actually close the modal
+			// If popstate already fired (from edge swipe/back button), this does nothing
+			if (!this.modal.classList.contains("hidden") && history.state?.trackDetailsModal) {
+				history.back();
+			} else {
+				// Manual close (called from popstate or modal wasn't opened with state)
+				this.modal.classList.add("hidden");
+				this.modal.classList.remove("flex");
+			}
+		}
+
+		private isOpen(): boolean {
+			return !this.modal?.classList.contains("hidden");
+		}
+	}
+
+	let trackDetailsModalInstance: TrackDetailsModal | null = null;
+
+	function initTrackDetailsModal() {
+		if (!document.getElementById("track-details-modal")) {
+			return;
+		}
+
+		if (trackDetailsModalInstance) {
+			trackDetailsModalInstance = null;
+		}
+
+		trackDetailsModalInstance = new TrackDetailsModal();
+		(window as typeof window & { trackDetailsModal?: TrackDetailsModal }).trackDetailsModal = trackDetailsModalInstance;
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initTrackDetailsModal);
+	} else {
+		initTrackDetailsModal();
+	}
+
+	document.addEventListener("astro:page-load", () => {
+		initTrackDetailsModal();
+	});
+</script>

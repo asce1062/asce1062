@@ -82,11 +82,18 @@ export const mainNavigation: NavigationLink[] = [
 		pathCount: 10,
 	},
 	{
+		name: "Music",
+		href: "/music",
+		icon: "icon-boombox",
+		ariaLabel: "Browse music library and stream tracks",
+		animation: "rotate-left",
+	},
+	{
 		name: "RSS Feed",
 		href: "/rss.xml",
 		icon: "icon-rss",
 		ariaLabel: "Subscribe to my blog",
-		animation: "rotate-left",
+		animation: "rotate-right",
 	},
 ];
 

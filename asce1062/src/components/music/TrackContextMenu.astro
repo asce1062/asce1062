@@ -1,0 +1,536 @@
+---
+/**
+ * Track Context Menu
+ * Dropdown menu for track actions
+ * Triggered by three-dot button or right-click
+ */
+---
+
+<!-- Context Menu -->
+<div
+	id="track-context-menu"
+	transition:persist
+	class="music-context-menu fixed z-[80] hidden"
+	role="menu"
+	aria-orientation="vertical">
+	<div
+		class="min-w-[200px] bg-light-100/80 dark:bg-palette-700/80 backdrop-blur-sm border border-palette-700 dark:border-palette-200 shadow-2xl py-2">
+		<!-- Play Now -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="play-now"
+			role="menuitem">
+			<i class="icon-play-fill text-light-300 dark:text-palette-300 w-5 group-hover:text-black group-hover:text-black">
+			</i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Play now</span>
+		</button>
+
+		<!-- Play Next -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="play-next"
+			role="menuitem">
+			<i class="icon-skip-forward text-light-300 dark:text-palette-300 w-5 group-hover:text-black"></i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Play next</span>
+		</button>
+
+		<!-- Add to Queue -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="add-to-queue"
+			role="menuitem">
+			<i class="icon-music-note-list text-light-300 dark:text-palette-300 w-5 group-hover:text-black"></i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Add to queue</span>
+		</button>
+
+		<!-- Divider -->
+		<div class="h-px bg-palette-700 dark:bg-palette-100 my-2"></div>
+
+		<!-- Track Details -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="track-details"
+			role="menuitem">
+			<i class="icon-info-circle text-light-300 dark:text-palette-300 w-5 group-hover:text-black"></i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Track details</span>
+		</button>
+
+		<!-- Divider -->
+		<div class="h-px bg-palette-700 dark:bg-palette-100 my-2"></div>
+
+		<!-- Add to Favorites -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="add-to-favorites"
+			role="menuitem">
+			<i class="icon-heart text-light-300 dark:text-palette-300 w-5 group-hover:text-black"></i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Add to favorites</span>
+		</button>
+
+		<!-- Share -->
+		<button
+			class="menu-item w-full px-4 py-2.5 text-left text-palette-50 dark:text-palette-200 hover:bg-palette-200 hover:dark:bg-palette-300 transition-colors flex items-center gap-3 text-sm group"
+			data-action="share"
+			role="menuitem">
+			<i class="icon-share text-light-300 dark:text-palette-300 w-5 group-hover:text-black"></i>
+			<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Share</span>
+		</button>
+	</div>
+</div>
+
+<script>
+	/* eslint-env browser */
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import type { Track } from "@/types/music";
+
+	/**
+	 * Track Context Menu Controller
+	 */
+	class TrackContextMenuController {
+		private menu: HTMLElement | null;
+		private currentTrack: Track | null = null;
+		private hiddenActions: string[] = [];
+
+		// Named handlers for proper cleanup
+		private menuItemClickHandler: (e: Event) => void;
+		private outsideClickHandler: (e: MouseEvent) => void;
+		private escapeHandler: (e: KeyboardEvent) => void;
+		private buttonClickHandler: (e: MouseEvent) => void;
+		private contextMenuHandler: (e: MouseEvent) => void;
+
+		constructor() {
+			this.menu = document.getElementById("track-context-menu");
+
+			// Bind handlers
+			this.menuItemClickHandler = (e: Event) => {
+				const action = (e.currentTarget as HTMLElement).getAttribute("data-action");
+				if (action && this.currentTrack) {
+					this.handleAction(action, this.currentTrack);
+				}
+				this.close();
+			};
+
+			this.outsideClickHandler = (e: MouseEvent) => {
+				if (this.isOpen() && !this.menu?.contains(e.target as Node)) {
+					this.close();
+				}
+			};
+
+			this.escapeHandler = (e: KeyboardEvent) => {
+				if (e.key === "Escape" && this.isOpen()) {
+					this.close();
+				}
+			};
+
+			this.buttonClickHandler = (e: MouseEvent) => {
+				const menuBtn = (e.target as HTMLElement).closest(".track-menu-btn");
+				if (menuBtn) {
+					e.preventDefault();
+					e.stopPropagation();
+					// Call async method without awaiting to avoid blocking UI
+					this.openFromButton(menuBtn as HTMLElement).catch((error) => {
+						console.error("Failed to open context menu from button:", error);
+					});
+				}
+			};
+
+			this.contextMenuHandler = (e: MouseEvent) => {
+				const trackRow = (e.target as HTMLElement).closest(".track-row");
+				if (trackRow) {
+					e.preventDefault();
+					// Call async method without awaiting to avoid blocking UI
+					this.openFromContextMenu(trackRow as HTMLElement, e).catch((error) => {
+						console.error("Failed to open context menu from right-click:", error);
+					});
+				}
+			};
+
+			this.init();
+		}
+
+		private init(): void {
+			// Menu item clicks
+			this.menu?.querySelectorAll(".menu-item").forEach((item) => {
+				item.addEventListener("click", this.menuItemClickHandler);
+			});
+
+			// Close on outside click
+			document.addEventListener("click", this.outsideClickHandler);
+
+			// Close on ESC
+			document.addEventListener("keydown", this.escapeHandler);
+
+			// Listen for three-dot button clicks (delegated)
+			document.addEventListener("click", this.buttonClickHandler);
+
+			// Listen for right-clicks on track rows
+			document.addEventListener("contextmenu", this.contextMenuHandler);
+		}
+
+		private async openFromButton(button: HTMLElement): Promise<void> {
+			// Get track data from parent row
+			const trackRow = button.closest(".track-row");
+			if (!trackRow) return;
+
+			const trackData = await this.getTrackFromRow(trackRow as HTMLElement);
+			if (!trackData) return;
+
+			this.currentTrack = trackData;
+			this.hiddenActions = []; // Show all options when opened from track list
+
+			// Position menu near button
+			const rect = button.getBoundingClientRect();
+			this.show(rect.left, rect.bottom + 5);
+		}
+
+		private async openFromContextMenu(trackRow: HTMLElement, e: MouseEvent): Promise<void> {
+			const trackData = await this.getTrackFromRow(trackRow);
+			if (!trackData) return;
+
+			this.currentTrack = trackData;
+			this.hiddenActions = []; // Show all options when opened from track list
+
+			// Position menu at mouse cursor
+			this.show(e.clientX, e.clientY);
+		}
+
+		private async getTrackFromRow(row: HTMLElement): Promise<Track | null> {
+			const trackId = row.getAttribute("data-track-id");
+
+			if (!trackId) {
+				console.warn("No track ID found on row");
+				return null;
+			}
+
+			const state = musicStore.getState();
+
+			// Always find track by ID, first in all tracks, then in queue
+			let track = state.tracks.find((t: Track) => t.track_id === trackId);
+
+			// If not in tracks list, try queue
+			if (!track) {
+				track = state.queue.find((t: Track) => t.track_id === trackId);
+			}
+
+			// If still not found, check if this is from an expanded album view
+			if (!track) {
+				const albumId = row.getAttribute("data-album-id");
+				if (albumId && window.musicSDK) {
+					// Fetch album tracks from SDK
+					try {
+						const albumTracks = await window.musicSDK.getAlbumTracks(albumId);
+						if (albumTracks && albumTracks.length > 0) {
+							track = albumTracks.find((t: Track) => t.track_id === trackId);
+						}
+					} catch (error) {
+						console.warn("Failed to fetch album tracks for context menu:", error);
+					}
+				}
+			}
+
+			if (!track) {
+				console.warn("Track not found with ID:", trackId);
+			}
+
+			return track || null;
+		}
+
+		private show(x: number, y: number): void {
+			if (!this.menu) return;
+
+			// Show/hide menu items based on hiddenActions
+			this.menu.querySelectorAll(".menu-item").forEach((item) => {
+				const action = item.getAttribute("data-action");
+				if (action && this.hiddenActions.includes(action)) {
+					(item as HTMLElement).style.display = "none";
+				} else {
+					(item as HTMLElement).style.display = "";
+				}
+			});
+
+			// Hide dividers if they're between hidden items or at start/end
+			const dividers = this.menu.querySelectorAll(".h-px");
+			dividers.forEach((divider, _index) => {
+				const prevItem = divider.previousElementSibling;
+				const nextItem = divider.nextElementSibling;
+
+				const prevHidden = prevItem && (prevItem as HTMLElement).style.display === "none";
+				const nextHidden = nextItem && (nextItem as HTMLElement).style.display === "none";
+
+				if (prevHidden || nextHidden || !prevItem || !nextItem) {
+					(divider as HTMLElement).style.display = "none";
+				} else {
+					(divider as HTMLElement).style.display = "";
+				}
+			});
+
+			this.menu.classList.remove("hidden");
+
+			// Position menu
+			this.menu.style.left = `${x}px`;
+			this.menu.style.top = `${y}px`;
+
+			// Check if menu goes off-screen and adjust
+			requestAnimationFrame(() => {
+				if (!this.menu) return;
+
+				const rect = this.menu.getBoundingClientRect();
+				const viewportWidth = window.innerWidth;
+				const viewportHeight = window.innerHeight;
+
+				// Adjust horizontal position if off-screen
+				if (rect.right > viewportWidth) {
+					this.menu.style.left = `${viewportWidth - rect.width - 10}px`;
+				}
+
+				// Adjust vertical position if off-screen
+				if (rect.bottom > viewportHeight) {
+					this.menu.style.top = `${y - rect.height - 10}px`;
+				}
+
+				// Add entrance animation
+				this.menu.classList.add("music-context-menu-enter-active");
+			});
+		}
+
+		private close(): void {
+			if (!this.menu) return;
+
+			this.menu.classList.remove("music-context-menu-enter-active");
+			setTimeout(() => {
+				this.menu?.classList.add("hidden");
+			}, 150);
+
+			this.currentTrack = null;
+		}
+
+		private isOpen(): boolean {
+			return !this.menu?.classList.contains("hidden");
+		}
+
+		private async handleAction(action: string, track: Track): Promise<void> {
+			try {
+				switch (action) {
+					case "play-now":
+						await this.playNow(track);
+						break;
+					case "play-next":
+						await this.playNext(track);
+						break;
+					case "add-to-queue":
+						await this.addToQueue(track);
+						break;
+					case "track-details":
+						this.showTrackDetails(track);
+						break;
+					case "add-to-favorites":
+						this.addToFavorites(track);
+						break;
+					case "share":
+						this.shareTrack(track);
+						break;
+				}
+			} catch (error) {
+				console.error("Failed to execute action:", action, error);
+			}
+		}
+
+		private async playNow(track: Track): Promise<void> {
+			if (!window.musicPlayer) return;
+
+			const state = musicStore.getState();
+			const currentQueue = state.queue || [];
+
+			// If there's a queue, insert track at the beginning and play it
+			if (currentQueue.length > 0) {
+				// Check if track is already in queue
+				const existingIndex = currentQueue.findIndex((t: Track) => t.track_id === track.track_id);
+
+				let newQueue: Track[];
+				if (existingIndex >= 0) {
+					// Track already in queue - move it to the front
+					newQueue = [
+						currentQueue[existingIndex],
+						...currentQueue.slice(0, existingIndex),
+						...currentQueue.slice(existingIndex + 1),
+					];
+				} else {
+					// Track not in queue - add it to the front
+					newQueue = [track, ...currentQueue];
+				}
+
+				// Set the new queue and play from index 0
+				await window.musicPlayer.setQueue(newQueue, 0, true);
+			} else {
+				// No existing queue - just play this track
+				await window.musicPlayer.setQueue([track], 0, true);
+			}
+
+			this.showToast(`Playing: ${track.track_name}`);
+		}
+
+		private async playNext(track: Track): Promise<void> {
+			if (!window.musicPlayer) return;
+
+			const state = musicStore.getState();
+
+			// If queue is empty, just play this track
+			if (state.queue.length === 0 || !state.currentTrack) {
+				await window.musicPlayer.setQueue([track], 0, true);
+				this.showToast(`Playing: ${track.track_name}`);
+			} else {
+				// Use PlayerController's playNext method which handles queue insertion
+				window.musicPlayer.playNext(track);
+				this.showToast(`Added to play next: ${track.track_name}`);
+			}
+		}
+
+		private async addToQueue(track: Track): Promise<void> {
+			if (!window.musicPlayer) return;
+
+			const state = musicStore.getState();
+
+			// If queue is empty, just play this track
+			if (state.queue.length === 0 || !state.currentTrack) {
+				await window.musicPlayer.setQueue([track], 0, true);
+				this.showToast(`Playing: ${track.track_name}`);
+			} else {
+				// Use PlayerController's addToQueue method
+				window.musicPlayer.addToQueue(track);
+				this.showToast(`Added to queue: ${track.track_name}`);
+			}
+		}
+
+		private showTrackDetails(track: Track): void {
+			const trackDetailsModal = (window as typeof window & { trackDetailsModal?: { open: (track: Track) => void } })
+				.trackDetailsModal;
+			trackDetailsModal?.open(track);
+		}
+
+		private addToFavorites(_track: Track): void {
+			// TODO: Implement favorites
+			this.showToast("Favorites coming soon");
+		}
+
+		private shareTrack(track: Track): void {
+			// Copy track URL to clipboard
+			const url = `${window.location.origin}/music?track=${track.track_id}`;
+
+			if (navigator.clipboard) {
+				navigator.clipboard
+					.writeText(url)
+					.then(() => {
+						this.showToast("Link copied to clipboard");
+					})
+					.catch(() => {
+						this.showToast("Failed to copy link");
+					});
+			} else {
+				this.showToast("Share not supported");
+			}
+		}
+
+		private showToast(message: string): void {
+			// Simple toast notification
+			const toast = document.createElement("div");
+			toast.className =
+				"fixed bottom-24 left-1/2 -translate-x-1/2 bg-palette-200/95 dark:bg-palette-900/95 backdrop-blur-lg text-palette-50 dark:text-palette-200 px-4 py-2 shadow-xl border border-palette-700 z-[100] text-sm font-medium";
+			toast.textContent = message;
+			document.body.appendChild(toast);
+
+			// Animate in
+			requestAnimationFrame(() => {
+				toast.style.opacity = "0";
+				toast.style.transform = "translate(-50%, 10px)";
+				toast.style.transition = "all 0.3s ease";
+
+				requestAnimationFrame(() => {
+					toast.style.opacity = "1";
+					toast.style.transform = "translate(-50%, 0)";
+				});
+			});
+
+			// Remove after 3 seconds
+			setTimeout(() => {
+				toast.style.opacity = "0";
+				toast.style.transform = "translate(-50%, 10px)";
+				setTimeout(() => {
+					document.body.removeChild(toast);
+				}, 300);
+			}, 3000);
+		}
+
+		/**
+		 * Open menu with a specific track (for Now Playing modal, etc.)
+		 * @param track - The track to show options for
+		 * @param x - X position for menu
+		 * @param y - Y position for menu
+		 * @param hideActions - Optional array of action names to hide (e.g., ["play-now", "play-next"])
+		 */
+		public openWithTrack(track: Track, x: number, y: number, hideActions: string[] = []): void {
+			this.currentTrack = track;
+			this.hiddenActions = hideActions;
+			this.show(x, y);
+		}
+
+		/**
+		 * Cleanup method
+		 */
+		public destroy(): void {
+			// Remove menu item listeners
+			this.menu?.querySelectorAll(".menu-item").forEach((item) => {
+				item.removeEventListener("click", this.menuItemClickHandler);
+			});
+
+			// Remove document listeners
+			document.removeEventListener("click", this.outsideClickHandler);
+			document.removeEventListener("keydown", this.escapeHandler);
+			document.removeEventListener("click", this.buttonClickHandler);
+			document.removeEventListener("contextmenu", this.contextMenuHandler);
+		}
+	}
+
+	// Track menu instance
+	let trackMenuInstance: TrackContextMenuController | null = null;
+
+	function initTrackContextMenu() {
+		// Check if menu element exists
+		if (!document.getElementById("track-context-menu")) {
+			return;
+		}
+
+		// Clean up old instance if it exists
+		if (trackMenuInstance) {
+			// Call destroy to clean up event listeners
+			if (typeof trackMenuInstance.destroy === "function") {
+				trackMenuInstance.destroy();
+			}
+			trackMenuInstance = null;
+		}
+
+		trackMenuInstance = new TrackContextMenuController();
+
+		// Expose globally for other components to use
+		window.trackContextMenu = trackMenuInstance;
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initTrackContextMenu);
+	} else {
+		initTrackContextMenu();
+	}
+
+	// Only reinitialize if page actually changed
+	document.addEventListener("astro:page-load", () => {
+		if (document.getElementById("track-context-menu")) {
+			initTrackContextMenu();
+		}
+	});
+</script>
+
+<style>
+	/* Menu item hover effect - component specific */
+	.menu-item {
+		position: relative;
+	}
+</style>

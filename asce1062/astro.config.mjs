@@ -264,6 +264,36 @@ export default defineConfig({
 							},
 						},
 					},
+					// Music CDN metadata (JSON files)
+					{
+						urlPattern: /^https:\/\/cdn\.alexmbugua\.me\/.*\.json$/i,
+						handler: "StaleWhileRevalidate",
+						options: {
+							cacheName: "music-metadata-cache",
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60, // 1 hour
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
+					// Music CDN album cover art and images
+					{
+						urlPattern: /^https:\/\/cdn\.alexmbugua\.me\/.*\.(png|jpg|jpeg|webp)$/i,
+						handler: "CacheFirst",
+						options: {
+							cacheName: "music-artwork-cache",
+							expiration: {
+								maxEntries: 200,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
+						},
+					},
 					// Other images
 					{
 						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,

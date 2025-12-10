@@ -1,0 +1,818 @@
+---
+/**
+ * Music Library Page - Redesigned
+ * Single-page music showcase with modal-based interactions
+ * All interactions happen on /music - no page navigation
+ */
+import Layout from "@/layouts/Layout.astro";
+import AlbumDetailModal from "@/components/music/AlbumDetailModal.astro";
+
+const pageTitle = "Music Library";
+const pageDescription = "Stream music from my personal collection. Self-hosted music streaming service.";
+---
+
+<Layout title={pageTitle} description={pageDescription} ogImage="social-preview.png">
+	<!-- Sticky Header Bar -->
+	<div class="sticky top-0 z-40 bg-light-100/80 dark:bg-palette-700/80 backdrop-blur-md">
+		<div class="flex items-center justify-between gap-4 flex-wrap">
+			<!-- Title -->
+			<h1 class="font-retro flex items-center gap-2">
+				<a
+					href="/music"
+					class="icon-cassette icon text-4xl no-underline group hover:text-accent scale-90 p-2 sm:p-1 cursor-pointer">
+				</a>
+				<span class="hidden sm:inline">Music Library</span>
+			</h1>
+
+			<!-- Right Side: Search + Queue -->
+			<div class="flex items-center gap-3 flex-1 sm:flex-initial min-w-0">
+				<!-- Search Bar -->
+				<div class="relative flex-1 sm:w-64">
+					<i
+						class="icon-search-heart absolute left-3 top-1/2 -translate-y-1/2 text-palette-100 text-sm pointer-events-none">
+					</i>
+					<input
+						id="music-search"
+						type="search"
+						transition:persist
+						placeholder="Search tracks, albums..."
+						class="w-full pl-10 pr-4 py-2 bg-light-100/80 dark:bg-palette-700/80 border dark:border-palette-100 border-palette-700 text-palette-200 text-sm placeholder-palette-50 dark:placeholder-palette-200 focus:outline-none focus:border-palette-500 dark:focus:border-palette-600 transition-all"
+					/>
+				</div>
+
+				<!-- Queue Button -->
+				<a
+					id="queue-toggle-btn"
+					class="no-underline icon group hover:text-accent scale-90 mt-2 pt-2 mb-2 sm:p-1 cursor-pointer"
+					aria-label="Show queue"
+					title="Queue (Q)">
+					<i class="icon-music-note-list text-2xl"></i>
+					<span
+						id="queue-badge"
+						class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 flex items-center justify-center bg-palette-300 dark:bg-palette-600 text-palette-900 dark:text-palette-900 focus-outline text-xs font-bold rounded-full hidden">
+						0
+					</span>
+				</a>
+			</div>
+		</div>
+
+		<!-- Stats + Tabs Row -->
+		<div class="flex items-center justify-center gap-4 flex-wrap -mt-2">
+			<!-- View Tabs -->
+			<div
+				id="tabs-container"
+				class="flex gap-1 p-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-palette-700 scrollbar-track-transparent sm:justify-center snap-x snap-mandatory scroll-smooth">
+				<a
+					id="tab-albums"
+					class="tab-button flex flex-col items-center px-3 py-2 text-sm transition-all no-underline text-black hover:bg-palette-200 dark:hover:bg-palette-300 hover:text-black cursor-pointer active whitespace-nowrap snap-center flex-shrink-0"
+					data-view="albums"
+					aria-selected="true"
+					role="tab">
+					<span class="tab-title font-retro">Albums</span>
+					<span id="albums-count" class="text-xs mt-0.5 font-semibold"></span>
+				</a>
+				<a
+					id="tab-tracks"
+					class="tab-button flex flex-col items-center px-3 py-2 text-sm transition-all no-underline text-light-300 dark:text-palette-300 hover:bg-palette-200 dark:hover:bg-palette-300 hover:text-black cursor-pointer whitespace-nowrap snap-center flex-shrink-0"
+					data-view="tracks"
+					aria-selected="false"
+					role="tab">
+					<span class="tab-title font-retro">Tracks</span>
+					<span id="tracks-count" class="font-retro text-xs mt-0.5"></span>
+				</a>
+				<a
+					id="tab-trackers"
+					class="tab-button flex flex-col items-center px-3 py-2 text-sm transition-all no-underline text-light-300 dark:text-palette-300 hover:bg-palette-200 dark:hover:bg-palette-300 hover:text-black cursor-pointer whitespace-nowrap snap-center flex-shrink-0"
+					data-view="trackers"
+					aria-selected="false"
+					role="tab">
+					<span class="tab-title font-retro">Trackers</span>
+					<span id="trackers-count" class="font-retro text-xs mt-0.5"></span>
+				</a>
+				<a
+					id="tab-favorites"
+					class="tab-button flex flex-col items-center px-3 py-2 text-sm transition-all no-underline text-light-300 dark:text-palette-300 hover:bg-palette-200 dark:hover:bg-palette-300 hover:text-black cursor-pointer whitespace-nowrap snap-center flex-shrink-0"
+					data-view="favorites"
+					aria-selected="false"
+					role="tab">
+					<span class="tab-title font-retro">Favorites</span>
+					<span id="favorites-count" class="font-retro text-xs mt-0.5">(0)</span>
+				</a>
+				<a
+					id="tab-playlists"
+					class="tab-button flex flex-col items-center px-3 py-2 text-sm transition-all no-underline text-light-300 dark:text-palette-300 hover:bg-palette-200 dark:hover:bg-palette-300 hover:text-black cursor-pointer whitespace-nowrap snap-center flex-shrink-0"
+					data-view="playlists"
+					aria-selected="false"
+					role="tab">
+					<span class="tab-title font-retro">Playlists</span>
+					<span id="playlists-count" class="font-retro text-xs mt-0.5">(0)</span>
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- Albums View Controls (Sort + View Toggle) sticky top-[124px] sm:top-[124px] z-30 -->
+	<div
+		id="album-sort"
+		class="bg-light-100/80 dark:bg-palette-700/80 backdrop-blur-md flex items-center justify-between gap-4 py-2 mb-2 border-t border-palette-900/30 dark:border-palette-50/30"
+		data-view-controls="albums">
+		<div class="flex items-center">
+			<a
+				id="album-sort-order"
+				class="no-underline icon group hover:text-accent scale-90 p-2 sm:p-1 cursor-pointer"
+				data-order="desc"
+				aria-label="Sort ascending"
+				title="Sort ascending">
+				<i class="icon-sort-down text-2xl"></i>
+			</a>
+			<div class="relative">
+				<select
+					id="album-sort-select"
+					class="px-3 py-1.5 pr-8 bg-light-100/80 dark:bg-palette-700/80 border dark:border-palette-100 border-palette-700 text-palette-50 dark:text-palette-200 text-sm focus:outline-none focus:border-palette-500 dark:focus:border-palette-600 transition-colors cursor-pointer appearance-none">
+					<option value="release" selected>Release</option>
+					<option value="title">Title</option>
+					<option value="duration">Duration</option>
+				</select>
+				<i class="icon-caret-down-fill absolute right-2 top-1/2 -translate-y-1/2 text-palette-100 pointer-events-none">
+				</i>
+			</div>
+		</div>
+		<a
+			id="album-view-toggle"
+			class="no-underline icon group hover:text-accent scale-90 p-2 sm:p-1 cursor-pointer"
+			data-view="grid"
+			aria-label="Toggle view mode"
+			title="Switch to list view">
+			<i class="icon-grid text-2xl"></i>
+		</a>
+	</div>
+
+	<!-- View Content -->
+	<div id="view-content">
+		<!-- Albums View (Default) -->
+		<div id="view-albums" class="view-panel" data-active="true">
+			<!-- Loading state -->
+			<div class="text-center py-12">
+				<i class="icon-music text-6xl text-palette-100 mb-4 block animate-pulse"></i>
+				<p class="text-palette-200 text-lg">Loading albums...</p>
+				<p class="text-palette-100 text-sm mt-2">Bodies, including unreleased but mastered tracks</p>
+			</div>
+		</div>
+
+		<!-- Tracks View -->
+		<div id="view-tracks" class="view-panel hidden" data-active="false">
+			<div class="text-center py-12">
+				<i class="icon-music-note-list text-6xl text-palette-100 mb-4 block"></i>
+				<p class="text-palette-200 text-lg">Track list view coming soon...</p>
+				<p class="text-palette-100 text-sm mt-2">All mastered music</p>
+			</div>
+		</div>
+
+		<!-- Tracker Modules View -->
+		<div id="view-trackers" class="view-panel hidden" data-active="false">
+			<div class="text-center py-12">
+				<i class="icon-file-music text-6xl text-palette-100 mb-4 block"></i>
+				<p class="text-palette-200 text-lg">Tracker modules view coming soon...</p>
+				<p class="text-palette-100 text-sm mt-2">Tracker format music catalog</p>
+			</div>
+		</div>
+
+		<!-- Favorites View -->
+		<div id="view-favorites" class="view-panel hidden" data-active="false">
+			<div class="text-center py-12">
+				<i class="icon-heart text-6xl text-palette-100 mb-4 block"></i>
+				<p class="text-palette-200 text-lg">Favorites coming soon...</p>
+				<p class="text-palette-100 text-sm mt-2">Favorite music: tracks and trackers</p>
+			</div>
+		</div>
+
+		<!-- Playlists View -->
+		<div id="view-playlists" class="view-panel hidden" data-active="false">
+			<div class="text-center py-12">
+				<i class="icon-file-earmark-music text-6xl text-palette-100 mb-4 block"></i>
+				<p class="text-palette-200 text-lg">Playlists coming soon...</p>
+				<p class="text-palette-100 text-sm mt-2">Create and manage playlists</p>
+			</div>
+		</div>
+	</div>
+	<!-- Mini Player (Persistent Bottom Bar) - Replaced by FloatingMusicControls -->
+	<!-- <MiniPlayer /> -->
+
+	<!-- Album Detail Modal -->
+	<AlbumDetailModal />
+</Layout>
+
+<script>
+	/* eslint-env browser */
+	import { PlayerController } from "@/scripts/music/PlayerController";
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import { MusicSDKService } from "@/lib/music/services/MusicSDKService";
+	import { AlbumViewController } from "@/lib/music/controllers/AlbumViewController";
+	import { TrackViewController } from "@/lib/music/controllers/TrackViewController";
+	import { ScrollController } from "@/lib/music/controllers/ScrollController";
+	import { SearchController } from "@/lib/music/controllers/SearchController";
+	import { PlaybackController } from "@/lib/music/controllers/PlaybackController";
+	import { UIController } from "@/lib/music/controllers/UIController";
+	import type { Album, Track, TrackerModule } from "@/types/music";
+
+	/**
+	 * Music Page Controller - Refactored with Separation of Concerns
+	 */
+	class MusicPageController {
+		private sdkService: MusicSDKService | null = null;
+		private player: PlayerController | null = null;
+		private initialized: boolean = false;
+		private storeUnsubscribe: (() => void) | null = null;
+
+		// Controllers
+		private albumViewController: AlbumViewController;
+		private trackViewController: TrackViewController;
+		private scrollController: ScrollController;
+		private searchController: SearchController;
+		private playbackController: PlaybackController;
+		private uiController: UIController;
+
+		constructor() {
+			// Instantiate all controllers (but NOT sdkService - wait until init)
+			this.albumViewController = new AlbumViewController();
+			this.trackViewController = new TrackViewController();
+			this.scrollController = new ScrollController();
+			this.searchController = new SearchController();
+			this.playbackController = new PlaybackController();
+			this.uiController = new UIController();
+
+			this.init();
+		}
+
+		public cleanup(): void {
+			// Cleanup sub-controllers
+			this.albumViewController.cleanup();
+			this.trackViewController.cleanup();
+			this.uiController.cleanup();
+
+			// Unsubscribe from store
+			if (this.storeUnsubscribe) {
+				this.storeUnsubscribe();
+				this.storeUnsubscribe = null;
+			}
+
+			this.initialized = false;
+		}
+
+		private async init(): Promise<void> {
+			if (this.initialized) {
+				return;
+			}
+
+			try {
+				// Initialize SDK only if not already initialized globally
+				if (!window.musicSDK) {
+					this.sdkService = new MusicSDKService();
+					await this.sdkService.initialize();
+				}
+				await this.initPlayer();
+
+				// Wire up controller callbacks (dependency injection)
+				this.wireUpControllers();
+
+				// Load library data
+				await this.loadLibraryData();
+
+				// Setup UI interactions
+				this.uiController.setupViewSwitching();
+				this.searchController.setupSearch();
+				// Note: Keyboard shortcuts are handled globally by FloatingMusicControls
+				// this.uiController.setupKeyboardShortcuts();
+
+				// Subscribe to store changes
+				this.subscribeToStoreChanges();
+
+				this.initialized = true;
+			} catch (error) {
+				console.error("❌ Failed to initialize music page:", error);
+				this.uiController.showLoadError();
+			}
+		}
+
+		private async initPlayer(): Promise<void> {
+			// Reuse existing PlayerController if it exists (preserves queue and prevents duplicate listeners)
+			if (window.musicPlayer) {
+				this.player = window.musicPlayer;
+			} else {
+				this.player = new PlayerController();
+				await this.player.init();
+				// Expose PlayerController globally for all components to use
+				window.musicPlayer = this.player;
+			}
+
+			this.uiController.setPlayer(this.player);
+		}
+
+		/**
+		 * Wire up callbacks between controllers (dependency injection)
+		 */
+		private wireUpControllers(): void {
+			// Inject PlayerController into controllers
+			if (this.player) {
+				this.albumViewController.setPlayerController(this.player);
+				this.playbackController.setPlayerController(this.player);
+			}
+
+			// AlbumViewController callbacks
+			this.albumViewController.setScrollToAlbumCallback(() => {
+				this.scrollController.scrollToPlayingAlbum();
+			});
+			this.albumViewController.setTogglePlayPauseCallback(async (albumId, button) => {
+				await this.playbackController.toggleAlbumPlayPause(albumId, button);
+			});
+			this.albumViewController.setUpdateNowPlayingCallback((track) => {
+				this.playbackController.updateNowPlayingIndicator(track);
+			});
+			this.albumViewController.setUpdatePlayButtonsCallback((state) => {
+				this.playbackController.updatePlayPauseButtons(state);
+			});
+			this.albumViewController.setUpdateTrackIndicatorsCallback(() => {
+				this.playbackController.updateListViewTrackIndicators();
+			});
+			this.albumViewController.setScrollToActiveTrackCallback((container, tracks) => {
+				this.scrollController.scrollToActiveTrack(container, tracks);
+			});
+
+			// TrackViewController callbacks
+			this.trackViewController.setScrollToTrackCallback(() => {
+				this.scrollController.scrollToPlayingTrack();
+			});
+
+			// SearchController callbacks
+			this.searchController.setFilterAlbumsCallback((query) => {
+				this.albumViewController.filterAlbums(query);
+			});
+			this.searchController.setFilterTracksCallback((query) => {
+				this.trackViewController.filterTracks(query);
+			});
+
+			// UIController callbacks
+			this.uiController.setFilterAlbumsCallback((query) => {
+				this.albumViewController.filterAlbums(query);
+			});
+			this.uiController.setFilterTracksCallback((query) => {
+				this.trackViewController.filterTracks(query);
+			});
+			this.uiController.setScrollToPlayingAlbumCallback(() => {
+				this.scrollController.scrollToPlayingAlbum();
+			});
+			this.uiController.setScrollToPlayingTrackCallback(() => {
+				this.scrollController.scrollToPlayingTrack();
+			});
+		}
+
+		private async loadLibraryData(): Promise<void> {
+			try {
+				// If we have sdkService, use it. Otherwise fall back to global SDK methods
+				let albums, tracks, trackerModules;
+
+				if (this.sdkService) {
+					const libraryData = await this.sdkService.loadLibraryData();
+					albums = libraryData.albums;
+					tracks = libraryData.tracks;
+					trackerModules = libraryData.trackerModules;
+				} else if (window.musicSDK) {
+					// Fallback: load directly from global SDK
+					musicStore.setLoading(true);
+					[albums, tracks, trackerModules] = await Promise.all([
+						window.musicSDK.getAllAlbums(),
+						window.musicSDK.getAllTracks(),
+						window.musicSDK.getAllTrackers(),
+					]);
+					musicStore.setLibraryData({ albums, tracks, trackerModules, manifest: undefined });
+					musicStore.setLoading(false);
+				} else {
+					throw new Error("Music SDK not initialized");
+				}
+
+				const state = musicStore.getState();
+				if (!state.error) {
+					this.updateUI(albums, tracks, trackerModules);
+				}
+			} catch (error) {
+				console.error("Failed to load library data:", error);
+				musicStore.setError("Failed to load music library");
+				musicStore.setLoading(false);
+				this.uiController.showLoadError();
+			}
+		}
+
+		private updateUI(albums: Album[], tracks: Track[], trackerModules: TrackerModule[]): void {
+			// Update tab counts
+			this.uiController.updateTabCounts(albums, tracks, trackerModules);
+
+			// Render views
+			this.albumViewController.renderAlbumsView(albums);
+			this.trackViewController.renderTracksView(tracks);
+		}
+
+		/**
+		 * Subscribe to musicStore changes to update UI
+		 */
+		private subscribeToStoreChanges(): void {
+			this.storeUnsubscribe = musicStore.subscribe((state) => {
+				// Update play/pause buttons
+				this.playbackController.updatePlayPauseButtons(state);
+
+				// Update now playing indicator
+				if (state.currentTrack) {
+					this.playbackController.updateNowPlayingIndicator(state.currentTrack);
+					// Update list view track indicators
+					this.playbackController.updateListViewTrackIndicators();
+				}
+			});
+		}
+	}
+
+	// Initialize
+	let musicPageInstance: MusicPageController | null = null;
+	let isInitializing: boolean = false;
+
+	/**
+	 * Initialize carousel scaling for tabs on mobile
+	 */
+	function initTabCarousel() {
+		const tabsContainer = document.getElementById("tabs-container");
+		if (!tabsContainer) return;
+
+		// Only apply on mobile
+		const isMobile = () => window.innerWidth < 640;
+
+		const updateTabScales = function () {
+			if (!isMobile()) {
+				// Reset scales on desktop
+				document.querySelectorAll(".tab-button .tab-title").forEach((title) => {
+					(title as HTMLElement).style.fontSize = "";
+				});
+				return;
+			}
+
+			const containerRect = tabsContainer.getBoundingClientRect();
+			const containerCenter = containerRect.left + containerRect.width / 2;
+
+			document.querySelectorAll(".tab-button").forEach((tab) => {
+				const isActive = tab.classList.contains("active");
+				const tabRect = tab.getBoundingClientRect();
+				const tabCenter = tabRect.left + tabRect.width / 2;
+				const distanceFromCenter = Math.abs(containerCenter - tabCenter);
+				const maxDistance = containerRect.width / 2;
+
+				// Calculate scale: 1.0 at center, 0.0 at edges
+				const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+				let scale = 1.0 - normalizedDistance;
+
+				// Active tabs always get full scale
+				if (isActive) {
+					scale = Math.max(scale, 1.0);
+				}
+
+				// Interpolate between text-xs (0.75rem) and text-lg (1.125rem)
+				const minFontSize = 0.75; // text-xs (12px)
+				const maxFontSize = 1.125; // text-lg (18px)
+				const scaledFontSize = minFontSize + (maxFontSize - minFontSize) * scale;
+
+				// Line height: inverse of font size for better visual balance
+				// In focus (text-lg): line-height calc(1.75 / 1.125) ≈ 1.556
+				// Not in focus (text-xs): line-height calc(1.75 / 1.25) = 1.4
+				const maxLineHeight = 1.4; // text-xs line-height
+				const minLineHeight = 1.556; // text-lg line-height
+				const scaledLineHeight = maxLineHeight - (maxLineHeight - minLineHeight) * scale;
+
+				const titleSpan = tab.querySelector(".tab-title") as HTMLElement;
+				if (titleSpan) {
+					titleSpan.style.fontSize = `${scaledFontSize}rem`;
+					titleSpan.style.lineHeight = `${scaledLineHeight}`;
+				}
+			});
+		};
+
+		// Update on scroll
+		tabsContainer.addEventListener("scroll", updateTabScales, { passive: true });
+
+		// Update on resize
+		window.addEventListener("resize", updateTabScales, { passive: true });
+
+		// Initial update
+		updateTabScales();
+
+		// Expose update function globally for UIController
+		(window as typeof window & { updateTabScales?: () => void }).updateTabScales = updateTabScales;
+
+		// Center the first tab on mobile initially
+		if (isMobile()) {
+			const firstTab = document.getElementById("tab-albums");
+			if (firstTab) {
+				setTimeout(() => {
+					firstTab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+				}, 100);
+			}
+		}
+	}
+
+	/**
+	 * Handle URL parameters (e.g., ?track=track-id, ?view=tracks&search=query)
+	 * Waits for library data to be loaded before attempting to switch tabs and apply filters
+	 */
+	function handleURLParameters() {
+		const urlParams = new URLSearchParams(window.location.search);
+		const trackId = urlParams.get("track");
+		const view = urlParams.get("view");
+		const searchQuery = urlParams.get("search") || urlParams.get("q");
+
+		// Handle track deep link (existing functionality)
+		if (trackId) {
+			// Wait for library data to be loaded by subscribing to musicStore
+			let unsubscribe: (() => void) | null = null;
+			let isHandled = false;
+
+			const handleTrackNavigation = () => {
+				if (isHandled) return;
+
+				const state = musicStore.getState();
+
+				// Check if tracks are loaded and not in loading state
+				if (state.tracks.length > 0 && !state.isLoading) {
+					isHandled = true;
+
+					// Unsubscribe from store
+					if (unsubscribe) {
+						unsubscribe();
+					}
+
+					// Wait a bit more for view controllers to be ready
+					setTimeout(() => {
+						// Now switch to tracks view using programmatic DOM manipulation
+						const tracksTab = document.getElementById("tab-tracks");
+						const albumsView = document.getElementById("view-albums");
+						const tracksView = document.getElementById("view-tracks");
+
+						if (!tracksTab || !albumsView || !tracksView) {
+							console.warn(`⚠️  Required view elements not found`, {
+								tracksTab: !!tracksTab,
+								albumsView: !!albumsView,
+								tracksView: !!tracksView,
+							});
+							return;
+						}
+
+						// Hide all tabs and views first
+						document.querySelectorAll(".tab-button").forEach((tab) => {
+							tab.classList.remove("active");
+							tab.classList.add("text-light-300", "dark:text-palette-300");
+							tab.classList.remove("text-black");
+							tab.setAttribute("aria-selected", "false");
+						});
+
+						document.querySelectorAll(".view-panel").forEach((view) => {
+							view.classList.add("hidden");
+							view.setAttribute("data-active", "false");
+						});
+
+						// Hide all view-specific controls
+						document.querySelectorAll("[data-view-controls]").forEach((control) => {
+							control.classList.add("hidden");
+						});
+
+						// Show tracks tab and view
+						tracksTab.classList.add("active");
+						tracksTab.classList.remove("text-light-300", "dark:text-palette-300");
+						tracksTab.classList.add("text-black");
+						tracksTab.setAttribute("aria-selected", "true");
+
+						tracksView.classList.remove("hidden");
+						tracksView.setAttribute("data-active", "true");
+
+						// Show tracks-specific controls if they exist
+						const tracksControls = document.querySelector('[data-view-controls="tracks"]');
+						if (tracksControls) {
+							tracksControls.classList.remove("hidden");
+						}
+
+						// Poll for the track element to be rendered in the DOM
+						let attempts = 0;
+						const maxAttempts = 20; // 10 seconds max wait (500ms * 20)
+						const pollInterval = 500;
+
+						const checkForTrack = () => {
+							attempts++;
+
+							const trackRow = document.querySelector(`[data-track-id="${trackId}"]`);
+
+							if (trackRow) {
+								// Scroll to track
+								trackRow.scrollIntoView({
+									behavior: "smooth",
+									block: "center",
+								});
+
+								// Add highlight animation
+								setTimeout(() => {
+									trackRow.classList.add("track-highlight-animation");
+									setTimeout(() => {
+										trackRow.classList.remove("track-highlight-animation");
+									}, 2500);
+								}, 300); // Small delay to ensure scroll has started
+							} else if (attempts < maxAttempts) {
+								// Track not rendered yet, try again
+								setTimeout(checkForTrack, pollInterval);
+							} else {
+								// Max attempts reached
+								console.warn(`⚠️  Track element with ID ${trackId} not found in DOM after ${maxAttempts} attempts`);
+							}
+						};
+
+						// Start checking after a short delay to allow view switch and render
+						setTimeout(checkForTrack, 800);
+					}, 500); // Wait 500ms for view controllers to be ready
+				}
+			};
+
+			// Subscribe to store changes
+			unsubscribe = musicStore.subscribe(handleTrackNavigation);
+
+			// Also check immediately in case data is already loaded
+			handleTrackNavigation();
+		}
+
+		// Handle view switching and search (if no track ID)
+		if (!trackId && (view || searchQuery)) {
+			let unsubscribe: (() => void) | null = null;
+			let isHandled = false;
+
+			const handleViewAndSearch = () => {
+				if (isHandled) return;
+
+				const state = musicStore.getState();
+
+				// Wait for data to be loaded
+				if (state.tracks.length > 0 && !state.isLoading) {
+					isHandled = true;
+
+					if (unsubscribe) {
+						unsubscribe();
+					}
+
+					setTimeout(() => {
+						// Switch to requested view if specified
+						if (view && ["albums", "tracks", "trackers", "favorites", "playlists"].includes(view)) {
+							const viewTab = document.getElementById(`tab-${view}`);
+							const viewPanel = document.getElementById(`view-${view}`);
+
+							if (viewTab && viewPanel) {
+								// Hide all tabs and views
+								document.querySelectorAll(".tab-button").forEach((tab) => {
+									tab.classList.remove("active");
+									tab.classList.add("text-light-300", "dark:text-palette-300");
+									tab.classList.remove("text-black");
+									tab.setAttribute("aria-selected", "false");
+								});
+
+								document.querySelectorAll(".view-panel").forEach((panel) => {
+									panel.classList.add("hidden");
+									panel.setAttribute("data-active", "false");
+								});
+
+								// Hide all view-specific controls
+								document.querySelectorAll("[data-view-controls]").forEach((control) => {
+									control.classList.add("hidden");
+								});
+
+								// Show requested tab and view
+								viewTab.classList.add("active");
+								viewTab.classList.remove("text-light-300", "dark:text-palette-300");
+								viewTab.classList.add("text-black");
+								viewTab.setAttribute("aria-selected", "true");
+
+								viewPanel.classList.remove("hidden");
+								viewPanel.setAttribute("data-active", "true");
+
+								// Show view-specific controls if they exist
+								const viewControls = document.querySelector(`[data-view-controls="${view}"]`);
+								if (viewControls) {
+									viewControls.classList.remove("hidden");
+								}
+
+								// Update currentView in store
+								// Update currentView in store (only for valid views)
+								if (view === "albums" || view === "tracks" || view === "trackers") {
+									musicStore.setState({ currentView: view });
+								}
+							}
+						}
+
+						// Apply search query if specified
+						if (searchQuery) {
+							setTimeout(() => {
+								const searchInput = document.getElementById("music-search") as HTMLInputElement;
+								if (searchInput) {
+									searchInput.value = searchQuery;
+									searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+								}
+							}, 300);
+						}
+					}, 500);
+				}
+			};
+
+			unsubscribe = musicStore.subscribe(handleViewAndSearch);
+			handleViewAndSearch();
+		}
+	}
+
+	function initMusicPage() {
+		if (!document.getElementById("view-albums")) {
+			return;
+		}
+
+		// Prevent duplicate initialization
+		if (isInitializing) {
+			return;
+		}
+
+		// Instance should already be null from before-preparation cleanup
+		// But double-check and cleanup if needed
+		if (musicPageInstance) {
+			musicPageInstance.cleanup();
+			musicPageInstance = null;
+		}
+
+		isInitializing = true;
+		musicPageInstance = new MusicPageController();
+		initTabCarousel();
+		handleURLParameters();
+
+		// Reset flag after a delay to allow re-initialization if needed
+		setTimeout(() => {
+			isInitializing = false;
+		}, 1000);
+	}
+
+	// Cleanup before navigation (before-preparation fires first!)
+	document.addEventListener("astro:before-preparation", () => {
+		if (musicPageInstance) {
+			musicPageInstance.cleanup();
+			musicPageInstance = null;
+		}
+	});
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initMusicPage);
+	} else {
+		initMusicPage();
+	}
+
+	document.addEventListener("astro:page-load", initMusicPage);
+
+	// Wire up queue button to global queue drawer
+	let queueButtonAttached = false;
+
+	const queueButtonHandler = (e: Event) => {
+		e.preventDefault();
+		e.stopPropagation();
+		window.queueDrawer?.toggle();
+	};
+
+	function setupQueueButton() {
+		const queueBtn = document.getElementById("queue-toggle-btn");
+		if (queueBtn && !queueButtonAttached) {
+			queueBtn.addEventListener("click", queueButtonHandler);
+			queueButtonAttached = true;
+		}
+	}
+
+	// Cleanup queue button handler before navigation
+	document.addEventListener("astro:before-preparation", () => {
+		const queueBtn = document.getElementById("queue-toggle-btn");
+		if (queueBtn && queueButtonAttached) {
+			queueBtn.removeEventListener("click", queueButtonHandler);
+			queueButtonAttached = false;
+		}
+	});
+
+	// Setup on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setupQueueButton);
+	} else {
+		setupQueueButton();
+	}
+
+	// Setup after view transitions
+	document.addEventListener("astro:page-load", setupQueueButton);
+</script>
+
+<style>
+	/* Component-specific styles */
+	/* View toggle animation - specific to music page */
+	#album-view-toggle i {
+		transition: all 0.2s ease;
+	}
+
+	#album-view-toggle:hover i {
+		transform: scale(1.1);
+	}
+</style>

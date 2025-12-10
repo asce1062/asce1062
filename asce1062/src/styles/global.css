@@ -1,3 +1,10 @@
+/*
+============================================
+Component Imports
+============================================
+*/
+@import "./components/music.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

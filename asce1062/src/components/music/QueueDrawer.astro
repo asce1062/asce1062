@@ -1,0 +1,673 @@
+---
+/**
+ * Queue Drawer
+ * Side panel showing current playback queue
+ * Allows reordering, removing tracks, and clearing queue
+ */
+---
+
+<!-- Drawer Container -->
+<div
+	id="queue-drawer"
+	transition:persist
+	class="fixed inset-0 z-[70] hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-labelledby="queue-drawer-title">
+	<!-- Backdrop -->
+	<div
+		id="queue-drawer-backdrop"
+		class="absolute inset-0 bg-palette-100/60 dark:bg-palette-700/60 backdrop-blur-sm"
+		aria-hidden="true">
+	</div>
+
+	<!-- Drawer Panel -->
+	<div
+		id="queue-drawer-panel"
+		class="music-drawer-panel absolute right-0 top-0 h-full w-full sm:w-96 bg-light-100/80 dark:bg-palette-700/80 backdrop-blur-lg border-l border-palette-700 dark:border-palette-100 shadow-2xl flex flex-col">
+		<!-- Header -->
+		<!-- class="p-2 text-palette-200 hover:text-white transition-colors hover:bg-palette-700" -->
+		<div
+			class="flex items-center justify-between p-4 border-b border-palette-700 dark:border-palette-100 flex-shrink-0">
+			<div class="flex items-center gap-2">
+				<a
+					id="queue-drawer-close"
+					class="no-underline icon group hover:text-accent scale-90 cursor-pointer"
+					aria-label="Close queue"
+					title="Close (ESC or Q)">
+					<i class="icon-chevron-right text-2xl cursor-pointer"></i>
+				</a>
+				<h2 id="queue-drawer-title" class="font-retro mt-4">Queue</h2>
+			</div>
+			<div class="flex items-center">
+				<a
+					id="queue-edit-btn"
+					class="no-underline icon group hover:text-accent scale-90 cursor-pointer"
+					aria-label="Edit queue"
+					title="Edit queue">
+					<i class="icon-pencil text-2xl"></i>
+				</a>
+				<a
+					id="queue-clear-btn"
+					class="no-underline icon group hover:text-accent scale-90 cursor-pointer"
+					aria-label="Clear queue"
+					title="Clear queue">
+					<i class="icon-trash text-2xl"></i>
+				</a>
+			</div>
+		</div>
+
+		<!-- Queue List -->
+		<div id="queue-list-container" class="music-scrollbar flex-1 overflow-y-auto p-4">
+			<!-- Empty state -->
+			<div id="queue-empty" class="text-center py-12">
+				<i class="icon-music-note-list text-6xl mb-4 block text-palette-50 dark:text-palette-200"></i>
+				<p class="text-lg mb-2 text-palette-50 dark:text-palette-200">Queue is empty</p>
+				<p class="text-sm text-palette-50 dark:text-palette-200">Play an album or track to get started</p>
+			</div>
+
+			<!-- Queue items will be rendered here -->
+			<div id="queue-items" class="space-y-2 hidden">
+				<!-- Currently Playing Section -->
+				<div class="mb-4">
+					<h4 class="text-xs font-bold uppercase tracking-wide mb-2 px-2">Now Playing</h4>
+					<div id="queue-current" class="queue-item">
+						<!-- Current track -->
+					</div>
+				</div>
+
+				<!-- Up Next Section -->
+				<div id="queue-upcoming-section" class="hidden">
+					<h4 class="text-xs font-bold uppercase tracking-wide mb-2 px-2 flex items-center justify-between">
+						<span class="font-mono text-palette-50 dark:text-palette-200">Up Next</span>
+						<span id="queue-position" class="text-sm text-light-300 dark:text-palette-300 font-retro">0/0</span>
+					</h4>
+					<div id="queue-upcoming" class="space-y-2">
+						<!-- Upcoming tracks -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer Actions -->
+		<div class="p-4 border-t border-palette-700 dark:border-palette-100 flex-shrink-0">
+			<div class="flex gap-2">
+				<a
+					id="queue-shuffle-btn"
+					data-shuffle="false"
+					class="flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium"
+					aria-label="Shuffle"
+					title="Shuffle">
+					<i
+						class="icon-shuffle text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors">
+					</i>
+					<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Shuffle</span>
+				</a>
+				<a
+					id="queue-repeat-btn"
+					data-repeat="off"
+					class="flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium"
+					aria-label="Repeat"
+					title="Repeat">
+					<i
+						class="icon-repeat text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors">
+					</i>
+					<span class="text-light-300 dark:text-palette-300 group-hover:text-black">Repeat</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	/* eslint-env browser */
+	import { musicStore } from "@/scripts/music/MusicStore";
+	import { formatDuration } from "@/lib/music/auth";
+	import type { Track, Album, MusicState } from "@/types/music";
+
+	/**
+	 * Queue Drawer Controller
+	 */
+	class QueueDrawerController {
+		private drawer: HTMLElement | null;
+		private backdrop: HTMLElement | null;
+		private panel: HTMLElement | null;
+		public unsubscribe: (() => void) | null = null;
+
+		// Elements
+		private closeBtn: HTMLButtonElement | null;
+		private clearBtn: HTMLButtonElement | null;
+		private shuffleBtn: HTMLButtonElement | null;
+		private repeatBtn: HTMLButtonElement | null;
+		private positionEl: HTMLElement | null;
+		private emptyStateEl: HTMLElement | null;
+		private itemsContainerEl: HTMLElement | null;
+		private currentTrackEl: HTMLElement | null;
+		private upcomingEl: HTMLElement | null;
+		private upcomingSectionEl: HTMLElement | null;
+
+		// Event handler references for cleanup
+		private queueContainerClickHandler: ((e: MouseEvent) => Promise<void>) | null = null;
+		private popstateHandler: (() => void) | null = null;
+
+		// Track previous state to avoid unnecessary re-renders
+		private previousQueueState: {
+			queueLength: number;
+			queueIndex: number;
+			currentTrackId: string | null;
+			isPlaying: boolean;
+		} = {
+			queueLength: 0,
+			queueIndex: 0,
+			currentTrackId: null,
+			isPlaying: false,
+		};
+
+		constructor() {
+			this.drawer = document.getElementById("queue-drawer");
+			this.backdrop = document.getElementById("queue-drawer-backdrop");
+			this.panel = document.getElementById("queue-drawer-panel");
+			this.closeBtn = document.getElementById("queue-drawer-close") as HTMLButtonElement;
+			this.clearBtn = document.getElementById("queue-clear-btn") as HTMLButtonElement;
+			this.shuffleBtn = document.getElementById("queue-shuffle-btn") as HTMLButtonElement;
+			this.repeatBtn = document.getElementById("queue-repeat-btn") as HTMLButtonElement;
+			this.positionEl = document.getElementById("queue-position");
+			this.emptyStateEl = document.getElementById("queue-empty");
+			this.itemsContainerEl = document.getElementById("queue-items");
+			this.currentTrackEl = document.getElementById("queue-current");
+			this.upcomingEl = document.getElementById("queue-upcoming");
+			this.upcomingSectionEl = document.getElementById("queue-upcoming-section");
+
+			this.init();
+		}
+
+		private keyboardHandler = (e: KeyboardEvent) => {
+			// Don't trigger if typing in an input
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+				return;
+			}
+
+			// Only handle Escape to close - 'q' is handled globally by FloatingMusicControls
+			if (e.key === "Escape" && this.isOpen()) {
+				e.preventDefault();
+				this.close();
+			}
+		};
+
+		private init(): void {
+			// Subscribe to state changes
+			this.unsubscribe = musicStore.subscribe((state) => {
+				this.onStateChange(state);
+			});
+
+			// Close handlers
+			this.closeBtn?.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.close();
+			});
+			this.backdrop?.addEventListener("click", () => this.close());
+
+			// Action buttons
+			this.clearBtn?.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.clearQueue();
+			});
+			this.shuffleBtn?.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.toggleShuffle();
+			});
+			this.repeatBtn?.addEventListener("click", (e) => {
+				e.stopPropagation();
+				this.cycleRepeat();
+			});
+
+			// Keyboard - use named function so we can remove it later
+			document.addEventListener("keydown", this.keyboardHandler);
+
+			// Back button/edge swipe handling - close drawer instead of navigating
+			// When user swipes from edge or presses back, close drawer and stay on page
+			this.popstateHandler = () => {
+				// If drawer is open, close it (history already went back)
+				if (this.isOpen()) {
+					// Close without calling history.back() since navigation already happened
+					this.panel?.classList.remove("music-drawer-enter-active");
+					setTimeout(() => {
+						this.drawer?.classList.add("hidden");
+						document.body.style.overflow = "";
+					}, 300);
+				}
+			};
+			window.addEventListener("popstate", this.popstateHandler);
+
+			// Event delegation for queue items (ONE listener for all items)
+			const queueContainer = document.getElementById("queue-list-container");
+			if (queueContainer) {
+				// Store handler reference for cleanup
+				this.queueContainerClickHandler = async (e: MouseEvent) => {
+					const target = e.target as HTMLElement;
+
+					// Check if clicking a queue item (not the remove button)
+					const queueItem = target.closest(".queue-item");
+					const removeBtn = target.closest(".queue-remove-btn");
+
+					if (removeBtn) {
+						// Handle remove button click
+						e.stopPropagation();
+						const index = parseInt(removeBtn.getAttribute("data-queue-index") || "0");
+						await this.removeTrack(index);
+					} else if (queueItem && !removeBtn) {
+						// Handle queue item click
+						const index = parseInt(queueItem.getAttribute("data-queue-index") || "0");
+						await this.jumpToTrack(index);
+					}
+				};
+				queueContainer.addEventListener("click", this.queueContainerClickHandler);
+			}
+
+			// Initial render
+			this.onStateChange(musicStore.getState());
+		}
+
+		public onStateChange(state: MusicState): void {
+			// Update queue position
+			if (this.positionEl) {
+				const current = state.queueIndex + 1;
+				const total = state.queue.length;
+				this.positionEl.textContent = `${current}/${total}`;
+			}
+
+			// Update queue badge in header
+			const queueBadge = document.getElementById("queue-badge");
+			if (queueBadge) {
+				if (state.queue.length > 0) {
+					queueBadge.textContent = state.queue.length.toString();
+					queueBadge.classList.remove("hidden");
+				} else {
+					queueBadge.classList.add("hidden");
+				}
+			}
+
+			// Show/hide empty state
+			if (state.queue.length === 0) {
+				this.emptyStateEl?.classList.remove("hidden");
+				this.itemsContainerEl?.classList.add("hidden");
+			} else {
+				this.emptyStateEl?.classList.add("hidden");
+				this.itemsContainerEl?.classList.remove("hidden");
+
+				// Only re-render queue if it actually changed to prevent hover flicker
+				const queueChanged =
+					state.queue.length !== this.previousQueueState.queueLength ||
+					state.queueIndex !== this.previousQueueState.queueIndex ||
+					state.currentTrack?.track_id !== this.previousQueueState.currentTrackId ||
+					state.isPlaying !== this.previousQueueState.isPlaying;
+
+				if (queueChanged) {
+					this.renderQueue(state);
+					this.previousQueueState = {
+						queueLength: state.queue.length,
+						queueIndex: state.queueIndex,
+						currentTrackId: state.currentTrack?.track_id || null,
+						isPlaying: state.isPlaying,
+					};
+				}
+			}
+
+			// Update button states
+			this.updateShuffleButton(state.shuffle);
+			this.updateRepeatButton(state.repeat);
+		}
+
+		private renderQueue(state: MusicState): void {
+			const { queue, queueIndex, currentTrack, isPlaying } = state;
+
+			// Render current track
+			if (this.currentTrackEl && currentTrack) {
+				this.currentTrackEl.innerHTML = this.createQueueItem(currentTrack, queueIndex, true, isPlaying);
+			}
+
+			// Render upcoming tracks
+			const upcoming = queue.slice(queueIndex + 1);
+			if (this.upcomingEl && this.upcomingSectionEl) {
+				if (upcoming.length > 0) {
+					this.upcomingSectionEl.classList.remove("hidden");
+					this.upcomingEl.innerHTML = upcoming
+						.map((track, index) => this.createQueueItem(track, queueIndex + 1 + index, false, false))
+						.join("");
+				} else {
+					this.upcomingSectionEl.classList.add("hidden");
+				}
+			}
+		}
+
+		private createQueueItem(track: Track, index: number, isCurrent: boolean, isPlaying: boolean = false): string {
+			// Get album artwork via album_id (tracks don't have cover art directly)
+			const state = musicStore.getState();
+			const album = state.albums.find((a: Album) => a.album_id === track.album_id);
+			const artwork = album?.cdn_cover_url || "";
+			const currentClass = isCurrent
+				? "bg-palette-200 dark:bg-palette-300 border-palette-500 dark:border-palette-600 text-black dark:text-black"
+				: "hover:bg-palette-200 hover:dark:bg-palette-300 border-palette-200 dark:border-palette-300";
+
+			// Determine play/pause icon
+			const playbackIcon = isPlaying ? "icon-pause" : "icon-play-fill";
+
+			return `
+				<div
+					class="queue-item group flex items-center gap-3 p-3 border-2 ${currentClass} transition-all cursor-pointer group"
+					data-queue-index="${index}"
+					role="button"
+					tabindex="0"
+					aria-label="${isCurrent ? "Currently playing" : "Jump to"} ${track.track_name}">
+					<!-- Album Artwork -->
+					<div class="flex-shrink-0 w-12 h-12 overflow-hidden bg-light-100/30 dark:bg-palette-700/30 relative">
+						${
+							artwork
+								? `<img src="${artwork}" alt="" class="w-full h-full object-cover" loading="lazy" />`
+								: '<i class="icon-music-note text-2xl text-black dark:text-black absolute inset-0 flex items-center justify-center"></i>'
+						}
+						${
+							isCurrent
+								? `<div class="absolute inset-0 flex items-center justify-center bg-light-100/50 dark:bg-palette-700/50 backdrop-blur-[2px]"><i class="${playbackIcon} text-black dark:text-white text-lg drop-shadow-lg"></i></div>`
+								: ""
+						}
+					</div>
+
+					<!-- Track Info -->
+					<div class="flex-1 min-w-0">
+						<p class="${isCurrent ? "text-black dark:text-black" : "text-black dark:text-white group-hover:text-black"} font-medium truncate text-sm">
+							${track.track_name}
+						</p>
+						<ul class="${isCurrent ? "text-black dark:text-black" : "text-palette-50 dark:text-palette-200 group-hover:text-black"} text-xs truncate">
+							${track.artist ? `<li>${track.artist}</li>` : ""}
+							${track.album ? `<li>${track.album}</li>` : ""}
+						</ul>
+					</div>
+
+					<!-- Duration & Remove -->
+					<div class="flex items-center gap-2">
+						<span class="${isCurrent ? "text-black dark:text-black" : "text-palette-50 dark:text-palette-200 group-hover:text-black"} text-xs font-mono">${track.duration || formatDuration(track.duration_seconds || 0)}</span>
+						${
+							!isCurrent
+								? `
+						<a
+							class="queue-remove-btn no-underline icon group-hover:text-black scale-90 cursor-pointer transition-all"
+							data-queue-index="${index}"
+							aria-label="Remove from queue"
+							title="Remove">
+							<i class="icon-x text-sm"></i>
+						</a>
+						`
+								: ""
+						}
+					</div>
+				</div>
+			`;
+		}
+
+		private async jumpToTrack(index: number): Promise<void> {
+			const state = musicStore.getState();
+			if (!window.musicSDK || !state.queue[index]) return;
+
+			try {
+				// Check if clicking on the currently playing track
+				const isCurrentTrack =
+					state.queueIndex === index && state.currentTrack?.track_id === state.queue[index].track_id;
+
+				if (isCurrentTrack) {
+					// Toggle play/pause on current track
+					if (window.musicPlayer) {
+						window.musicPlayer.togglePlay();
+					}
+				} else {
+					// Jump to different track
+					if (window.musicPlayer) {
+						await window.musicPlayer.jumpTo(index);
+					}
+				}
+			} catch (error) {
+				console.error("Failed to jump to track:", error);
+			}
+		}
+
+		private async removeTrack(index: number): Promise<void> {
+			const state = musicStore.getState();
+
+			if (index < 0 || index >= state.queue.length) {
+				return;
+			}
+
+			if (!window.musicSDK) {
+				console.error("SDK not available");
+				return;
+			}
+
+			const removingCurrent = index === state.queueIndex;
+			const wasPlaying = state.isPlaying;
+
+			try {
+				// Use SDK's removeFromQueue method
+				window.musicSDK.playback.removeFromQueue(index);
+
+				// If we removed the currently playing track and it was playing, play the new current track
+				if (removingCurrent && wasPlaying) {
+					// Wait a moment for SDK to update
+					await new Promise((resolve) => setTimeout(resolve, 50));
+
+					const sdkState = window.musicSDK.playback.getState();
+					const newCurrent = sdkState.queue?.[sdkState.queuePosition || 0];
+
+					if (newCurrent) {
+						await window.musicSDK.playback.play(newCurrent);
+					} else {
+						window.musicSDK.playback.pause();
+					}
+				}
+			} catch (error) {
+				console.error("Failed to remove track:", error);
+			}
+		}
+		private clearQueue(): void {
+			if (!window.musicSDK) return;
+
+			// Confirm before clearing
+			if (confirm("Clear entire queue?")) {
+				musicStore.setQueue([], 0);
+				window.musicSDK.playback.pause();
+				this.close();
+			}
+		}
+
+		private toggleShuffle(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.toggleShuffle();
+			}
+		}
+
+		private cycleRepeat(): void {
+			if (window.musicPlayer) {
+				window.musicPlayer.cycleRepeat();
+			}
+		}
+
+		private updateShuffleButton(shuffle: boolean): void {
+			if (!this.shuffleBtn) return;
+
+			const shuffleIcon = this.shuffleBtn.querySelector("i");
+			const shuffleText = this.shuffleBtn.querySelector("span");
+
+			if (shuffle) {
+				// Active: add background color and text-black
+				this.shuffleBtn.className =
+					"flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium";
+				if (shuffleIcon) {
+					shuffleIcon.className =
+						"icon-shuffle text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+				}
+				if (shuffleText) {
+					shuffleText.className = "text-black dark:text-black group-hover:text-black";
+				}
+			} else {
+				// Inactive: normal state
+				this.shuffleBtn.className =
+					"flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium";
+				if (shuffleIcon) {
+					shuffleIcon.className =
+						"icon-shuffle text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors";
+				}
+				if (shuffleText) {
+					shuffleText.className = "text-light-300 dark:text-palette-300 group-hover:text-black";
+				}
+			}
+
+			// Update data attribute
+			this.shuffleBtn.setAttribute("data-shuffle", shuffle.toString());
+		}
+
+		private updateRepeatButton(repeat: string): void {
+			if (!this.repeatBtn) return;
+
+			const repeatIcon = this.repeatBtn.querySelector("i");
+			const repeatText = this.repeatBtn.querySelector("span");
+
+			if (repeat === "one") {
+				// Repeat one: add background color, use repeat-1 icon, text-black
+				this.repeatBtn.className =
+					"flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium";
+				if (repeatIcon) {
+					repeatIcon.className =
+						"icon-repeat-1 text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+				}
+				if (repeatText) {
+					repeatText.className = "text-black dark:text-black group-hover:text-black";
+				}
+			} else if (repeat === "all") {
+				// Repeat all: add background color, use repeat icon, text-black
+				this.repeatBtn.className =
+					"flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors bg-palette-200 dark:bg-palette-300 hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium";
+				if (repeatIcon) {
+					repeatIcon.className =
+						"icon-repeat text-lg text-black dark:text-black group-hover:text-black dark:group-hover:text-black transition-colors";
+				}
+				if (repeatText) {
+					repeatText.className = "text-black dark:text-black group-hover:text-black";
+				}
+			} else {
+				// Repeat off: normal state
+				this.repeatBtn.className =
+					"flex-1 px-4 py-2.5 no-underline icon group scale-90 cursor-pointer transition-colors hover:bg-palette-200 hover:dark:bg-palette-300 flex items-center justify-center gap-2 text-sm font-medium";
+				if (repeatIcon) {
+					repeatIcon.className =
+						"icon-repeat text-lg text-light-300 dark:text-palette-300 group-hover:text-black dark:group-hover:text-black transition-colors";
+				}
+				if (repeatText) {
+					repeatText.className = "text-light-300 dark:text-palette-300 group-hover:text-black";
+				}
+			}
+
+			// Update data attribute
+			this.repeatBtn.setAttribute("data-repeat", repeat);
+		}
+
+		public open(): void {
+			if (!this.drawer || !this.panel) return;
+			if (this.isOpen()) return; // Already open
+
+			this.drawer.classList.remove("hidden");
+			document.body.style.overflow = "hidden";
+
+			// Push history state for back button handling
+			// This allows back button/swipe to close drawer instead of navigating
+			history.pushState({ queueDrawer: true }, "");
+
+			// Animate entrance with a small delay to ensure the element is rendered
+			setTimeout(() => {
+				this.panel?.classList.add("music-drawer-enter-active");
+			}, 10);
+		}
+
+		public close(): void {
+			if (!this.drawer || !this.panel) return;
+			if (!this.isOpen()) return; // Already closed
+
+			// If we opened the drawer (pushed state), go back to close it
+			// This will trigger popstate which will actually close the drawer
+			// If popstate already fired (from edge swipe/back button), this does nothing
+			if (history.state?.queueDrawer) {
+				history.back();
+			} else {
+				// Manual close (called from popstate or drawer wasn't opened with state)
+				this.panel.classList.remove("music-drawer-enter-active");
+				setTimeout(() => {
+					this.drawer?.classList.add("hidden");
+					document.body.style.overflow = "";
+				}, 300);
+			}
+		}
+
+		public toggle(): void {
+			if (this.isOpen()) {
+				this.close();
+			} else {
+				this.open();
+			}
+		}
+		private isOpen(): boolean {
+			return !this.drawer?.classList.contains("hidden");
+		}
+
+		public destroy(): void {
+			// Clean up event listeners
+			if (this.keyboardHandler) {
+				document.removeEventListener("keydown", this.keyboardHandler);
+			}
+			if (this.popstateHandler) {
+				window.removeEventListener("popstate", this.popstateHandler);
+			}
+			if (this.queueContainerClickHandler) {
+				const queueContainer = document.getElementById("queue-list-container");
+				queueContainer?.removeEventListener("click", this.queueContainerClickHandler);
+			}
+			// Unsubscribe from store
+			this.unsubscribe?.();
+		}
+	}
+
+	// Initialize with singleton pattern
+	let queueDrawerInstance: QueueDrawerController | null = null;
+
+	function initQueueDrawer() {
+		// Check if queue drawer element exists
+		if (!document.getElementById("queue-drawer")) {
+			return;
+		}
+
+		// Clean up old instance if it exists
+		if (queueDrawerInstance) {
+			// Clean up event listeners and unsubscribe from store
+			if ("destroy" in queueDrawerInstance && typeof queueDrawerInstance.destroy === "function") {
+				queueDrawerInstance.destroy();
+			}
+			// The controller will be garbage collected
+			queueDrawerInstance = null;
+		}
+
+		queueDrawerInstance = new QueueDrawerController();
+
+		// Expose globally for buttons to toggle
+		window.queueDrawer = queueDrawerInstance;
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initQueueDrawer);
+	} else {
+		initQueueDrawer();
+	}
+
+	// Only reinitialize if page actually changed
+	document.addEventListener("astro:page-load", () => {
+		if (document.getElementById("queue-drawer")) {
+			initQueueDrawer();
+		}
+	});
+</script>
