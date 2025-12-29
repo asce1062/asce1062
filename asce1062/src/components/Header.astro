@@ -47,24 +47,26 @@ function isActive(linkHref: string): boolean {
 				mainNavigation.map((link, index) => {
 					const active = isActive(link.href);
 					return (
-						<a
-							data-nav-item
-							data-index={index}
-							class={`no-underline group hover:text-accent scale-90 px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1 ${active ? "active-nav-item" : ""}`}
-							href={link.href}
-							aria-label={link.ariaLabel}
-							aria-current={active ? "page" : undefined}>
-							{link.multiPathIcon && link.pathCount ? (
-								<span class={`${link.icon} mr-0 text-2xl`}>
-									{Array.from({ length: link.pathCount }, (_, i) => (
-										<span class={`path${i + 1}`} />
-									))}
-								</span>
-							) : (
-								<i class={`${link.icon} mr-0 text-2xl`} />
-							)}
-							{link.name}
-						</a>
+						<b>
+							<a
+								data-nav-item
+								data-index={index}
+								class={`no-underline group hover:text-accent scale-90 px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1 ${active ? "active-nav-item" : ""}`}
+								href={link.href}
+								aria-label={link.ariaLabel}
+								aria-current={active ? "page" : undefined}>
+								{link.multiPathIcon && link.pathCount ? (
+									<span class={`${link.icon} mr-0 text-2xl`}>
+										{Array.from({ length: link.pathCount }, (_, i) => (
+											<span class={`path${i + 1}`} />
+										))}
+									</span>
+								) : (
+									<i class={`${link.icon} mr-0 text-2xl`} />
+								)}
+								{link.name}
+							</a>
+						</b>
 					);
 				})
 			}

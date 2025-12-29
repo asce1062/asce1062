@@ -531,3 +531,7 @@ Share Notification (Global)
 		font-size: 0.875rem;
 	}
 }
+
+@view-transition {
+	navigation: auto;
+}

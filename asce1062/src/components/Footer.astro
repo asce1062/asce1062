@@ -16,7 +16,7 @@ const colours = [
 	<hr class="w-full h-[1.875px] mt-4 mb-8 sm:my-8 border-0 bg-palette-900 dark:bg-white" aria-hidden="true" />
 	<div class="flex flex-col justify-between leading-7 sm:leading-5 transition-all duration-300 sm:flex-row">
 		<!-- Social Links -->
-		<div class="text-palette-800">
+		<div class="text-palette-800 text-left">
 			{
 				socialLinks.map((link) => (
 					<>
@@ -33,7 +33,7 @@ const colours = [
 		</div>
 
 		<!-- Contact & Resume Links -->
-		<div class="text-palette-800">
+		<div class="text-palette-800 text-left sm:text-right">
 			<b>
 				{
 					contactLinks.slice(0, 2).map((link, index) => (
