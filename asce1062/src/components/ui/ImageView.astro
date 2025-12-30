@@ -18,7 +18,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 			src={images[image]()}
 			alt={altText}
 			title={altText}
-			class={`h-auto max-w-${maxWidth} mx-auto rounded-lg`}
+			class={`h-auto max-w-${maxWidth} mx-auto`}
 			loading="lazy"
 			decoding="async"
 		/>

@@ -41,13 +41,13 @@ export const mainNavigation: NavigationLink[] = [
 		name: "Search",
 		href: "/search",
 		icon: "icon-search-heart",
-		ariaLabel: "Search the site",
+		ariaLabel: "Visit the Search blogs page",
 		animation: "rotate-left",
 	},
 	{
 		name: "Blog",
 		href: "/blog",
-		icon: "icon-bookmark-heart",
+		icon: "icon-journal-richtext",
 		ariaLabel: "Visit the Blog page",
 		animation: "rotate-right",
 	},
@@ -61,7 +61,7 @@ export const mainNavigation: NavigationLink[] = [
 	{
 		name: "Projects",
 		href: "/projects",
-		icon: "icon-kanban",
+		icon: "icon-braces-asterisk",
 		ariaLabel: "Visit the Projects page",
 		animation: "rotate-right",
 	},
@@ -73,11 +73,18 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 	},
 	{
+		name: "Resume",
+		href: "/resume",
+		icon: "icon-filetype-pdf",
+		ariaLabel: "Visit the view Alex's resume as PDF page",
+		animation: "rotate-right",
+	},
+	{
 		name: "8biticon",
 		href: "/8biticon",
 		icon: "icon-female",
 		ariaLabel: "Create your own 8-bit pixel avatar",
-		animation: "rotate-right",
+		animation: "rotate-left",
 		multiPathIcon: true,
 		pathCount: 10,
 	},
@@ -86,7 +93,7 @@ export const mainNavigation: NavigationLink[] = [
 		href: "/rss.xml",
 		icon: "icon-rss",
 		ariaLabel: "Subscribe to my blog",
-		animation: "rotate-left",
+		animation: "rotate-right",
 	},
 ];
 
@@ -124,10 +131,9 @@ export const contactLinks: NavigationLink[] = [
 	},
 	{
 		name: "Resume.pdf",
-		href: "/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf",
-		icon: "icon-cloud-download",
-		ariaLabel: "Download Alex's resume as PDF",
-		download: true,
+		href: "/resume",
+		icon: "icon-filetype-pdf",
+		ariaLabel: "View Alex's resume as PDF",
 	},
 	{
 		name: "alex.mbugua@outlook.com",
@@ -162,7 +168,7 @@ const shortCommitHash = getShortCommitHash();
 
 export const siteMetadata = {
 	author: "Alex Mbugua",
-	greeting: "hi, i'm Alex.",
+	greeting: "Alex.",
 	email: "alex.mbugua@outlook.com",
 	githubRepo: "https://github.com/asce1062/asce1062/tree/main/asce1062",
 	astroUrl: "https://astro.build",

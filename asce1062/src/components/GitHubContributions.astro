@@ -21,22 +21,16 @@ const { username = "asce1062" } = Astro.props;
 </div>
 
 <script>
-	function updateGitHubContributionsTheme() {
-		const iframe = document.getElementById("github-contributions") as HTMLIFrameElement;
-		const currentTheme = document.documentElement.getAttribute("data-theme");
-		const scheme = currentTheme === "dark" ? "dark" : "light";
+	import { initIframeTheme } from "@/scripts/iframeTheme";
 
-		if (iframe) {
-			iframe.src = iframe.src.replace(/scheme=(dark|light)/, `scheme=${scheme}`);
-		}
-	}
-
-	// Initial load
-	document.addEventListener("DOMContentLoaded", updateGitHubContributionsTheme);
-
-	// Reinitialize after view transitions
-	document.addEventListener("astro:page-load", updateGitHubContributionsTheme);
-
-	// Theme changes
-	document.addEventListener("set-theme", updateGitHubContributionsTheme);
+	// Initialize GitHub contributions iframe theme synchronization
+	initIframeTheme({
+		id: "github-contributions",
+		updateMethod: "src-query",
+		queryParam: "scheme",
+		queryValues: {
+			dark: "dark",
+			light: "light",
+		},
+	});
 </script>

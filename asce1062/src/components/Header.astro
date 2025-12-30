@@ -20,7 +20,18 @@ function isActive(linkHref: string): boolean {
 	<div id="navigation" class="mb-3">
 		<ThemeSwitcher default="dark" />
 		<span>
-			~/ <a class="no-underline" href="/">home</a>
+			~/
+			<span class="group">
+				<a
+					class="no-underline group-hover:bg-palette-200 group-hover:dark:bg-palette-300 group-hover:dark:text-black transition-colors"
+					href="/">
+					home
+				</a> / <a
+					class="no-underline group-hover:bg-palette-200 group-hover:dark:bg-palette-300 group-hover:dark:text-black transition-colors"
+					href="/">
+					alex
+				</a>
+			</span>
 			{
 				link ? (
 					<span>
@@ -33,12 +44,14 @@ function isActive(linkHref: string): boolean {
 							</span>
 						))}
 					</span>
-				) : null
+				) : (
+					<span> / </span>
+				)
 			}
 		</span>
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
-	<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-900 dark:bg-white" />
+	<hr class="w-full h-[1.875px] mt-4 mb-8 sm:my-8 border-0 bg-palette-900 dark:bg-white" />
 	<div class="flex flex-col items-center justify-center gap-6 min-h-[3rem]">
 		<div
 			id="nav-container"
@@ -73,7 +86,7 @@ function isActive(linkHref: string): boolean {
 			<button
 				id="nav-toggle"
 				type="button"
-				class="no-underline group hover:text-accent scale-90 px-1.5 py-2 sm:px-1 sm:py-1 cursor-pointer hidden w-full text-center font-bold text-light-300 dark:text-palette-300"
+				class="no-underline group hover:text-accent scale-90 px-1.5 py-2 sm:px-1 sm:py-1 cursor-pointer hidden w-full text-center font-bold text-palette-900 dark:text-palette-300"
 				aria-label="Toggle navigation"
 				aria-expanded="false">
 				<i id="nav-toggle-icon" class="icon-chevron-bar-down mr-0 text-2xl transition-transform duration-300"></i>

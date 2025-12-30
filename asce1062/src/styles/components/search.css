@@ -10,9 +10,9 @@ Match our site theme
 	--pagefind-ui-border: theme(colors.palette.300);
 	--pagefind-ui-primary: theme(colors.palette.500);
 	--pagefind-ui-tag: theme(colors.light.200);
-	--pagefind-ui-border-radius: 0.5rem;
+	--pagefind-ui-border-radius: 0;
 	--pagefind-ui-border-width: 1px;
-	--pagefind-ui-image-border-radius: 0.5rem;
+	--pagefind-ui-image-border-radius: 0;
 	--pagefind-ui-image-box-ratio: 3 / 2;
 	--pagefind-ui-scale: 0.8;
 }
@@ -183,7 +183,7 @@ Match our site theme
 	background: var(--pagefind-ui-primary);
 	color: var(--pagefind-ui-background);
 	padding: 0 0.1em;
-	border-radius: 2px;
+	border-radius: 0;
 }
 
 /* Tags styling with reduced corner roundness */
@@ -191,7 +191,7 @@ Match our site theme
 #pagefind-search .pagefind-ui__result-tags .pagefind-ui__result-tag,
 .pagefind-ui__result .pagefind-ui__result-tag,
 li.pagefind-ui__result-tag.svelte-4xnkmf {
-	@apply p-1 inline-block rounded;
+	@apply p-1 inline-block;
 }
 
 /* Ensure search results wrap gracefully and remain within viewport */

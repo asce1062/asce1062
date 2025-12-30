@@ -99,7 +99,6 @@
 
 	body {
 		margin: 0;
-		min-height: 100vh;
 		background-color: var(--dark);
 		color: white;
 	}
@@ -245,12 +244,12 @@
 	}
 
 	input {
-		@apply my-4 bg-white p-2 font-normal rounded-md dark:bg-palette-900;
+		@apply my-4 bg-white p-2 font-normal bg-palette-100 dark:bg-palette-900;
 	}
 
 	kbd {
 		@apply inline-block px-2 py-1 text-xs bg-palette-200 dark:bg-palette-700;
-		@apply border border-palette-300 dark:border-palette-600 rounded;
+		@apply border border-palette-300 dark:border-palette-600;
 		@apply text-palette-700 dark:text-palette-300;
 	}
 
@@ -284,7 +283,7 @@
   */
 
 	code:not(pre code) {
-		@apply px-1 py-0.5 rounded font-normal text-sm;
+		@apply px-1 py-0.5 font-normal text-sm;
 		@apply bg-palette-200 text-light-300;
 		@apply dark:bg-white/10 dark:text-palette-400;
 	}
@@ -294,7 +293,7 @@
 	}
 
 	pre {
-		@apply !px-0 rounded-lg;
+		@apply !px-0;
 	}
 
 	code {
@@ -350,7 +349,7 @@
 	}
 
 	[data-highlighted-chars] {
-		@apply bg-zinc-600/50 rounded;
+		@apply bg-zinc-600/50;
 		box-shadow: 0 0 0 4px rgb(82 82 91 / 0.5);
 	}
 
@@ -376,7 +375,7 @@
 
 	/* Code Block Titles */
 	[data-rehype-pretty-code-title] {
-		@apply bg-zinc-700 text-zinc-200 rounded-t-lg py-2 px-3 font-semibold text-sm;
+		@apply bg-zinc-700 text-zinc-200 py-2 px-3 font-semibold text-sm;
 	}
 
 	figcaption + pre {
@@ -437,8 +436,10 @@ Global Utility Styles
 	@apply prose px-4 sm:px-6 md:px-8 mx-auto;
 }
 
+/* Ensure iframe displays properly */
 iframe {
 	color-scheme: auto;
+	display: block;
 }
 
 #ascii-404 {

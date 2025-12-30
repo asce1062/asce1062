@@ -109,3 +109,31 @@ export interface PreviewImageProps {
 	readonly src: string;
 	readonly altText: string;
 }
+
+/**
+ * Iframe Theme Configuration
+ * Used for managing iframe theme synchronization across the site
+ */
+export interface IframeThemeConfig {
+	/** The iframe element ID */
+	readonly id: string;
+	/**
+	 * How to update the iframe theme
+	 * - 'src-query': Update a query parameter in the iframe src (e.g., ?scheme=dark)
+	 * - 'color-scheme': Only update the color-scheme style property
+	 */
+	readonly updateMethod: "src-query" | "color-scheme";
+	/**
+	 * For 'src-query' method: the query parameter name to update
+	 * Example: 'scheme' for ?scheme=dark
+	 */
+	readonly queryParam?: string;
+	/**
+	 * For 'src-query' method: mapping of theme to query value
+	 * Example: { dark: 'dark', light: 'light' }
+	 */
+	readonly queryValues?: {
+		readonly dark: string;
+		readonly light: string;
+	};
+}
