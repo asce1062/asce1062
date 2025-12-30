@@ -5,6 +5,7 @@ import { mainNavigation, siteMetadata } from "@/data/navigation";
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
 const currentPath = Astro.url.pathname;
+const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 // Function to check if a link is active
 function isActive(linkHref: string): boolean {
@@ -18,7 +19,20 @@ function isActive(linkHref: string): boolean {
 
 <header>
 	<div id="navigation" class="mb-3">
-		<ThemeSwitcher default="dark" />
+		<div class="float-right flex flex-col gap-2">
+			<ThemeSwitcher default="dark" />
+			{
+				!isSearchPage && (
+					<button
+						id="open-floating-search"
+						type="button"
+						class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100"
+						aria-label="Open search">
+						<i class="icon-search-heart " />
+					</button>
+				)
+			}
+		</div>
 		<span>
 			~/
 			<span class="group">
@@ -51,7 +65,7 @@ function isActive(linkHref: string): boolean {
 		</span>
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
-	<hr class="w-full h-[1.875px] mt-4 mb-8 sm:my-8 border-0 bg-palette-900 dark:bg-white" />
+	<hr class="w-full h-[1.875px] my-4 border-0 bg-palette-900 dark:bg-white" />
 	<div class="flex flex-col items-center justify-center gap-6 min-h-[3rem]">
 		<div
 			id="nav-container"

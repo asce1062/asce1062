@@ -3,7 +3,8 @@ Tailwind theme variables
 Override some Pagefind UI default theme elements
 Match our site theme
 */
-#pagefind-search {
+#pagefind-search,
+#pagefind-search-floating {
 	--pagefind-ui-font: "0xProto", monospace;
 	--pagefind-ui-text: theme(colors.palette.700);
 	--pagefind-ui-background: theme(colors.light.100);
@@ -18,7 +19,8 @@ Match our site theme
 }
 
 /* Dark theme override */
-[data-theme="dark"] #pagefind-search {
+[data-theme="dark"] #pagefind-search,
+[data-theme="dark"] #pagefind-search-floating {
 	--pagefind-ui-text: theme(colors.light.100);
 	--pagefind-ui-background: theme(colors.palette.900);
 	--pagefind-ui-border: theme(colors.palette.800);
@@ -126,7 +128,8 @@ Match our site theme
 	border-bottom: none !important;
 }
 
-#pagefind-search .pagefind-ui__result:last-of-type {
+#pagefind-search .pagefind-ui__result:last-of-type,
+#pagefind-search-floating .pagefind-ui__result:last-of-type {
 	border-bottom: none !important;
 }
 
@@ -142,7 +145,10 @@ Match our site theme
 /* Ensure Pagefind links match global link styling */
 #pagefind-search .pagefind-ui__result a,
 #pagefind-search .pagefind-ui__result-link,
-#pagefind-search .pagefind-ui__result-title a {
+#pagefind-search .pagefind-ui__result-title a,
+#pagefind-search-floating .pagefind-ui__result a,
+#pagefind-search-floating .pagefind-ui__result-link,
+#pagefind-search-floating .pagefind-ui__result-title a {
 	@apply text-light-300 dark:text-palette-300;
 	@apply underline decoration-dashed underline-offset-8;
 	@apply hover:no-underline hover:bg-palette-200 hover:dark:bg-palette-300 hover:dark:text-black;
@@ -152,11 +158,13 @@ Match our site theme
 }
 
 /* Add vertical spacing between link/title and excerpt */
-#pagefind-search .pagefind-ui__result-title {
+#pagefind-search .pagefind-ui__result-title,
+#pagefind-search-floating .pagefind-ui__result-title {
 	@apply mb-2;
 }
 
-#pagefind-search .pagefind-ui__result-excerpt {
+#pagefind-search .pagefind-ui__result-excerpt,
+#pagefind-search-floating .pagefind-ui__result-excerpt {
 	@apply mb-4;
 }
 
@@ -187,8 +195,9 @@ Match our site theme
 }
 
 /* Tags styling with reduced corner roundness */
-/* Increase specificity to override Pagefind’s internal styles */
+/* Increase specificity to override Pagefind's internal styles */
 #pagefind-search .pagefind-ui__result-tags .pagefind-ui__result-tag,
+#pagefind-search-floating .pagefind-ui__result-tags .pagefind-ui__result-tag,
 .pagefind-ui__result .pagefind-ui__result-tag,
 li.pagefind-ui__result-tag.svelte-4xnkmf {
 	@apply p-1 inline-block;
@@ -198,7 +207,11 @@ li.pagefind-ui__result-tag.svelte-4xnkmf {
 #pagefind-search,
 #pagefind-search .pagefind-ui__results,
 #pagefind-search .pagefind-ui__result,
-#pagefind-search .pagefind-ui__result-inner {
+#pagefind-search .pagefind-ui__result-inner,
+#pagefind-search-floating,
+#pagefind-search-floating .pagefind-ui__results,
+#pagefind-search-floating .pagefind-ui__result,
+#pagefind-search-floating .pagefind-ui__result-inner {
 	@apply max-w-full w-full break-words overflow-visible;
 	word-break: break-word;
 	overflow-wrap: anywhere;
@@ -209,7 +222,11 @@ li.pagefind-ui__result-tag.svelte-4xnkmf {
 #pagefind-search .pagefind-ui__result-excerpt,
 #pagefind-search .pagefind-ui__result-title a,
 #pagefind-search .pagefind-ui__result mark,
-#pagefind-search .pagefind-ui__result-tag {
+#pagefind-search .pagefind-ui__result-tag,
+#pagefind-search-floating .pagefind-ui__result-excerpt,
+#pagefind-search-floating .pagefind-ui__result-title a,
+#pagefind-search-floating .pagefind-ui__result mark,
+#pagefind-search-floating .pagefind-ui__result-tag {
 	@apply break-words whitespace-normal;
 	word-break: break-word;
 	overflow-wrap: anywhere;
@@ -217,23 +234,28 @@ li.pagefind-ui__result-tag.svelte-4xnkmf {
 
 /* Responsive stacking for smaller viewports */
 @media (max-width: 640px) {
-	#pagefind-search .pagefind-ui__result {
+	#pagefind-search .pagefind-ui__result,
+	#pagefind-search-floating .pagefind-ui__result {
 		@apply flex-col gap-2;
 	}
 
-	#pagefind-search .pagefind-ui__result-inner {
+	#pagefind-search .pagefind-ui__result-inner,
+	#pagefind-search-floating .pagefind-ui__result-inner {
 		@apply w-full;
 	}
 
-	#pagefind-search .pagefind-ui__result-title {
+	#pagefind-search .pagefind-ui__result-title,
+	#pagefind-search-floating .pagefind-ui__result-title {
 		@apply text-base;
 	}
 
-	#pagefind-search .pagefind-ui__result-excerpt {
+	#pagefind-search .pagefind-ui__result-excerpt,
+	#pagefind-search-floating .pagefind-ui__result-excerpt {
 		@apply text-sm leading-relaxed;
 	}
 
-	#pagefind-search .pagefind-ui__result-tags {
+	#pagefind-search .pagefind-ui__result-tags,
+	#pagefind-search-floating .pagefind-ui__result-tags {
 		@apply flex-wrap;
 	}
 }

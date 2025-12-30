@@ -1,0 +1,167 @@
+---
+/**
+ * Floating Search Modal
+ * A modal overlay for search that can be triggered from anywhere on the site
+ * Uses a separate pagefind instance to avoid conflicts with the main search page
+ */
+import SearchBox from "@/components/SearchBox.astro";
+
+const currentPath = Astro.url.pathname;
+const isSearchPage = currentPath === "/search" || currentPath === "/search/";
+---
+
+{
+	!isSearchPage && (
+		<>
+			<div
+				id="floating-search-overlay"
+				class="fixed inset-0 bg-light-100/70 dark:bg-palette-700/70 z-[100] opacity-0 pointer-events-none transition-opacity duration-300"
+				aria-hidden="true"
+			/>
+			<div
+				id="floating-search-modal"
+				class="fixed left-0 right-0 mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-[101] bg-light-100 dark:bg-palette-700 border border-palette-400 dark:border-palette-300 opacity-0 pointer-events-none transition-all duration-300"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="floating-search-title">
+				<div class="flex items-center justify-between mb-4">
+					<h2 id="floating-search-title" class="m-0 leading-none">
+						Search
+					</h2>
+					<a
+						id="close-floating-search"
+						class="icon no-underline cursor-pointer transition-colors flex items-center justify-center"
+						aria-label="Close search">
+						<i class="icon-x-lg" />
+					</a>
+				</div>
+				<div id="pagefind-search-floating">
+					<SearchBox searchId="floating-searchbox" showTips={true} />
+				</div>
+			</div>
+		</>
+	)
+}
+
+<script>
+	import { initSearchShortcut } from "@/scripts/keyboardShortcuts";
+
+	function initFloatingSearch() {
+		const overlay = document.getElementById("floating-search-overlay");
+		const modal = document.getElementById("floating-search-modal");
+		const closeBtn = document.getElementById("close-floating-search");
+		const openBtn = document.getElementById("open-floating-search");
+
+		if (!overlay || !modal || !closeBtn) return;
+
+		// Position and size modal responsively
+		function positionModal() {
+			const firstHr = document.querySelector("header hr");
+
+			if (firstHr) {
+				const hrRect = firstHr.getBoundingClientRect();
+				const scrollTop = window.scrollY || document.documentElement.scrollTop;
+				const topPosition = hrRect.top + scrollTop;
+				if (!modal) return;
+				modal.style.top = `${topPosition}px`;
+
+				// Calculate max-height to ensure modal doesn't overflow viewport
+				const viewportHeight = window.innerHeight;
+				const bottomPadding = 16; // 1rem in pixels
+				const maxHeight = viewportHeight - hrRect.top - bottomPadding;
+				modal.style.maxHeight = `${maxHeight}px`;
+			}
+		}
+
+		// Debounced position update for resize events
+		let resizeTimeout: ReturnType<typeof setTimeout>;
+		function handleResize() {
+			clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(() => {
+				positionModal();
+			}, 10); // Short delay for smooth updates
+		}
+
+		// Set initial position with a slight delay to ensure layout is ready
+		requestAnimationFrame(() => {
+			positionModal();
+		});
+
+		// Update position on various events for responsive behavior
+		window.addEventListener("resize", handleResize);
+		window.addEventListener("scroll", positionModal);
+		window.addEventListener("orientationchange", positionModal);
+
+		// Use ResizeObserver for more responsive updates
+		if (typeof ResizeObserver !== "undefined") {
+			// eslint-disable-next-line no-undef
+			const resizeObserver = new ResizeObserver(() => {
+				requestAnimationFrame(positionModal);
+			});
+			const header = document.querySelector("header");
+			if (header) {
+				resizeObserver.observe(header);
+			}
+		}
+
+		// Open floating search
+		function openSearch() {
+			if (!overlay || !modal) return;
+			overlay.classList.remove("opacity-0", "pointer-events-none");
+			modal.classList.remove("opacity-0", "pointer-events-none");
+			document.body.style.overflow = "hidden";
+
+			// Focus on search input
+			setTimeout(() => {
+				const searchInput = modal.querySelector('input[type="text"]') as HTMLInputElement;
+				searchInput?.focus();
+			}, 100);
+		}
+
+		// Close floating search
+		function closeSearch() {
+			if (!overlay || !modal) return;
+			overlay.classList.add("opacity-0", "pointer-events-none");
+			modal.classList.add("opacity-0", "pointer-events-none");
+			document.body.style.overflow = "";
+		}
+
+		// Event listeners
+		if (openBtn) {
+			openBtn.addEventListener("click", openSearch);
+		}
+		closeBtn.addEventListener("click", closeSearch);
+		overlay.addEventListener("click", closeSearch);
+
+		// Close on Escape key
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && !modal.classList.contains("pointer-events-none")) {
+				closeSearch();
+			}
+		});
+
+		// Register Ctrl+K / Cmd+K shortcut to open the floating search
+		// Only register if we're NOT on the search page (since openBtn won't exist on search page)
+		if (openBtn) {
+			initSearchShortcut('#floating-searchbox input[type="text"]');
+			// Also open modal when shortcut is pressed (if modal is closed)
+			document.addEventListener("keydown", (e) => {
+				const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+				if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
+					e.preventDefault();
+					openSearch();
+				}
+			});
+		}
+	}
+
+	// Initialize on load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initFloatingSearch);
+	} else {
+		initFloatingSearch();
+	}
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", initFloatingSearch);
+</script>

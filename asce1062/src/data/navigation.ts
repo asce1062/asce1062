@@ -38,24 +38,10 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-right",
 	},
 	{
-		name: "Search",
-		href: "/search",
-		icon: "icon-search-heart",
-		ariaLabel: "Visit the Search blogs page",
-		animation: "rotate-left",
-	},
-	{
 		name: "Blog",
 		href: "/blog",
 		icon: "icon-journal-richtext",
 		ariaLabel: "Visit the Blog page",
-		animation: "rotate-right",
-	},
-	{
-		name: "Tags",
-		href: "/tags",
-		icon: "icon-bookmarks",
-		ariaLabel: "Visit the Blog Tags page",
 		animation: "rotate-left",
 	},
 	{
@@ -73,10 +59,10 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 	},
 	{
-		name: "Resume",
-		href: "/resume",
-		icon: "icon-filetype-pdf",
-		ariaLabel: "Visit the view Alex's resume as PDF page",
+		name: "Search",
+		href: "/search",
+		icon: "icon-search-heart",
+		ariaLabel: "Visit the Search blogs page",
 		animation: "rotate-right",
 	},
 	{
@@ -87,6 +73,20 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 		multiPathIcon: true,
 		pathCount: 10,
+	},
+	{
+		name: "Tags",
+		href: "/tags",
+		icon: "icon-bookmarks",
+		ariaLabel: "Visit the Blog Tags page",
+		animation: "rotate-left",
+	},
+	{
+		name: "Resume",
+		href: "/resume",
+		icon: "icon-filetype-pdf",
+		ariaLabel: "Visit the view Alex's resume as PDF page",
+		animation: "rotate-right",
 	},
 	{
 		name: "RSS Feed",
