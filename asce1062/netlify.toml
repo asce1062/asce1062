@@ -149,16 +149,16 @@ Content-Security-Policy = """
   img-src 'self' data: https: blob:;
   font-src 'self' data:;
   connect-src 'self' https://jandee.vercel.app https://opengraph.githubassets.com;
-  frame-src https://jandee.vercel.app;
+  frame-src 'self' https://jandee.vercel.app;
   worker-src 'self' blob:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
-  frame-ancestors 'none';
+  frame-ancestors 'self';
   upgrade-insecure-requests;
 """
-# Prevents clickjacking attacks
-X-Frame-Options = "DENY"
+# Prevents clickjacking attacks (SAMEORIGIN allows embedding from same origin)
+X-Frame-Options = "SAMEORIGIN"
 # Legacy XSS protection (browsers now use CSP instead)
 X-XSS-Protection = "1; mode=block"
 # Prevents MIME type sniffing
