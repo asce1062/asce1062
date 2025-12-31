@@ -11,13 +11,15 @@ function joinPath(base: string, path: string): string {
 interface Props {
 	readonly id?: string;
 	readonly className?: string;
+	readonly autofocus?: boolean;
 }
 
-const { id, className } = Astro.props as Props;
+const { id, className, autofocus = false } = Astro.props as Props;
 const bundlePath = joinPath(import.meta.env.BASE_URL || "/", "pagefind/");
 const divProps = {
 	...(id ? { id } : {}),
 	...(className ? { class: className } : {}),
+	"data-autofocus": autofocus.toString(),
 };
 ---
 
@@ -47,6 +49,7 @@ const divProps = {
 				allSelector,
 			].join("");
 			const bundlePath = el.getAttribute("data-bundle-path") || undefined;
+			const autofocus = el.getAttribute("data-autofocus") === "true";
 
 			new PagefindUI({
 				element: elSelector,
@@ -54,7 +57,7 @@ const divProps = {
 				showImages: false,
 				showSubResults: true,
 				debounceTimeoutMs: 120,
-				autofocus: true,
+				autofocus: autofocus,
 				showEmptyFilters: false,
 				sort: {
 					date: "desc",
