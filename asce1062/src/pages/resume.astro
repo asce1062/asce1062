@@ -5,32 +5,35 @@ import Layout from "@/layouts/Layout.astro";
 <Layout title="Resume" description="Alex Mbugua Ngugi's Professional Experience" ogImage="social-preview.png">
 	<div class="w-full">
 		<h2 class="mb-6">Resume</h2>
-		<!-- PDF Viewer Container -->
-		<div class="relative w-full overflow-hidden" style="height: 1000px;">
+		<div class="relative w-full" style="height: 1000px;">
 			<iframe
 				id="resume-pdf-viewer"
 				src="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
-				class="w-full h-full border-0"
-				allowtransparency="true"
-				title="Alex Mbugua Ngugi's Resume PDF"
-				loading="lazy"
-				style="color-scheme: light;">
+				class="w-full border-0"
+				style="height: 1000px; color-scheme: light;"
+				title="Alex Mbugua Ngugi's Resume PDF">
 			</iframe>
 
-			<!-- Fallback message for browsers that don't support PDFs -->
-			<noscript>
-				<div class="absolute inset-0 flex items-center justify-center p-4">
-					<p class="text-center">
-						Your browser does not support PDFs.
-						<a href="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf" class="no-underline">Download the PDF</a>
-						to view it.
-					</p>
-				</div>
-			</noscript>
+			<!-- Fallback overlay -->
+			<div
+				id="pdf-fallback"
+				class="absolute inset-0 hidden flex-col items-center justify-center bg-light-100 dark:bg-palette-700 text-center p-6">
+				<p class="mb-4">This browser doesn't support inline PDF viewing.</p>
+				<a
+					href="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
+					target="_blank"
+					rel="noopener"
+					class="icon no-underline cursor-pointer inline-block px-4 py-2 border border-palette-900 dark:border-palette-200 transition-colors">
+					<i class="icon-filetype-pdf text-2xl"></i> Open Resume
+				</a>
+				<p class="mt-4 text-sm">
+					or <a href="/blog/2025-06-19-resume" class="underline">view text version</a>
+				</p>
+			</div>
 		</div>
 
 		<!-- Alternative text view link -->
-		<div class="mt-6 text-center">
+		<div id="text-view-link" class="mt-6 text-center">
 			<a href="/blog/2025-06-19-resume" class="no-underline">Prefer a text-based view?</a>
 		</div>
 	</div>
@@ -39,10 +42,102 @@ import Layout from "@/layouts/Layout.astro";
 <script>
 	import { initIframeTheme } from "@/scripts/iframeTheme";
 
+	const iframeId = "resume-pdf-viewer";
+	const fallbackId = "pdf-fallback";
+
 	initIframeTheme({
-		id: "resume-pdf-viewer",
+		id: iframeId,
 		updateMethod: "color-scheme",
 	});
+
+	function showFallback() {
+		const iframe = document.getElementById(iframeId);
+		const fallback = document.getElementById(fallbackId);
+		const textViewLink = document.getElementById("text-view-link");
+
+		if (iframe && fallback) {
+			iframe.style.display = "none";
+			fallback.classList.remove("hidden");
+			fallback.classList.add("flex");
+
+			if (textViewLink) {
+				textViewLink.style.display = "none";
+			}
+		}
+	}
+
+	function detectPDFSupport(): boolean {
+		// Check 1: iOS detection (no inline PDF support as of 2024)
+		const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+		// Check 2: In-app browsers (typically don't support inline PDFs)
+		const isInAppBrowser = /FBAN|FBAV|Instagram|Twitter|LinkedIn/i.test(navigator.userAgent);
+
+		// Check 3: Mobile detection
+		const isAndroid = /Android/i.test(navigator.userAgent);
+		const isMobile = isIOS || isAndroid || window.innerWidth < 768;
+
+		// iOS and in-app browsers don't support inline PDFs
+		if (isIOS || isInAppBrowser) {
+			return false;
+		}
+
+		// Check 4: Modern standard - navigator.pdfViewerEnabled
+		// Supported in all major browsers (Chrome, Firefox, Safari, Edge) as of 2023
+		// https://developer.mozilla.org/en-US/docs/Web/API/Navigator/pdfViewerEnabled
+		if (typeof navigator.pdfViewerEnabled !== "undefined") {
+			return navigator.pdfViewerEnabled;
+		}
+
+		// Fallback for older browsers: mobile browsers don't support inline PDFs
+		if (isMobile) {
+			return false;
+		}
+
+		// Default: assume desktop browsers support PDFs
+		return true;
+	}
+
+	/**
+	 * Initialize PDF viewer and detection
+	 */
+	function initPDFViewer() {
+		const iframe = document.getElementById(iframeId);
+		const fallback = document.getElementById(fallbackId);
+		const textViewLink = document.getElementById("text-view-link");
+
+		if (!iframe || !fallback || !textViewLink) return;
+
+		// Reset to initial state
+		iframe.style.display = "";
+		fallback.classList.add("hidden");
+		fallback.classList.remove("flex");
+		textViewLink.style.display = "";
+
+		// Detect PDF support
+		const supportsPDF = detectPDFSupport();
+
+		if (!supportsPDF) {
+			// No PDF support detected, show fallback immediately
+			showFallback();
+		} else {
+			// Browser supports PDFs
+			// Only show fallback on explicit error
+			iframe.addEventListener("error", () => {
+				showFallback();
+			});
+		}
+	}
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initPDFViewer);
+	} else {
+		initPDFViewer();
+	}
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", initPDFViewer);
 </script>
 
 <style>
