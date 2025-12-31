@@ -126,7 +126,7 @@ export const contactLinks: NavigationLink[] = [
 	{
 		name: "Resume",
 		href: "/blog/2025-06-19-resume",
-		icon: "icon-eye",
+		icon: "icon-body-text",
 		ariaLabel: "View Alex's resume",
 	},
 	{
