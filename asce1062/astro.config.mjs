@@ -169,6 +169,7 @@ export default defineConfig({
 				navigateFallback: "/offline",
 				navigateFallbackDenylist: [
 					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
+					/\.pdf$/, // Don't intercept PDF files
 					/^\/rss$/, // Allow /rss → /rss.xml redirect
 					/^\/feed$/, // Allow /feed → /rss.xml redirect
 					/^\/atom\.xml$/, // Allow /atom.xml → /rss.xml redirect
