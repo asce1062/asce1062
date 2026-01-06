@@ -13,15 +13,20 @@ const colours = [
 ---
 
 <footer>
-	<hr class="w-full h-[1.875px] my-4 border-0 bg-palette-900 dark:bg-white" aria-hidden="true" />
+	<hr class="w-full h-[1.875px] my-4 border-0 bg-palette-700 dark:bg-light-700" aria-hidden="true" />
 	<div class="flex flex-col justify-between leading-7 sm:leading-5 transition-all duration-300 sm:flex-row">
 		<!-- Social Links -->
-		<div class="text-palette-800 text-left">
+		<div class="text-light-800 dark:text-palette-800 text-left">
 			{
 				socialLinks.map((link) => (
 					<>
 						<b>
-							<a class="icon" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.ariaLabel}>
+							<a
+								class="icon bg-light-700 dark:bg-palette-700"
+								href={link.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								aria-label={link.ariaLabel}>
 								<i class={`${link.icon} mr-2 text-xl`} />
 								{link.name}
 							</a>
@@ -33,14 +38,14 @@ const colours = [
 		</div>
 
 		<!-- Contact & Resume Links -->
-		<div class="text-palette-800 text-left sm:text-right">
+		<div class="text-light-800 dark:text-palette-800 text-left sm:text-right">
 			<b>
 				{
 					contactLinks.slice(0, 2).map((link, index) => (
 						<>
 							{index > 0 && " | "}
 							<a
-								class="icon"
+								class="icon bg-light-700 dark:bg-palette-700"
 								href={link.href}
 								aria-label={link.ariaLabel}
 								{...(link.download && { download: link.name })}>
@@ -53,7 +58,10 @@ const colours = [
 			</b>
 			<br />
 			<b>
-				<a class="icon" href={contactLinks[2].href} aria-label={contactLinks[2].ariaLabel}>
+				<a
+					class="icon bg-light-700 dark:bg-palette-700"
+					href={contactLinks[2].href}
+					aria-label={contactLinks[2].ariaLabel}>
 					<i class={`${contactLinks[2].icon} mr-2 text-xl`}></i>
 					{contactLinks[2].name}
 				</a>
@@ -61,17 +69,11 @@ const colours = [
 		</div>
 	</div>
 	<div class="mx-auto mt-4">
-		{
-			colours.map((colour) => (
-				<span class={`inline-block h-8 w-[10%] ${colour} opacity-60 dark:opacity-100`}>
-					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				</span>
-			))
-		}
+		{colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour}`}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
 		<!-- prettier-ignore -->
 		<i>
 			<span class="block pt-2 text-xs">
-				{siteMetadata.commitHash && <i> <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block"> <path d="M16 12C16 14.2091 14.2091 16 12 16C9.79085 16 7.99999 14.2091 7.99999 12M16 12C16 9.79086 14.2091 8 12 8C9.79085 8 7.99999 9.79086 7.99999 12M16 12H22M7.99999 12H2.00018" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </svg> <a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">{siteMetadata.commitHash}</a></i>}. made with <a href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">astro</a><i> • {new Date(siteMetadata.buildTime).toLocaleDateString()}</i>
+				{siteMetadata.commitHash && <i> <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4 inline-block"> <path d="M16 12C16 14.2091 14.2091 16 12 16C9.79085 16 7.99999 14.2091 7.99999 12M16 12C16 9.79086 14.2091 8 12 8C9.79085 8 7.99999 9.79086 7.99999 12M16 12H22M7.99999 12H2.00018" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </svg> <a class="bg-light-700 dark:bg-palette-700" href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">{siteMetadata.commitHash}</a></i>}. made with <a class="bg-light-700 dark:bg-palette-700" href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">astro</a><i> • {new Date(siteMetadata.buildTime).toLocaleDateString()}</i>
 			</span>
 		</i>
 

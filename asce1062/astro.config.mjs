@@ -36,8 +36,8 @@ export default defineConfig({
 				name: "Alex Mbugua - Leader, Mentor, Engineer, Chip Musician",
 				short_name: "Alex Mbugua",
 				description: "Building secure, performant, scalable solutions in the cloud",
-				theme_color: "#120f19",
-				background_color: "#120f19",
+				theme_color: "rgb(28, 25, 23)",
+				background_color: "rgb(28, 25, 23)",
 				display: "standalone",
 				start_url: "/",
 				icons: [

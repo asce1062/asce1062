@@ -1,0 +1,339 @@
+/**
+ * Tailwind CSS v4 Retro Theme Configuration
+ *
+ * Synced with src/config/design-tokens.mjs for consistency across Tailwind v3 and v4
+ *
+ * STRUCTURE:
+ * - Default (dark mode): Uses dark.colors from design-tokens.mjs
+ * - @media (prefers-color-scheme: light): Uses light.colors from design-tokens.mjs
+ * - Semantic colors: Theme-aware utility colors (brand-primary, default-font, etc.)
+ * - Legacy colors: Backward compatibility (tangrey, neutralgrey, pink, peach, blue, etc.)
+ *
+ * THEME APPROACH:
+ * Dark retro theme by default with light retro theme support via prefers-color-scheme.
+ * When Astro adds Tailwind v4 support, this will replace tailwind.config.mjs.
+ *
+ */
+
+@theme {
+	/* Dark Retro Theme Colors */
+
+	/* Brand - Warm peach/coral */
+	--color-brand-50: rgb(50, 30, 25);
+	--color-brand-100: rgb(70, 40, 30);
+	--color-brand-200: rgb(95, 55, 40);
+	--color-brand-300: rgb(130, 75, 50);
+	--color-brand-400: rgb(180, 105, 65);
+	--color-brand-500: rgb(230, 140, 85);
+	--color-brand-600: rgb(255, 165, 100);
+	--color-brand-700: rgb(255, 183, 120);
+	--color-brand-800: rgb(255, 200, 145);
+	--color-brand-900: rgb(255, 225, 190);
+
+	/* Neutral - Warm brown tones */
+	--color-neutral-0: rgb(18, 16, 14);
+	--color-neutral-50: rgb(28, 25, 23);
+	--color-neutral-100: rgb(38, 35, 32);
+	--color-neutral-200: rgb(48, 45, 42);
+	--color-neutral-300: rgb(65, 60, 55);
+	--color-neutral-400: rgb(90, 85, 78);
+	--color-neutral-500: rgb(130, 120, 108);
+	--color-neutral-600: rgb(170, 158, 142);
+	--color-neutral-700: rgb(200, 188, 170);
+	--color-neutral-800: rgb(220, 210, 195);
+	--color-neutral-900: rgb(235, 228, 215);
+	--color-neutral-950: rgb(244, 238, 224);
+
+	/* Error - Bright coral-red */
+	--color-error-50: rgb(45, 20, 20);
+	--color-error-100: rgb(65, 25, 25);
+	--color-error-200: rgb(90, 30, 30);
+	--color-error-300: rgb(120, 40, 40);
+	--color-error-400: rgb(165, 55, 55);
+	--color-error-500: rgb(210, 75, 75);
+	--color-error-600: rgb(239, 83, 80);
+	--color-error-700: rgb(245, 108, 108);
+	--color-error-800: rgb(250, 140, 140);
+	--color-error-900: rgb(255, 180, 180);
+
+	/* Warning - Bright orange */
+	--color-warning-50: rgb(40, 28, 0);
+	--color-warning-100: rgb(60, 40, 0);
+	--color-warning-200: rgb(85, 55, 0);
+	--color-warning-300: rgb(115, 75, 5);
+	--color-warning-400: rgb(155, 105, 15);
+	--color-warning-500: rgb(200, 135, 25);
+	--color-warning-600: rgb(255, 167, 38);
+	--color-warning-700: rgb(255, 185, 70);
+	--color-warning-800: rgb(255, 205, 110);
+	--color-warning-900: rgb(255, 230, 160);
+
+	/* Success - Bright teal */
+	--color-success-50: rgb(15, 35, 32);
+	--color-success-100: rgb(20, 50, 45);
+	--color-success-200: rgb(25, 70, 65);
+	--color-success-300: rgb(30, 95, 88);
+	--color-success-400: rgb(35, 125, 115);
+	--color-success-500: rgb(42, 160, 148);
+	--color-success-600: rgb(50, 190, 176);
+	--color-success-700: rgb(80, 210, 195);
+	--color-success-800: rgb(120, 230, 215);
+	--color-success-900: rgb(170, 245, 235);
+
+	/* Secondary - Bright cyan */
+	--color-secondary-50: rgb(15, 35, 38);
+	--color-secondary-100: rgb(20, 48, 52);
+	--color-secondary-200: rgb(28, 68, 73);
+	--color-secondary-300: rgb(38, 95, 102);
+	--color-secondary-400: rgb(50, 130, 140);
+	--color-secondary-500: rgb(65, 170, 183);
+	--color-secondary-600: rgb(77, 208, 225);
+	--color-secondary-700: rgb(105, 220, 235);
+	--color-secondary-800: rgb(140, 232, 243);
+	--color-secondary-900: rgb(185, 245, 250);
+
+	/* Accent - Bright yellow-gold */
+	--color-accent-50: rgb(38, 32, 10);
+	--color-accent-100: rgb(55, 45, 15);
+	--color-accent-200: rgb(78, 65, 20);
+	--color-accent-300: rgb(110, 90, 28);
+	--color-accent-400: rgb(150, 120, 38);
+	--color-accent-500: rgb(195, 158, 50);
+	--color-accent-600: rgb(255, 213, 79);
+	--color-accent-700: rgb(255, 225, 115);
+	--color-accent-800: rgb(255, 235, 155);
+	--color-accent-900: rgb(255, 245, 200);
+
+	/* Semantic colors */
+	--color-brand-primary: rgb(255, 165, 100);
+	--color-default-font: rgb(235, 228, 215);
+	--color-subtext-color: rgb(170, 158, 142);
+	--color-neutral-border: rgb(48, 45, 42);
+	--color-black: rgb(18, 16, 14);
+	--color-default-background: rgb(28, 25, 23);
+
+	/* Legacy semantic colors */
+	--color-tangrey: rgb(65, 60, 55);
+	--color-neutralgrey: rgb(90, 85, 78);
+	--color-lightgrey: rgb(130, 120, 108);
+	--color-pink: rgb(180, 105, 65);
+	--color-peach: rgb(130, 75, 50);
+	--color-blue: rgb(65, 170, 183);
+	--color-lightblue: rgb(38, 95, 102);
+	--color-light: rgb(244, 238, 224);
+	--color-dark: rgb(28, 25, 23);
+	--color-bold: rgb(255, 213, 79);
+	--color-dark-alt: rgb(40, 35, 30);
+	--color-light-alt: rgb(235, 228, 215);
+
+	/* Light Retro Theme Colors */
+	@media (prefers-color-scheme: light) {
+		/* Brand - Warm peach/coral */
+		--color-brand-50: rgb(255, 250, 245);
+		--color-brand-100: rgb(255, 237, 225);
+		--color-brand-200: rgb(255, 218, 195);
+		--color-brand-300: rgb(255, 193, 158);
+		--color-brand-400: rgb(247, 168, 120);
+		--color-brand-500: rgb(239, 177, 149);
+		--color-brand-600: rgb(230, 145, 101);
+		--color-brand-700: rgb(210, 115, 75);
+		--color-brand-800: rgb(180, 90, 55);
+		--color-brand-900: rgb(140, 70, 40);
+
+		/* Neutral - Warm beige/tan */
+		--color-neutral-0: rgb(244, 238, 224);
+		--color-neutral-50: rgb(240, 232, 216);
+		--color-neutral-100: rgb(231, 220, 199);
+		--color-neutral-200: rgb(217, 202, 174);
+		--color-neutral-300: rgb(200, 182, 152);
+		--color-neutral-400: rgb(170, 155, 130);
+		--color-neutral-500: rgb(130, 118, 100);
+		--color-neutral-600: rgb(90, 87, 86);
+		--color-neutral-700: rgb(72, 60, 50);
+		--color-neutral-800: rgb(55, 48, 42);
+		--color-neutral-900: rgb(40, 35, 30);
+		--color-neutral-950: rgb(28, 25, 23);
+
+		/* Error - Coral/salmon */
+		--color-error-50: rgb(255, 245, 245);
+		--color-error-100: rgb(255, 230, 230);
+		--color-error-200: rgb(255, 205, 205);
+		--color-error-300: rgb(255, 180, 180);
+		--color-error-400: rgb(247, 154, 154);
+		--color-error-500: rgb(239, 154, 154);
+		--color-error-600: rgb(229, 115, 115);
+		--color-error-700: rgb(211, 85, 85);
+		--color-error-800: rgb(183, 65, 65);
+		--color-error-900: rgb(150, 50, 50);
+
+		/* Warning - Orange/amber */
+		--color-warning-50: rgb(255, 250, 240);
+		--color-warning-100: rgb(255, 243, 224);
+		--color-warning-200: rgb(255, 230, 190);
+		--color-warning-300: rgb(255, 210, 145);
+		--color-warning-400: rgb(255, 190, 90);
+		--color-warning-500: rgb(255, 167, 38);
+		--color-warning-600: rgb(245, 145, 20);
+		--color-warning-700: rgb(220, 120, 10);
+		--color-warning-800: rgb(190, 95, 5);
+		--color-warning-900: rgb(150, 70, 0);
+
+		/* Success - Teal/cyan */
+		--color-success-50: rgb(230, 250, 248);
+		--color-success-100: rgb(204, 245, 241);
+		--color-success-200: rgb(153, 235, 228);
+		--color-success-300: rgb(102, 220, 210);
+		--color-success-400: rgb(64, 200, 188);
+		--color-success-500: rgb(38, 166, 154);
+		--color-success-600: rgb(28, 145, 135);
+		--color-success-700: rgb(20, 120, 112);
+		--color-success-800: rgb(15, 95, 88);
+		--color-success-900: rgb(10, 70, 65);
+
+		/* Secondary - Mint/cyan */
+		--color-secondary-50: rgb(240, 252, 250);
+		--color-secondary-100: rgb(224, 248, 245);
+		--color-secondary-200: rgb(214, 237, 234);
+		--color-secondary-300: rgb(180, 225, 220);
+		--color-secondary-400: rgb(145, 210, 205);
+		--color-secondary-500: rgb(110, 195, 188);
+		--color-secondary-600: rgb(80, 175, 168);
+		--color-secondary-700: rgb(60, 150, 143);
+		--color-secondary-800: rgb(45, 125, 118);
+		--color-secondary-900: rgb(30, 95, 88);
+
+		/* Accent - Gold/mustard */
+		--color-accent-50: rgb(255, 252, 235);
+		--color-accent-100: rgb(255, 247, 210);
+		--color-accent-200: rgb(245, 230, 165);
+		--color-accent-300: rgb(230, 210, 130);
+		--color-accent-400: rgb(217, 192, 110);
+		--color-accent-500: rgb(204, 174, 98);
+		--color-accent-600: rgb(185, 155, 80);
+		--color-accent-700: rgb(165, 135, 65);
+		--color-accent-800: rgb(140, 112, 50);
+		--color-accent-900: rgb(110, 85, 35);
+
+		/* Semantic colors */
+		--color-brand-primary: rgb(239, 177, 149);
+		--color-default-font: rgb(72, 60, 50);
+		--color-subtext-color: rgb(130, 118, 100);
+		--color-neutral-border: rgb(217, 202, 174);
+		--color-white: rgb(244, 238, 224);
+		--color-default-background: rgb(244, 238, 224);
+
+		/* Legacy semantic colors */
+		--color-tangrey: rgb(130, 118, 100);
+		--color-neutralgrey: rgb(170, 155, 130);
+		--color-lightgrey: rgb(200, 182, 152);
+		--color-pink: rgb(247, 168, 120);
+		--color-peach: rgb(255, 193, 158);
+		--color-blue: rgb(110, 195, 188);
+		--color-lightblue: rgb(180, 225, 220);
+		--color-light: rgb(244, 238, 224);
+		--color-dark: rgb(28, 25, 23);
+		--color-bold: rgb(185, 155, 80);
+		--color-dark-alt: rgb(40, 35, 30);
+		--color-light-alt: rgb(235, 228, 215);
+	}
+
+	/* Typography */
+	--text-caption: 12px;
+	--text-caption--font-weight: 400;
+	--text-caption--letter-spacing: 0em;
+	--text-caption--line-height: 16px;
+	--text-caption-bold: 12px;
+	--text-caption-bold--font-weight: 700;
+	--text-caption-bold--letter-spacing: 0em;
+	--text-caption-bold--line-height: 16px;
+	--text-body: 14px;
+	--text-body--font-weight: 400;
+	--text-body--letter-spacing: 0em;
+	--text-body--line-height: 20px;
+	--text-body-bold: 14px;
+	--text-body-bold--font-weight: 700;
+	--text-body-bold--letter-spacing: 0em;
+	--text-body-bold--line-height: 20px;
+	--text-heading-3: 16px;
+	--text-heading-3--font-weight: 800;
+	--text-heading-3--letter-spacing: 0em;
+	--text-heading-3--line-height: 20px;
+	--text-heading-2: 20px;
+	--text-heading-2--font-weight: 800;
+	--text-heading-2--letter-spacing: 0em;
+	--text-heading-2--line-height: 24px;
+	--text-heading-1: 30px;
+	--text-heading-1--font-weight: 800;
+	--text-heading-1--letter-spacing: 0em;
+	--text-heading-1--line-height: 36px;
+	--text-monospace-body: 14px;
+	--text-monospace-body--font-weight: 400;
+	--text-monospace-body--letter-spacing: 0em;
+	--text-monospace-body--line-height: 20px;
+
+	/* Font families - 0xProto monospace */
+	--font-caption: "0xProto", monospace;
+	--font-caption-bold: "0xProto", monospace;
+	--font-body: "0xProto", monospace;
+	--font-body-bold: "0xProto", monospace;
+	--font-heading-3: "0xProto", monospace;
+	--font-heading-2: "0xProto", monospace;
+	--font-heading-1: "0xProto", monospace;
+	--font-monospace-body: "0xProto", monospace;
+	--font-proto: "0xProto", monospace;
+	--font-retro: "uni0553", monospace;
+
+	/* Box shadows - Retro flat design (minimal shadows) */
+	--shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+	--shadow-default: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+	--shadow-md: 0px 4px 16px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -1px rgba(0, 0, 0, 0.08);
+	--shadow-lg: 0px 12px 32px -4px rgba(0, 0, 0, 0.08), 0px 4px 8px -2px rgba(0, 0, 0, 0.08);
+	--shadow-overlay: 0px 12px 32px -4px rgba(0, 0, 0, 0.08), 0px 4px 8px -2px rgba(0, 0, 0, 0.08);
+
+	/* Border radiuses - Retro squared design (no rounded corners) */
+	--radius-sm: 0rem;
+	--radius-md: 0rem;
+	--radius-DEFAULT: 0rem;
+	--radius-lg: 0rem;
+	--radius-full: 9999px;
+
+	/* Spacing */
+	--spacing-112: 28rem;
+	--spacing-144: 36rem;
+	--spacing-192: 48rem;
+	--spacing-256: 64rem;
+	--spacing-320: 80rem;
+}
+
+/* Container */
+@utility container {
+	padding-left: 16px;
+	padding-right: 16px;
+
+	@media (width >= theme(--breakpoint-sm)) {
+		padding-left: calc((100vw + 16px - 640px) / 2);
+		padding-right: calc((100vw + 16px - 640px) / 2);
+	}
+
+	@media (width >= theme(--breakpoint-md)) {
+		padding-left: calc((100vw + 16px - 768px) / 2);
+		padding-right: calc((100vw + 16px - 768px) / 2);
+	}
+
+	@media (width >= theme(--breakpoint-lg)) {
+		padding-left: calc((100vw + 16px - 1024px) / 2);
+		padding-right: calc((100vw + 16px - 1024px) / 2);
+	}
+
+	@media (width >= theme(--breakpoint-xl)) {
+		padding-left: calc((100vw + 16px - 1280px) / 2);
+		padding-right: calc((100vw + 16px - 1280px) / 2);
+	}
+
+	@media (width >= theme(--breakpoint-2xl)) {
+		padding-left: calc((100vw + 16px - 1536px) / 2);
+		padding-right: calc((100vw + 16px - 1536px) / 2);
+	}
+}
+
+@custom-variant mobile (@media (max-width: 767px));

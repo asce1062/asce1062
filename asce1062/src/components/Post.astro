@@ -17,7 +17,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 ---
 
 <div
-	class="relative flex flex-col md:flex-row overflow-auto bg-palette-100 dark:bg-palette-900 border border-black/20 dark:border-white/20">
+	class="relative flex flex-col md:flex-row overflow-auto bg-light-700 dark:bg-palette-700 border border-palette-900 dark:border-light-900">
 	{
 		image ? (
 			<Image
@@ -34,12 +34,12 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 		<div class="grow">
 			<p>{description}</p>
 		</div>
-		<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-900 dark:bg-white" />
+		<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-700 dark:bg-light-700" />
 		<div class="bottom-0 mt-auto flex flex-col gap-2">
 			<div class="flex flex-wrap gap-2 justify-center md:justify-start">
 				{
 					tags.map((tag) => (
-						<a class="px-2 py-1 border dark:border-white/20 border-black/20" href={`/tags/${tag}`}>
+						<a class="px-2 py-1 border border-palette-900 dark:border-light-900" href={`/tags/${tag}`}>
 							#{tag}
 						</a>
 					))

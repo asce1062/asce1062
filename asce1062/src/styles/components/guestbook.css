@@ -83,7 +83,7 @@ html[data-theme="light"] .entry h2,
 
 /* Dark mode h2 */
 html[data-theme="dark"] .entry h2 {
-	color: var(--peach);
+	@apply text-palette-300;
 }
 
 /* Light mode h2 links */
@@ -120,12 +120,12 @@ html[data-theme="dark"] .entry h2 a {
 /* Light mode p */
 html[data-theme="light"] .entry p,
 .entry p {
-	color: var(--dark);
+	@apply text-palette-900;
 }
 
 /* Dark mode p */
 html[data-theme="dark"] .entry p {
-	color: white;
+	@apply text-light-900;
 }
 
 /* Nostalgic Effects */

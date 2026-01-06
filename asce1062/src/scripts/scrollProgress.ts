@@ -19,9 +19,8 @@ export function createProgressBar(): void {
 	const progressBar = document.createElement("div");
 	progressBar.className = "progress-bar h-1 w-0 transition-all duration-150";
 	progressBar.id = "scroll-progress-bar";
-	// Gradient using site's color palette: #9f94a0, #8e878c, #947b82, #cad5db, #9bb0cd, #e5cab7, #dcb8b0
 	progressBar.style.background =
-		"linear-gradient(to right, #9f94a0, #8e878c, #947b82, #cad5db, #9bb0cd, #e5cab7, #dcb8b0)";
+		"linear-gradient(to right, var(--lightgrey), var(--neutralgrey), var(--tangrey), var(--peach), var(--pink), var(--lightblue), var(--blue))";
 	progressBar.style.width = "0%";
 
 	progressContainer.appendChild(progressBar);

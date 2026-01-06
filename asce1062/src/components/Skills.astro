@@ -7,12 +7,14 @@ import type { SkillsSection, SkillCategory } from "@/types";
 	{
 		skillsSections.map((section: SkillsSection) => (
 			<div>
-				<h1 class="font-bold mb-1 text-gray-900 dark:text-white underline decoration-4">{section.sectionTitle}</h1>
+				<h1 class="font-bold mb-1 text-palette-700 dark:text-light-700 underline decoration-4 bg-light-700 dark:bg-palette-700">
+					{section.sectionTitle}
+				</h1>
 
 				{section.items && (
-					<div class="mt-4 space-y-2 text-sm text-gray-500 dark:text-gray-400">
+					<div class="mt-4 space-y-2 text-sm text-light-400 dark:text-palette-400">
 						{section.items.map((item: string) => (
-							<div class="p-1 ml-0 mr-2 inline-block bg-palette-100 text-palette-700 dark:bg-palette-600 dark:text-palette-900">
+							<div class="p-1 ml-0 mr-2 inline-block bg-light-600 dark:bg-palette-600 text-light-700 dark:text-palette-700">
 								{item}
 							</div>
 						))}
@@ -23,7 +25,7 @@ import type { SkillsSection, SkillCategory } from "@/types";
 					<div>
 						{section.categories.map((category: SkillCategory) => (
 							<div class="mt-4">
-								<h3 class="mb-1 text-sm text-palette-500 dark:text-palette-600 underline decoration-dashed">
+								<h3 class="mb-1 text-sm text-light-600 dark:text-palette-600 underline decoration-dashed bg-light-700 dark:bg-palette-700">
 									{category.categoryTitle}
 								</h3>
 								<div class="flex flex-wrap gap-2">

@@ -8,24 +8,30 @@ import type { TimelineEntry, TimelineSection } from "@/types";
 		<div>
 			{sections.map((section: TimelineSection) => (
 				<div class="mb-8">
-					<h1 class="font-bold mb-4 text-gray-900 dark:text-white underline decoration-4">{section.sectionTitle}</h1>
-					<ol class="relative border-s border-palette-900 dark:border-palette-100">
+					<h1 class="font-bold mb-4 text-palette-900 dark:text-light-900 underline decoration-4 bg-light-700 dark:bg-palette-700">
+						{section.sectionTitle}
+					</h1>
+					<ol class="relative border-s border-light-100 dark:border-palette-100">
 						{section.entries.map((data: TimelineEntry) => (
 							<li class="mb-10 ms-4">
-								<div class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-palette-900 bg-palette-100 dark:border-palette-100 dark:bg-palette-900" />
-								<time class="mb-1 text-xs font-normal leading-none text-palette-900 dark:text-palette-300">
+								<div class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-light-100 dark:border-palette-100 bg-light-700 dark:bg-palette-700" />
+								<time class="mb-1 text-xs font-normal leading-none text-light-300 dark:text-palette-300 bg-light-700 dark:bg-palette-700">
 									{data.date}
 								</time>
-								<h4 class="font-semibold text-gray-900 dark:text-white">{data.title}</h4>
+								<h4 class="font-semibold text-palette-900 dark:text-light-900 bg-light-700 dark:bg-palette-700">
+									{data.title}
+								</h4>
 								{data.descriptions.map((description: string) => (
-									<p class="mb-4 font-normal text-gray-500 dark:text-gray-400 text-sm">{description}</p>
+									<p class="mb-4 font-normal text-light-800 dark:text-palette-800 text-sm bg-light-700 dark:bg-palette-700">
+										{description}
+									</p>
 								))}
 								{data.moreInformation && (
 									<a
 										href={data.moreInformation}
 										target="_blank"
 										rel="noopener noreferrer"
-										class="no-underline mb-1 inline-flex items-center px-4 py-2 text-xs font-normal text-gray-900 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:focus:ring-gray-700 hover:underline hover:decoration-wavy text-palette-900 dark:text-palette-300">
+										class="no-underline mb-1 inline-flex items-center px-4 py-2 text-xs font-normal border border-light-600 dark:border-palette-600 focus:ring-light-700 dark:focus:ring-palette-700 hover:underline hover:decoration-wavy text-light-300 dark:text-palette-300 bg-light-700 dark:bg-palette-700 focus:outline-none focus:ring-4 hover:border-light-600 dark:hover:border-palette-600">
 										Learn more
 										<svg
 											class="w-3 h-3 ms-2 rtl:rotate-180"
@@ -50,21 +56,27 @@ import type { TimelineEntry, TimelineSection } from "@/types";
 			))}
 		</div>
 	) : (
-		<ol class="relative border-s border-palette-900 dark:border-palette-100">
+		<ol class="relative border-s border-light-100 dark:border-palette-100">
 			{timeline.map((data: TimelineEntry) => (
 				<li class="mb-10 ms-4">
-					<div class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-palette-900 bg-palette-100 dark:border-palette-100 dark:bg-palette-900" />
-					<time class="mb-1 text-xs font-normal leading-none text-palette-900 dark:text-palette-300">{data.date}</time>
-					<h4 class="font-semibold text-gray-900 dark:text-white">{data.title}</h4>
+					<div class="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5 border border-light-100 dark:border-palette-100 bg-light-700 dark:bg-palette-700" />
+					<time class="mb-1 text-xs font-normal leading-none text-light-300 dark:text-palette-300 bg-light-700 dark:bg-palette-700">
+						{data.date}
+					</time>
+					<h4 class="font-semibold text-palette-900 dark:text-light-900 bg-light-700 dark:bg-palette-700">
+						{data.title}
+					</h4>
 					{data.descriptions.map((description: string) => (
-						<p class="mb-4 font-normal text-gray-500 dark:text-gray-400 text-sm">{description}</p>
+						<p class="mb-4 font-normal text-light-800 dark:text-palette-800 text-sm bg-light-700 dark:bg-palette-700">
+							{description}
+						</p>
 					))}
 					{data.moreInformation && (
 						<a
 							href={data.moreInformation}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="no-underline mb-1 inline-flex items-center px-4 py-2 text-xs font-normal text-gray-900 bg-white border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:focus:ring-gray-700 hover:underline hover:decoration-wavy text-palette-900 dark:text-palette-300">
+							class="no-underline mb-1 inline-flex items-center px-4 py-2 text-xs font-normal border border-light-600 dark:border-palette-600 focus:ring-light-700 dark:focus:ring-palette-700 hover:underline hover:decoration-wavy text-light-300 dark:text-palette-300 bg-light-900 dark:bg-palette-900 focus:outline-none focus:ring-4 hover:border-light-600 dark:hover:border-palette-600">
 							Learn more
 							<svg
 								class="w-3 h-3 ms-2 rtl:rotate-180"

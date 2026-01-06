@@ -47,6 +47,69 @@
 		--dark: theme("colors.palette.700");
 		--bold: theme("colors.palette.800");
 
+		/* Retro Color System with theme-aware colors */
+
+		/* Brand colors (warm peach/coral) */
+		--brand-primary: theme("colors.brand-primary");
+		--brand-50: theme("colors.brand.50");
+		--brand-100: theme("colors.brand.100");
+		--brand-200: theme("colors.brand.200");
+		--brand-300: theme("colors.brand.300");
+		--brand-400: theme("colors.brand.400");
+		--brand-500: theme("colors.brand.500");
+		--brand-600: theme("colors.brand.600");
+		--brand-700: theme("colors.brand.700");
+		--brand-800: theme("colors.brand.800");
+		--brand-900: theme("colors.brand.900");
+
+		/* Neutral colors (warm beige/brown) */
+		--neutral-50: theme("colors.neutral.50");
+		--neutral-100: theme("colors.neutral.100");
+		--neutral-200: theme("colors.neutral.200");
+		--neutral-300: theme("colors.neutral.300");
+		--neutral-400: theme("colors.neutral.400");
+		--neutral-500: theme("colors.neutral.500");
+		--neutral-600: theme("colors.neutral.600");
+		--neutral-700: theme("colors.neutral.700");
+		--neutral-800: theme("colors.neutral.800");
+		--neutral-900: theme("colors.neutral.900");
+		--neutral-950: theme("colors.neutral.950");
+
+		/* Secondary colors (mint/cyan) */
+		--secondary-50: theme("colors.secondary.50");
+		--secondary-100: theme("colors.secondary.100");
+		--secondary-200: theme("colors.secondary.200");
+		--secondary-300: theme("colors.secondary.300");
+		--secondary-400: theme("colors.secondary.400");
+		--secondary-500: theme("colors.secondary.500");
+		--secondary-600: theme("colors.secondary.600");
+		--secondary-700: theme("colors.secondary.700");
+		--secondary-800: theme("colors.secondary.800");
+		--secondary-900: theme("colors.secondary.900");
+
+		/* Accent colors (gold/mustard) */
+		--accent-50: theme("colors.accent.50");
+		--accent-100: theme("colors.accent.100");
+		--accent-200: theme("colors.accent.200");
+		--accent-300: theme("colors.accent.300");
+		--accent-400: theme("colors.accent.400");
+		--accent-500: theme("colors.accent.500");
+		--accent-600: theme("colors.accent.600");
+		--accent-700: theme("colors.accent.700");
+		--accent-800: theme("colors.accent.800");
+		--accent-900: theme("colors.accent.900");
+
+		/* Status colors */
+		--error-500: theme("colors.error.500");
+		--warning-500: theme("colors.warning.500");
+		--success-500: theme("colors.success.500");
+
+		/* Semantic utility colors */
+		--default-font: theme("colors.default-font");
+		--subtext-color: theme("colors.subtext-color");
+		--neutral-border: theme("colors.neutral-border");
+		--default-background: theme("colors.default-background");
+
 		/* Layout & Spacing - References Tailwind theme tokens */
 		--spacing-inline: theme("spacing.inline");
 
@@ -190,7 +253,7 @@
   */
 
 	h1 {
-		@apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-white;
+		@apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-light-900;
 	}
 
 	h2 {
@@ -205,7 +268,7 @@
 	ul,
 	span,
 	div {
-		@apply text-black dark:text-white;
+		@apply text-palette-700 dark:text-light-700;
 	}
 
 	h2,
@@ -240,17 +303,17 @@
   */
 
 	a {
-		@apply underline-offset-4 hover:no-underline hover:bg-palette-200 inline-block hover:dark:bg-palette-300 hover:dark:text-black;
+		@apply underline-offset-4 hover:no-underline hover:bg-light-300 inline-block hover:dark:bg-palette-300 hover:text-light-900 hover:dark:text-palette-900;
 	}
 
 	input {
-		@apply my-4 bg-white p-2 font-normal bg-palette-100 dark:bg-palette-900;
+		@apply my-4 p-2 font-normal bg-light-700 dark:bg-palette-700;
 	}
 
 	kbd {
-		@apply inline-block px-2 py-1 text-xs bg-palette-200 dark:bg-palette-700;
-		@apply border border-palette-300 dark:border-palette-600;
-		@apply text-palette-700 dark:text-palette-300;
+		@apply inline-block px-2 py-1 text-xs bg-light-700 dark:bg-palette-700;
+		@apply border border-light-600 dark:border-palette-600;
+		@apply text-light-300 dark:text-palette-300;
 	}
 
 	/*
@@ -260,20 +323,20 @@
   */
 
 	blockquote {
-		@apply border-l-4 border-palette-300 pl-4 pr-2 italic;
-		@apply bg-palette-100/20 dark:bg-white/5;
+		@apply border-l-4 border-light-300 dark:border-palette-300 pl-4 pr-2 italic;
+		@apply bg-palette-100/20 dark:bg-light-100/20;
 		@apply my-4 py-2;
-		@apply text-palette-800 dark:text-palette-200;
+		@apply text-light-200 dark:text-palette-200;
 	}
 
 	blockquote ol {
-		@apply text-palette-800 dark:text-palette-200;
+		@apply text-light-200 dark:text-palette-200;
 		@apply list-decimal ml-6;
 	}
 
 	details:not(.table-of-contents details) > :nth-child(n + 2),
 	#expand-content p {
-		@apply pl-4 border-l p-2;
+		@apply pl-4 border-l p-2 border-palette-900 dark:border-light-900;
 	}
 
 	/*
@@ -284,8 +347,7 @@
 
 	code:not(pre code) {
 		@apply px-1 py-0.5 font-normal text-sm;
-		@apply bg-palette-200 text-light-300;
-		@apply dark:bg-white/10 dark:text-palette-400;
+		@apply bg-light-200 dark:bg-palette-200 text-light-400 dark:text-palette-400;
 	}
 
 	code {
@@ -432,7 +494,7 @@ Global Utility Styles
 .footnotes {
 	margin-top: 2rem;
 	padding-bottom: 5.5vh;
-	@apply text-black dark:text-white;
+	@apply text-palette-900 dark:text-light-900;
 	@apply prose px-4 sm:px-6 md:px-8 mx-auto;
 }
 

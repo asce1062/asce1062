@@ -3,14 +3,15 @@ Tailwind theme variables
 Override some Pagefind UI default theme elements
 Match our site theme
 */
+
 #pagefind-search,
 #pagefind-search-floating {
 	--pagefind-ui-font: "0xProto", monospace;
-	--pagefind-ui-text: theme(colors.palette.700);
-	--pagefind-ui-background: theme(colors.light.100);
-	--pagefind-ui-border: theme(colors.palette.300);
-	--pagefind-ui-primary: theme(colors.palette.500);
-	--pagefind-ui-tag: theme(colors.light.200);
+	--pagefind-ui-text: theme(colors.palette.100);
+	--pagefind-ui-background: theme(colors.light.700);
+	--pagefind-ui-border: theme(colors.light.800);
+	--pagefind-ui-primary: theme(colors.light.400);
+	--pagefind-ui-tag: theme(colors.light.800);
 	--pagefind-ui-border-radius: 0;
 	--pagefind-ui-border-width: 1px;
 	--pagefind-ui-image-border-radius: 0;
@@ -22,7 +23,7 @@ Match our site theme
 [data-theme="dark"] #pagefind-search,
 [data-theme="dark"] #pagefind-search-floating {
 	--pagefind-ui-text: theme(colors.light.100);
-	--pagefind-ui-background: theme(colors.palette.900);
+	--pagefind-ui-background: theme(colors.palette.700);
 	--pagefind-ui-border: theme(colors.palette.800);
 	--pagefind-ui-primary: theme(colors.palette.400);
 	--pagefind-ui-tag: theme(colors.palette.800);
@@ -149,9 +150,9 @@ Match our site theme
 #pagefind-search-floating .pagefind-ui__result a,
 #pagefind-search-floating .pagefind-ui__result-link,
 #pagefind-search-floating .pagefind-ui__result-title a {
-	@apply text-light-300 dark:text-palette-300;
+	@apply text-palette-300 dark:text-light-300;
 	@apply underline decoration-dashed underline-offset-8;
-	@apply hover:no-underline hover:bg-palette-200 hover:dark:bg-palette-300 hover:dark:text-black;
+	@apply hover:no-underline hover:bg-light-300 hover:dark:bg-palette-300 hover:text-palette-900 hover:dark:text-light-900;
 	transition:
 		background-color 0.2s ease,
 		color 0.2s ease;
@@ -175,7 +176,7 @@ Match our site theme
 	top: 0;
 	transform: translateY(-0.3em);
 	right: calc(100% + 0.1em);
-	@apply text-light-300 dark:text-palette-300;
+	@apply text-palette-300 dark:text-light-300;
 }
 
 .pagefind-ui__result-excerpt {
@@ -185,6 +186,7 @@ Match our site theme
 	margin-top: calc(4px * var(--pagefind-ui-scale));
 	margin-bottom: 0;
 	min-width: calc(250px * var(--pagefind-ui-scale));
+	@apply text-palette-900 dark:text-light-900;
 }
 
 .pagefind-ui__result mark {

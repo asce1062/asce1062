@@ -15,7 +15,7 @@
 			"options": {
 				"parser": "astro",
 				"bracketSameLine": true,
-				"htmlWhitespaceSensitivity": "ignore"
+				"htmlWhitespaceSensitivity": "strict"
 			}
 		},
 		{

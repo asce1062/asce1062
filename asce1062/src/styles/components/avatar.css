@@ -29,7 +29,7 @@
 
 .gender-option input[type="radio"] {
 	cursor: pointer;
-	accent-color: var(--blue, #9bb0cd);
+	accent-color: var(--blue);
 	transform: translateY(-0.5em);
 }
 
@@ -50,21 +50,21 @@
 }
 
 .btn-primary {
-	background-color: var(--blue, #9bb0cd);
-	color: var(--dark, #120f19);
+	background-color: var(--blue);
+	color: var(--dark);
 }
 
 .btn-primary:hover {
-	background-color: var(--lightblue, #cad5db);
+	background-color: var(--lightblue);
 }
 
 .btn-secondary {
-	background-color: var(--pink, #dcb8b0);
-	color: var(--dark, #120f19);
+	background-color: var(--pink);
+	color: var(--dark);
 }
 
 .btn-secondary:hover {
-	background-color: var(--peach, #e5cab7);
+	background-color: var(--peach);
 }
 
 /* Generator Layout */
@@ -119,7 +119,7 @@
 	border-top-left-radius: 0.5rem;
 	border-top-right-radius: 0.5rem;
 	transition: all 0.2s;
-	color: var(--neutralgrey, #9f94a0);
+	color: var(--neutralgrey);
 }
 
 .layer-tab {
@@ -134,17 +134,17 @@
 	border-top-left-radius: 0.5rem;
 	border-top-right-radius: 0.5rem;
 	transition: all 0.2s;
-	color: var(--neutralgrey, #9f94a0);
+	color: var(--neutralgrey);
 }
 
 .layer-tab:hover {
-	color: var(--lightgrey, #bbb8bb);
-	border-bottom-color: var(--lightgrey, #bbb8bb);
+	color: var(--lightgrey);
+	border-bottom-color: var(--lightgrey);
 }
 
 .layer-tab.active {
-	color: var(--blue, #9bb0cd);
-	border-bottom-color: var(--blue, #9bb0cd);
+	color: var(--blue);
+	border-bottom-color: var(--blue);
 }
 
 .layer-tab-text {

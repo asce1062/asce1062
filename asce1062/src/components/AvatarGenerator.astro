@@ -177,7 +177,7 @@ import "@/styles/components/avatar.css";
 				// Highlight selected item
 				if (state[currentLayer] === i) {
 					item.classList.add("selected");
-					item.style.cssText += " border-color: var(--pink, #dcb8b0); box-shadow: 0 0 0 1px var(--pink, #dcb8b0);";
+					item.style.cssText += " border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink);";
 				}
 
 				// Render thumbnail
@@ -207,8 +207,8 @@ import "@/styles/components/avatar.css";
 				// Add hover effects
 				item.addEventListener("mouseenter", () => {
 					const currentBorder = item.style.borderColor;
-					if (currentBorder !== "var(--pink, #dcb8b0)" && currentBorder !== "rgb(220, 184, 176)") {
-						item.style.borderColor = "var(--blue, #9bb0cd)";
+					if (currentBorder !== "var(--pink)" && currentBorder !== "rgb(220, 184, 176)") {
+						item.style.borderColor = "var(--blue)";
 					}
 					item.style.transform = "scale(1.05)";
 				});

@@ -18,11 +18,13 @@ const { previousPost, nextPost } = Astro.props;
 		previousPost && (
 			<a
 				href={`/blog/${previousPost.id}`}
-				class="no-underline flex w-full gap-1 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
-				<i class="icon-chevron-left text-xl" />
+				class="group no-underline flex w-full gap-1 hover:bg-transparent hover:dark:bg-transparent hover:opacity-75">
+				<i class="icon-chevron-left text-xl group-hover:text-light-300 group-hover:dark:text-palette-300" />
 				<div>
-					<b class="text-palette-800">Previous Post</b>
-					<div class="text-sm text-accent/85">{previousPost.data.title}</div>
+					<b>Previous Post</b>
+					<div class="text-sm group-hover:text-palette-900 group-hover:dark:text-light-900">
+						{previousPost.data.title}
+					</div>
 				</div>
 			</a>
 		)
@@ -31,12 +33,12 @@ const { previousPost, nextPost } = Astro.props;
 		nextPost && (
 			<a
 				href={`/blog/${nextPost.id}`}
-				class="no-underline flex w-full justify-end gap-1 text-right sm:col-start-2 hover:bg-transparent hover:dark:bg-transparent hover:dark:text-inherit hover:opacity-75">
+				class="group no-underline flex w-full justify-end gap-1 text-right sm:col-start-2 hover:bg-transparent hover:dark:bg-transparent hover:opacity-75">
 				<div>
 					<b>Next Post</b>
-					<div class="text-sm text-accent/85">{nextPost.data.title}</div>
+					<div class="text-sm group-hover:text-palette-900 group-hover:dark:text-light-900">{nextPost.data.title}</div>
 				</div>
-				<i class="icon-chevron-right text-xl" />
+				<i class="icon-chevron-right text-xl group-hover:text-light-300 group-hover:dark:text-palette-300" />
 			</a>
 		)
 	}
