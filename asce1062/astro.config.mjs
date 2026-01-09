@@ -1,6 +1,5 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
-import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
@@ -14,10 +13,6 @@ export default defineConfig({
 		inlineStylesheets: "auto", // Optimize CSS delivery
 	},
 	integrations: [
-		tailwind({
-			applyBaseStyles: true,
-			nesting: true, // Enable CSS nesting
-		}),
 		sitemap({
 			filter: (page) => !page.includes("/404") && !page.includes("/success"),
 			changefreq: "weekly",
