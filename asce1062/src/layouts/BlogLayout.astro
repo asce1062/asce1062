@@ -52,31 +52,31 @@ const readingTime = currentEntry ? estimateReadingTime(currentEntry.body) : "";
 	<article data-pagefind-body data-pagefind-sort="date">
 		<h2 data-pagefind-meta="title">{title}</h2>
 		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
-			<i><b class="bg-light-700 dark:bg-palette-700">{date}</b>{readingTime && ` • ${readingTime}`} | {description}</i>
+			<i><b>{date}</b>{readingTime && ` • ${readingTime}`} | {description}</i>
 		</span>
 		<PreviewImage src={image} altText={alt} />
 		<span>
 			tags: {
 				tags.map((tag) => (
-					<a class="mr-2 bg-light-700 dark:bg-palette-700" href={`/tags/${tag}`} data-pagefind-meta="tag">
+					<a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
 						{tag}
 					</a>
 				))
 			}
 		</span>
-		<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-700 dark:bg-light-700" />
+		<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
 
 		<TableOfContentsComponent tableOfContents={tableOfContents} />
 
 		<slot />
 
-		<hr class="my-8 border-dashed border-palette-700 dark:border-light-700" />
+		<hr class="my-8 border-dashed border-base-300" />
 
 		<div data-pagefind-ignore class="mt-4 mb-8 sm:my-8">
 			<div class="my-4 flex flex-col items-center justify-center gap-6 sm:flex-row sm:items-end sm:gap-4">
 				<SocialShareButtons title={title} url={currentUrl} />
 			</div>
-			<hr class="my-6 border-dashed border-palette-700 dark:border-light-700" />
+			<hr class="my-6 border-dashed border-base-300" />
 		</div>
 
 		<PostNavigation previousPost={previousPost} nextPost={nextPost} />

@@ -22,19 +22,8 @@
 	font-size: 1.125rem;
 	font-weight: 700;
 	flex-shrink: 0;
-}
-
-/* Light mode avatar */
-html[data-theme="light"] .entry-avatar,
-.entry-avatar {
-	background-color: var(--blue);
-	color: var(--dark);
-}
-
-/* Dark mode avatar */
-html[data-theme="dark"] .entry-avatar {
-	background-color: var(--tangrey);
-	color: var(--lightgrey);
+	background-color: var(--color-accent);
+	color: var(--color-accent-content);
 }
 
 /* Entry Bubble */
@@ -45,20 +34,8 @@ html[data-theme="dark"] .entry-avatar {
 	max-width: 100%;
 	line-height: 1.625;
 	padding: 1rem;
-	border-radius: 0 1rem 1rem 1rem;
-}
-
-/* Light mode bubble */
-html[data-theme="light"] .entry-bubble,
-.entry-bubble {
-	border: 1px solid var(--lightgrey);
-	background-color: transparent;
-}
-
-/* Dark mode bubble */
-html[data-theme="dark"] .entry-bubble {
-	border-color: var(--tangrey);
-	background-color: transparent;
+	@apply bg-transparent border rounded-tr-[1rem] rounded-br-[1rem] rounded-bl-[1rem] rounded-tl-[0];
+	border-color: var(--color-base-300);
 }
 
 /* Entry Header */
@@ -73,28 +50,10 @@ html[data-theme="dark"] .entry-bubble {
 	font-size: 0.875rem;
 	font-weight: 600;
 	margin: 0;
+	color: var(--color-warning);
 }
 
-/* Light mode h2 */
-html[data-theme="light"] .entry h2,
-.entry h2 {
-	@apply text-light-300;
-}
-
-/* Dark mode h2 */
-html[data-theme="dark"] .entry h2 {
-	@apply text-palette-300;
-}
-
-/* Light mode h2 links */
-html[data-theme="light"] .entry h2 a,
 .entry h2 a {
-	text-decoration-style: wavy;
-	text-decoration-thickness: 0.07rem;
-}
-
-/* Dark mode h2 links */
-html[data-theme="dark"] .entry h2 a {
 	text-decoration-style: wavy;
 	text-decoration-thickness: 0.07rem;
 }
@@ -106,7 +65,7 @@ html[data-theme="dark"] .entry h2 a {
 	display: inline;
 	margin: 0;
 	width: auto;
-	color: var(--tangrey);
+	color: var(--color-neutral-content);
 }
 
 /* Entry Message */
@@ -115,17 +74,7 @@ html[data-theme="dark"] .entry h2 a {
 	font-weight: 400;
 	white-space: pre-line;
 	margin: 0;
-}
-
-/* Light mode p */
-html[data-theme="light"] .entry p,
-.entry p {
-	@apply text-palette-900;
-}
-
-/* Dark mode p */
-html[data-theme="dark"] .entry p {
-	@apply text-light-900;
+	color: var(--color-base-content);
 }
 
 /* Nostalgic Effects */
@@ -147,12 +96,22 @@ marquee {
 }
 
 .faded-text {
-	background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffd93d);
+	background: linear-gradient(
+		90deg,
+		var(--color-primary),
+		var(--color-secondary),
+		var(--color-accent),
+		var(--color-neutral),
+		var(--color-info),
+		var(--color-success),
+		var(--color-warning),
+		var(--color-error)
+	);
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
-	animation: gradient-shift 3s ease-in-out infinite;
+	animation: gradient-shift 5s ease-in-out infinite;
 }
 
 @keyframes gradient-shift {
@@ -163,4 +122,37 @@ marquee {
 	50% {
 		background-position: 100% 50%;
 	}
+}
+
+.input-base {
+	@apply border focus:outline focus:outline-2 focus:outline-offset-2;
+	background-color: var(--color-base-100);
+	border-color: var(--color-base-300);
+}
+
+.input-base::placeholder {
+	color: var(--color-neutral-content);
+}
+
+.input-allowed {
+	@apply input-base;
+	color: var(--color-base-content);
+}
+
+.input-allowed:focus {
+	outline-color: var(--color-success);
+}
+
+.input-honeypot {
+	@apply input-base;
+	color: var(--color-neutral-content);
+	background-color: color-mix(in oklab, var(--color-warning), transparent 80%) !important;
+}
+
+.input-honeypot:focus {
+	outline-color: var(--color-error);
+}
+
+.input-honeypot:focus {
+	animation: shake 0.3s linear;
 }

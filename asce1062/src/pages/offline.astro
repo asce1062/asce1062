@@ -11,7 +11,9 @@ import Layout from "@/layouts/Layout.astro";
 		</p>
 		<div id="offline-status" class="mb-4 text-sm opacity-70"></div>
 		<div class="flex flex-col gap-4">
-			<a href="/" class="btn btn-primary">Go to Home</a>
+			<a href="/" class="link-action link-action--secondary no-underline"
+				><i class="icon-house-heart text-2xl"></i>Go to Home</a
+			>
 		</div>
 	</div>
 </Layout>
@@ -54,23 +56,3 @@ import Layout from "@/layouts/Layout.astro";
 	// Show initial status
 	updateStatus(OfflineManager.isOnline());
 </script>
-
-<style>
-	.btn {
-		display: inline-block;
-		padding: 0.75rem 1.5rem;
-		border-radius: 0.25rem;
-		text-decoration: none;
-		font-weight: 600;
-		transition: all 0.2s;
-	}
-
-	.btn-primary {
-		background-color: var(--pink);
-		color: var(--palette-700);
-	}
-
-	.btn-primary:hover {
-		background-color: var(--blue);
-	}
-</style>

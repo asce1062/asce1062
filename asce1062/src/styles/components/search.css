@@ -7,26 +7,16 @@ Match our site theme
 #pagefind-search,
 #pagefind-search-floating {
 	--pagefind-ui-font: "0xProto", monospace;
-	--pagefind-ui-text: theme(colors.palette.100);
-	--pagefind-ui-background: theme(colors.light.700);
-	--pagefind-ui-border: theme(colors.light.800);
-	--pagefind-ui-primary: theme(colors.light.400);
-	--pagefind-ui-tag: theme(colors.light.800);
+	--pagefind-ui-text: var(--color-base-content);
+	--pagefind-ui-background: var(--color-base-200);
+	--pagefind-ui-border: var(--color-base-content);
+	--pagefind-ui-primary: var(--color-warning);
+	--pagefind-ui-tag: var(--color-base-300);
 	--pagefind-ui-border-radius: 0;
 	--pagefind-ui-border-width: 1px;
 	--pagefind-ui-image-border-radius: 0;
 	--pagefind-ui-image-box-ratio: 3 / 2;
 	--pagefind-ui-scale: 0.8;
-}
-
-/* Dark theme override */
-[data-theme="dark"] #pagefind-search,
-[data-theme="dark"] #pagefind-search-floating {
-	--pagefind-ui-text: theme(colors.light.100);
-	--pagefind-ui-background: theme(colors.palette.700);
-	--pagefind-ui-border: theme(colors.palette.800);
-	--pagefind-ui-primary: theme(colors.palette.400);
-	--pagefind-ui-tag: theme(colors.palette.800);
 }
 
 /* Search Input Styling   */
@@ -150,12 +140,21 @@ Match our site theme
 #pagefind-search-floating .pagefind-ui__result a,
 #pagefind-search-floating .pagefind-ui__result-link,
 #pagefind-search-floating .pagefind-ui__result-title a {
-	@apply text-palette-300 dark:text-light-300;
-	@apply underline decoration-dashed underline-offset-8;
-	@apply hover:no-underline hover:bg-light-300 hover:dark:bg-palette-300 hover:text-palette-900 hover:dark:text-light-900;
+	@apply underline decoration-dashed underline-offset-8 hover:no-underline inline-block;
+	color: var(--color-warning);
 	transition:
 		background-color 0.2s ease,
 		color 0.2s ease;
+}
+
+#pagefind-search .pagefind-ui__result a:hover,
+#pagefind-search .pagefind-ui__result-link:hover,
+#pagefind-search .pagefind-ui__result-title a:hover,
+#pagefind-search-floating .pagefind-ui__result a:hover,
+#pagefind-search-floating .pagefind-ui__result-link:hover,
+#pagefind-search-floating .pagefind-ui__result-title a:hover {
+	background-color: var(--color-primary);
+	color: var(--color-primary-content);
 }
 
 /* Add vertical spacing between link/title and excerpt */
@@ -176,7 +175,7 @@ Match our site theme
 	top: 0;
 	transform: translateY(-0.3em);
 	right: calc(100% + 0.1em);
-	@apply text-palette-300 dark:text-light-300;
+	color: var(--color-base-content);
 }
 
 .pagefind-ui__result-excerpt {
@@ -186,12 +185,12 @@ Match our site theme
 	margin-top: calc(4px * var(--pagefind-ui-scale));
 	margin-bottom: 0;
 	min-width: calc(250px * var(--pagefind-ui-scale));
-	@apply text-palette-900 dark:text-light-900;
+	color: var(--color-base-content);
 }
 
 .pagefind-ui__result mark {
-	background: var(--pagefind-ui-primary);
-	color: var(--pagefind-ui-background);
+	background-color: var(--color-secondary);
+	color: var(--color-secondary-content);
 	padding: 0 0.1em;
 	border-radius: 0;
 }
@@ -201,8 +200,10 @@ Match our site theme
 #pagefind-search .pagefind-ui__result-tags .pagefind-ui__result-tag,
 #pagefind-search-floating .pagefind-ui__result-tags .pagefind-ui__result-tag,
 .pagefind-ui__result .pagefind-ui__result-tag,
-li.pagefind-ui__result-tag.svelte-4xnkmf {
+li.pagefind-ui__result-tag {
 	@apply p-1 inline-block;
+	background-color: var(--color-success);
+	color: var(--color-success-content);
 }
 
 /* Ensure search results wrap gracefully and remain within viewport */

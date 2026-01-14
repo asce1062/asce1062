@@ -23,10 +23,10 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 {
 	tableOfContents && tableOfContents.length > 0 && (
 		<>
-			<h1>Table of Contents</h1>
+			<h1 class="text-warning">Table of Contents</h1>
 			<div class="table-of-contents mt-4 mb-8 sm:my-8">
 				<details>
-					<summary>Open Table of Contents</summary>
+					<summary class="text-neutral-content hover:underline hover:decoration-wavy">Open Table of Contents</summary>
 					<ul>
 						{tableOfContents.map((item) => {
 							const { entry, hasChildren } = renderTocEntry(item);

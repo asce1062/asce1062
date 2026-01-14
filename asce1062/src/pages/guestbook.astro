@@ -43,25 +43,31 @@ const entries = await getGuestEntries();
 			<p>
 				<label>
 					Name
-					<br /><input type="text" name="name" required />
+					<br /><input class="input-allowed" type="text" name="name" required />
 				</label>
 			</p>
 			<p>
 				<label>
 					Email <small>(optional, not published)</small>
-					<br /><input type="email" name="email" />
+					<br /><input class="input-allowed" type="email" name="email" />
 				</label>
 			</p>
 			<p>
 				<label>
 					URL <small>(optional, linked from Name)</small>
-					<br /><input type="url" name="url" placeholder="https://example.com" pattern="https://.*" />
+					<br /><input
+						class="input-allowed"
+						type="url"
+						name="url"
+						placeholder="https://example.com"
+						pattern="https://.*"
+					/>
 				</label>
 			</p>
 			<p>
 				<label>
 					Subject <small>(please <b>skip</b> this field if you're real)</small>
-					<br /><input type="text" name="bot-field" placeholder="Leave me be!" />
+					<br /><input class="input-honeypot" type="text" name="bot-field" placeholder="Leave me be!" />
 					<small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
 				</label>
 			</p>
@@ -73,7 +79,7 @@ const entries = await getGuestEntries();
 						name="message"
 						rows="4"
 						required
-						class="block p-2.5 w-full text-sm text-palette-900 dark:text-light-900 bg-light-700 dark:bg-palette-700 border border-light-600 dark:border-palette-600 placeholder-light-50 dark:placeholder-palette-50"
+						class="block p-2.5 w-full text-sm input-allowed"
 						placeholder="Write your thoughts here..."></textarea>
 					<!-- prettier-ignore-end -->
 				</label>
@@ -96,10 +102,8 @@ const entries = await getGuestEntries();
 				</label>
 			</p>
 			<p>
-				<button
-					type="submit"
-					class="text-palette-900 dark:text-light-900 bg-light-900 dark:bg-palette-900 border border-light-600 dark:border-palette-600 focus:outline-none hover:bg-light-700 dark:hover:bg-palette-700 focus:ring-4 focus:ring-light-700 dark:focus:ring-palette-700 hover:border-light-600 dark:hover:border-palette-600 font-medium text-sm px-5 py-2.5 me-2 mb-2">
-					<b>Sign Guestbook</b>
+				<button type="submit" class="link-action link-action--success font-medium text-sm px-5 py-2.5 me-2 mb-2"
+					>Sign Guestbook
 				</button>
 			</p>
 		</form>

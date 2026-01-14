@@ -6,35 +6,46 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				// palette/light structure (backward compatibility)
-				palette: designTokens.palette,
 				light: designTokens.light,
-
-				// Brand colors (warm peach/coral)
-				brand: designTokens.light.colors.brand,
-
-				// Neutral colors (warm beige/brown)
-				neutral: designTokens.light.colors.neutral,
-
-				// Secondary colors (mint/cyan)
-				secondary: designTokens.light.colors.secondary,
-
-				// Accent colors (gold/mustard)
-				accent: designTokens.light.colors.accent,
-
-				// Status colors
-				error: designTokens.light.colors.error,
-				warning: designTokens.light.colors.warning,
-				success: designTokens.light.colors.success,
-
-				// Semantic colors
-				"brand-primary": designTokens.light.semanticColors["brand-primary"],
-				"default-font": designTokens.light.semanticColors["default-font"],
-				"subtext-color": designTokens.light.semanticColors["subtext-color"],
-				"neutral-border": designTokens.light.semanticColors["neutral-border"],
-				white: designTokens.light.semanticColors.white,
-				black: designTokens.dark.semanticColors.black,
-				"default-background": designTokens.light.semanticColors["default-background"],
+				dark: designTokens.dark,
+				base: {
+					100: "var(--color-base-100)",
+					200: "var(--color-base-200)",
+					300: "var(--color-base-300)",
+					content: "var(--color-base-content)",
+				},
+				primary: {
+					DEFAULT: "var(--color-primary)",
+					content: "var(--color-primary-content)",
+				},
+				secondary: {
+					DEFAULT: "var(--color-secondary)",
+					content: "var(--color-secondary-content)",
+				},
+				accent: {
+					DEFAULT: "var(--color-accent)",
+					content: "var(--color-accent-content)",
+				},
+				neutral: {
+					DEFAULT: "var(--color-neutral)",
+					content: "var(--color-neutral-content)",
+				},
+				info: {
+					DEFAULT: "var(--color-info)",
+					content: "var(--color-info-content)",
+				},
+				success: {
+					DEFAULT: "var(--color-success)",
+					content: "var(--color-success-content)",
+				},
+				warning: {
+					DEFAULT: "var(--color-warning)",
+					content: "var(--color-warning-content)",
+				},
+				error: {
+					DEFAULT: "var(--color-error)",
+					content: "var(--color-error-content)",
+				},
 			},
 			fontSize: designTokens.fontSize,
 			fontFamily: designTokens.fontFamily,

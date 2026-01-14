@@ -53,8 +53,7 @@ const shareLinks = [
 ];
 ---
 
-<div
-	class="flex flex-col flex-wrap items-center justify-center gap-1 sm:items-start text-light-800 dark:text-palette-800">
+<div class="flex flex-col flex-wrap items-center justify-center gap-1 sm:items-start">
 	<b class="italic">Share this post on:</b>
 	<br />
 	<div class="text-center">
@@ -64,7 +63,7 @@ const shareLinks = [
 					href={url}
 					target={label.includes("Email") ? undefined : "_blank"}
 					rel={label.includes("Email") ? undefined : "noopener noreferrer"}
-					class="no-underline group hover:text-accent scale-90 p-2 hover:rotate-6 sm:p-1 bg-light-700 dark:bg-palette-700"
+					class="no-underline group scale-90 p-2 hover:rotate-6 sm:p-1"
 					aria-label={label}>
 					<i class={`${icon} text-2xl`} />
 				</a>
@@ -74,7 +73,7 @@ const shareLinks = [
 			id="blog-share-btn"
 			data-url={url}
 			data-title={title}
-			class="-ml-2 no-underline group hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer bg-light-700 dark:bg-palette-700"
+			class="-ml-2 no-underline group scale-90 p-2 hover:-rotate-6 sm:p-1"
 			aria-label="Copy link to clipboard">
 			<i class="icon-share text-2xl"></i>
 		</a>

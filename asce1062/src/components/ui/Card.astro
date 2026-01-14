@@ -38,7 +38,7 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 ---
 
 <div
-	class="relative flex flex-col overflow-auto bg-light-700 dark:bg-palette-700 border border-palette-900 dark:border-light-900">
+	class="relative flex flex-col overflow-auto bg-[color-mix(in_oklab,var(--color-neutral)_20%,transparent)] border border-base-300">
 	{
 		resolvedImage && (
 			<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
@@ -51,18 +51,18 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 	}
 	<div class="p-4 h-full flex flex-col gap-2">
 		<a
-			class="no-underline text-sm sm:text-base transition-all duration-300 font-bold hover:bg-transparent group flex flex-row justify-between items-center gap-4 hover:bg-light-300 inline-block hover:dark:bg-palette-300"
+			class="no-underline text-sm transition-all duration-300 font-bold group flex flex-row justify-between items-center gap-4 inline-block"
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer">
 			<span
-				class="flex flex-row gap-2 items-center group-hover:text-light-900 group-hover:dark:text-palette-900 transition-all duration-300 text-light-300 dark:text-palette-300 break-all flex-1 min-w-0">
+				class="flex flex-row gap-2 items-center group-hover:text-primary-content transition-all duration-300 text-warning break-all flex-1 min-w-0">
 				{name}
 				{fork && <i class="icon-git" />}
 			</span>
 			{
 				stars !== undefined && (
-					<span class="flex flex-row gap-2 items-center group-hover:text-light-900 group-hover:dark:text-palette-900 transition-all duration-300 flex-shrink-0">
+					<span class="flex flex-row gap-2 items-center text-info group-hover:text-primary-content transition-all duration-300 flex-shrink-0">
 						{stars}
 						<i class="icon-star" />
 					</span>
@@ -80,7 +80,7 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 						{tools.map((tool) => {
 							const iconClass = getLanguageIcon(tool.name) || tool.icon;
 							return (
-								<span class="text-xs sm:text-sm transition-all duration-300 bg-light-600 dark:bg-palette-600 text-light-900 px-2 py-1 dark:text-palette-900 font-bold flex items-center gap-1">
+								<span class="text-xs sm:text-sm transition-all duration-300 bg-secondary text-secondary-content px-2 py-1 font-bold flex items-center gap-1">
 									{iconClass && <i class={iconClass} />}
 									{tool.name}
 								</span>
@@ -89,16 +89,14 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 					</div>
 				)
 			}
-			<div
-				class="text-sm sm:text-base font-bold *:hover:bg-transparent *:hover:dark:bg-transparent *:hover:decoration-offset-4 *:text-palette-900 *:dark:text-light-900 *:hover:text-light-300 *:dark:hover:text-palette-300">
+			<div>
 				<a
-					class="icon hover:text-accent transition-colors"
+					class="hover:underline hover:decoration-wavy link-action transition-colors"
 					href={repo}
 					target="_blank"
 					rel="noopener noreferrer"
 					aria-label={`Visit the GitHub repository for ${name}`}>
-					<i class="icon-github mr-2"></i>
-					<span class="text-light-300 dark:text-palette-300 hover:underline hover:decoration-wavy">view source</span>
+					<i class="icon-github"></i> view source
 				</a>
 			</div>
 		</div>

@@ -17,7 +17,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 ---
 
 <div
-	class="relative flex flex-col md:flex-row overflow-auto bg-light-700 dark:bg-palette-700 border border-palette-900 dark:border-light-900">
+	class="relative flex flex-col md:flex-row overflow-auto bg-[color-mix(in_oklab,var(--color-neutral)_20%,transparent)] border border-base-300">
 	{
 		image ? (
 			<Image
@@ -34,20 +34,20 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 		<div class="grow">
 			<p>{description}</p>
 		</div>
-		<hr class="w-full h-[1.25px] my-4 border-0 bg-palette-700 dark:bg-light-700" />
+		<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
 		<div class="bottom-0 mt-auto flex flex-col gap-2">
 			<div class="flex flex-wrap gap-2 justify-center md:justify-start">
 				{
 					tags.map((tag) => (
-						<a class="px-2 py-1 border border-palette-900 dark:border-light-900" href={`/tags/${tag}`}>
+						<a class="px-2 py-1 hover:underline hover:decoration-wavy link-action" href={`/tags/${tag}`}>
 							#{tag}
 						</a>
 					))
 				}
 			</div>
-			<span class="flex flex-wrap gap-2 justify-center md:justify-start text-sm opacity-70">
+			<span class="flex flex-wrap gap-2 justify-center md:justify-start text-sm text-neutral-content">
 				{date}
-				{readingTime && <span>• {readingTime}</span>}
+				{readingTime && <span class="text-neutral-content">• {readingTime}</span>}
 			</span>
 		</div>
 	</div>

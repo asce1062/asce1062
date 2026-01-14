@@ -35,86 +35,52 @@
   ============================================
   */
 
+	/* Light Theme (Default) */
 	:root {
-		/* Color Palette - References Tailwind theme tokens from design-tokens.mjs */
-		--tangrey: theme("colors.palette.50");
-		--neutralgrey: theme("colors.palette.100");
-		--lightgrey: theme("colors.palette.200");
-		--pink: theme("colors.palette.300");
-		--peach: theme("colors.palette.400");
-		--blue: theme("colors.palette.500");
-		--lightblue: theme("colors.palette.600");
-		--dark: theme("colors.palette.700");
-		--bold: theme("colors.palette.800");
+		--color-base-100: theme(colors.light.color-base-100);
+		--color-base-200: theme(colors.light.color-base-200);
+		--color-base-300: theme(colors.light.color-base-300);
+		--color-base-content: theme(colors.light.color-base-content);
+		--color-primary: theme(colors.light.color-primary);
+		--color-primary-content: theme(colors.light.color-primary-content);
+		--color-secondary: theme(colors.light.color-secondary);
+		--color-secondary-content: theme(colors.light.color-secondary-content);
+		--color-accent: theme(colors.light.color-accent);
+		--color-accent-content: theme(colors.light.color-accent-content);
+		--color-neutral: theme(colors.light.color-neutral);
+		--color-neutral-content: theme(colors.light.color-neutral-content);
+		--color-info: theme(colors.light.color-info);
+		--color-info-content: theme(colors.light.color-info-content);
+		--color-success: theme(colors.light.color-success);
+		--color-success-content: theme(colors.light.color-success-content);
+		--color-warning: theme(colors.light.color-warning);
+		--color-warning-content: theme(colors.light.color-warning-content);
+		--color-error: theme(colors.light.color-error);
+		--color-error-content: theme(colors.light.color-error-content);
+	}
 
-		/* Retro Color System with theme-aware colors */
-
-		/* Brand colors (warm peach/coral) */
-		--brand-primary: theme("colors.brand-primary");
-		--brand-50: theme("colors.brand.50");
-		--brand-100: theme("colors.brand.100");
-		--brand-200: theme("colors.brand.200");
-		--brand-300: theme("colors.brand.300");
-		--brand-400: theme("colors.brand.400");
-		--brand-500: theme("colors.brand.500");
-		--brand-600: theme("colors.brand.600");
-		--brand-700: theme("colors.brand.700");
-		--brand-800: theme("colors.brand.800");
-		--brand-900: theme("colors.brand.900");
-
-		/* Neutral colors (warm beige/brown) */
-		--neutral-50: theme("colors.neutral.50");
-		--neutral-100: theme("colors.neutral.100");
-		--neutral-200: theme("colors.neutral.200");
-		--neutral-300: theme("colors.neutral.300");
-		--neutral-400: theme("colors.neutral.400");
-		--neutral-500: theme("colors.neutral.500");
-		--neutral-600: theme("colors.neutral.600");
-		--neutral-700: theme("colors.neutral.700");
-		--neutral-800: theme("colors.neutral.800");
-		--neutral-900: theme("colors.neutral.900");
-		--neutral-950: theme("colors.neutral.950");
-
-		/* Secondary colors (mint/cyan) */
-		--secondary-50: theme("colors.secondary.50");
-		--secondary-100: theme("colors.secondary.100");
-		--secondary-200: theme("colors.secondary.200");
-		--secondary-300: theme("colors.secondary.300");
-		--secondary-400: theme("colors.secondary.400");
-		--secondary-500: theme("colors.secondary.500");
-		--secondary-600: theme("colors.secondary.600");
-		--secondary-700: theme("colors.secondary.700");
-		--secondary-800: theme("colors.secondary.800");
-		--secondary-900: theme("colors.secondary.900");
-
-		/* Accent colors (gold/mustard) */
-		--accent-50: theme("colors.accent.50");
-		--accent-100: theme("colors.accent.100");
-		--accent-200: theme("colors.accent.200");
-		--accent-300: theme("colors.accent.300");
-		--accent-400: theme("colors.accent.400");
-		--accent-500: theme("colors.accent.500");
-		--accent-600: theme("colors.accent.600");
-		--accent-700: theme("colors.accent.700");
-		--accent-800: theme("colors.accent.800");
-		--accent-900: theme("colors.accent.900");
-
-		/* Status colors */
-		--error-500: theme("colors.error.500");
-		--warning-500: theme("colors.warning.500");
-		--success-500: theme("colors.success.500");
-
-		/* Semantic utility colors */
-		--default-font: theme("colors.default-font");
-		--subtext-color: theme("colors.subtext-color");
-		--neutral-border: theme("colors.neutral-border");
-		--default-background: theme("colors.default-background");
-
-		/* Layout & Spacing - References Tailwind theme tokens */
-		--spacing-inline: theme("spacing.inline");
-
-		/* Typography - Font family defined above in @font-face */
-		font-family: "0xProto", monospace;
+	/* Dark Theme */
+	html[data-theme="dark"] {
+		--color-base-100: theme(colors.dark.color-base-100);
+		--color-base-200: theme(colors.dark.color-base-200);
+		--color-base-300: theme(colors.dark.color-base-300);
+		--color-base-content: theme(colors.dark.color-base-content);
+		--color-primary: theme(colors.dark.color-primary);
+		--color-primary-content: theme(colors.dark.color-primary-content);
+		--color-secondary: theme(colors.dark.color-secondary);
+		--color-secondary-content: theme(colors.dark.color-secondary-content);
+		--color-accent: theme(colors.dark.color-accent);
+		--color-accent-content: theme(colors.dark.color-accent-content);
+		--color-neutral: theme(colors.dark.color-neutral);
+		--color-neutral-content: theme(colors.dark.color-neutral-content);
+		--color-info: theme(colors.dark.color-info);
+		--color-info-content: theme(colors.dark.color-info-content);
+		--color-success: theme(colors.dark.color-success);
+		--color-success-content: theme(colors.dark.color-success-content);
+		--color-warning: theme(colors.dark.color-warning);
+		--color-warning-content: theme(colors.dark.color-warning-content);
+		--color-error: theme(colors.dark.color-error);
+		--color-error-content: theme(colors.dark.color-error-content);
 	}
 
 	/*
@@ -124,8 +90,8 @@
   */
 
 	::selection {
-		background: var(--blue);
-		color: var(--dark);
+		background-color: var(--color-info);
+		color: var(--color-info-content);
 	}
 
 	/*
@@ -162,8 +128,9 @@
 
 	body {
 		margin: 0;
-		background-color: var(--dark);
-		color: white;
+		font-family: "0xProto", monospace;
+		background-color: var(--color-base-100);
+		color: var(--color-base-content);
 	}
 
 	/*
@@ -187,7 +154,7 @@
 	}
 
 	b {
-		color: var(--bold);
+		color: var(--color-warning);
 		font-weight: 700;
 	}
 
@@ -253,7 +220,8 @@
   */
 
 	h1 {
-		@apply text-2xl transition-all duration-100 md:text-3xl text-palette-900 dark:text-light-900;
+		@apply text-2xl transition-all duration-100 md:text-3xl;
+		color: var(--color-base-content);
 	}
 
 	h2 {
@@ -264,18 +232,18 @@
 		@apply text-base transition-all duration-100 md:text-lg;
 	}
 
-	p,
+	p:not(blockquote p),
 	ul,
 	span,
 	div {
-		@apply text-palette-700 dark:text-light-700;
+		color: var(--color-base-content);
 	}
 
 	h2,
 	h4,
 	a,
 	b {
-		@apply text-light-300 dark:text-palette-300;
+		color: var(--color-warning);
 	}
 
 	/*
@@ -303,17 +271,28 @@
   */
 
 	a {
-		@apply underline-offset-4 hover:no-underline hover:bg-light-300 inline-block hover:dark:bg-palette-300 hover:text-light-900 hover:dark:text-palette-900;
+		@apply underline-offset-4 hover:no-underline inline-block;
+	}
+
+	a:hover {
+		background-color: var(--color-primary);
+		color: var(--color-primary-content);
+	}
+
+	a:active {
+		translate: 0 0.5px;
 	}
 
 	input {
-		@apply my-4 p-2 font-normal bg-light-700 dark:bg-palette-700;
+		@apply my-4 p-2 font-normal;
+		background-color: var(--color-base-100);
 	}
 
 	kbd {
-		@apply inline-block px-2 py-1 text-xs bg-light-700 dark:bg-palette-700;
-		@apply border border-light-600 dark:border-palette-600;
-		@apply text-light-300 dark:text-palette-300;
+		@apply inline-block px-2 py-1 text-xs border;
+		background-color: var(--color-neutral);
+		border-color: var(--color-secondary);
+		color: var(--color-neutral-content);
 	}
 
 	/*
@@ -323,20 +302,21 @@
   */
 
 	blockquote {
-		@apply border-l-4 border-light-300 dark:border-palette-300 pl-4 pr-2 italic;
-		@apply bg-palette-100/20 dark:bg-light-100/20;
-		@apply my-4 py-2;
-		@apply text-light-200 dark:text-palette-200;
+		@apply border-l-4 pl-4 pr-2 italic my-4 py-2;
+		border-color: var(--color-warning);
+		background-color: color-mix(in oklab, var(--color-primary), transparent 80%);
+		color: var(--color-base-content);
 	}
 
 	blockquote ol {
-		@apply text-light-200 dark:text-palette-200;
 		@apply list-decimal ml-6;
+		color: var(--color-primary-content);
 	}
 
 	details:not(.table-of-contents details) > :nth-child(n + 2),
 	#expand-content p {
-		@apply pl-4 border-l p-2 border-palette-900 dark:border-light-900;
+		@apply pl-4 border-l p-2;
+		border-color: var(--color-warning);
 	}
 
 	/*
@@ -347,7 +327,8 @@
 
 	code:not(pre code) {
 		@apply px-1 py-0.5 font-normal text-sm;
-		@apply bg-light-200 dark:bg-palette-200 text-light-400 dark:text-palette-400;
+		background-color: var(--color-neutral);
+		color: var(--color-neutral-content);
 	}
 
 	code {
@@ -494,8 +475,8 @@ Global Utility Styles
 .footnotes {
 	margin-top: 2rem;
 	padding-bottom: 5.5vh;
-	@apply text-palette-900 dark:text-light-900;
 	@apply prose px-4 sm:px-6 md:px-8 mx-auto;
+	color: var(--color-base-content);
 }
 
 /* Ensure iframe displays properly */
@@ -522,17 +503,16 @@ Share Notification (Global)
 	align-items: center;
 	gap: 1rem;
 	padding: 1rem 1.5rem;
-	background-color: var(--blue, #9bb0cd);
-	color: var(--dark, #120f19) !important;
-	border-radius: 0.25rem;
+	background-color: var(--color-success);
+	border-radius: 0;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 	font-weight: 600;
 	z-index: 1000;
 	animation: slideInFromRight 0.3s ease-out;
 }
 
-.share-notification * {
-	color: var(--dark, #120f19) !important;
+.share-notification span {
+	color: var(--color-success-content);
 }
 
 .share-notification.hidden {
@@ -546,7 +526,7 @@ Share Notification (Global)
 .close-btn {
 	background: none;
 	border: none;
-	color: var(--dark, #120f19);
+	color: var(--color-base-100);
 	cursor: pointer;
 	padding: 0.25rem;
 	display: flex;
@@ -597,4 +577,113 @@ Share Notification (Global)
 
 @view-transition {
 	navigation: auto;
+}
+
+.btn {
+	padding: 0.75rem 1.5rem;
+	border-radius: 0rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	transition:
+		background-color 0.2s,
+		translate 0.1s;
+	/* --btn-bg: transparent; */
+	background-color: var(--btn-bg);
+}
+
+@media (hover: hover) {
+	.btn:hover {
+		--btn-bg: var(--btn-color);
+	}
+
+	@supports (color: color-mix(in oklab, red, red)) {
+		.btn:hover {
+			--btn-bg: color-mix(in oklab, var(--btn-color), var(--btn-hover-mix) 7%);
+		}
+	}
+}
+
+.btn:active {
+	--btn-bg: var(--btn-color, --btn-hover-mix);
+	translate: 0 0.5px;
+}
+
+.btn-primary {
+	--btn-color: var(--color-primary);
+	--btn-hover-mix: var(--color-base-200);
+	--btn-bg: var(--btn-color);
+
+	@apply btn;
+	color: var(--color-primary-content);
+}
+
+.btn-secondary {
+	--btn-color: var(--color-secondary);
+	--btn-hover-mix: var(--color-base-200);
+	--btn-bg: var(--btn-color);
+
+	@apply btn;
+	color: var(--color-secondary-content);
+}
+
+.link-action {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+
+	padding: 0.5rem 0.75rem;
+	border-radius: 0rem;
+	font-weight: 500;
+	text-decoration: none;
+
+	background-color: var(--color-neutral);
+	color: var(--color-neutral-content);
+	border: 1px solid var(--color-neutral-content);
+
+	transition:
+		background-color 0.2s,
+		color 0.2s,
+		border-color 0.2s;
+}
+
+@media (hover: hover) {
+	.link-action:hover,
+	.link-action:active {
+		background-color: var(--color-base-100);
+		color: var(--color-base-content);
+		border-color: var(--color-base-300);
+	}
+}
+
+.link-action:active {
+	translate: 0 0.5px;
+}
+
+.link-action:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+.link-action--primary {
+	background-color: color-mix(in oklab, var(--color-primary) 99%, transparent);
+	border-color: var(--color-neutral-content);
+	color: var(--color-primary-content);
+}
+
+.link-action--secondary {
+	background-color: color-mix(in oklab, var(--color-secondary) 99%, transparent);
+	border-color: var(--color-neutral-content);
+	color: var(--color-secondary-content);
+}
+
+.link-action--accent {
+	background-color: color-mix(in oklab, var(--color-accent) 99%, transparent);
+	border-color: var(--color-neutral-content);
+	color: var(--color-accent-content);
+}
+
+.link-action--success {
+	background-color: color-mix(in oklab, var(--color-success) 99%, transparent);
+	border-color: var(--color-neutral-content);
+	color: var(--color-success-content);
 }
