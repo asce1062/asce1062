@@ -3,6 +3,8 @@
  * Nostalgic web aesthetics with theme support
  */
 
+@reference "../global.css";
+
 /* Entry Layout */
 .entry {
 	display: flex;
@@ -124,14 +126,14 @@ marquee {
 	}
 }
 
-.input-base {
+@utility input-base {
 	@apply border focus:outline focus:outline-2 focus:outline-offset-2;
 	background-color: var(--color-base-100);
 	border-color: var(--color-base-300);
-}
 
-.input-base::placeholder {
-	color: var(--color-neutral-content);
+	&::placeholder {
+		color: var(--color-neutral-content);
+	}
 }
 
 .input-allowed {

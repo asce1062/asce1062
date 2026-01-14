@@ -1,0 +1,132 @@
+---
+/**
+ * CollapsibleNav Component
+ *
+ * A reusable, accessible collapsible navigation component with smooth animations.
+ *
+ * Features:
+ * - Height-based animation
+ * - keyboard support (Tab, Enter, Space)
+ * - ARIA attributes for screen reader accessibility
+ */
+
+import type { NavigationLink } from "@/data/navigation";
+import "@/styles/components/collapsible-nav.css";
+
+interface Props {
+	/** Array of navigation links to display */
+	items: NavigationLink[];
+	/** Current page path for active state detection */
+	currentPath: string;
+	/** Unique ID for ARIA relationships (default: "collapsible-nav") */
+	id?: string;
+}
+
+const { items, currentPath, id = "collapsible-nav" } = Astro.props;
+
+/**
+ * Determines if a navigation link is currently active
+ * - Home page requires exact match
+ * - Other pages match if current path starts with link href
+ */
+function isActive(linkHref: string): boolean {
+	if (linkHref === "/" && currentPath === "/") return true;
+	if (linkHref !== "/" && currentPath.startsWith(linkHref)) return true;
+	return false;
+}
+
+// Generate unique IDs for ARIA relationships
+const navContainerId = `${id}-container`;
+const navItemsId = `${id}-items`;
+const toggleId = `${id}-toggle`;
+---
+
+<nav class="collapsible-nav" data-collapsible-nav id={navContainerId}>
+	{
+		/*
+		Navigation items container
+		- Uses max-height for smooth animation instead of display:none
+		- overflow:hidden clips content during transition
+		- aria-hidden toggled by JS for screen reader support
+	*/
+	}
+	<div id={navItemsId} class="nav-items-wrapper" data-nav-items-wrapper aria-hidden="false">
+		<div class="nav-items" data-nav-items>
+			{
+				items.map((link, index) => {
+					const active = isActive(link.href);
+					return (
+						<b>
+							<a
+								data-nav-item
+								data-index={index}
+								class:list={[
+									"nav-link",
+									{ "nav-link--active": active },
+									link.animation === "rotate-left" ? "nav-link--rotate-left" : "nav-link--rotate-right",
+								]}
+								href={link.href}
+								aria-label={link.ariaLabel}
+								aria-current={active ? "page" : undefined}>
+								{link.multiPathIcon && link.pathCount ? (
+									<span class={`${link.icon} nav-icon`}>
+										{Array.from({ length: link.pathCount }, (_, i) => (
+											<span class={`path${i + 1}`} />
+										))}
+									</span>
+								) : (
+									<i class={`${link.icon} nav-icon`} />
+								)}
+								<span class="nav-text">{link.name}</span>
+							</a>
+						</b>
+					);
+				})
+			}
+		</div>
+	</div>
+
+	{
+		/*
+		Toggle button
+		- Semantic <button> for proper keyboard handling
+		- aria-expanded announces state to screen readers
+		- aria-controls links to the controlled element
+		- Hidden by default, shown via JS when overflow detected
+	*/
+	}
+	<button
+		id={toggleId}
+		type="button"
+		class="nav-toggle"
+		data-nav-toggle
+		aria-label="Show more navigation items"
+		aria-expanded="false"
+		aria-controls={navItemsId}
+		hidden>
+		<span class="nav-toggle-icon" data-nav-toggle-icon aria-hidden="true">
+			<i class="icon-chevron-bar-down"></i>
+		</span>
+		<span class="sr-only" data-toggle-text>Show more</span>
+	</button>
+</nav>
+
+{
+	/*
+	Client-side script for collapsible behavior
+	Runs after DOM is ready and on Astro view transitions
+*/
+}
+<script>
+	import { initCollapsibleNavigation } from "@/scripts/collapsibleNavigation";
+
+	// Initialize on first load
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initCollapsibleNavigation);
+	} else {
+		initCollapsibleNavigation();
+	}
+
+	// Reinitialize after Astro view transitions
+	document.addEventListener("astro:page-load", initCollapsibleNavigation);
+</script>

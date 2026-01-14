@@ -7,7 +7,9 @@
     "@netlify/plugin-lighthouse",
     "netlify-plugin-checklinks",
     "netlify-plugin-submit-sitemap",
-    "vite-plugin-pwa"
+    "vite-plugin-pwa",
+    "autoprefixer",
+    "postcss-nesting"
   ],
   "ignore": [
     "public/fonts/icomoon/**",

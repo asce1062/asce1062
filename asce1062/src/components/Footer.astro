@@ -24,7 +24,7 @@ const colours = [
 					<>
 						<b>
 							<a class="icon" href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.ariaLabel}>
-								<i class={`${link.icon} mr-2 text-xl`} />
+								<i class={`${link.icon} mr-0 text-xl`} />
 								{link.name}
 							</a>
 						</b>
@@ -42,11 +42,11 @@ const colours = [
 						<>
 							{index > 0 && " | "}
 							<a
-								class="icon"
+								class="icon -mr-1"
 								href={link.href}
 								aria-label={link.ariaLabel}
 								{...(link.download && { download: link.name })}>
-								<i class={`${link.icon} mr-2 text-xl`} />
+								<i class={`${link.icon} mr-0 text-xl`} />
 								{link.name}
 							</a>
 						</>
@@ -56,7 +56,7 @@ const colours = [
 			<br />
 			<b>
 				<a class="icon" href={contactLinks[2].href} aria-label={contactLinks[2].ariaLabel}>
-					<i class={`${contactLinks[2].icon} mr-2 text-xl`}></i>
+					<i class={`${contactLinks[2].icon} mr-0 text-xl`}></i>
 					{contactLinks[2].name}
 				</a>
 			</b>

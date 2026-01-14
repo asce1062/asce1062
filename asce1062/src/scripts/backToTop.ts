@@ -23,9 +23,8 @@ function hideButton(): void {
 	const button = document.getElementById("back-to-top");
 	if (!button) return;
 
-	button.classList.remove("opacity-100");
-	button.classList.add("opacity-0");
-	// Keep pointer-events-auto so it can be shown again on scroll
+	button.classList.remove("opacity-100", "visible");
+	button.classList.add("opacity-0", "invisible");
 }
 
 /**
@@ -41,8 +40,8 @@ function showButtonWithAutoHide(): void {
 	}
 
 	// Show button
-	button.classList.remove("opacity-0", "pointer-events-none");
-	button.classList.add("opacity-100", "pointer-events-auto");
+	button.classList.remove("opacity-0", "invisible");
+	button.classList.add("opacity-100", "visible");
 
 	// Set auto-hide timer
 	hideTimeout = window.setTimeout(hideButton, AUTO_HIDE_DELAY);
@@ -66,8 +65,8 @@ function toggleBackToTopButton(): void {
 		if (hideTimeout !== null) {
 			clearTimeout(hideTimeout);
 		}
-		button.classList.remove("opacity-100", "pointer-events-auto");
-		button.classList.add("opacity-0", "pointer-events-none");
+		button.classList.remove("opacity-100", "visible");
+		button.classList.add("opacity-0", "invisible");
 	}
 }
 

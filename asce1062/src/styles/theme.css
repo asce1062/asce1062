@@ -12,46 +12,45 @@
  * Migration Date: 2026-01-14
  */
 
-/* Enable class-based dark mode for astro-themes compatibility */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Enable data-theme based dark mode */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
 	/* ============================================
-	   DEFAULT THEME COLORS (Dark Mode)
+	   DEFAULT THEME COLORS (Light Mode)
 	   ============================================
-	   These colors are used by default and when .dark class is present.
-	   Light mode overrides are defined outside @theme using @media query.
+	   Light theme is default. Dark mode is activated via data-theme="dark"
 	   ============================================ */
 
-	/* Semantic Colors - Dark Theme */
-	--color-base-100: oklch(14.076% 0.004 285.822);
-	--color-base-200: oklch(20.219% 0.004 308.229);
-	--color-base-300: oklch(23.219% 0.004 308.229);
-	--color-base-content: oklch(96% 0.059 95.617);
+	/* Semantic Colors - Light Theme (Default) */
+	--color-base-100: oklch(91.637% 0.034 90.515);
+	--color-base-200: oklch(88.272% 0.049 91.774);
+	--color-base-300: oklch(84.133% 0.065 90.856);
+	--color-base-content: oklch(41% 0.112 45.904);
 
-	--color-primary: oklch(70% 0.191 22.216);
-	--color-primary-content: oklch(25% 0.092 26.042);
+	--color-primary: oklch(88% 0.062 18.334);
+	--color-primary-content: oklch(39% 0.141 25.723);
 
-	--color-secondary: oklch(79% 0.209 151.711);
-	--color-secondary-content: oklch(26% 0.065 152.934);
+	--color-secondary: oklch(87% 0.15 154.449);
+	--color-secondary-content: oklch(39% 0.095 152.535);
 
-	--color-accent: oklch(85% 0.199 91.936);
-	--color-accent-content: oklch(28% 0.066 53.813);
+	--color-accent: oklch(90% 0.182 98.111);
+	--color-accent-content: oklch(41% 0.112 45.904);
 
-	--color-neutral: oklch(16% 0.019 329.708);
-	--color-neutral-content: oklch(70% 0.01 56.259);
+	--color-neutral: oklch(84.1% 0.081 73.639);
+	--color-neutral-content: oklch(44% 0.011 73.639);
 
-	--color-info: oklch(70% 0.165 254.624);
-	--color-info-content: oklch(28% 0.091 267.935);
+	--color-info: oklch(82% 0.111 230.318);
+	--color-info-content: oklch(39% 0.09 240.876);
 
-	--color-success: oklch(43% 0.078 188.216);
-	--color-success-content: oklch(92% 0.12 95.746);
+	--color-success: oklch(51% 0.096 186.391);
+	--color-success-content: oklch(96% 0.059 95.617);
 
-	--color-warning: oklch(47% 0.157 37.304);
-	--color-warning-content: oklch(92% 0.12 95.746);
+	--color-warning: oklch(64% 0.222 41.116);
+	--color-warning-content: oklch(96% 0.059 95.617);
 
-	--color-error: oklch(63% 0.237 25.331);
-	--color-error-content: oklch(26% 0.079 36.259);
+	--color-error: oklch(80% 0.114 19.571);
+	--color-error-content: oklch(40% 0.123 38.172);
 
 	/* ============================================
 	   TYPOGRAPHY
@@ -160,46 +159,39 @@
 }
 
 /* ============================================
-   LIGHT MODE OVERRIDES
+   DARK MODE OVERRIDES
    ============================================
-   These overrides activate when:
-   1. System preference is set to light mode (prefers-color-scheme: light)
-   2. AND .dark class is NOT present on html element
-
-   This works in conjunction with astro-themes which adds/removes .dark class.
+   Dark mode activates when data-theme="dark" is set on html element
    ============================================ */
-@media (prefers-color-scheme: light) {
-	:root:not(.dark) {
-		/* Semantic Colors - Light Theme */
-		--color-base-100: oklch(91.637% 0.034 90.515);
-		--color-base-200: oklch(88.272% 0.049 91.774);
-		--color-base-300: oklch(84.133% 0.065 90.856);
-		--color-base-content: oklch(41% 0.112 45.904);
+html[data-theme="dark"] {
+	--color-base-100: oklch(14.076% 0.004 285.822);
+	--color-base-200: oklch(20.219% 0.004 308.229);
+	--color-base-300: oklch(23.219% 0.004 308.229);
+	--color-base-content: oklch(96% 0.059 95.617);
 
-		--color-primary: oklch(88% 0.062 18.334);
-		--color-primary-content: oklch(39% 0.141 25.723);
+	--color-primary: oklch(70% 0.191 22.216);
+	--color-primary-content: oklch(25% 0.092 26.042);
 
-		--color-secondary: oklch(87% 0.15 154.449);
-		--color-secondary-content: oklch(39% 0.095 152.535);
+	--color-secondary: oklch(79% 0.209 151.711);
+	--color-secondary-content: oklch(26% 0.065 152.934);
 
-		--color-accent: oklch(90% 0.182 98.111);
-		--color-accent-content: oklch(41% 0.112 45.904);
+	--color-accent: oklch(85% 0.199 91.936);
+	--color-accent-content: oklch(28% 0.066 53.813);
 
-		--color-neutral: oklch(84.1% 0.081 73.639);
-		--color-neutral-content: oklch(44% 0.011 73.639);
+	--color-neutral: oklch(16% 0.019 329.708);
+	--color-neutral-content: oklch(70% 0.01 56.259);
 
-		--color-info: oklch(82% 0.111 230.318);
-		--color-info-content: oklch(39% 0.09 240.876);
+	--color-info: oklch(70% 0.165 254.624);
+	--color-info-content: oklch(28% 0.091 267.935);
 
-		--color-success: oklch(51% 0.096 186.391);
-		--color-success-content: oklch(96% 0.059 95.617);
+	--color-success: oklch(43% 0.078 188.216);
+	--color-success-content: oklch(92% 0.12 95.746);
 
-		--color-warning: oklch(64% 0.222 41.116);
-		--color-warning-content: oklch(96% 0.059 95.617);
+	--color-warning: oklch(47% 0.157 37.304);
+	--color-warning-content: oklch(92% 0.12 95.746);
 
-		--color-error: oklch(80% 0.114 19.571);
-		--color-error-content: oklch(40% 0.123 38.172);
-	}
+	--color-error: oklch(63% 0.237 25.331);
+	--color-error-content: oklch(26% 0.079 36.259);
 }
 
 /* ============================================

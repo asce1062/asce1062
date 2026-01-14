@@ -3,6 +3,7 @@ Tailwind theme variables
 Override some Pagefind UI default theme elements
 Match our site theme
 */
+@reference "../global.css";
 
 #pagefind-search,
 #pagefind-search-floating {

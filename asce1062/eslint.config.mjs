@@ -43,6 +43,7 @@ export default [
 				Image: "readonly",
 				// Browser types
 				HTMLElement: "readonly",
+				HTMLButtonElement: "readonly",
 				HTMLCanvasElement: "readonly",
 				HTMLInputElement: "readonly",
 				HTMLIFrameElement: "readonly",

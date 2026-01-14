@@ -1,23 +1,22 @@
 ---
+/**
+ * Header Component
+ *
+ * Header with breadcrumb navigation, theme switcher, search button,
+ * and collapsible main navigation.
+ */
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
+import CollapsibleNav from "@/components/CollapsibleNav.astro";
 import { mainNavigation, siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
 const currentPath = Astro.url.pathname;
 const isSearchPage = currentPath === "/search" || currentPath === "/search/";
-
-// Function to check if a link is active
-function isActive(linkHref: string): boolean {
-	// Home page exact match
-	if (linkHref === "/" && currentPath === "/") return true;
-	// Other pages - check if current path starts with link href
-	if (linkHref !== "/" && currentPath.startsWith(linkHref)) return true;
-	return false;
-}
 ---
 
 <header>
+	{/* Top bar: Breadcrumb path + Theme/Search controls */}
 	<div id="navigation" class="mb-3">
 		<div class="float-right flex flex-col gap-2">
 			<ThemeSwitcher default="dark" />
@@ -28,11 +27,13 @@ function isActive(linkHref: string): boolean {
 						type="button"
 						class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100"
 						aria-label="Open search">
-						<i class="icon-search-heart " />
+						<i class="icon-search-heart" />
 					</button>
 				)
 			}
 		</div>
+
+		{/* Breadcrumb path display */}
 		<b>
 			<span>
 				~/
@@ -51,7 +52,7 @@ function isActive(linkHref: string): boolean {
 							{link.map((data, index) => (
 								<span>
 									/
-									<a class="no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
+									<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
 										{data}
 									</a>
 								</span>
@@ -66,75 +67,8 @@ function isActive(linkHref: string): boolean {
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
-	<div class="flex flex-col items-center justify-center gap-6 min-h-[3rem]">
-		<div id="nav-container" class="flex flex-row flex-wrap items-center justify-center sm:justify-start gap-2">
-			{
-				mainNavigation.map((link, index) => {
-					const active = isActive(link.href);
-					return (
-						<b>
-							<a
-								data-nav-item
-								data-index={index}
-								class={`no-underline group px-1.5 py-2 hover:${link.animation === "rotate-left" ? "-rotate-6" : "rotate-6"} sm:px-1 sm:py-1 ${active ? "active-nav-item" : ""}`}
-								href={link.href}
-								aria-label={link.ariaLabel}
-								aria-current={active ? "page" : undefined}>
-								{link.multiPathIcon && link.pathCount ? (
-									<span class={`${link.icon} mr-0 text-2xl`}>
-										{Array.from({ length: link.pathCount }, (_, i) => (
-											<span class={`path${i + 1}`} />
-										))}
-									</span>
-								) : (
-									<i class={`${link.icon} mr-0 text-2xl`} />
-								)}
-								{link.name}
-							</a>
-						</b>
-					);
-				})
-			}
-			<button
-				id="nav-toggle"
-				type="button"
-				class="group hover:text-base-content px-1.5 py-2 sm:px-1 sm:py-1 cursor-pointer hidden w-full text-center font-bold text-neutral-content"
-				aria-label="Toggle navigation"
-				aria-expanded="false">
-				<i id="nav-toggle-icon" class="icon-chevron-bar-down mr-0 text-lg transition-transform duration-300"></i>
-			</button>
-		</div>
+	<div class="flex flex-col gap-6 min-h-12">
+		<CollapsibleNav items={mainNavigation} currentPath={currentPath} id="main-nav" />
 	</div>
 	<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
 </header>
-
-<script>
-	import { initCollapsibleNav } from "@/scripts/collapsibleNav";
-
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initCollapsibleNav);
-	} else {
-		initCollapsibleNav();
-	}
-
-	// Reinitialize after view transitions
-	document.addEventListener("astro:page-load", initCollapsibleNav);
-</script>
-
-<style>
-	/* Smooth transitions for nav items */
-	[data-nav-item] {
-		transition:
-			opacity 0.3s ease,
-			transform 0.3s ease;
-	}
-
-	/* Wavy underline for active navigation item */
-	.active-nav-item {
-		text-decoration: underline;
-		text-decoration-style: wavy;
-		text-decoration-thickness: 3px;
-		text-underline-offset: 4px;
-	}
-</style>

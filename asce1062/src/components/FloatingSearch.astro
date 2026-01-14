@@ -15,12 +15,12 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		<>
 			<div
 				id="floating-search-overlay"
-				class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-[100] opacity-0 pointer-events-none transition-opacity duration-300"
+				class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-100 opacity-0 pointer-events-none transition-opacity duration-300"
 				aria-hidden="true"
 			/>
 			<div
 				id="floating-search-modal"
-				class="fixed left-0 right-0 mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-[101] bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-all duration-300"
+				class="fixed left-0 right-0 mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-all duration-300"
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="floating-search-title">

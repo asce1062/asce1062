@@ -71,13 +71,6 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 			}
 		</script>
 
-		<!-- Critical CSS for FOUC (Flash of Unstyled Content) prevention -->
-		<style is:inline>
-			body {
-				visibility: hidden;
-				opacity: 0;
-			}
-		</style>
 		<style is:global>
 			body {
 				visibility: visible;
@@ -112,10 +105,10 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 		<a href="#main-content" class="skip-link">Skip to main content</a>
 		<div
 			id="primary"
-			class="z-2 w-full prose prose-invert m-auto p-4 md:p-8 relative flex-grow flex flex-col min-h-dvh transition-all duration-100 lg:w-1/2">
+			class="z-2 w-full content-prose m-auto p-4 md:p-8 relative grow flex flex-col min-h-dvh transition-all duration-100 lg:w-1/2">
 			<Header />
 			<!-- https://docs.astro.build/en/guides/view-transitions/#built-in-animation-directives -->
-			<main id="main-content" class="flex-grow" transition:animate="fade" id="content">
+			<main id="main-content" class="grow" transition:animate="fade" id="content">
 				<slot />
 			</main>
 			<Footer />

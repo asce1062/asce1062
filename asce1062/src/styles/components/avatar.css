@@ -3,6 +3,8 @@
  * Scoped styles for the 8-bit avatar generator component
  */
 
+@reference "../global.css";
+
 .avatar-generator {
 	width: 100%;
 	max-width: 100%;
