@@ -26,8 +26,9 @@ const prettyCodeOptions: RehypePrettyCodeOptions = {
 			feedbackDuration: 2_500,
 		}),
 	],
+	grid: true, // Enable grid for full-width line highlighting
 	keepBackground: true, // Use theme for backgrounds
-	defaultLang: "plaintext",
+	defaultLang: "javascript",
 	onVisitLine(node) {
 		// Prevent empty lines from collapsing
 		if (node.children.length === 0) {

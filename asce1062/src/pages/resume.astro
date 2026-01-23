@@ -5,7 +5,7 @@ import Layout from "@/layouts/Layout.astro";
 <Layout title="Resume" description="Alex Mbugua Ngugi's Professional Experience" ogImage="social-preview.png">
 	<div class="w-full">
 		<h2 class="mb-6">Resume</h2>
-		<div class="relative w-full" style="height: 1000px;">
+		<div id="resume-container" class="w-full" style="height: 1000px;">
 			<iframe
 				id="resume-pdf-viewer"
 				src="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
@@ -13,23 +13,25 @@ import Layout from "@/layouts/Layout.astro";
 				style="height: 1000px; color-scheme: light;"
 				title="Alex Mbugua Ngugi's Resume PDF">
 			</iframe>
+		</div>
 
-			<!-- Fallback overlay -->
-			<div
-				id="pdf-fallback"
-				class="absolute inset-0 hidden flex-col items-center justify-center bg-base-100 text-center p-6">
-				<p class="mb-4">This browser doesn't support inline PDF viewing.</p>
-				<a
-					href="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="icon no-underline cursor-pointer inline-block px-4 py-2 border border-base-300 transition-colors">
-					<i class="icon-filetype-pdf text-2xl"></i> Open Resume
-				</a>
-				<p class="mt-4 text-sm">
-					or <a href="/blog/2025-06-19-resume" class="underline">view text version</a>
-				</p>
-			</div>
+		<!-- Fallback -->
+		<div
+			id="pdf-fallback"
+			class="hidden flex-col items-center justify-center bg-[color-mix(in_oklab,var(--color-base-100)_20%,transparent)] border border-base-300 text-center p-6">
+			<p class="mb-4">This browser doesn't support inline PDF viewing.</p>
+			<a
+				href="/Alex%20Mbugua%20Ngugi%20-%20Resume.pdf"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="hover:underline hover:decoration-wavy link-action transition-colors">
+				<i class="icon-filetype-pdf text-2xl"></i> Open Resume
+			</a>
+			<p class="mt-4 text-sm">
+				or <a href="/blog/2025-06-19-resume" class="underline decoration-wavy italic"
+					><i class="icon-body-text"></i> view text version</a
+				>
+			</p>
 		</div>
 
 		<!-- Alternative text view link -->
@@ -51,12 +53,12 @@ import Layout from "@/layouts/Layout.astro";
 	});
 
 	function showFallback() {
-		const iframe = document.getElementById(iframeId);
+		const container = document.getElementById("resume-container");
 		const fallback = document.getElementById(fallbackId);
 		const textViewLink = document.getElementById("text-view-link");
 
-		if (iframe && fallback) {
-			iframe.style.display = "none";
+		if (container && fallback) {
+			container.style.display = "none";
 			fallback.classList.remove("hidden");
 			fallback.classList.add("flex");
 
@@ -102,14 +104,15 @@ import Layout from "@/layouts/Layout.astro";
 	 * Initialize PDF viewer and detection
 	 */
 	function initPDFViewer() {
+		const container = document.getElementById("resume-container");
 		const iframe = document.getElementById(iframeId);
 		const fallback = document.getElementById(fallbackId);
 		const textViewLink = document.getElementById("text-view-link");
 
-		if (!iframe || !fallback || !textViewLink) return;
+		if (!container || !iframe || !fallback || !textViewLink) return;
 
 		// Reset to initial state
-		iframe.style.display = "";
+		container.style.display = "";
 		fallback.classList.add("hidden");
 		fallback.classList.remove("flex");
 		textViewLink.style.display = "";
@@ -143,7 +146,7 @@ import Layout from "@/layouts/Layout.astro";
 <style>
 	/* Responsive adjustments */
 	@media (max-width: 640px) {
-		.relative {
+		#resume-container {
 			height: calc(100vh - 16rem) !important;
 		}
 	}

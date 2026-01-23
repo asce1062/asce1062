@@ -28,16 +28,21 @@ async function getOGRoute() {
 			bgGradient: [[19, 15, 25]],
 			font: {
 				title: {
-					families: ["0xProto", "monospace"],
+					families: ["0xProto"],
 					size: 48,
 					weight: "Bold",
 				},
 				description: {
-					families: ["0xProto", "monospace"],
+					families: ["0xProto Italic", "0xProto"],
 					size: 24,
+					weight: "Normal",
 				},
 			},
-			fonts: ["public/fonts/0xProto/0xProtoNerdFont-Regular.ttf"],
+			fonts: [
+				"public/fonts/0xProto/0xProto-Regular.ttf",
+				"public/fonts/0xProto/0xProto-Bold.ttf",
+				"public/fonts/0xProto/0xProto-Italic.ttf",
+			],
 		}),
 	});
 }

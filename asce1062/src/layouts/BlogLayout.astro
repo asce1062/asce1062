@@ -58,7 +58,7 @@ const readingTime = currentEntry ? estimateReadingTime(currentEntry.body) : "";
 		<span>
 			tags: {
 				tags.map((tag) => (
-					<a class="mr-2" href={`/tags/${tag}`} data-pagefind-meta="tag">
+					<a class="mr-2 italic" href={`/tags/${tag}`} data-pagefind-meta="tag">
 						{tag}
 					</a>
 				))

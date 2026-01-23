@@ -22,12 +22,16 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 
 {
 	tableOfContents && tableOfContents.length > 0 && (
-		<>
+		<div
+			id="toc-container"
+			class="table-of-contents sticky top-1 z-10 bg-base-100 mb-4 sm:mb-8 border-b border-base-300 transition-transform duration-300">
 			<h1 class="text-warning">Table of Contents</h1>
-			<div class="table-of-contents mt-4 mb-8 sm:my-8">
-				<details>
-					<summary class="text-neutral-content hover:underline hover:decoration-wavy">Open Table of Contents</summary>
-					<ul>
+			<div class="mt-4">
+				<details id="toc-details">
+					<summary class="text-neutral-content hover:underline hover:decoration-wavy cursor-pointer">
+						Open Table of Contents
+					</summary>
+					<ul class="max-h-[50vh] overflow-y-auto">
 						{tableOfContents.map((item) => {
 							const { entry, hasChildren } = renderTocEntry(item);
 							return (
@@ -60,6 +64,20 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 					</ul>
 				</details>
 			</div>
-		</>
+		</div>
 	)
 }
+
+<script>
+	import { initTocLinks, initScrollDirection } from "@/scripts/tableOfContents";
+
+	// Initialize on first load
+	initTocLinks();
+	initScrollDirection();
+
+	// Reinitialize after view transitions
+	document.addEventListener("astro:page-load", () => {
+		initTocLinks();
+		initScrollDirection();
+	});
+</script>

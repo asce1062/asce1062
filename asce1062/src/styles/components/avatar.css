@@ -97,6 +97,7 @@
 	border-top-right-radius: 0.5rem;
 	transition: all 0.2s;
 	color: var(--color-base-content);
+	cursor: pointer;
 }
 
 .layer-tab {
@@ -112,6 +113,7 @@
 	border-top-right-radius: 0.5rem;
 	transition: all 0.2s;
 	color: transparent;
+	cursor: pointer;
 }
 
 .layer-tab:hover {
@@ -137,6 +139,7 @@
 	padding: 1.5rem 1rem;
 	background: transparent;
 	margin-top: 1rem;
+	cursor: pointer;
 }
 
 /* Responsive Design */
@@ -161,6 +164,7 @@
 		border-top-left-radius: 0.5rem;
 		border-top-right-radius: 0.5rem;
 		transition: all 0.2s;
+		cursor: pointer;
 	}
 
 	.layer-content {

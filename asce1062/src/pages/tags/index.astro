@@ -20,7 +20,9 @@ const tags = getAllTags(allPosts);
 				{
 					tags.map((tag) => (
 						<li>
-							<a href={`/tags/${tag}`}>{tag}</a>
+							<a class="italic" href={`/tags/${tag}`}>
+								{tag}
+							</a>
 						</li>
 					))
 				}
