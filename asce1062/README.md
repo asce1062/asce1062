@@ -1,6 +1,6 @@
 # [Website](https://alexmbugua.me/) [![Netlify Status](https://api.netlify.com/api/v1/badges/e4a4138b-ce8f-454c-8d78-0ee4f68631d4/deploy-status)](https://app.netlify.com/projects/alexmbugua/deploys)
 
-![Website](public/screenshots/desktop/home.png)
+![Website](src/assets/projects/asce1062.png)
 
 - Personal site/portfolio/blog.
 - Built with [Astro](https://astro.build/) and [TailwindCSS](https://tailwindcss.com/).

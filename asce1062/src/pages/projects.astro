@@ -20,7 +20,10 @@ const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PA
 	ogImage="social-preview.png"
 	description="Personal projects and contributions to open source codebases">
 	<h2>my projects</h2>
-	<p>projects sorted by most recently pushed to repository, fetched live from GitHub</p>
+	<ul class="mb-6">
+		<li>Projects sorted by most recently pushed to repository.</li>
+		<li>Updated when I ship an update.</li>
+	</ul>
 	<Columns columns={2}>
 		{
 			projects.map((project: any) => (
@@ -31,7 +34,9 @@ const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PA
 					description={project.description}
 					tools={project.languages?.map((lang: string) => ({ name: lang, icon: "" })) || []}
 					stars={project.stargazers_count}
-					fork={project.fork}
+					forks={project.forks_count}
+					issues={project.open_issues_count}
+					contributors={project.contributors_count}
 					imagePath={"/src/assets/projects/" + project.name.toLowerCase()}
 				/>
 			))

@@ -58,19 +58,19 @@ export const mainNavigation: NavigationLink[] = [
 		ariaLabel: "Visit the Now page",
 		animation: "rotate-left",
 	},
-	{
-		name: "Search",
-		href: "/search",
-		icon: "icon-search-heart",
-		ariaLabel: "Visit the Search blogs page",
-		animation: "rotate-right",
-	},
+	// {
+	// 	name: "Search",
+	// 	href: "/search",
+	// 	icon: "icon-search-heart",
+	// 	ariaLabel: "Visit the Search blogs page",
+	// 	animation: "rotate-right",
+	// },
 	{
 		name: "8biticon",
 		href: "/8biticon",
 		icon: "icon-female",
 		ariaLabel: "Create your own 8-bit pixel avatar",
-		animation: "rotate-left",
+		animation: "rotate-right",
 		multiPathIcon: true,
 		pathCount: 10,
 	},
@@ -93,7 +93,7 @@ export const mainNavigation: NavigationLink[] = [
 		href: "/rss.xml",
 		icon: "icon-rss",
 		ariaLabel: "Subscribe to my blog",
-		animation: "rotate-right",
+		animation: "rotate-left",
 	},
 ];
 

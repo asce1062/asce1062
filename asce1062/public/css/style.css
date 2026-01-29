@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?ne57a4');
-  src:  url('../fonts/icomoon.eot?ne57a4#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.ttf?ne57a4') format('truetype'),
-    url('../fonts/icomoon.woff?ne57a4') format('woff'),
-    url('../fonts/icomoon.svg?ne57a4#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?ss7k3l');
+  src:  url('../fonts/icomoon.eot?ss7k3l#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.ttf?ss7k3l') format('truetype'),
+    url('../fonts/icomoon.woff?ss7k3l') format('woff'),
+    url('../fonts/icomoon.svg?ss7k3l#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,24 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-repo-contributors:before {
+  content: "\e95d";
+}
+.icon-archive:before {
+  content: "\e98d";
+}
+.icon-command-palette:before {
+  content: "\e98e";
+}
+.icon-issue-opened:before {
+  content: "\e98f";
+}
+.icon-repo-forked:before {
+  content: "\e990";
+}
+.icon-git-commit:before {
+  content: "\e991";
+}
 .icon-body-text:before {
   content: "\e98c";
 }
@@ -165,9 +183,6 @@
 }
 .icon-chevron-bar-up:before {
   content: "\e96a";
-}
-.icon-git:before {
-  content: "\e95d";
 }
 .icon-star:before {
   content: "\e95c";

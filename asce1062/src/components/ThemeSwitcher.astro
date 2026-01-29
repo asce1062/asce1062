@@ -4,16 +4,17 @@
 
 <button
 	id="theme-toggle-btn"
-	class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100"
+	class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100 cursor-pointer"
 	aria-label="Switch page theme">
 	<i id="toggleIcon"></i>
 </button>
 
 <script>
-	import { initThemeSwitcher, handleThemeToggle } from "@/scripts/themeManager";
+	import { initThemeSwitcher, handleThemeToggle, setupThemeShortcut } from "@/scripts/themeManager";
 
-	// Store the click handler so we can remove it later
+	// Store handlers so we can remove them later
 	let themeToggleHandler: (() => void) | null = null;
+	let shortcutCleanup: (() => void) | null = null;
 
 	function setupThemeToggle() {
 		initThemeSwitcher();
@@ -33,6 +34,12 @@
 
 		// Add new event listener
 		themeButton.addEventListener("click", themeToggleHandler);
+
+		// Setup keyboard shortcut (Ctrl/Cmd + Shift + L)
+		if (shortcutCleanup) {
+			shortcutCleanup();
+		}
+		shortcutCleanup = setupThemeShortcut();
 	}
 
 	// Initialize on first load

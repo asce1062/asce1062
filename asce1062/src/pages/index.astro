@@ -1,19 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Card from "@/components/ui/Card.astro";
-import Columns from "@/components/ui/Columns.astro";
-import { getFeaturedProjects } from "@/lib/api/github";
-
-const projectBlacklist = ["fundAI", "findme", "d-v-nsm-nt-a-tp-t-"];
-
-const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PAT, {
-	blacklist: projectBlacklist,
-	sortBy: "stars",
-	includeLanguages: true,
-	excludeForks: false,
-});
-
-const displayProjects = projects.slice(0, 4);
 ---
 
 <Layout
@@ -42,22 +28,4 @@ const displayProjects = projects.slice(0, 4);
 		</a> or
 		<a href="/8biticon" aria-label="">create your own 8-bit pixel art avatar!</a>
 	</p>
-	<br />
-	<h2>showcase</h2>
-	<Columns columns={2}>
-		{
-			displayProjects.map((project) => (
-				<Card
-					name={project.name}
-					url={project.homepage || project.html_url}
-					repo={project.html_url}
-					description={project.description}
-					tools={project.languages?.map((lang) => ({ name: lang, icon: "" })) || []}
-					stars={project.stargazers_count}
-					fork={project.fork}
-				/>
-			))
-		}
-	</Columns>
-	<p class="text-center"><a href="/projects" aria-label="Visit the Projects page">see more projects</a></p>
 </Layout>

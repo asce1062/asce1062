@@ -9,12 +9,15 @@ export interface GitHubRepo {
 	html_url: string;
 	homepage: string | null;
 	stargazers_count: number;
+	forks_count: number;
+	open_issues_count: number;
 	language: string | null;
 	languages_url: string;
 	fork: boolean;
 	pushed_at: string;
 	updated_at: string;
 	languages?: string[]; // Will be populated after fetching
+	contributors_count?: number; // Will be populated after fetching
 }
 
 /**
@@ -66,6 +69,43 @@ export async function fetchGitHubRepos(username: string, token?: string): Promis
 }
 
 /**
+ * Fetch contributors count for a repository
+ */
+async function fetchRepoContributorsCount(owner: string, repo: string, token?: string): Promise<number> {
+	const headers: Record<string, string> = {
+		Accept: "application/vnd.github+json",
+		"X-GitHub-Api-Version": "2022-11-28",
+	};
+
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	try {
+		const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=1&anon=true`, {
+			headers,
+		});
+		if (!response.ok) return 0;
+
+		// GitHub returns the total count in the Link header
+		const linkHeader = response.headers.get("Link");
+		if (linkHeader) {
+			const lastMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
+			if (lastMatch) {
+				return parseInt(lastMatch[1], 10);
+			}
+		}
+
+		// If no Link header, count from response (only 1 page)
+		const contributors = await response.json();
+		return Array.isArray(contributors) ? contributors.length : 0;
+	} catch (error) {
+		console.error(`Failed to fetch contributors for ${owner}/${repo}:`, error);
+		return 0;
+	}
+}
+
+/**
  * Fetch languages for a repository
  */
 async function fetchRepoLanguages(languagesUrl: string, token?: string): Promise<string[]> {
@@ -93,15 +133,32 @@ async function fetchRepoLanguages(languagesUrl: string, token?: string): Promise
 }
 
 /**
- * Enrich repositories with language data
+ * Extract owner from GitHub URL
  */
-export async function enrichReposWithLanguages(repos: GitHubRepo[], token?: string): Promise<GitHubRepo[]> {
+function extractOwnerFromUrl(htmlUrl: string): string {
+	const parts = new URL(htmlUrl).pathname.split("/").filter(Boolean);
+	return parts[0] || "";
+}
+
+/**
+ * Enrich repositories with language and contributor data
+ */
+export async function enrichReposWithLanguages(
+	repos: GitHubRepo[],
+	token?: string,
+	includeContributors: boolean = true
+): Promise<GitHubRepo[]> {
 	const enrichedRepos = await Promise.all(
 		repos.map(async (repo) => {
-			const languages = await fetchRepoLanguages(repo.languages_url, token);
+			const owner = extractOwnerFromUrl(repo.html_url);
+			const [languages, contributors_count] = await Promise.all([
+				fetchRepoLanguages(repo.languages_url, token),
+				includeContributors ? fetchRepoContributorsCount(owner, repo.name, token) : Promise.resolve(undefined),
+			]);
 			return {
 				...repo,
 				languages,
+				contributors_count,
 			};
 		})
 	);

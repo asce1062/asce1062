@@ -16,7 +16,6 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 ---
 
 <header>
-	{/* Top bar: Breadcrumb path + Theme/Search controls */}
 	<div id="navigation" class="mb-3">
 		<div class="float-right flex flex-col gap-2">
 			<ThemeSwitcher default="dark" />
@@ -25,21 +24,19 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 					<button
 						id="open-floating-search"
 						type="button"
-						class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100"
+						class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100 cursor-pointer"
 						aria-label="Open search">
 						<i class="icon-search-heart" />
 					</button>
 				)
 			}
 		</div>
-
-		{/* Breadcrumb path display */}
 		<b>
 			<span class="italic">
-				~/
+				<i class="icon-command-palette inline-block translate-y-1 text-xl"></i>
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
-						home
+						<span class="blink bg-primary text-primary-content">h</span>ome
 					</a> / <a
 						class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors"
 						href="/">

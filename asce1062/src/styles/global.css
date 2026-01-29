@@ -64,6 +64,16 @@ Custom Utilities
 	}
 }
 
+@utility input-base {
+	@apply border focus:outline focus:outline-2 focus:outline-offset-2;
+	background-color: var(--color-base-100);
+	border-color: var(--color-base-300);
+
+	&::placeholder {
+		color: var(--color-neutral-content);
+	}
+}
+
 @layer base {
 	/*
   ============================================
@@ -686,4 +696,79 @@ Share Notification (Global)
 	background-color: color-mix(in oklab, var(--color-success) 99%, transparent);
 	border-color: var(--color-neutral-content);
 	color: var(--color-success-content);
+}
+
+/* Nostalgic Effects */
+.blink {
+	animation: blink-animation 1s steps(2, start) infinite;
+}
+
+a:hover .blink,
+.blink:hover {
+	animation-play-state: paused;
+}
+
+@keyframes blink-animation {
+	to {
+		visibility: hidden;
+	}
+}
+
+marquee {
+	display: inline-block;
+	vertical-align: middle;
+	width: auto;
+	height: auto;
+}
+
+.faded-text {
+	background: linear-gradient(
+		90deg,
+		var(--color-primary),
+		var(--color-secondary),
+		var(--color-accent),
+		var(--color-neutral),
+		var(--color-info),
+		var(--color-success),
+		var(--color-warning),
+		var(--color-error)
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	animation: gradient-shift 5s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+.input-allowed {
+	@apply input-base;
+	color: var(--color-base-content);
+}
+
+.input-allowed:focus {
+	outline-color: var(--color-success);
+}
+
+.input-honeypot {
+	@apply input-base;
+	color: var(--color-neutral-content);
+	background-color: color-mix(in oklab, var(--color-warning), transparent 80%) !important;
+}
+
+.input-honeypot:focus {
+	outline-color: var(--color-error);
+}
+
+.input-honeypot:focus {
+	animation: shake 0.3s linear;
 }
