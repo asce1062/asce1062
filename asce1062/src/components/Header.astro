@@ -33,10 +33,10 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		</div>
 		<b>
 			<span class="italic">
-				<i class="icon-command-palette inline-block translate-y-1 text-xl"></i>
+				<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12"></i>
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
-						<span class="blink bg-primary text-primary-content">h</span>ome
+						home
 					</a> / <a
 						class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors"
 						href="/">
@@ -44,19 +44,20 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 					</a>
 				</span>
 				{
-					link ? (
+					link && link.length > 0 ? (
 						<span>
 							{link.map((data, index) => (
 								<span>
-									/
+									{" / "}
 									<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
 										{data}
 									</a>
+									{index === link.length - 1 && <span class="blink bg-secondary -ml-2">&nbsp;</span>}
 								</span>
 							))}
 						</span>
 					) : (
-						<span> / </span>
+						<span class="blink bg-secondary -ml-2">&nbsp;</span>
 					)
 				}
 			</span>

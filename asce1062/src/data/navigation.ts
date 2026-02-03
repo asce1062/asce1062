@@ -2,6 +2,7 @@
  * Centralized navigation data for Header and Footer components
  * Single source of truth for all site navigation links
  */
+import { SITE, SOCIAL } from "@/config/site-config";
 
 export interface NavigationLink {
 	name: string;
@@ -89,6 +90,20 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-right",
 	},
 	{
+		name: "Colophon",
+		href: "/colophon",
+		icon: "icon-book",
+		ariaLabel: "Credits, philosophy, and the story behind this site",
+		animation: "rotate-left",
+	},
+	{
+		name: "Meta",
+		href: "/meta",
+		icon: "icon-gear",
+		ariaLabel: "Site diagnostics and build metadata",
+		animation: "rotate-right",
+	},
+	{
 		name: "RSS Feed",
 		href: "/rss.xml",
 		icon: "icon-rss",
@@ -127,19 +142,19 @@ export const contactLinks: NavigationLink[] = [
 		name: "Resume",
 		href: "/blog/2025-06-19-resume",
 		icon: "icon-body-text",
-		ariaLabel: "View Alex's resume",
+		ariaLabel: `View ${SITE.authorShort}'s resume`,
 	},
 	{
 		name: "Resume.pdf",
 		href: "/resume",
 		icon: "icon-filetype-pdf",
-		ariaLabel: "View Alex's resume as PDF",
+		ariaLabel: `View ${SITE.authorShort}'s resume as PDF`,
 	},
 	{
-		name: "alex.mbugua@outlook.com",
-		href: "mailto:alex.mbugua@outlook.com",
+		name: SOCIAL.email,
+		href: `mailto:${SOCIAL.email}`,
 		icon: "icon-envelope-at",
-		ariaLabel: "Email Alex Mbugua",
+		ariaLabel: `Email ${SITE.authorShort}`,
 	},
 ];
 
@@ -167,13 +182,13 @@ const fullCommitHash = getFullCommitHash();
 const shortCommitHash = getShortCommitHash();
 
 export const siteMetadata = {
-	author: "Alex Mbugua",
+	author: SITE.authorShort,
 	greeting: "Alex.",
-	email: "alex.mbugua@outlook.com",
-	githubRepo: "https://github.com/asce1062/asce1062/tree/main/asce1062",
+	email: SOCIAL.email,
+	githubRepo: SOCIAL.repo,
 	astroUrl: "https://astro.build",
 	commitHash: shortCommitHash,
 	commitHashFull: fullCommitHash,
-	commitUrl: fullCommitHash ? `https://github.com/asce1062/asce1062/commit/${fullCommitHash}` : null,
+	commitUrl: fullCommitHash ? `https://github.com/${SOCIAL.github}/asce1062/commit/${fullCommitHash}` : null,
 	buildTime: new Date().toISOString(),
 };

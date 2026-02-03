@@ -703,11 +703,6 @@ Share Notification (Global)
 	animation: blink-animation 1s steps(2, start) infinite;
 }
 
-a:hover .blink,
-.blink:hover {
-	animation-play-state: paused;
-}
-
 @keyframes blink-animation {
 	to {
 		visibility: hidden;

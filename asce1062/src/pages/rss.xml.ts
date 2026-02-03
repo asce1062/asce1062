@@ -4,7 +4,7 @@ import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import fs from "fs";
 import path from "path";
-import { BLOG_TITLE, BLOG_DESCRIPTION } from "@/config/site-config";
+import { BLOG } from "@/config/site-config";
 import { sortPostsByDate, getPostUrl } from "@/lib/blog/utils";
 
 // Dynamically import all blog images
@@ -53,8 +53,8 @@ export async function GET(context: { site: string | URL }) {
 	const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();
 
 	return rss({
-		title: BLOG_TITLE,
-		description: BLOG_DESCRIPTION,
+		title: BLOG.title,
+		description: BLOG.description,
 		site: context.site,
 		items: postsWithOptimizedImages.map((post) => ({
 			title: post.data.title,
@@ -73,7 +73,7 @@ export async function GET(context: { site: string | URL }) {
       <managingEditor>tnkratos@gmail.com (Alex Mbugua Ngugi)</managingEditor>
       <image>
         <url>${channelImage}</url>
-        <title>${BLOG_TITLE}</title>
+        <title>${BLOG.title}</title>
         <link>${context.site}</link>
       </image>
       <itunes:owner>

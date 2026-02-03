@@ -9,7 +9,7 @@ import Themes from "astro-themes";
 import { ClientRouter } from "astro:transitions";
 import { pwaInfo } from "virtual:pwa-info";
 import "@/styles/global.css";
-import { DEFAULT_DESCRIPTION, SITE_TITLE_SUFFIX } from "@/config/site-config";
+import { SITE, SEO, getPageTitle } from "@/config/site-config";
 
 interface Props {
 	title: string;
@@ -21,26 +21,44 @@ interface Props {
 	tags?: string[];
 	category?: string;
 	readingTime?: string;
+	/** Set to true to add noindex, nofollow to the page */
+	noIndex?: boolean;
 }
 
-const { title, description, ogImage, type, datePublished, dateModified, tags, category, readingTime } = Astro.props;
-const permalink = new URL(Astro.url.pathname, Astro.site).href;
-const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
-const rssURL = new URL("rss.xml", Astro.site);
-const pageDescription = description ? description : DEFAULT_DESCRIPTION;
-const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
+const {
+	title,
+	description,
+	ogImage,
+	type,
+	datePublished,
+	dateModified,
+	tags,
+	category,
+	readingTime,
+	noIndex = false,
+} = Astro.props;
+
+// Safe base URL fallback: use Astro.site if configured, otherwise fall back to SITE.url
+const base = Astro.site ?? new URL(SITE.url);
+const permalink = new URL(Astro.url.pathname, base).href;
+const ogImageURL = ogImage ? new URL(ogImage, base).href : undefined;
+const rssURL = new URL("rss.xml", base).href;
+
+const pageDescription = description ?? SITE.description;
+const pageTitle = getPageTitle(title);
 ---
 
 <!doctype html>
-<html lang="en" class="h-min md:min-h-dvh">
+<html lang={SEO.language} class="h-min md:min-h-dvh">
 	<head>
 		<ClientRouter />
 		<MetaTags
 			title={pageTitle}
 			description={pageDescription}
 			canonical={permalink}
-			rssUrl={rssURL.href}
+			rssUrl={rssURL}
 			generator={Astro.generator}
+			noIndex={noIndex}
 		/>
 		<OpenGraphTags
 			title={pageTitle}
@@ -108,7 +126,7 @@ const pageTitle = `${title} - ${SITE_TITLE_SUFFIX}`;
 			class="z-2 w-full content-prose m-auto p-4 md:p-8 relative grow flex flex-col min-h-dvh transition-all duration-100 lg:w-1/2">
 			<Header />
 			<!-- https://docs.astro.build/en/guides/view-transitions/#built-in-animation-directives -->
-			<main id="main-content" class="grow" transition:animate="fade" id="content">
+			<main id="main-content" class="grow" transition:animate="fade">
 				<slot />
 			</main>
 			<Footer />

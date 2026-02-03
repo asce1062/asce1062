@@ -31,8 +31,8 @@ export default defineConfig({
 				name: "Alex Mbugua - Leader, Mentor, Engineer, Chip Musician",
 				short_name: "Alex Mbugua",
 				description: "Building secure, performant, scalable solutions in the cloud",
-				theme_color: "rgb(28, 25, 23)",
-				background_color: "rgb(28, 25, 23)",
+				theme_color: "#09090b",
+				background_color: "#09090b",
 				display: "standalone",
 				start_url: "/",
 				icons: [
@@ -164,6 +164,7 @@ export default defineConfig({
 				navigateFallback: "/offline",
 				navigateFallbackDenylist: [
 					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
+					/\.txt$/, // Don't intercept text files (robots.txt, humans.txt)
 					/\.pdf$/, // Don't intercept PDF files
 					/^\/rss$/, // Allow /rss → /rss.xml redirect
 					/^\/feed$/, // Allow /feed → /rss.xml redirect

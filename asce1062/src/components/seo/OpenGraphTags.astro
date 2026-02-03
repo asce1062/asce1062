@@ -12,7 +12,7 @@
  * 4. JSON.stringify() converts < to \u003c, > to \u003e, preventing script injection
  */
 /* eslint-disable astro/no-set-html-directive */
-import { SITE_AUTHOR, DEFAULT_DESCRIPTION } from "@/config/site-config";
+import { SITE, SOCIAL, PROFESSIONAL, SEO, BLOG } from "@/config/site-config";
 
 interface Props {
 	title: string;
@@ -40,7 +40,7 @@ const {
 	readingTime,
 } = Astro.props;
 const isArticle = type === "article";
-const siteUrl = "https://alexmbugua.me";
+const siteUrl = SITE.url;
 
 // Open Graph image dimensions
 const ogImageWidth = isArticle ? 1200 : 400;
@@ -56,19 +56,8 @@ const formattedDate = datePublished
 		})
 	: undefined;
 
-const socialProfiles = [
-	"https://github.com/asce1062",
-	"https://www.linkedin.com/in/alex-mbugua",
-	"https://x.com/alex_immer",
-	"https://discord.com/users/asce1062",
-	"https://www.facebook.com/kaizoku.asce",
-	"https://www.youtube.com/@asce1062",
-	"https://soundcloud.com/aleximmer",
-	"https://asce1062.github.io",
-	"https://alexmbugua.me",
-	"https://steamcommunity.com/id/alexasce",
-	"https://www.reddit.com/user/asce1062/",
-];
+// Use centralized social profiles from site-config
+const socialProfiles = [...SOCIAL.profiles];
 
 // Extract reading time number for timeRequired (e.g., "3 min read" -> 3)
 const readingTimeMinutes = readingTime ? parseInt(readingTime.match(/\d+/)?.[0] || "1") : undefined;
@@ -76,6 +65,15 @@ const readingTimeMinutes = readingTime ? parseInt(readingTime.match(/\d+/)?.[0] 
 // Estimate word count based on reading time (200 words per minute)
 const estimatedWordCount = readingTimeMinutes ? readingTimeMinutes * 200 : undefined;
 
+// Shared author object for schemas
+const authorObject = {
+	"@type": "Person" as const,
+	name: SITE.author,
+	url: siteUrl,
+	sameAs: socialProfiles,
+};
+
+// BlogPosting schema for articles
 const blogPostingSchema = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
@@ -85,16 +83,16 @@ const blogPostingSchema = {
 	url: url,
 	datePublished: datePublished,
 	dateModified: dateModified || datePublished,
-	author: {
-		"@type": "Person",
-		name: SITE_AUTHOR,
-		url: siteUrl,
-		sameAs: socialProfiles,
-	},
+	author: authorObject,
 	publisher: {
 		"@type": "Person",
-		name: SITE_AUTHOR,
+		name: SITE.author,
 		url: siteUrl,
+	},
+	isPartOf: {
+		"@type": "Blog",
+		name: BLOG.title,
+		url: `${siteUrl}/blog`,
 	},
 	keywords: tags?.join(", "),
 	wordCount: estimatedWordCount,
@@ -103,27 +101,44 @@ const blogPostingSchema = {
 		"@type": "WebPage",
 		"@id": url,
 	},
-	inLanguage: "en-US",
+	inLanguage: SEO.locale.replace("_", "-"),
 };
 
+// WebPage schema for non-article pages (more appropriate than WebSite per-page)
+const webPageSchema = {
+	"@context": "https://schema.org",
+	"@type": "WebPage",
+	name: title,
+	description: description,
+	url: url,
+	image: image,
+	isPartOf: {
+		"@type": "WebSite",
+		name: SITE.title,
+		url: siteUrl,
+	},
+	author: authorObject,
+	inLanguage: SEO.locale.replace("_", "-"),
+};
+
+// WebSite schema (emitted once, stable across all pages)
 const webSiteSchema = {
 	"@context": "https://schema.org",
 	"@type": "WebSite",
-	name: `${SITE_AUTHOR} - ${title}`,
-	description: description,
+	name: SITE.title,
+	description: SITE.description,
 	url: siteUrl,
-	image: image,
 	author: {
 		"@type": "Person",
-		name: SITE_AUTHOR,
+		name: SITE.author,
 		url: siteUrl,
-		jobTitle: "Full-Stack Engineer",
-		description: DEFAULT_DESCRIPTION,
+		jobTitle: PROFESSIONAL.jobTitle,
+		description: SITE.description,
 		sameAs: socialProfiles,
 	},
 	publisher: {
 		"@type": "Person",
-		name: SITE_AUTHOR,
+		name: SITE.author,
 		url: siteUrl,
 	},
 	potentialAction: {
@@ -134,49 +149,22 @@ const webSiteSchema = {
 		},
 		"query-input": "required name=search_term_string",
 	},
-	inLanguage: "en-US",
+	inLanguage: SEO.locale.replace("_", "-"),
 };
 
-// Person schema (for personal identity)
+// Person schema (for personal identity - primary schema for personal site)
 const personSchema = {
 	"@context": "https://schema.org",
 	"@type": "Person",
-	name: SITE_AUTHOR,
+	name: SITE.author,
 	url: siteUrl,
 	image: `${siteUrl}/pwa-512x512.png`,
-	jobTitle: "Full-Stack Engineer",
-	description: DEFAULT_DESCRIPTION,
-	email: "tnkratos@gmail.com",
-	knowsAbout: [
-		"Software Engineering",
-		"Cloud Architecture",
-		"Security",
-		"Performance Optimization",
-		"Scalable Solutions",
-		"Full-Stack Development",
-		"Leadership",
-		"Mentoring",
-		"Chip Music",
-	],
+	jobTitle: PROFESSIONAL.jobTitle,
+	description: SITE.description,
+	knowsAbout: [...PROFESSIONAL.skills],
 	alumniOf: {
 		"@type": "CollegeOrUniversity",
-		name: "Jomo Kenyatta University Of Agriculture And Technology",
-	},
-	sameAs: socialProfiles,
-};
-
-// Organization schema (for professional identity)
-const organizationSchema = {
-	"@context": "https://schema.org",
-	"@type": "Organization",
-	name: SITE_AUTHOR,
-	url: siteUrl,
-	logo: `${siteUrl}/pwa-512x512.png`,
-	description: DEFAULT_DESCRIPTION,
-	founder: {
-		"@type": "Person",
-		name: SITE_AUTHOR,
-		url: siteUrl,
+		name: PROFESSIONAL.almaMater,
 	},
 	sameAs: socialProfiles,
 };
@@ -188,15 +176,14 @@ const pathSegments = url
 	.filter((segment) => segment);
 
 /**
- * Remove date prefix from blog post slugs in breadcrumb names
- * Matches YYYY-MM-DD- pattern at the start of the segment
+ * Format breadcrumb name: remove date prefix and title-case
  */
 function formatBreadcrumbName(segment: string): string {
 	if (segment === "blog") return "Blog";
 	// Remove date prefix (YYYY-MM-DD-) from blog post slugs
 	const withoutDate = segment.replace(/^\d{4}-\d{2}-\d{2}-/, "");
-	// Replace hyphens with spaces and return
-	return withoutDate.replace(/-/g, " ");
+	// Replace hyphens with spaces and title-case each word
+	return withoutDate.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 const breadcrumbSchema =
@@ -232,8 +219,8 @@ const breadcrumbSchema =
 {image && <meta property="og:image:height" content={ogImageHeight.toString()} />}
 {image && <meta property="og:image:type" content={ogImageType} />}
 {image && <meta property="og:image:alt" content={`${title} - ${description}`} />}
-<meta property="og:site_name" content={SITE_AUTHOR} />
-<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content={SITE.author} />
+<meta property="og:locale" content={SEO.locale} />
 {isArticle && datePublished && <meta property="article:published_time" content={datePublished} />}
 {isArticle && dateModified && <meta property="article:modified_time" content={dateModified} />}
 {isArticle && <meta property="article:author" content={siteUrl} />}
@@ -241,27 +228,27 @@ const breadcrumbSchema =
 {isArticle && tags?.map((tag) => <meta property="article:tag" content={tag} />)}
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={url} />
-<meta property="twitter:title" content={title} />
-<meta property="twitter:description" content={description} />
-{image && <meta property="twitter:image" content={image} />}
-{image && <meta property="twitter:image:alt" content={`${title} - ${description}`} />}
-<meta property="twitter:creator" content="@asce1062" />
-<meta property="twitter:site" content="@asce1062" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={url} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+{image && <meta name="twitter:image" content={image} />}
+{image && <meta name="twitter:image:alt" content={`${title} - ${description}`} />}
+<meta name="twitter:creator" content={`@${SOCIAL.twitter}`} />
+<meta name="twitter:site" content={`@${SOCIAL.twitter}`} />
 {isArticle && readingTime && <meta name="twitter:label1" content="Reading time" />}
 {isArticle && readingTime && <meta name="twitter:data1" content={readingTime} />}
 {isArticle && formattedDate && <meta name="twitter:label2" content="Published" />}
 {isArticle && formattedDate && <meta name="twitter:data2" content={formattedDate} />}
 
-<!-- JSON-LD Structured Data -->
-<script type="application/ld+json" set:html={JSON.stringify(isArticle ? blogPostingSchema : webSiteSchema)} is:inline />
+<!-- JSON-LD: Page-specific schema (BlogPosting for articles, WebPage for other pages) -->
+<script type="application/ld+json" set:html={JSON.stringify(isArticle ? blogPostingSchema : webPageSchema)} is:inline />
 
-<!-- Person Schema -->
+<!-- JSON-LD: WebSite schema (stable, same for every page) -->
+<script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} is:inline />
+
+<!-- JSON-LD: Person schema (primary identity for personal site) -->
 <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
 
-<!-- Organization Schema -->
-<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} is:inline />
-
-<!-- BreadcrumbList Schema (for articles only) -->
+<!-- JSON-LD: BreadcrumbList (for articles only) -->
 {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} is:inline />}

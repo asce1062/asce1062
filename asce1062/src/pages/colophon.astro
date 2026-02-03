@@ -1,0 +1,331 @@
+---
+/**
+ * Colophon - Credits, Philosophy & Inspirations
+ *
+ * A human-readable page explaining how and why this site was built.
+ * Contains design philosophy, credits, acknowledgments, and personal touches.
+ *
+ * This page is indexable (no noindex).
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SITE, SOCIAL, HOSTING } from "@/config/site-config";
+
+// Tech stack for narrative display
+const techStack = [
+	{ name: "Astro", url: "https://astro.build", role: "Static site generator", icon: "icon-astro" },
+	{ name: "Tailwind CSS v4", url: "https://tailwindcss.com", role: "Styling", icon: "icon-tailwindcss" },
+	{ name: "TypeScript", url: "https://www.typescriptlang.org", role: "Type safety", icon: "icon-typescript" },
+	{ name: "MDX", url: "https://mdxjs.com", role: "Content authoring", icon: "icon-markdown" },
+];
+
+// Credits data
+const fontCredits = [
+	{
+		name: "0xProto",
+		url: "https://github.com/0xType/0xProto",
+		description: "Primary monospace font. Designed for source code legibility",
+	},
+	{
+		name: "Uni 05_53",
+		url: "https://www.craigkroeger.com/fonts/fonts",
+		description: "Retro pixel font by Craig Kroeger. For that pixelated feel",
+	},
+];
+
+const iconCredits = [
+	{ name: "Bootstrap Icons", url: "https://icons.getbootstrap.com/" },
+	{ name: "GitHub Octicons", url: "https://primer.style/octicons/" },
+	{ name: "Devicon", url: "https://devicon.dev/" },
+];
+
+const toolCredits = [
+	{ name: "IcoMoon", url: "https://icomoon.io", description: "Icon font generator" },
+	{ name: "Hero Patterns", url: "https://heropatterns.com/", description: "SVG background patterns (Topography)" },
+	{
+		name: "Rehype Pretty Code",
+		url: "https://rehype-pretty.pages.dev/",
+		description: "Syntax highlighting (Shiki-based)",
+	},
+	{ name: "Rosé Pine", url: "https://rosepinetheme.com/", description: "Code theme (Dawn/Moon variants)" },
+	{ name: "Pagefind", url: "https://pagefind.app/", description: "Static search" },
+	{ name: "Workbox", url: "https://developer.chrome.com/docs/workbox", description: "PWA & offline support" },
+];
+---
+
+<Layout title="Colophon" description="Credits, design philosophy, and the story behind this site">
+	<article class="prose prose-neutral dark:prose-invert max-w-none">
+		<h1><i class="icon-book"></i> Colophon</h1>
+		<p class="text-sm text-neutral-content mb-6">Credits, philosophy, and the story behind this site</p>
+		<!-- Philosophy Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-lightbulb"></i> Philosophy
+			</h2>
+			<div class="space-y-4 text-sm">
+				<p>
+					This site is built with a few core principles in mind: <strong>performance</strong>, <strong
+						>accessibility</strong
+					>, and <strong>longevity</strong>. I wanted something that loads fast, works for everyone, and won't break
+					long term.
+				</p>
+				<p>
+					It's static-first. Every page is pre-rendered at build time. No servers to scale, no databases to maintain, no
+					runtime to worry about. Just HTML, CSS, and a sprinkle of JavaScript where it genuinely helps.
+				</p>
+				<p>
+					The retro aesthetic isn't just nostalgia, it's a deliberate choice. Pixel fonts, simple layouts, and minimal
+					animations. They remind me of the early web, when personal sites were weird and wonderful and unapologetically <em
+						>personal</em
+					>.
+				</p>
+			</div>
+		</section>
+
+		<!-- Tech Stack Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-command-palette"></i> Tech Stack
+			</h2>
+			<p class="text-sm mb-4">
+				Built with modern tools that prioritize developer experience without sacrificing performance:
+			</p>
+			<div class="flex flex-col gap-2">
+				{
+					techStack.map((tech) => (
+						<div class="flex items-center gap-3">
+							<span class="text-xs text-neutral-content w-36 text-right">{tech.role}</span>
+							<a
+								href={tech.url}
+								class="link-action !items-center !gap-2 no-underline"
+								target="_blank"
+								rel="noopener noreferrer">
+								<i class={`${tech.icon} text-lg text-info`} />
+								<span class="font-medium">{tech.name}</span>
+							</a>
+						</div>
+					))
+				}
+			</div>
+			<p class="text-xs text-neutral-content mt-4">
+				Plus a constellation of integrations: sitemap generation, RSS feeds, MDX support, PWA capabilities, static
+				search via Pagefind and lots more!
+			</p>
+		</section>
+
+		<!-- Hosting Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-cloud-upload"></i> Hosting
+			</h2>
+			<p class="text-sm mb-4">
+				Deployed on <a
+					href={HOSTING.primary.url}
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">{HOSTING.primary.name}</a
+				> with automatic deploys from GitHub. The site is also mirrored on <a
+					href={HOSTING.alternate.url}
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">{HOSTING.alternate.name}</a
+				> for redundancy. Domain registered through <a
+					href={HOSTING.registrar.url}
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">{HOSTING.registrar.name}</a
+				>.
+			</p>
+			<p class="text-sm">
+				Everything is statically generated. No server-side rendering, no edge functions, no complexity. Just files on a
+				CDN.
+			</p>
+		</section>
+
+		<!-- Typography & Design Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-palette"></i> Typography & Design
+			</h2>
+
+			<h3 class="mt-6 mb-3 text-success">Fonts</h3>
+			<ul class="space-y-3 text-sm">
+				{
+					fontCredits.map((font) => (
+						<li>
+							<a
+								href={font.url}
+								class="font-medium underline decoration-dashed"
+								target="_blank"
+								rel="noopener noreferrer">
+								{font.name}
+							</a>
+							<span class="text-neutral-content"> — {font.description}</span>
+						</li>
+					))
+				}
+			</ul>
+
+			<h3 class="mt-6 mb-3 text-success">Icons</h3>
+			<p class="text-sm mb-2">
+				Custom icon font built with <a
+					href="https://icomoon.io"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">IcoMoon</a
+				>, combining icons from:
+			</p>
+			<ul class="list-disc list-inside text-sm text-neutral-content space-y-1">
+				{
+					iconCredits.map((icon) => (
+						<li>
+							<a href={icon.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+								{icon.name}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+
+			<h3 class="mt-6 mb-3 text-success">Colors & Patterns</h3>
+			<p class="text-sm">
+				The color palette uses <a
+					href="https://oklch.net/"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">OKLCH</a
+				> for perceptually uniform colors that work beautifully in both light and dark modes. The subtle background texture
+				comes from <a
+					href="https://heropatterns.com/"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">Hero Patterns</a
+				> (Topography pattern).
+			</p>
+		</section>
+
+		<!-- Accessibility Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-universal-access"></i> Accessibility
+			</h2>
+			<p class="text-sm mb-4"> This site is designed with accessibility in mind. That means: </p>
+			<ul class="list-disc list-inside text-sm text-neutral-content space-y-2">
+				<li>Semantic HTML with proper heading hierarchy</li>
+				<li>Skip links for keyboard navigation</li>
+				<li>Visible focus indicators</li>
+				<li>Color contrast targeting WCAG AA guidelines</li>
+				<li>Respecting <code class="bg-base-300 px-1 text-xs">prefers-reduced-motion</code></li>
+				<li>Alt text for images</li>
+			</ul>
+			<p class="text-sm mt-4 text-neutral-content italic">
+				I haven't commissioned a formal audit, so I won't claim full compliance — but accessibility is a priority, not
+				an afterthought.
+			</p>
+		</section>
+
+		<!-- Performance Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-speedometer2"></i> Performance
+			</h2>
+			<p class="text-sm mb-4"> Fast by default. The approach is simple: </p>
+			<ul class="list-disc list-inside text-sm text-neutral-content space-y-2">
+				<li><strong>Static generation</strong> — HTML ready at the edge</li>
+				<li><strong>Minimal JavaScript</strong> — only where it adds real value</li>
+				<li><strong>Optimized assets</strong> — compressed images, minified CSS</li>
+				<li><strong>Service Worker</strong> — offline support and intelligent caching</li>
+				<li><strong>No tracking scripts</strong> — nothing to slow you down</li>
+			</ul>
+			<p class="text-sm mt-4 text-neutral-content">
+				Lighthouse goals: 90+ Performance, 100 Accessibility, 100 Best Practices, 100 SEO. Actual results may vary by
+				page and connection.
+			</p>
+		</section>
+
+		<!-- Open Source Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-github"></i> Open Source
+			</h2>
+			<p class="text-sm mb-4">
+				This site is open source under the <strong>MIT License</strong>. Feel free to explore, fork, or contribute.
+			</p>
+			<a
+				href={SOCIAL.repo}
+				class="link-action link-action--secondary no-underline text-sm"
+				target="_blank"
+				rel="noopener noreferrer">
+				<i class="icon-github"></i>
+				View on GitHub
+				<i class="icon-box-arrow-up-right text-xs"></i>
+			</a>
+
+			<h3 class="mt-6 mb-3 text-success">Tools & Inspirations</h3>
+			<ul class="text-sm space-y-2">
+				{
+					toolCredits.map((tool) => (
+						<li>
+							<a href={tool.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+								{tool.name}
+							</a>
+							<span class="text-neutral-content"> — {tool.description}</span>
+						</li>
+					))
+				}
+			</ul>
+
+			<p class="text-sm mt-4">
+				The <a href="/8biticon" class="underline decoration-dashed">8-bit avatar generator</a> is based on
+				<a
+					href="https://github.com/matveyco/8biticon"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">8biticon by Matvii Diadkov (<i class="icon-github"></i> matveyco)</a
+				>.
+			</p>
+		</section>
+
+		<!-- Personal Note Section -->
+		<section class="mb-10">
+			<h2>
+				<i class="icon-person"></i> A Note from {SITE.authorShort}
+			</h2>
+			<div class="space-y-4 text-sm">
+				<p>
+					I've always loved the intersection of technology and creativity. This site aims to reflects that. It's a place
+					for technical writing, personal projects, and the occasional tangent into chip music and retro aesthetics.
+				</p>
+				<p>
+					The 8-bit vibe isn't accidental. I grew up with chunky pixels around the C64 and Atari gaming eras, and those
+					influences still shape how I think about design.
+				</p>
+				<p>
+					Thanks for visiting. If you'd like to connect, you can find me on <a
+						href={`https://github.com/${SOCIAL.github}`}
+						class="underline decoration-dashed"
+						target="_blank"
+						rel="noopener noreferrer">GitHub</a
+					>,
+					<a
+						href={`https://x.com/${SOCIAL.twitter}`}
+						class="underline decoration-dashed"
+						target="_blank"
+						rel="noopener noreferrer">X/Twitter</a
+					>, or drop a note in the <a href="/guestbook" class="underline decoration-dashed">guestbook</a>.
+				</p>
+			</div>
+		</section>
+
+		<!-- Footer -->
+		<hr class="my-8 border-base-300" />
+
+		<footer class="text-sm text-neutral-content">
+			<p class="mb-2">
+				Built by <strong>{SITE.author}</strong> · {SITE.titleSuffix}
+			</p>
+			<p>
+				<a href="/meta" class="underline decoration-dashed">Site diagnostics → /meta</a>
+			</p>
+		</footer>
+	</article>
+</Layout>

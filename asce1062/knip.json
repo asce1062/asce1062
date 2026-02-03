@@ -24,7 +24,10 @@
     "src/data/navigation.ts",
     "src/lib/api/github.ts",
     "public/css/style.css",
-    "src/styles/theme.css"
+    "src/styles/theme.css",
+    "src/config/index.ts",
+    "src/config/site-utils.ts",
+    "src/config/site-config.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {

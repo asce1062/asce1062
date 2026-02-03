@@ -1,0 +1,252 @@
+---
+/**
+ * Meta Page - Public Site Diagnostics
+ *
+ * Factual, minimal, debug-like page for maintainers.
+ * Displays only safe, non-sensitive build and configuration information.
+ *
+ * For credits, design philosophy, and narrative content, see /colophon
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SITE, SEO, PWA, getOgImageUrl } from "@/config/site-config";
+import { BUILD_TIMESTAMP, NODE_MAJOR_VERSION } from "@/config/build-info";
+import { DEPS, SHOW_NODE_VERSION } from "@/config/deps-info";
+
+// Canonical URL from Astro config
+const siteUrl = Astro.site?.href ?? null;
+
+// Detect mismatch between Astro.site and SITE.url
+const canonicalMismatch = siteUrl && SITE.url && siteUrl.replace(/\/$/, "") !== SITE.url.replace(/\/$/, "");
+
+// Package versions
+const { astro: astroVersion, tailwind: tailwindVersion, typescript: typescriptVersion } = DEPS;
+
+// OG Image absolute URL
+const ogImageAbsoluteUrl = getOgImageUrl();
+---
+
+<Layout title="Meta" description="Site diagnostics and metadata" noIndex={true}>
+	<h1 class="mb-6"><i class="icon-gear"></i> Meta</h1>
+	<!-- Security Notice -->
+	<div class="bg-base-200 border border-base-300 p-3 mb-6 rounded-md">
+		<p class="text-sm text-neutral-content">
+			<i class="icon-shield-check"></i>
+			This page intentionally exposes limited site diagnostics and build metadata information.
+		</p>
+	</div>
+
+	<!-- Canonical Mismatch Warning -->
+	{
+		canonicalMismatch && (
+			<div class="bg-error/20 border border-error text-error-content p-3 mb-6 rounded-md">
+				<p class="text-sm">
+					<i class="icon-exclamation-octagon" />
+					<strong>Configuration mismatch:</strong> Astro.site (<code class="bg-base-300 px-1">{siteUrl}</code>) and
+					SITE.url (<code class="bg-base-300 px-1">{SITE.url}</code>) differ.
+				</p>
+				<p class="text-xs mt-2">
+					<strong>Fix:</strong> Set <code class="bg-base-300 px-1">site: "{SITE.url}/"</code> in astro.config.mjs
+				</p>
+			</div>
+		)
+	}
+
+	<!-- Build Information -->
+	<section class="mb-8">
+		<h2>
+			<i class="icon-box-seam"></i> Build Information
+		</h2>
+		<div class="overflow-hidden rounded-md border border-base-300">
+			<table class="w-full text-sm">
+				<tbody>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Canonical Base URL</td>
+						<td class="p-2 font-retro break-all">{siteUrl ?? "Not configured"}</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Site URL (Config)</td>
+						<td class="p-2 font-retro break-all">{SITE.url}</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Build Mode</td>
+						<td class="p-2 font-retro">{import.meta.env.MODE}</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Production Build</td>
+						<td class="p-2 font-retro">{import.meta.env.PROD ? "Yes" : "No"}</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Build Timestamp</td>
+						<td class="p-2 font-retro">{BUILD_TIMESTAMP}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- Package Versions -->
+	<section class="mb-8">
+		<h2>
+			<i class="icon-stack"></i> Package Versions
+		</h2>
+		<div class="overflow-hidden rounded-md border border-base-300">
+			<table class="w-full text-sm">
+				<tbody>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Astro</td>
+						<td class="p-2 font-retro">{astroVersion}</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Tailwind CSS</td>
+						<td class="p-2 font-retro">{tailwindVersion}</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">TypeScript</td>
+						<td class="p-2 font-retro">{typescriptVersion}</td>
+					</tr>
+					{
+						SHOW_NODE_VERSION && (
+							<tr class="bg-base-100">
+								<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Node.js (major)</td>
+								<td class="p-2 font-retro">{NODE_MAJOR_VERSION ? `v${NODE_MAJOR_VERSION}` : "N/A"}</td>
+							</tr>
+						)
+					}
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- SEO Defaults -->
+	<section class="mb-8">
+		<h2>
+			<i class="icon-search"></i> SEO Defaults
+		</h2>
+		<div class="overflow-hidden rounded-md border border-base-300">
+			<table class="w-full text-sm">
+				<tbody>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Language</td>
+						<td class="p-2 font-retro">{SEO.language}</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Locale</td>
+						<td class="p-2 font-retro">{SEO.locale}</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">OG Image</td>
+						<td class="p-2 font-retro break-all">{SEO.ogImage}</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">OG Image URL</td>
+						<td class="p-2 break-all">
+							<a
+								href={ogImageAbsoluteUrl}
+								class="underline decoration-dashed font-retro text-xs"
+								target="_blank"
+								rel="noopener noreferrer">
+								{ogImageAbsoluteUrl}
+							</a>
+						</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Theme Color (Light)</td>
+						<td class="p-2">
+							<span class="inline-flex items-center gap-2">
+								<span
+									class="inline-block w-4 h-4 border border-base-300"
+									style={`background-color: ${PWA.themeColors.light}`}></span>
+								<code class="font-retro text-xs">{PWA.themeColors.light}</code>
+							</span>
+						</td>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Theme Color (Dark)</td>
+						<td class="p-2">
+							<span class="inline-flex items-center gap-2">
+								<span
+									class="inline-block w-4 h-4 border border-base-300"
+									style={`background-color: ${PWA.themeColors.dark}`}></span>
+								<code class="font-retro text-xs">{PWA.themeColors.dark}</code>
+							</span>
+						</td>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Keywords</td>
+						<td class="p-2">
+							<details class="cursor-pointer">
+								<summary class="font-retro text-xs">{SEO.keywords.length} keywords</summary>
+								<ul class="mt-2 text-xs text-neutral-content columns-2 gap-4 list-disc list-inside">
+									{SEO.keywords.map((k) => <li>{k}</li>)}
+								</ul>
+							</details>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- Pages & Feeds -->
+	<section class="mb-8">
+		<h2>
+			<i class="icon-diagram-3"></i> Pages & Feeds
+		</h2>
+		<div class="overflow-hidden rounded-md border border-base-300">
+			<table class="w-full text-sm">
+				<tbody>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Sitemap</td>
+						<td class="p-2"
+							><a href="/sitemap-index.xml" class="underline decoration-dashed font-retro" target="_blank"
+								>/sitemap-index.xml</a
+							></td
+						>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Robots</td>
+						<td class="p-2"
+							><a href="/robots.txt" class="underline decoration-dashed font-retro" target="_blank">/robots.txt</a></td
+						>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Humans</td>
+						<td class="p-2"
+							><a href="/humans.txt" class="underline decoration-dashed font-retro" target="_blank">/humans.txt</a></td
+						>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">RSS Feed</td>
+						<td class="p-2"
+							><a href="/rss.xml" class="underline decoration-dashed font-retro" target="_blank">/rss.xml</a></td
+						>
+					</tr>
+					<tr class="bg-base-200/50">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">PWA Manifest</td>
+						<td class="p-2"
+							><a href="/manifest.webmanifest" class="underline decoration-dashed font-retro" target="_blank"
+								>/manifest.webmanifest</a
+							></td
+						>
+					</tr>
+					<tr class="bg-base-100">
+						<td class="p-2 font-medium text-neutral-content border-r border-base-300 w-1/3">Offline Page</td>
+						<td class="p-2"
+							><a href="/offline" class="underline decoration-dashed font-retro" target="_blank">/offline</a></td
+						>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<hr class="my-6 border-base-300" />
+
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-neutral-content">
+		<p class="italic">
+			noindex enabled • Generated at build time: <span class="font-retro">{BUILD_TIMESTAMP}</span>
+		</p>
+		<a href="/colophon" class="underline decoration-dashed"> Credits & philosophy → /colophon </a>
+	</div>
+</Layout>

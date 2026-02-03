@@ -40,8 +40,7 @@ if (!resolvedImage && imagePath) {
 const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 ---
 
-<div
-	class="relative flex flex-col overflow-auto bg-[color-mix(in_oklab,var(--color-neutral)_40%,transparent)] border border-base-300">
+<div class="relative flex flex-col overflow-auto bg-neutral/40 border border-base-300">
 	{
 		resolvedImage && (
 			<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
