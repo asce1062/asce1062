@@ -1,0 +1,202 @@
+---
+/**
+ * Palette Page - Design System Reference
+ */
+import Layout from "@/layouts/Layout.astro";
+import Columns from "@/components/ui/Columns.astro";
+import { colorRoles, colorValues, getCssVar, getContentVar } from "@/config/design-tokens";
+import "@/styles/components/palette.css";
+---
+
+<Layout title="Palette" description="Design system palette: colors, typography, and token reference">
+	<article class="prose prose-neutral dark:prose-invert max-w-none">
+		<h2><i class="icon-palette"></i> Palette</h2>
+		<p class="text-sm text-neutral-content mb-8">
+			Design tokens that power this site. Colors adapt automatically between light and dark modes.
+		</p>
+
+		<!-- Tabbed View -->
+		<div class="not-prose">
+			<!-- Radio inputs (must be siblings of view panels for CSS ~ selector) -->
+			<input type="radio" name="palette-view" id="swatches-tab" class="sr-only" checked />
+			<input type="radio" name="palette-view" id="ingredients-tab" class="sr-only" />
+
+			<!-- Tab labels -->
+			<div class="flex gap-2 border-b border-base-300 mb-6" role="tablist" aria-label="Palette views">
+				<label
+					for="swatches-tab"
+					role="tab"
+					aria-controls="swatches-view"
+					tabindex="0"
+					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+					<i class="icon-palette" aria-hidden="true"></i> Swatches
+				</label>
+				<label
+					for="ingredients-tab"
+					role="tab"
+					aria-controls="ingredients-view"
+					tabindex="0"
+					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+					<i class="icon-palette2" aria-hidden="true"></i> Ingredients
+				</label>
+			</div>
+
+			<!-- Swatches View -->
+			<div id="swatches-view" class="view-panel" role="tabpanel" aria-labelledby="swatches-tab">
+				<Columns columns={3}>
+					{
+						colorRoles.map((role) => (
+							<div
+								id={role.id}
+								class="group relative flex flex-col overflow-hidden border border-base-300 bg-neutral/40 p-5 transition hover:border-primary/50">
+								{/* Header: Name + Color Swatches */}
+								<div class="flex items-start justify-between gap-3">
+									<div class="flex-1">
+										<h4 class="font-semibold leading-tight tracking-tight">{role.name}</h4>
+										<p class="mt-1 text-sm italic text-neutral-content">{role.description}</p>
+									</div>
+
+									{/* Color swatches - main color and content color if available */}
+									<div class="flex shrink-0 items-center -space-x-2">
+										<div
+											class="h-8 w-8 shrink-0 rounded-full border-2 border-base-100 ring-1 ring-base-300"
+											style={`background-color: var(${getCssVar(role.id)})`}
+										/>
+										{getContentVar(role.id) && (
+											<div
+												class="h-8 w-8 shrink-0 rounded-full border-2 border-base-100 ring-1 ring-base-300"
+												style={`background-color: var(${getContentVar(role.id)})`}
+											/>
+										)}
+									</div>
+								</div>
+
+								{/* Hover/focus overlay with color swatches and copy buttons */}
+								<div class="swatch-overlay absolute inset-0 flex items-center justify-center bg-neutral/90 p-4 backdrop-blur-sm transition-opacity duration-200">
+									<div class="flex items-center gap-6">
+										{/* Main color */}
+										<div class="flex flex-col items-center gap-2">
+											<span class="text-[11px] font-medium uppercase tracking-wide text-neutral-content">Main</span>
+											<div
+												class="h-12 w-12 rounded-full border-2 border-base-300 cursor-pointer"
+												style={`background-color: var(${getCssVar(role.id)})`}
+											/>
+											<button
+												type="button"
+												class="copy-btn cursor-pointer text-neutral-content transition focus:outline-none"
+												data-css-var={getCssVar(role.id)}
+												aria-label={`Copy ${role.name} color`}>
+												<i class="icon-clipboard text-base copy-icon" />
+												<i class="icon-check2 text-base text-success check-icon hidden" />
+											</button>
+										</div>
+
+										{/* Content color (if available) */}
+										{getContentVar(role.id) && (
+											<div class="flex flex-col items-center gap-2">
+												<span class="text-[11px] font-medium uppercase tracking-wide text-neutral-content">
+													Content
+												</span>
+												<div
+													class="h-12 w-12 rounded-full border-2 border-base-300 cursor-pointer"
+													style={`background-color: var(${getContentVar(role.id)})`}
+												/>
+												<button
+													type="button"
+													class="copy-btn cursor-pointer text-neutral-content transition focus:outline-none"
+													data-css-var={getContentVar(role.id)}
+													aria-label={`Copy ${role.name} content color`}>
+													<i class="icon-clipboard text-base copy-icon" />
+													<i class="icon-check2 text-base text-success check-icon hidden" />
+												</button>
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
+						))
+					}
+				</Columns>
+			</div>
+
+			<!-- Ingredients View -->
+			<div id="ingredients-view" class="view-panel" role="tabpanel" aria-labelledby="ingredients-tab">
+				<p class="text-sm text-neutral-content mb-4">
+					OKLCH values for light and dark themes. Toggle theme with <kbd>Ctrl/Cmd + Shift + L</kbd>
+				</p>
+				<div class="border border-base-300 bg-base-200 p-4 sm:p-6">
+					<div class="overflow-x-auto">
+						<table class="w-full min-w-max">
+							<thead>
+								<tr class="border-b border-base-300">
+									<th class="py-2 pl-2 text-left text-sm font-semibold">Role</th>
+									<th class="py-2 pr-2 text-right text-sm font-semibold">Dark</th>
+									<th class="py-2 px-4 text-right text-sm font-semibold">Light</th>
+								</tr>
+							</thead>
+							<tbody>
+								{
+									colorValues.map((color, i) => (
+										<tr
+											class={`h-10 transition ${i % 2 === 0 ? "bg-base-100" : "bg-base-200/50"} hover:bg-base-300/50`}>
+											<td class="pl-2">
+												<div class="flex items-center gap-3">
+													<div
+														class="h-[18px] w-[18px] shrink-0 rounded-full border border-base-300"
+														style={`background-color: var(${getCssVar(color.id)})`}
+													/>
+													<span class="text-sm font-semibold">{color.role}</span>
+												</div>
+											</td>
+											<td class="pr-2 text-right">
+												<button
+													type="button"
+													class="oklch-copy cursor-pointer text-xs text-neutral-content hover:text-accent transition-colors"
+													data-oklch={color.dark}
+													aria-label={`Copy dark ${color.role} color`}>
+													<code>{color.dark}</code>
+												</button>
+											</td>
+											<td class="px-4 text-right">
+												<button
+													type="button"
+													class="oklch-copy cursor-pointer text-xs text-neutral-content hover:text-accent transition-colors"
+													data-oklch={color.light}
+													aria-label={`Copy light ${color.role} color`}>
+													<code>{color.light}</code>
+												</button>
+											</td>
+										</tr>
+									))
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Footer -->
+		<hr class="my-8 border-base-300" />
+
+		<footer class="text-sm text-neutral-content">
+			<p class="mb-4">
+				Colors use <a
+					href="https://oklch.net/"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">OKLCH</a
+				> for perceptual uniformity. Theme switches automatically between light and dark modes.
+			</p>
+			<a href="/colophon" class="link-action no-underline">
+				<i class="icon-book"></i>
+				Back to Colophon
+				<i class="icon-arrow-right text-xs"></i>
+			</a>
+		</footer>
+	</article>
+</Layout>
+
+<script>
+	import "@/scripts/paletteCopy";
+</script>

@@ -49,6 +49,7 @@ export default [
 				HTMLInputElement: "readonly",
 				HTMLIFrameElement: "readonly",
 				HTMLImageElement: "readonly",
+				HTMLLabelElement: "readonly",
 				Element: "readonly",
 				Event: "readonly",
 				KeyboardEvent: "readonly",

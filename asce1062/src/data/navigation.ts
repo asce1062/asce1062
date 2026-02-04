@@ -97,11 +97,18 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 	},
 	{
+		name: "Palette",
+		href: "/palette",
+		icon: "icon-palette",
+		ariaLabel: "Design system color palette and tokens",
+		animation: "rotate-right",
+	},
+	{
 		name: "Meta",
 		href: "/meta",
 		icon: "icon-gear",
 		ariaLabel: "Site diagnostics and build metadata",
-		animation: "rotate-right",
+		animation: "rotate-left",
 	},
 	{
 		name: "RSS Feed",

@@ -1,0 +1,44 @@
+/**
+ * Palette Page Styles
+ *
+ */
+
+/* Tab label active states */
+#swatches-tab:checked ~ div label[for="swatches-tab"],
+#ingredients-tab:checked ~ div label[for="ingredients-tab"] {
+	border-color: var(--color-accent);
+	color: var(--color-accent);
+}
+
+/* Tab switching - show/hide view panels */
+#swatches-tab:checked ~ #swatches-view {
+	display: block;
+}
+#swatches-tab:checked ~ #ingredients-view {
+	display: none;
+}
+#ingredients-tab:checked ~ #swatches-view {
+	display: none;
+}
+#ingredients-tab:checked ~ #ingredients-view {
+	display: block;
+}
+
+/* Initial state */
+.view-panel {
+	display: none;
+}
+#swatches-view {
+	display: block;
+}
+
+/* Swatch card overlay - keyboard accessibility via focus-within */
+.swatch-overlay {
+	pointer-events: none;
+	opacity: 0;
+}
+.group:hover .swatch-overlay,
+.group:focus-within .swatch-overlay {
+	pointer-events: auto;
+	opacity: 1;
+}

@@ -21,6 +21,7 @@
     "src/scripts/copyToClipboard.ts",
     "src/scripts/shareManager.ts",
     "src/scripts/iframeTheme.ts",
+    "src/scripts/paletteCopy.ts",
     "src/data/navigation.ts",
     "src/lib/api/github.ts",
     "public/css/style.css",
