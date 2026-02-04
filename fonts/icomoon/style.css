@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?ne57a4');
-  src:  url('fonts/icomoon.eot?ne57a4#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?ne57a4') format('truetype'),
-    url('fonts/icomoon.woff?ne57a4') format('woff'),
-    url('fonts/icomoon.svg?ne57a4#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?lyfhn0');
+  src:  url('fonts/icomoon.eot?lyfhn0#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?lyfhn0') format('truetype'),
+    url('fonts/icomoon.woff?lyfhn0') format('woff'),
+    url('fonts/icomoon.svg?lyfhn0#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,69 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-stack:before {
+  content: "\e99b";
+}
+.icon-shield-check:before {
+  content: "\e99c";
+}
+.icon-search:before {
+  content: "\e99d";
+}
+.icon-book:before {
+  content: "\e992";
+}
+.icon-universal-access:before {
+  content: "\e993";
+}
+.icon-lightbulb:before {
+  content: "\e995";
+}
+.icon-person:before {
+  content: "\e996";
+}
+.icon-repo-contributors:before {
+  content: "\e95d";
+}
+.icon-archive:before {
+  content: "\e98d";
+}
+.icon-command-palette:before {
+  content: "\e98e";
+}
+.icon-issue-opened:before {
+  content: "\e98f";
+}
+.icon-repo-forked:before {
+  content: "\e990";
+}
+.icon-git-commit:before {
+  content: "\e991";
+}
+.icon-palette2:before {
+  content: "\e9a1";
+}
+.icon-diagram-3:before {
+  content: "\e99e";
+}
+.icon-box-seam:before {
+  content: "\e99f";
+}
+.icon-exclamation-octagon:before {
+  content: "\e9a0";
+}
+.icon-box-arrow-up-right:before {
+  content: "\e997";
+}
+.icon-speedometer2:before {
+  content: "\e998";
+}
+.icon-palette:before {
+  content: "\e999";
+}
+.icon-cloud-upload:before {
+  content: "\e99a";
+}
 .icon-body-text:before {
   content: "\e98c";
 }
@@ -165,9 +228,6 @@
 }
 .icon-chevron-bar-up:before {
   content: "\e96a";
-}
-.icon-git:before {
-  content: "\e95d";
 }
 .icon-star:before {
   content: "\e95c";

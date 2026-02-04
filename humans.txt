@@ -1,0 +1,25 @@
+/* TEAM */
+Creator: Alex Mbugua Ngugi
+Role: Full-Stack Engineer
+Site: https://alexmbugua.me
+Twitter: @alex_immer
+GitHub: asce1062
+Location: Nairobi, Kenya
+
+/* THANKS */
+Astro - https://astro.build
+Tailwind CSS - https://tailwindcss.com
+IcoMoon - https://icomoon.io
+Hero Patterns - https://heropatterns.com
+Rehype Pretty Code - https://rehype-pretty.pages.dev
+Rose Pine Theme - https://rosepinetheme.com
+Pagefind - https://pagefind.app
+0xProto Font - https://github.com/0xType/0xProto
+uni0553 Font - https://www.craigkroeger.com/fonts/fonts
+
+/* SITE */
+Last update: 2026/02/02
+Standards: HTML5, CSS3
+Components: Astro, Tailwind CSS v4, TypeScript, MDX
+Software: VS Code
+Hosting: Netlify, GitHub Pages
