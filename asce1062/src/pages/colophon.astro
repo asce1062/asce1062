@@ -252,15 +252,21 @@ const toolCredits = [
 			<p class="text-sm mb-4">
 				This site is open source under the <strong>MIT License</strong>. Feel free to explore, fork, or contribute.
 			</p>
-			<a
-				href={SOCIAL.repo}
-				class="link-action link-action--secondary no-underline text-sm"
-				target="_blank"
-				rel="noopener noreferrer">
-				<i class="icon-github"></i>
-				View on GitHub
-				<i class="icon-box-arrow-up-right text-xs"></i>
-			</a>
+			<div class="flex flex-wrap gap-3">
+				<a
+					href={SOCIAL.repo}
+					class="link-action link-action--accent no-underline text-sm"
+					target="_blank"
+					rel="noopener noreferrer">
+					<i class="icon-github"></i>
+					View on GitHub
+					<i class="icon-box-arrow-up-right text-xs"></i>
+				</a>
+				<a href="/changelog" class="link-action no-underline text-sm">
+					<i class="icon-diff-modified"></i>
+					Changelog
+				</a>
+			</div>
 
 			<h3 class="mt-6 mb-3 text-success">Tools & Inspirations</h3>
 			<ul class="text-sm space-y-2">

@@ -1,0 +1,314 @@
+---
+/**
+ * Changelog page
+ *
+ * Displays ALL GitHub commits.
+ * Data is fetched at build time (SSG) via pagination, no runtime API calls.
+ *
+ * Features:
+ * - All commits fetched at build time
+ * - Shows 25 initially, "Load more" reveals batches
+ * - Year grouping
+ * - Expandable commit details
+ * - Failure handling
+ */
+
+/* eslint-disable astro/no-set-html-directive */
+import Layout from "@/layouts/Layout.astro";
+import { SOCIAL } from "@/config/site-config";
+import {
+	getRepoSlugFromUrl,
+	getBaseRepoUrl,
+	getChangelogEntries,
+	formatChangelogDate,
+	renderMarkdownToHtml,
+	getYearFromDate,
+	type ChangelogEntry,
+} from "@/lib/api/github";
+
+// Parse repo info from config
+const repoSlug = getRepoSlugFromUrl(SOCIAL.repo);
+const baseRepoUrl = getBaseRepoUrl(SOCIAL.repo);
+
+// Configuration
+const INITIAL_SHOW = 25;
+const LOAD_MORE_BATCH = 25;
+
+// Fetch ALL changelog data at build time
+let entries: ChangelogEntry[] = [];
+let fetchSuccess = false;
+let fetchError = false;
+let totalCount = 0;
+
+if (repoSlug) {
+	try {
+		const result = await getChangelogEntries(repoSlug.owner, repoSlug.repo, import.meta.env.GITHUB_PAT, {
+			maxCommits: 1000, // Safety limit
+		});
+		entries = result.entries;
+		fetchSuccess = result.success;
+		totalCount = result.totalCount;
+	} catch (error) {
+		console.error("Failed to fetch changelog:", error);
+		fetchError = true;
+	}
+}
+---
+
+<Layout title="Changelog" description="Project commit history and recent changes">
+	<article class="prose prose-neutral dark:prose-invert max-w-none">
+		<h2><i class="icon-diff-modified"></i> Changelog</h2>
+		<p class="text-sm text-neutral-content mb-6">
+			{totalCount > 0 ? `${totalCount} total commits` : "Project history"}
+		</p>
+
+		<h2>My Tinkering Log</h2>
+		<p class="text-sm mb-4">
+			I know I should stop "playing" with my site all the time and focus on writing; but I am having so much fun
+			learning and experimenting with Astro. Want to see what I've been messing with on the webbed site, instead of
+			actually writing content? Here's a list of changes I've made to my Astro site:
+		</p>
+
+		<!-- Repository link -->
+		{
+			baseRepoUrl && (
+				<p class="text-sm mb-8">
+					<a
+						href={`${baseRepoUrl}/commits`}
+						class="link-action link-action--accent no-underline"
+						target="_blank"
+						rel="noopener noreferrer">
+						<i class="icon-github" />
+						View all commits on GitHub
+						<i class="icon-box-arrow-up-right text-xs" />
+					</a>
+				</p>
+			)
+		}
+
+		<!-- Error state -->
+		{
+			fetchError && (
+				<section class="mb-8 p-4 bg-warning/10 border-l-4 border-warning">
+					<p class="text-sm">
+						<i class="icon-info-circle mr-2" />
+						Unable to fetch changelog data from GitHub. This may be due to rate limiting or network issues.
+					</p>
+					{baseRepoUrl && (
+						<p class="text-sm mt-2">
+							<a href={`${baseRepoUrl}/commits`} class="underline decoration-dashed">
+								View commits directly on GitHub
+							</a>
+						</p>
+					)}
+				</section>
+			)
+		}
+
+		<!-- Empty state -->
+		{
+			!fetchError && !fetchSuccess && (
+				<section class="mb-8 p-4 bg-base-200">
+					<p class="text-sm">
+						<i class="icon-info-circle mr-2" />
+						No commits found for this repository.
+					</p>
+					{baseRepoUrl && (
+						<p class="text-sm mt-2">
+							<a href={`${baseRepoUrl}/commits`} class="underline decoration-dashed">
+								Check GitHub for updates
+							</a>
+						</p>
+					)}
+				</section>
+			)
+		}
+
+		<!-- Changelog entries -->
+		{
+			entries.length > 0 && (
+				<div id="changelog-container" data-total={totalCount} data-batch={LOAD_MORE_BATCH}>
+					{entries.map((entry, index) => {
+						const year = getYearFromDate(entry.date);
+						const prevYear = index > 0 ? getYearFromDate(entries[index - 1].date) : null;
+						const isNewYear = prevYear !== year;
+						const isHidden = index >= INITIAL_SHOW;
+
+						return (
+							<>
+								{/* Year header */}
+								{isNewYear && (
+									<h3
+										class:list={[
+											"year-header text-lg font-bold text-error mb-4 sticky top-0 bg-base-100 py-2 z-10 border-b border-base-300 mt-10 first:mt-0",
+											isHidden && "hidden",
+										]}
+										data-year={year}>
+										{year}
+									</h3>
+								)}
+
+								{/* Commit entry */}
+								<article
+									class:list={["changelog-entry p-4 bg-base-200/50 border-l-4 border-info mb-4", isHidden && "hidden"]}
+									data-index={index}
+									data-year={year}>
+									{/* Entry header */}
+									<header class="flex flex-wrap items-center gap-2 mb-2">
+										<code class="px-2 py-0.5 text-xs bg-base-300 font-mono">{entry.shortSha}</code>
+										<h4 class="font-bold text-base m-0 flex-1">
+											<a
+												href={entry.url}
+												class="no-underline hover:underline hover:decoration-dashed"
+												target="_blank"
+												rel="noopener noreferrer">
+												{entry.title}
+											</a>
+										</h4>
+									</header>
+
+									{/* Meta line */}
+									<div class="flex flex-wrap items-center gap-3 text-xs text-neutral-content mb-2">
+										<time datetime={entry.date}>
+											<i class="icon-calendar mr-1" />
+											{formatChangelogDate(entry.date)}
+										</time>
+										<span>
+											<i class="icon-person mr-1" />
+											{entry.author}
+										</span>
+										<a href={entry.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+											<i class="icon-box-arrow-up-right mr-1" />
+											View on GitHub
+										</a>
+									</div>
+
+									{/* Expandable commit body */}
+									{entry.body && (
+										<details class="group mt-2">
+											<summary class="cursor-pointer text-sm text-neutral-content hover:text-base-content list-none">
+												<i class="icon-chevron-right group-open:rotate-90 inline-block transition-transform mr-1" />
+												Commit details
+											</summary>
+											<div
+												class="mt-3 text-sm bg-base-300/50 p-3 whitespace-pre-wrap font-mono"
+												set:html={renderMarkdownToHtml(entry.body)}
+											/>
+										</details>
+									)}
+								</article>
+							</>
+						);
+					})}
+
+					{/* Load more button */}
+					{totalCount > INITIAL_SHOW && (
+						<div id="load-more-container" class="mt-8 text-center">
+							<button
+								id="load-more-btn"
+								type="button"
+								class="btn btn-secondary px-6 py-3 text-sm flex flex-col items-center mx-auto"
+								data-showing={INITIAL_SHOW}>
+								<span class="flex items-center text-secondary-content">
+									<i class="icon-chevron-down mr-2" />
+									Load more commits
+								</span>
+								<span id="load-more-count" class="text-secondary-content text-xs opacity-75 mt-1">
+									(showing {INITIAL_SHOW} of {totalCount})
+								</span>
+							</button>
+
+							<p id="all-loaded" class="hidden text-sm text-neutral-content mt-4">
+								<i class="icon-check2 mr-1" />
+								All {totalCount} commits loaded
+							</p>
+						</div>
+					)}
+				</div>
+			)
+		}
+
+		<!-- Footer -->
+		{
+			fetchSuccess && (
+				<footer class="mt-10 pt-4 border-t border-base-300 text-xs text-neutral-content">
+					<p>
+						<i class="icon-info-circle mr-1" />
+						All {totalCount} commits fetched at build time. No runtime API calls.
+					</p>
+					<p class="mt-2">
+						<a href="/colophon" class="underline decoration-dashed">
+							Colophon
+						</a>{" "}
+						·{" "}
+						<a href="/meta" class="underline decoration-dashed">
+							Site diagnostics
+						</a>
+					</p>
+				</footer>
+			)
+		}
+	</article>
+</Layout>
+
+<script>
+	function initLoadMore() {
+		const container = document.getElementById("changelog-container");
+		const loadMoreBtn = document.getElementById("load-more-btn");
+		const loadMoreCount = document.getElementById("load-more-count");
+		const allLoadedMsg = document.getElementById("all-loaded");
+
+		if (!container || !loadMoreBtn) return;
+
+		const total = parseInt(container.dataset.total || "0", 10);
+		const batch = parseInt(container.dataset.batch || "25", 10);
+		let showing = parseInt(loadMoreBtn.dataset.showing || "25", 10);
+
+		loadMoreBtn.addEventListener("click", () => {
+			const entries = container.querySelectorAll(".changelog-entry.hidden");
+			const yearHeaders = container.querySelectorAll(".year-header.hidden");
+			const toShow = Math.min(batch, entries.length);
+
+			// Track which years we're revealing
+			const yearsToShow = new Set<string>();
+
+			// Show next batch of entries
+			for (let i = 0; i < toShow; i++) {
+				const entry = entries[i];
+				if (entry) {
+					entry.classList.remove("hidden");
+					const year = (entry as HTMLElement).dataset.year;
+					if (year) yearsToShow.add(year);
+				}
+			}
+
+			// Show year headers for revealed entries
+			yearHeaders.forEach((header) => {
+				const year = (header as HTMLElement).dataset.year;
+				if (year && yearsToShow.has(year)) {
+					header.classList.remove("hidden");
+				}
+			});
+
+			showing += toShow;
+			loadMoreBtn.dataset.showing = showing.toString();
+
+			// Update count display
+			if (loadMoreCount) {
+				loadMoreCount.textContent = `(showing ${showing} of ${total})`;
+			}
+
+			// Hide button if all shown
+			if (showing >= total) {
+				loadMoreBtn.classList.add("hidden");
+				if (allLoadedMsg) {
+					allLoadedMsg.classList.remove("hidden");
+				}
+			}
+		});
+	}
+
+	// Initialize on page load and after view transitions
+	initLoadMore();
+	document.addEventListener("astro:after-swap", initLoadMore);
+</script>

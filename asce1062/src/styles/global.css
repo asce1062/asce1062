@@ -633,6 +633,24 @@ Share Notification (Global)
 	color: var(--color-secondary-content);
 }
 
+.btn-neutral {
+	--btn-color: var(--color-neutral);
+	--btn-hover-mix: var(--color-base-200);
+	--btn-bg: var(--btn-color);
+
+	@apply btn;
+	color: var(--color-neutral-content);
+}
+
+.btn-accent {
+	--btn-color: var(--color-accent);
+	--btn-hover-mix: var(--color-base-200);
+	--btn-bg: var(--btn-color);
+
+	@apply btn;
+	color: var(--color-accent-content);
+}
+
 .link-action {
 	display: inline-flex;
 	align-items: center;

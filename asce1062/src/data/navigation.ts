@@ -97,18 +97,25 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 	},
 	{
+		name: "Changelog",
+		href: "/changelog",
+		icon: "icon-diff-modified",
+		ariaLabel: "Project release history and recent changes",
+		animation: "rotate-right",
+	},
+	{
 		name: "Palette",
 		href: "/palette",
 		icon: "icon-palette",
 		ariaLabel: "Design system color palette and tokens",
-		animation: "rotate-right",
+		animation: "rotate-left",
 	},
 	{
 		name: "Meta",
 		href: "/meta",
 		icon: "icon-gear",
 		ariaLabel: "Site diagnostics and build metadata",
-		animation: "rotate-left",
+		animation: "rotate-right",
 	},
 	{
 		name: "RSS Feed",
