@@ -41,7 +41,7 @@ const {
 // Safe base URL fallback: use Astro.site if configured, otherwise fall back to SITE.url
 const base = Astro.site ?? new URL(SITE.url);
 const permalink = new URL(Astro.url.pathname, base).href;
-const ogImageURL = ogImage ? new URL(ogImage, base).href : undefined;
+const ogImageURL = new URL(ogImage ?? SEO.ogImage, base).href;
 const rssURL = new URL("rss.xml", base).href;
 
 const pageDescription = description ?? SITE.description;
