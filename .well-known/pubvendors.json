@@ -1,0 +1,79 @@
+{
+  "publisherVendorsVersion": 1,
+  "version": 1,
+  "globalVendorListVersion": 1,
+  "updatedAt": "2026-02-16T00:00:00Z",
+  "vendors": [
+    {
+      "id": 1,
+      "Name": "Netlify",
+      "Resources": [
+        "https://www.netlify.com",
+        "https://api.netlify.com/api/v1/forms/"
+      ],
+      "Purposes": [
+        "Primary site hosting with edge CDN and automatic HTTPS",
+        "Form handling for guestbook submissions (via Netlify Forms)",
+        "Spam filtering via Akismet integration",
+        "CI/CD auto-deploy on push to main branch"
+      ]
+    },
+    {
+      "id": 2,
+      "Name": "GitHub",
+      "Resources": [
+        "https://pages.github.com",
+        "https://api.github.com",
+        "https://opengraph.githubassets.com",
+        "https://github.com/asce1062/asce1062"
+      ],
+      "Purposes": [
+        "Alternate site hosting via GitHub Pages",
+        "Source code repository and version control",
+        "GitHub API for project data, commit history, and contributor info",
+        "OpenGraph image generation for project cards",
+        "GitHub Actions for CI/CD automation"
+      ]
+    },
+    {
+      "id": 3,
+      "Name": "jandee (Vercel)",
+      "Resources": [
+        "https://jandee.vercel.app/"
+      ],
+      "Purposes": [
+        "GitHub contributions heatmap visualization (iframe embed)"
+      ]
+    },
+    {
+      "id": 4,
+      "Name": "Google",
+      "Resources": [
+        "/googleb10f4d7320179a73.html"
+      ],
+      "Purposes": [
+        "Google Search Console site verification"
+      ]
+    },
+    {
+      "id": 5,
+      "Name": "IcoMoon",
+      "Resources": [
+        "/fonts/icomoon/"
+      ],
+      "Purposes": [
+        "Custom icon font (self-hosted, generated via icomoon.io)"
+      ]
+    },
+    {
+      "id": 6,
+      "Name": "Pagefind",
+      "Resources": [
+        "/pagefind/"
+      ],
+      "Purposes": [
+        "Static site search (self-hosted, generated at build time)"
+      ]
+    }
+  ]
+}

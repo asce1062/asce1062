@@ -1,0 +1,25 @@
+# Security Policy
+# https://securitytxt.org/
+#
+# Existence of this security.txt file does not imply consent to perform
+# security tests against alexmbugua.me
+
+Contact: mailto:alex.mbugua@outlook.com
+Contact: https://github.com/asce1062/asce1062/issues
+Encryption: https://alexmbugua.me/public.pgp
+Preferred-Languages: en
+Canonical: https://alexmbugua.me/.well-known/security.txt
+Signature: https://alexmbugua.me/.well-known/security.txt.sig
+Policy: https://alexmbugua.me/privacy
+
+# Site is primarily hosted on Netlify with GitHub Pages as a backup.
+# All testing must comply with Netlify and GitHub security policies.
+# If any vulnerabilities are found related to site code or
+# configuration, please contact me.
+#
+# WKD (Web Key Directory) is not yet available. The current PGP key
+# is issued for @outlook.com. WKD requires a key on a domain we
+# control. Once updated to ping@alexmbugua.me, the key will be
+# published via WKD at /.well-known/openpgpkey/ for auto-discovery.
+
+Expires: 2028-02-16T00:00:00.000Z

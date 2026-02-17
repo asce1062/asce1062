@@ -1,0 +1,15 @@
+{
+  "tracking": "N",
+  "controller": [
+    "https://alexmbugua.me"
+  ],
+  "same-party": [
+    "alexmbugua.me",
+    "asce1062.github.io"
+  ],
+  "policy": "/.well-known/dnt-policy.txt",
+  "config": "https://alexmbugua.me/.well-known/dnt-policy.txt",
+  "compliance": [
+    "https://www.eff.org/dnt-policy"
+  ]
+}
