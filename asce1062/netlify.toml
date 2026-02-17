@@ -233,7 +233,7 @@ package = "netlify-plugin-checklinks"
 
 [plugins.inputs]
 # Skip checking 404 pages and other known patterns
-skipPatterns = ["/404", "/404/", "/404.html"]
+skipPatterns = ["/404", "/404/", "/404.html", "/.well-known"]
 # Don't fail the build on broken links (just warn)
 checkExternal = false
 

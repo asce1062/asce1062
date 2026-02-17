@@ -1,0 +1,80 @@
+---
+title: "Personal Site Checklist"
+pubDate: 2026-02-17
+description: "A checklist of website components to have as part of your site."
+tags: ["technology", "webdev", "webbed", "site"]
+updatedDate: 2026-02-17
+permalink: "2026-02-17-personal-site-checklist"
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+export const Info = ({ href }) => <a class="no-underline" href={href}><i class="icon-info-circle" /></a>;
+
+<ContentLayout collection="notes"
+    title={frontmatter.title}
+    description={frontmatter.description}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+- [x] Custom [404](/404) page <Info href="https://en.wikipedia.org/wiki/HTTP_404" />
+- [ ] 88x31 button <Info href="https://yesterweb.org/graphics/buttons" />
+- [x] [Colophon](/colophon) <Info href="https://en.wikipedia.org/wiki/Colophon_(publishing)" />
+- [x] [ai.txt](/ai.txt) <Info href="https://site.spawning.ai/spawning-ai-txt" />
+- [ ] Activity feed
+- [ ] Architecture.md <Info href="https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html" />
+- [x] [Blog](/blog)
+- [ ] Blogroll <Info href="https://www.thoughtco.com/what-is-blogroll-3476580" />
+- [ ] Bookmarks <Info href="https://slashpages.net/#links" />
+- [ ] /Carry page
+- [x] [Change Log](/changelog)
+- [x] [change-password](/.well-known/change-password) <Info href="https://w3c.github.io/webappsec-change-password-url/" />
+- [ ] Comments (for blog posts)
+- [ ] /Defaults page
+- [ ] Disclaimer <Info href="https://privacyterms.io/disclaimer/website-disclaimer/" />
+- [x] [dnt](/.well-known/dnt) <Info href="https://www.w3.org/TR/tracking-dnt/" />
+- [x] [dnt-policy.txt](/.well-known/dnt-policy.txt) <Info href="https://www.w3.org/TR/tracking-dnt/" />
+- [x] Donation page <Info href="https://blog.donately.com/donation-page/" />
+- [x] [Email](mailto:alex.mbugua@outlook.com) link <Info href="https://www.w3docs.com/snippets/html/how-to-create-mailto-links.html" />
+- [ ] /Favorites page
+- [ ] Feeds page
+- [x] [Guestbook](/guestbook)
+- [x] [Home page](/)
+- [x] [humans.txt](/humans.txt) <Info href="https://humanstxt.org" />
+- [ ] Ideas page
+- [ ] indieweb.txt <Info href="https://indieweb.org/indieweb.txt" />
+- [ ] Interests page
+- [ ] License <Info href="https://creativecommons.org/choose/" />
+- [x] Light/Dark-mode toggle <kbd>Ctrl/Cmd + Shift + L</kbd>
+- [ ] Links to social media
+- [ ] Linklog
+- [ ] /Nope <Info href="https://baty.net/nope" />
+- [x] [Notes](/notes) <Info href="https://indieweb.org/note" />
+- [x] [Now](/now) page <Info href="https://nownownow.com/about" />
+- [ ] "On This Day" button
+- [x] [PGP key](/public.pgp) <Info href="https://www.openpgp.org" />
+- [x] [Privacy policy](/privacy) <Info href="https://en.wikipedia.org/wiki/Privacy_policy" />
+- [x] [Privacy.txt](/.well-known/privacy.txt) <Info href="https://www.privacytxt.dev" />
+- [ ] [pubvendors.json](/.well-known/pubvendors.json) <Info href="https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/pubvendors.json%20v1.0%20Draft%20for%20Public%20Comment.md" />
+- [ ] "Random" / "Surprise me" button
+- [x] [Resume](/resume) page
+- [ ] Roadmap page
+- [x] [robots.txt](/robots.txt) <Info href="https://moz.com/learn/seo/robotstxt" />
+- [x] [RSS feeds](/rss.xml) <Info href="https://en.wikipedia.org/wiki/RSS" />
+- [x] [Search](/search) <kbd>Ctrl/Cmd + K</kbd>
+- [x] [security.txt](/security.txt) <Info href="https://securitytxt.org" />
+- [ ] Slashes <Info href="https://slashpages.net" />
+- [x] [Site Map](/sitemap.xml) <Info href="https://en.wikipedia.org/wiki/Site_map" />
+- [ ] Site Statistics
+- [x] [Style guide page](/palette)
+- [x] [Tags](/tags)
+- [ ] TIL page <Info href="https://mharty3.github.io/blog/til/" />
+- [ ] Uses page <Info href="https://uses.tech" />
+- [ ] Webfinger
+- [ ] Webring <Info href="https://en.wikipedia.org/wiki/Webring" />
+
+Here's a list of known "[slash pages](https://slashpages.net)" I've discovered: /about, /architecture, /blogroll, /carry, /changelog, /chipotle, /colophon, /contact, /defaults, /favorites, /feeds, /hello, /ideas, /interests, /nope, /now, /til, /save, /uses.
+
+**\*** *For some other ideas on things to add to your site, check out [this piece from James' Coffee Blog](https://jamesg.blog/2024/02/19/personal-website-ideas/).*
+
+</ContentLayout>

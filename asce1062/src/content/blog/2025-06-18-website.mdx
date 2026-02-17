@@ -8,10 +8,10 @@ image:
 tags: ["blog"]
 permalink: "2025-06-18-website"
 ---
-import BlogLayout from "@/layouts/BlogLayout.astro";
+import ContentLayout from "@/layouts/ContentLayout.astro";
 import ImageView from "@/components/ui/ImageView.astro";
 
-<BlogLayout
+<ContentLayout
     title={frontmatter.title}
     description={frontmatter.description}
     image={frontmatter.image.url}
@@ -27,4 +27,4 @@ A place to capture, organize, distill and express what I consume. I'm happy you'
 <br/>
 [^1]:1. <i class="icon-house-heart"></i> My space on the internet >> Still no clue who the cougars are, but the jumper kept me warm!
 </span>
-</BlogLayout>
+</ContentLayout>

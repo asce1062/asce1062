@@ -1,25 +1,90 @@
+/* humanstxt.org */
+
 /* TEAM */
-Creator: Alex Mbugua Ngugi
-Role: Full-Stack Engineer
-Site: https://alexmbugua.me
-Twitter: @alex_immer
-GitHub: asce1062
-Location: Nairobi, Kenya
+  Creator: Alex Mbugua Ngugi
+  Role: Full-Stack Engineer
+  Site: https://alexmbugua.me
+  Twitter: @alex_immer
+  GitHub: asce1062
+  From: Nairobi, Kenya
+  Powered By: Water, curiosity and incremental progress
 
 /* THANKS */
-Astro - https://astro.build
-Tailwind CSS - https://tailwindcss.com
-IcoMoon - https://icomoon.io
-Hero Patterns - https://heropatterns.com
-Rehype Pretty Code - https://rehype-pretty.pages.dev
-Rose Pine Theme - https://rosepinetheme.com
-Pagefind - https://pagefind.app
-0xProto Font - https://github.com/0xType/0xProto
-uni0553 Font - https://www.craigkroeger.com/fonts/fonts
+  Astro - https://astro.build
+  Tailwind CSS - https://tailwindcss.com
+  IcoMoon - https://icomoon.io
+  Hero Patterns - https://heropatterns.com
+  Rehype Pretty Code - https://rehype-pretty.pages.dev
+  Rose Pine Theme - https://rosepinetheme.com
+  Pagefind - https://pagefind.app
+  0xProto Font - https://github.com/0xType/0xProto
+  uni0553 Font - https://www.craigkroeger.com/fonts/fonts
 
 /* SITE */
-Last update: 2026/02/02
-Standards: HTML5, CSS3
-Components: Astro, Tailwind CSS v4, TypeScript, MDX
-Software: VS Code
-Hosting: Netlify, GitHub Pages
+  Founded: June, 2025
+  IDE: VS Code
+  Standards: HTML5, CSS3
+  Components: Astro, Tailwind CSS v4, TypeScript, MDX
+  Hosting: Netlify, GitHub Pages
+
+
+/* Graffiti
+                           ___________    ________________
+_____    ______ ____  ____/_   \   _  \  /  _____/\_____  \
+\__  \  /  ___// ___\/ __ \|   /  /_\  \/   __  \  /  ____/
+ / __ \_\___ \\  \__\  ___/|   \  \_/   \  |__\  \/       \
+(____  /____  >\___  >___  >___|\_____  /\_____  /\_______ \
+     \/     \/     \/    \/           \/       \/         \/
+*/
+
+
+/* Colossal
+                                   d888   .d8888b.   .d8888b.   .d8888b.
+                                  d8888  d88P  Y88b d88P  Y88b d88P  Y88b
+                                    888  888    888 888               888
+ 8888b.  .d8888b   .d8888b .d88b.   888  888    888 888d888b.       .d88P
+    "88b 88K      d88P"   d8P  Y8b  888  888    888 888P "Y88b  .od888P"
+.d888888 "Y8888b. 888     88888888  888  888    888 888    888 d88P"
+888  888      X88 Y88b.   Y8b.      888  Y88b  d88P Y88b  d88P 888"
+"Y888888  88888P'  "Y8888P "Y8888 8888888 "Y8888P"   "Y8888P"  888888888
+*/
+
+/* Roman
+                                         .o    .oooo.       .ooo     .oooo.
+                                       o888   d8P'`Y8b    .88'     .dP""Y88b
+ .oooo.    .oooo.o  .ooooo.   .ooooo.   888  888    888  d88'            ]8P'
+`P  )88b  d88(  "8 d88' `"Y8 d88' `88b  888  888    888 d888P"Ybo.     .d8P'
+ .oP"888  `"Y88b.  888       888ooo888  888  888    888 Y88[   ]88   .dP'
+d8(  888  o.  )88b 888   .o8 888    .o  888  `88b  d88' `Y88   88P .oP     .o
+`Y888""8o 8""888P' `Y8bod8P' `Y8bod8P' o888o  `Y8bd8P'   `88bod8'  8888888888
+*/
+
+
+/* Poison
+ @@@@@@    @@@@@@    @@@@@@@  @@@@@@@@    @@@   @@@@@@@@     @@@@@@   @@@@@@
+@@@@@@@@  @@@@@@@   @@@@@@@@  @@@@@@@@   @@@@  @@@@@@@@@@   @@@@@@@  @@@@@@@@
+@@!  @@@  !@@       !@@       @@!       @@@!!  @@!   @@@@  !@@            @@@
+!@!  @!@  !@!       !@!       !@!         !@!  !@!  @!@!@  !@!           @!@
+@!@!@!@!  !!@@!!    !@!       @!!!:!      @!@  @!@ @! !@!  !!@@!@!      !!@
+!!!@!!!!   !!@!!!   !!!       !!!!!:      !@!  !@!!!  !!!  @!!@!!!!    !!:
+!!:  !!!       !:!  :!!       !!:         !!:  !!:!   !!!  !:!  !:!   !:!
+:!:  !:!      !:!   :!:       :!:         :!:  :!:    !:!  :!:  !:!  :!:
+::   :::  :::: ::    ::: :::   :: ::::    :::  ::::::: ::  :::: :::  :: :::::
+ :   : :  :: : :     :: :: :  : :: ::      ::   : : :  :    :: : :   :: : :::
+*/
+
+
+/* Fraktur
+               .x+=:.
+              z`    ^%                             oe        .n~~%x.         .ue~~%u.     .--~*teu.
+                 .   <k                          .@88      x88X   888.     .d88   z88i   dF     988Nx
+      u        .@8Ned8"       .        .u    ==*88888     X888X   8888L   x888E  *8888  d888b   `8888>
+   us888u.   .@^%8888"   .udR88N    ud8888.     88888    X8888X   88888  :8888E   ^""   ?8888>  98888F
+.@88 "8888" x88:  `)8b. <888'888k :888'8888.    88888    88888X   88888X 98888E.=tWc.    "**"  x88888~
+9888  9888  8888N=*8888 9888 'Y"  d888 '88%"    88888    88888X   88888X 98888N  '888N        d8888*`
+9888  9888   %8"    R88 9888      8888.+"       88888    88888X   88888f 98888E   8888E     z8**"`   :
+9888  9888    @8Wou 9%  9888      8888L         88888    48888X   88888  '8888E   8888E   :?.....  ..F
+9888  9888  .888888P`   ?8888u../ '8888c. .+    88888     ?888X   8888"   ?888E   8888"  <""888888888~
+"888*""888" `   ^"F      "8888P'   "88888%      88888      "88X   88*`     "88&   888"   8:  "888888*
+ ^Y"   ^Y'                 "P'       "YP'    '**%%%%%%**     ^"==="`         ""==*""     ""    "**"`
+*/

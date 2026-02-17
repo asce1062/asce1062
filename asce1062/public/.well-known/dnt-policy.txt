@@ -1,0 +1,100 @@
+Do Not Track Compliance Policy
+Version 1.0
+
+This domain complies with user opt-outs from tracking via the "Do Not Track"
+or "DNT" header [http://www.w3.org/TR/tracking-dnt/].
+
+This file is posted via HTTPS at
+https://alexmbugua.me/.well-known/dnt-policy.txt to indicate this fact.
+
+OPERATOR
+
+Name: Alex Mbugua Ngugi
+Site: https://alexmbugua.me
+Repository: https://github.com/asce1062/asce1062/tree/main/asce1062
+
+SCOPE
+
+This is a personal, static website built with Astro and hosted on Netlify.
+It does not serve ads, embed third-party tracking scripts, or collect user
+credentials. There are no authenticated sections, user accounts, or login
+flows. The site is also available at asce1062.github.io/asce1062 via
+GitHub Pages.
+
+SAME-PARTY DOMAINS
+
+The following domains are operated by the same party and serve the same content:
+- alexmbugua.me (primary, hosted on Netlify)
+- asce1062.github.io/asce1062 (alternate, hosted on GitHub Pages)
+
+TRACKING STATUS
+
+This site does not track visitors. The tracking status value is "N"
+(Not Tracking), as declared in /.well-known/dnt.
+
+DATA COLLECTION
+
+This site does not:
+- Track you
+- Run analytics
+- Set cookies
+- Fingerprint browsers or devices
+- Collect or store personally identifiable information
+- Share data with third-party advertisers or data brokers
+- Serve targeted advertisements
+
+SESSION STORAGE
+
+This site writes to session storage so that your chosen dark/light mode
+persists as you navigate. This disappears the moment you close the tab
+or browse away.
+
+FORMS
+
+The only data received from you is that which you freely give through the
+email or guestbook forms. These are powered by Netlify Forms
+(https://www.netlify.com/platform/core/forms/), which sends input through
+Akismet (https://akismet.com/) spam filtering. Should you want a copy or
+would like anything you sent deleted, contact us (see below).
+
+SERVER LOGS
+
+Standard server logs (IP addresses, User Agent strings) may be retained by
+the hosting providers for operational and security purposes:
+- Netlify (https://www.netlify.com) — primary host
+- GitHub Pages (https://pages.github.com) — alternate host
+
+These logs are not used for tracking and are subject to each provider's
+own privacy policy.
+
+THIRD-PARTY RESOURCES
+
+Where third-party resources are embedded (e.g. fonts, external links), they
+are used for functionality only and not for tracking purposes.
+
+CONTACT
+
+For questions about this policy:
+- Email: alex.mbugua@outlook.com
+- GitHub: https://github.com/asce1062/asce1062/issues
+- PGP: https://alexmbugua.me/public.pgp
+
+Note: WKD (Web Key Directory) key discovery is not yet available because
+the current PGP key is for @outlook.com. Once updated to
+ping@alexmbugua.me, WKD will be enabled at /.well-known/openpgpkey/.
+
+Or whichever way you prefer to ask - we will happily oblige.
+
+Read more at https://alexmbugua.me/privacy
+
+REASSERTION
+
+This policy was last reviewed and reasserted on 2026-02-16.
+
+REFERENCE
+
+This policy follows the W3C Tracking Preference Expression (DNT) specification:
+https://www.w3.org/TR/tracking-dnt/
+
+EFF Do Not Track policy reference:
+https://www.eff.org/dnt-policy

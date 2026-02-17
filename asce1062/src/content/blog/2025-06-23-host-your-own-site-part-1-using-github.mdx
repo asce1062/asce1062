@@ -8,10 +8,10 @@ image:
 tags: ["github", "howto", "hosting"]
 permalink: "2025-06-23-host-your-own-site-part-1-using-github"
 ---
-import BlogLayout from "@/layouts/BlogLayout.astro";
+import ContentLayout from "@/layouts/ContentLayout.astro";
 import ImageView from "@/components/ui/ImageView.astro";
 
-<BlogLayout
+<ContentLayout
     title={frontmatter.title}
     description={frontmatter.description}
     image={frontmatter.image.url}
@@ -64,4 +64,4 @@ import ImageView from "@/components/ui/ImageView.astro";
 - Since we created our _**`repositoryname`**_ like: _**`githubusername`**_, the expected _**`site url`**_ is _**`https://githubname.github.io/githubname/`**_
 - In part 2 we'll cover <a href="/blog/2025-06-24-host-your-own-site-part-2-adding-a-theme-with-jekyll" aria-label="Visit the blog page">adding a theme with Jekyll</a> to our webbed site
 </span>
-</BlogLayout>
+</ContentLayout>

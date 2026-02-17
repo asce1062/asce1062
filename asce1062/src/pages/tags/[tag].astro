@@ -1,47 +1,87 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Post from "@/components/Post.astro";
+import ContentCard from "@/components/ContentCard.astro";
 import Columns from "@/components/ui/Columns.astro";
-import { getCollection } from "astro:content";
-import { sortPostsByDate, getAllTags, getPostUrl, formatPostDate, estimateReadingTime } from "@/lib/blog/utils";
+import { getCollection, render } from "astro:content";
+import { sortByDate, getAllTags, getContentUrl, formatDate } from "@/lib/content/utils";
 
 export async function getStaticPaths() {
 	const allPosts = await getCollection("blog");
-	const sortedPosts = sortPostsByDate(allPosts);
-	const uniqueTags = getAllTags(allPosts);
+	const allNotes = await getCollection("notes");
+	const sortedPosts = sortByDate(allPosts);
+	const sortedNotes = sortByDate(allNotes);
+
+	const uniqueTags = getAllTags([...allPosts, ...allNotes]);
+
 	return uniqueTags.map((tag: string) => {
 		const filteredPosts = sortedPosts.filter((post) => post.data.tags.includes(tag));
+		const filteredNotes = sortedNotes.filter((note) => note.data.tags.includes(tag));
 		return {
 			params: { tag },
-			props: { posts: filteredPosts },
+			props: { posts: filteredPosts, notes: filteredNotes },
 		};
 	});
 }
 
 const { tag } = Astro.params;
-const { posts } = Astro.props;
+const { posts, notes } = Astro.props;
+const totalCount = posts.length + notes.length;
+
+const readingTimes = new Map<string, string>();
+await Promise.all(
+	[...posts, ...notes].map(async (entry) => {
+		const { remarkPluginFrontmatter } = await render(entry);
+		readingTimes.set(entry.id, remarkPluginFrontmatter.readingTime?.text ?? "");
+	})
+);
 ---
 
 <Layout
 	title={tag}
 	ogImage="social-preview.png"
-	description=`bleep bloop found ${posts.length} ${ posts.length == 1 ? "post" : "posts"}`>
+	description=`bleep bloop found ${totalCount} ${ totalCount == 1 ? "item" : "items"}`>
 	<div class="flex flex-col gap-4">
-		<p>found {posts.length} {posts.length == 1 ? "post" : "posts"} tagged with <b>{tag}</b></p>
-		<Columns columns={1}>
-			{
-				posts.map((post) => (
-					<Post
-						name={post.data.title}
-						url={getPostUrl(post.id)}
-						image={post.data.image.url}
-						description={post.data.description}
-						date={formatPostDate(post.data.pubDate, "short")}
-						tags={post.data.tags}
-						readingTime={estimateReadingTime(post.body)}
-					/>
-				))
-			}
-		</Columns>
+		<p>found {totalCount} {totalCount == 1 ? "item" : "items"} tagged with <b>{tag}</b></p>
+
+		{
+			posts.length > 0 && (
+				<div>
+					{notes.length > 0 && <h3>Blog Posts</h3>}
+					<Columns columns={1}>
+						{posts.map((post) => (
+							<ContentCard
+								name={post.data.title}
+								url={getContentUrl(post.id, "/blog")}
+								image={post.data.image.url}
+								description={post.data.description}
+								date={formatDate(post.data.pubDate, "short")}
+								tags={post.data.tags}
+								readingTime={readingTimes.get(post.id)}
+							/>
+						))}
+					</Columns>
+				</div>
+			)
+		}
+
+		{
+			notes.length > 0 && (
+				<div>
+					{posts.length > 0 && <h3>Notes</h3>}
+					<Columns columns={1}>
+						{notes.map((note) => (
+							<ContentCard
+								name={note.data.title}
+								url={getContentUrl(note.id, "/notes")}
+								description={note.data.description}
+								date={formatDate(note.data.pubDate, "long")}
+								tags={note.data.tags}
+								readingTime={readingTimes.get(note.id)}
+							/>
+						))}
+					</Columns>
+				</div>
+			)
+		}
 	</div>
 </Layout>

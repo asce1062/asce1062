@@ -5,7 +5,7 @@ import type { ImageMetadata } from "astro";
 import fs from "fs";
 import path from "path";
 import { BLOG } from "@/config/site-config";
-import { sortPostsByDate, getPostUrl } from "@/lib/blog/utils";
+import { sortByDate, getContentUrl } from "@/lib/content/utils";
 
 // Dynamically import all blog images
 const images = import.meta.glob<{ default: ImageMetadata }>("../assets/blog/*.{jpg,jpeg,png,webp}", { eager: true });
@@ -24,7 +24,7 @@ const imageMap = Object.entries(images).reduce(
 
 export async function GET(context: { site: string | URL }) {
 	const blog = await getCollection("blog");
-	const sortedPosts = sortPostsByDate(blog);
+	const sortedPosts = sortByDate(blog);
 
 	// Process images to get optimized URLs
 	const postsWithOptimizedImages = await Promise.all(
@@ -60,7 +60,7 @@ export async function GET(context: { site: string | URL }) {
 			title: post.data.title,
 			pubDate: post.data.pubDate,
 			description: `<img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>${post.data.description}`,
-			link: `${getPostUrl(post.id)}/`,
+			link: `${getContentUrl(post.id, "/blog")}/`,
 			categories: post.data.tags,
 		})),
 		customData: `

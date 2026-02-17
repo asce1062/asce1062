@@ -1,0 +1,3 @@
+Entity: Alex Mbugua Ngugi,KE
+Privacy-policy: https://alexmbugua.me/privacy
+Contact: mailto:alex.mbugua@outlook.com

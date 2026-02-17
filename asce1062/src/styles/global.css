@@ -335,6 +335,38 @@ Custom Utilities
 
 	/*
   ============================================
+  Checkboxes (icon-square / icon-check-square)
+  ============================================
+  */
+
+	input[type="checkbox"] {
+		appearance: none;
+		-webkit-appearance: none;
+		width: 1em;
+		height: 1em;
+		margin: 0 0.35em 0 0;
+		padding: 0;
+		vertical-align: -0.1em;
+		display: inline-block;
+		font-family: "icomoon" !important;
+		font-size: 1em;
+		line-height: 1;
+		border: none;
+		background: none;
+	}
+
+	/* Unchecked: icon-square (\e9aa) */
+	input[type="checkbox"]::before {
+		content: "\e9aa";
+	}
+
+	/* Checked: icon-check-square (\f0ed) */
+	input[type="checkbox"]:checked::before {
+		content: "\f0ed";
+	}
+
+	/*
+  ============================================
   Interactive Elements
   ============================================
   */

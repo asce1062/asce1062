@@ -10,10 +10,13 @@ import Layout from "@/layouts/Layout.astro";
 			Don't worry, you can still browse cached pages!
 		</p>
 		<div id="offline-status" class="mb-4 text-sm opacity-70"></div>
-		<div class="flex flex-col gap-4">
-			<a href="/" class="link-action link-action--secondary no-underline"
-				><i class="icon-house-heart text-2xl"></i>Go to Home</a
-			>
+		<div class="flex flex-col sm:flex-row gap-4">
+			<button id="retry-btn" class="link-action link-action--primary no-underline">
+				<i class="icon-arrow-clockwise text-2xl"></i>Try Again
+			</button>
+			<a href="/" class="link-action link-action--secondary no-underline">
+				<i class="icon-house-heart text-2xl"></i>Go to Home
+			</a>
 		</div>
 	</div>
 </Layout>
@@ -22,6 +25,7 @@ import Layout from "@/layouts/Layout.astro";
 	import { OfflineManager } from "@/scripts/offlineManager";
 
 	const statusEl = document.getElementById("offline-status");
+	const retryBtn = document.getElementById("retry-btn");
 
 	// Save the referrer as the last page if available
 	if (document.referrer && document.referrer !== window.location.href) {
@@ -32,26 +36,34 @@ import Layout from "@/layouts/Layout.astro";
 	function updateStatus(online: boolean) {
 		if (statusEl) {
 			if (online) {
-				statusEl.textContent = "✓ Connection restored! Redirecting...";
+				statusEl.textContent = "Connection restored! Redirecting...";
 			} else {
-				statusEl.textContent = "✗ You are currently offline";
+				statusEl.textContent = "You are currently offline";
 			}
 		}
 	}
 
+	// Redirect handler shared by all recovery paths
+	function handleConnectionRestored() {
+		updateStatus(true);
+		setTimeout(() => {
+			OfflineManager.tryRedirectToLastPage();
+		}, 1000);
+	}
+
+	// Manual retry button
+	retryBtn?.addEventListener("click", () => {
+		window.location.reload();
+	});
+
 	// Listen for online/offline events
 	OfflineManager.setupListeners(
-		() => {
-			updateStatus(true);
-			// Auto-redirect when connection is restored
-			setTimeout(() => {
-				OfflineManager.tryRedirectToLastPage();
-			}, 1000); // Show "connection restored" message for 1 second
-		},
-		() => {
-			updateStatus(false);
-		}
+		() => handleConnectionRestored(),
+		() => updateStatus(false)
 	);
+
+	// Periodic server polling (every 2.5s) as fallback for unreliable online event
+	OfflineManager.startPolling(() => handleConnectionRestored());
 
 	// Show initial status
 	updateStatus(OfflineManager.isOnline());

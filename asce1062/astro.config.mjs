@@ -166,6 +166,10 @@ export default defineConfig({
 					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
 					/\.txt$/, // Don't intercept text files (robots.txt, humans.txt)
 					/\.pdf$/, // Don't intercept PDF files
+					/\.json$/, // Don't intercept JSON files (pubvendors.json, etc.)
+					/\.pgp$/, // Don't intercept PGP key files
+					/\.sig$/, // Don't intercept signature files
+					/^\/.well-known\//, // Don't intercept .well-known resources
 					/^\/rss$/, // Allow /rss → /rss.xml redirect
 					/^\/feed$/, // Allow /feed → /rss.xml redirect
 					/^\/atom\.xml$/, // Allow /atom.xml → /rss.xml redirect

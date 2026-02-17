@@ -6,7 +6,7 @@
  *
  * Usage:
  *   import { SITE, BLOG, SOCIAL, SEO, PWA, PROFESSIONAL, HOSTING } from "@/config/site-config";
- *   import { getPageTitle, getAbsoluteUrl, getOgImageUrl } from "@/config/site-config";
+ *   import { getPageTitle, getAbsoluteUrl, getOgImageUrl } from "@/config/site-utils";
  *
  * NOTE: not for secrets or sensitive values.
  */
@@ -39,6 +39,14 @@ export const SITE = {
 export const BLOG = {
 	title: "Alex Mbugua's Blog",
 	description: "My space on the internet. Thoughts on life, tech, and everything in between. I'm happy you're here ^^",
+} as const;
+
+/**
+ * Notebook (notes) configuration
+ */
+export const NOTEBOOK = {
+	title: "Alex Mbugua's Notebook",
+	description: "Short-form thoughts, observations, and micro-posts.",
 } as const;
 
 /**
@@ -161,8 +169,3 @@ export const HOSTING = {
 		description: "Form handling service for guestbook submissions",
 	},
 } as const;
-
-// =============================================================================
-// HELPER FUNCTIONS (Re-exported from site-utils.ts)
-// =============================================================================
-export { getPageTitle, getAbsoluteUrl, getOgImageUrl } from "./site-utils";

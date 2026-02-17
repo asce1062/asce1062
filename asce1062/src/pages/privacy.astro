@@ -1,0 +1,56 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
+---
+
+<Layout title="Privacy Policy" ogImage="social-preview.png" description="How this site handles your data: it doesn't.">
+	<h2>Privacy Policy</h2>
+	<PrivacyPolicy />
+
+	<h3>Do Not Track</h3>
+	<p>
+		This site honors the <a href="https://www.w3.org/TR/tracking-dnt/">DNT header</a>. The tracking status is
+		<b>"N" (Not Tracking)</b>, as declared in
+		<a href="/.well-known/dnt">/.well-known/dnt</a>. The full policy is available at
+		<a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a>.
+	</p>
+
+	<h3>Security</h3>
+	<p>
+		Security contact information is published at <a href="/.well-known/security.txt">/.well-known/security.txt</a>,
+		signed with a
+		<a href="/.well-known/security.txt.sig">detached PGP signature</a>. The public key is available at
+		<a href="/public.pgp">/public.pgp</a>.
+	</p>
+	<p>
+		<b>WKD (Web Key Directory):</b>
+		WKD-based key discovery is not yet available because the current PGP key is issued for an
+		<code>@outlook.com</code> address, and WKD requires a key on a domain you control. Once the contact email is updated to
+		<code>ping@alexmbugua.me</code>, the public key will be published via WKD at <code>/.well-known/openpgpkey/</code> for
+		automatic discovery.
+	</p>
+	<p>
+		Existence of the security.txt file does not imply consent to perform security tests against this site. This site is
+		primarily hosted on Netlify with GitHub Pages as a backup. All testing must comply with their respective security
+		policies.
+	</p>
+
+	<h3>Third-Party Vendors</h3>
+	<p>
+		This site does not use advertising or tracking vendors. A full transparency listing of all third-party services used
+		by this site is published at
+		<a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a>.
+	</p>
+
+	<h3>Well-Known Resources</h3>
+	<ul>
+		<li><a href="/.well-known/change-password">/.well-known/change-password</a> — password change URL</li>
+		<li><a href="/.well-known/dnt">/.well-known/dnt</a> — tracking status (JSON)</li>
+		<li><a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a> — DNT compliance policy</li>
+		<li><a href="/.well-known/privacy.txt">/.well-known/privacy.txt</a> — machine-readable privacy contact</li>
+		<li><a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a> — third-party vendor transparency</li>
+		<li><a href="/.well-known/security.txt">/.well-known/security.txt</a> — security contact information</li>
+		<li><a href="/.well-known/security.txt.sig">/.well-known/security.txt.sig</a> — PGP signature for security.txt</li>
+		<li><a href="/public.pgp">/public.pgp</a> — PGP public key</li>
+	</ul>
+</Layout>

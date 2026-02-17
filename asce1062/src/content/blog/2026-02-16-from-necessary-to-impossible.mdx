@@ -1,0 +1,34 @@
+---
+title: "Momentum Makes the Impossible Inevitable"
+pubDate: 2026-02-16
+description: "When you master the small steps, the big ones stop feeling impossible"
+image:
+    url: "/src/assets/blog/from-necessary-to-impossible.png"
+    alt: "begin with doing what’s necessary"
+tags: ["motivation"]
+permalink: "2026-02-16-from-necessary-to-impossible"
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+<span>
+
+- Start by doing what's necessary. Then do what's possible
+- And suddenly, you're doing the impossible
+- Greatness begins with discipline. The necessary builds structure, the possible builds momentum
+- And momentum when sustained, builds belief
+- The impossible is often just the necessary repeated[^1]
+- When you master the small steps long enough, the big steps stop intimidating you
+
+[^1]:1. Mark 9:23 - “‘If you can’?” said Jesus. “Everything is possible for one who believes.”
+
+</span>
+</ContentLayout>

@@ -83,6 +83,40 @@ export class OfflineManager {
 	}
 
 	/**
+	 * Poll the server periodically to detect connectivity.
+	 * The `online` event is unreliable (fires on captive portals),
+	 * so we verify with a real fetch as recommended by web.dev.
+	 */
+	static startPolling(onReachable: () => void, intervalMs: number = 2500): () => void {
+		let timerId: ReturnType<typeof setTimeout> | null = null;
+		let stopped = false;
+
+		const check = async () => {
+			if (stopped) return;
+			try {
+				const response = await fetch("/", { method: "HEAD" });
+				if (response.status >= 200 && response.status < 500) {
+					onReachable();
+					return; // Stop polling once reachable
+				}
+			} catch {
+				// Server unreachable, keep polling
+			}
+			if (!stopped) {
+				timerId = setTimeout(check, intervalMs);
+			}
+		};
+
+		// Start first check after one interval
+		timerId = setTimeout(check, intervalMs);
+
+		return () => {
+			stopped = true;
+			if (timerId !== null) clearTimeout(timerId);
+		};
+	}
+
+	/**
 	 * Set up listeners for online/offline events
 	 */
 	static setupListeners(onOnline?: () => void, onOffline?: () => void): () => void {

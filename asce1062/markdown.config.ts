@@ -3,6 +3,19 @@ import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
 import extractToc from "@stefanprobst/remark-extract-toc";
 import withTocExport from "@stefanprobst/remark-extract-toc/mdx";
 import remarkSlug from "remark-slug"; // DEPRECATED: Replace with rehypeSlug
+import remarkReadingTime from "remark-reading-time";
+
+/**
+ * Bridge plugin: copies file.data.readingTime → file.data.astro.frontmatter.readingTime
+ * remark-reading-time writes to file.data, but Astro exposes file.data.astro.frontmatter
+ */
+function remarkReadingTimeToFrontmatter() {
+	return function (_tree: any, file: any) {
+		file.data.astro ??= {};
+		file.data.astro.frontmatter ??= {};
+		file.data.astro.frontmatter.readingTime = file.data.readingTime;
+	};
+}
 import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
 import type { AstroUserConfig } from "astro";
 
@@ -49,6 +62,8 @@ const markdownConfig: AstroUserConfig["markdown"] = {
 		remarkSlug as any, // TODO: Replace with rehype-slug (remark-slug is deprecated, has type conflicts)
 		[extractToc, { maxDepth: 3 }], // Extract TOC data up to h3
 		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
+		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
+		remarkReadingTimeToFrontmatter, // Bridges file.data → Astro's remarkPluginFrontmatter
 	],
 	rehypePlugins: [rehypeAccessibleEmojis as any, [rehypePrettyCode, prettyCodeOptions]],
 };

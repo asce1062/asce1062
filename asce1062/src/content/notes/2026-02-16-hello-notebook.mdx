@@ -1,0 +1,19 @@
+---
+title: "Hello, Notebook"
+pubDate: 2026-02-16
+description: "First note. Short-form content pipeline."
+tags: ["meta"]
+permalink: "2026-02-16-hello-notebook"
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout collection="notes"
+    title={frontmatter.title}
+    description={frontmatter.description}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+This is the first note in the notebook. Short-form thoughts, observations, and micro-posts live here.
+
+</ContentLayout>

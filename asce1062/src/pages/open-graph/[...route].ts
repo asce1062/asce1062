@@ -8,15 +8,26 @@ export const prerender = true;
 // Helper function to get OG route configuration
 async function getOGRoute() {
 	const posts = await getCollection("blog");
+	const notes = await getCollection("notes");
 
 	// Create pages object with blog post paths as keys
-	const pages = Object.fromEntries(
+	const blogPages = Object.fromEntries(
 		posts.map((post) => {
 			// Remove .mdx extension from id to match URL structure
 			const path = `/blog/${post.id.replace(".mdx", "")}`;
 			return [path, { frontmatter: post.data }];
 		})
 	);
+
+	// Add note paths
+	const notePages = Object.fromEntries(
+		notes.map((note) => {
+			const path = `/notes/${note.id.replace(".mdx", "")}`;
+			return [path, { frontmatter: note.data }];
+		})
+	);
+
+	const pages = { ...blogPages, ...notePages };
 
 	return OGImageRoute({
 		param: "route",

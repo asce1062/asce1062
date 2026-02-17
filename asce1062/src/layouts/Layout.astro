@@ -9,7 +9,8 @@ import Themes from "astro-themes";
 import { ClientRouter } from "astro:transitions";
 import { pwaInfo } from "virtual:pwa-info";
 import "@/styles/global.css";
-import { SITE, SEO, getPageTitle } from "@/config/site-config";
+import { SITE, SEO } from "@/config/site-config";
+import { getPageTitle } from "@/config/site-utils";
 
 interface Props {
 	title: string;

@@ -2,10 +2,11 @@
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import { getCollection } from "astro:content";
-import { getAllTags } from "@/lib/blog/utils";
+import { getAllTags } from "@/lib/content/utils";
 
 const allPosts = await getCollection("blog");
-const tags = getAllTags(allPosts);
+const allNotes = await getCollection("notes");
+const tags = getAllTags([...allPosts, ...allNotes]);
 ---
 
 <Layout

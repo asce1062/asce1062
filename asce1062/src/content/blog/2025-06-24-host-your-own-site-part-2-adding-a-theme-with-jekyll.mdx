@@ -8,10 +8,10 @@ image:
 tags: ["github", "howto", "hosting", "jekyll"]
 permalink: "2025-06-24-host-your-own-site-part-2-adding-a-theme-with-jekyll"
 ---
-import BlogLayout from "@/layouts/BlogLayout.astro";
+import ContentLayout from "@/layouts/ContentLayout.astro";
 import ImageView from "@/components/ui/ImageView.astro";
 
-<BlogLayout
+<ContentLayout
     title={frontmatter.title}
     description={frontmatter.description}
     image={frontmatter.image.url}
@@ -50,4 +50,4 @@ theme: jekyll-theme-minimal
 <br/>
 - Once deployment is done, the site we created from the previous <a href="/blog/2025-06-23-host-your-own-site-part-1-using-github" aria-label="Visit the blog page">PT.1 Webbed Site Repository</a> should now be themed
 </span>
-</BlogLayout>
+</ContentLayout>

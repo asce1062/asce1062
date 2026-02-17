@@ -1,12 +1,21 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
-import Post from "@/components/Post.astro";
-import { getCollection } from "astro:content";
-import { sortPostsByDate, formatPostDate, getPostUrl, estimateReadingTime } from "@/lib/blog/utils";
+import ContentCard from "@/components/ContentCard.astro";
+import { getCollection, render } from "astro:content";
+import { sortByDate, formatDate, getContentUrl } from "@/lib/content/utils";
 
 const allPosts = await getCollection("blog");
-const posts = sortPostsByDate(allPosts);
+const posts = sortByDate(allPosts);
+
+// Pre-render to get reading time from remark plugin
+const readingTimes = new Map<string, string>();
+await Promise.all(
+	posts.map(async (post) => {
+		const { remarkPluginFrontmatter } = await render(post);
+		readingTimes.set(post.id, remarkPluginFrontmatter.readingTime?.text ?? "");
+	})
+);
 ---
 
 <Layout title="Blog" ogImage="social-preview.png" description="My space on the internet. I'm happy you're here ^^">
@@ -18,14 +27,14 @@ const posts = sortPostsByDate(allPosts);
 	<Columns columns={1}>
 		{
 			posts.map((post) => (
-				<Post
+				<ContentCard
 					name={post.data.title}
-					url={getPostUrl(post.id)}
+					url={getContentUrl(post.id, "/blog")}
 					image={post.data.image.url}
 					description={post.data.description}
-					date={formatPostDate(post.data.pubDate, "long")}
+					date={formatDate(post.data.pubDate, "long")}
 					tags={post.data.tags}
-					readingTime={estimateReadingTime(post.body)}
+					readingTime={readingTimes.get(post.id)}
 				/>
 			))
 		}

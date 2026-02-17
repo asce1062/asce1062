@@ -1,0 +1,133 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import PreviewImage from "@/components/PreviewImage.astro";
+import SocialShareButtons from "@/components/content/SocialShareButtons.astro";
+import TableOfContentsComponent from "@/components/content/TableOfContents.astro";
+import ContentNavigation from "@/components/content/ContentNavigation.astro";
+import { getCollection, render } from "astro:content";
+import { formatDate } from "@/lib/content/utils";
+import type { TableOfContents } from "@/types";
+import "@/styles/global.css";
+
+interface Props {
+	title: string;
+	date: string;
+	description: string;
+	tags: Array<any>;
+	currentPost: string;
+	/** "blog" or "notes" — controls which collection to fetch and which features to show */
+	collection?: "blog" | "notes";
+	/** Blog-only props */
+	image?: string;
+	alt?: string;
+	tableOfContents?: TableOfContents;
+}
+
+const { title, date, description, tags, currentPost, collection = "blog", image, alt, tableOfContents } = Astro.props;
+
+const currentUrl = Astro.url.href;
+const isBlog = collection === "blog";
+const basePath = isBlog ? "/blog" : "/notes";
+
+// Get entries from the appropriate collection and sort by date
+const allEntries = await getCollection(collection);
+const sortedEntries = allEntries.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+// Find current entry using permalink
+const currentIndex = sortedEntries.findIndex((e) => e.id === currentPost);
+const currentEntry = sortedEntries[currentIndex];
+
+const previousEntry =
+	currentIndex !== -1 && currentIndex < sortedEntries.length - 1 ? sortedEntries[currentIndex + 1] : null;
+
+const nextEntry = currentIndex !== -1 && currentIndex > 0 ? sortedEntries[currentIndex - 1] : null;
+
+// Get reading time and word count from remark plugin (AST-based, accurate)
+const rendered = currentEntry ? await render(currentEntry) : null;
+const readingTimeData = rendered?.remarkPluginFrontmatter?.readingTime;
+const readingTime = readingTimeData?.text ?? "";
+const wordCount = readingTimeData?.words ?? 0;
+const editDate =
+	currentEntry?.data && "updatedDate" in currentEntry.data && currentEntry.data.updatedDate
+		? formatDate(currentEntry.data.updatedDate as Date, "long")
+		: null;
+---
+
+<Layout
+	title={title}
+	ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png`
+	description={description}
+	type="article"
+	datePublished={new Date(date).toISOString()}
+	tags={tags}
+	category={tags && tags.length > 0 ? tags[0] : undefined}
+	readingTime={readingTime}>
+	<article data-pagefind-body data-pagefind-sort="date">
+		<h2 data-pagefind-meta="title">{title}</h2>
+		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
+			<i><b>{date}</b>{readingTime && ` • ${readingTime}`} | {description}</i>
+		</span>
+
+		{isBlog && image && <PreviewImage src={image} altText={alt || ""} />}
+
+		{
+			!isBlog && (
+				<>
+					<>
+						<br />
+						<br />
+					</>
+				</>
+			)
+		}
+
+		<span>
+			tags: {
+				tags.map((tag) => (
+					<a class="mr-2 italic" href={`/tags/${tag}`} data-pagefind-meta="tag">
+						{tag}
+					</a>
+				))
+			}
+		</span>
+		<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
+
+		{isBlog && <TableOfContentsComponent tableOfContents={tableOfContents} />}
+
+		<slot />
+
+		{
+			(wordCount > 0 || editDate) && (
+				<>
+					<hr class="my-4 border-dashed border-base-300" />
+					<div class="flex flex-wrap justify-between gap-4 text-sm text-neutral-content">
+						{editDate ? (
+							<span>
+								<i class="icon-pencil-square mr-1" /> {editDate}
+							</span>
+						) : (
+							<span />
+						)}
+						{wordCount > 0 && (
+							<span>
+								<i class="icon-pencil mr-1" />
+								{wordCount}
+							</span>
+						)}
+					</div>
+				</>
+			)
+		}
+
+		<hr class="my-4 border-dashed border-base-300" />
+
+		<div data-pagefind-ignore>
+			<div class="my-4 flex flex-col items-center justify-center gap-6 sm:flex-row sm:items-end sm:gap-4">
+				<SocialShareButtons title={title} url={currentUrl} />
+			</div>
+			<hr class="my-4 border-dashed border-base-300" />
+		</div>
+
+		<ContentNavigation previousPost={previousEntry} nextPost={nextEntry} basePath={basePath} />
+	</article>
+</Layout>

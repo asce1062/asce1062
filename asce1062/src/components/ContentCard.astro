@@ -5,7 +5,7 @@ import { Image } from "astro:assets";
 interface Props {
 	name: string;
 	url: string;
-	image: string;
+	image?: string;
 	description: string;
 	date: string;
 	tags: string[];
@@ -17,7 +17,10 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 ---
 
 <div
-	class="relative flex flex-col md:flex-row overflow-auto bg-[color-mix(in_oklab,var(--color-neutral)_20%,transparent)] border border-base-300">
+	class:list={[
+		"relative flex flex-col overflow-auto bg-[color-mix(in_oklab,var(--color-neutral)_20%,transparent)] border border-base-300",
+		image && "md:flex-row",
+	]}>
 	{
 		image ? (
 			<Image
@@ -30,7 +33,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 		) : null
 	}
 	<div class="p-4 h-full w-full flex flex-col">
-		<a class="no-underline text-sm sm:text-base transition-all duration-300 font-bold" href={url}>{name}</a>
+		<a class="no-underline text-sm sm:text-base transition-all duration-300 font-bold w-fit" href={url}>{name}</a>
 		<div class="grow">
 			<p>{description}</p>
 		</div>
