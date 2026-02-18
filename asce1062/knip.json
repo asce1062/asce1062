@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
   "ignoreDependencies": [
     "pagefind",
     "lightningcss",
@@ -22,13 +22,10 @@
     "src/scripts/shareManager.ts",
     "src/scripts/iframeTheme.ts",
     "src/scripts/paletteCopy.ts",
-    "src/data/navigation.ts",
     "src/lib/api/github.ts",
     "public/css/style.css",
-    "src/styles/theme.css",
     "src/config/index.ts",
-    "src/config/site-utils.ts",
-    "src/config/site-config.ts"
+    "src/config/site-utils.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {

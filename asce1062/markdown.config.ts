@@ -1,21 +1,11 @@
 import rehypePrettyCode from "rehype-pretty-code";
+import rehypeExternalLinks from "rehype-external-links";
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
 import extractToc from "@stefanprobst/remark-extract-toc";
 import withTocExport from "@stefanprobst/remark-extract-toc/mdx";
 import remarkSlug from "remark-slug"; // DEPRECATED: Replace with rehypeSlug
-import remarkReadingTime from "remark-reading-time";
-
-/**
- * Bridge plugin: copies file.data.readingTime → file.data.astro.frontmatter.readingTime
- * remark-reading-time writes to file.data, but Astro exposes file.data.astro.frontmatter
- */
-function remarkReadingTimeToFrontmatter() {
-	return function (_tree: any, file: any) {
-		file.data.astro ??= {};
-		file.data.astro.frontmatter ??= {};
-		file.data.astro.frontmatter.readingTime = file.data.readingTime;
-	};
-}
+import getReadingTime from "reading-time";
+import { toString } from "mdast-util-to-string";
 import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
 import type { AstroUserConfig } from "astro";
 
@@ -23,6 +13,19 @@ import type { AstroUserConfig } from "astro";
 import lightTheme from "./public/theme/rosepine-dawn.json";
 import darkTheme from "./public/theme/rosepine-dark.json";
 import { transformerCopyButton } from "@rehype-pretty/transformers";
+
+/**
+ * Custom remark plugin that calculates reading time and word count.
+ * Writes directly to Astro's frontmatter — no bridge plugin needed.
+ * @see https://docs.astro.build/en/recipes/reading-time/
+ */
+function remarkReadingTime() {
+	return function (tree: any, { data }: any) {
+		const textOnPage = toString(tree);
+		const readingTime = getReadingTime(textOnPage);
+		data.astro.frontmatter.readingTime = readingTime;
+	};
+}
 
 /**
  * Rehype Pretty Code configuration
@@ -63,9 +66,24 @@ const markdownConfig: AstroUserConfig["markdown"] = {
 		[extractToc, { maxDepth: 3 }], // Extract TOC data up to h3
 		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
 		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
-		remarkReadingTimeToFrontmatter, // Bridges file.data → Astro's remarkPluginFrontmatter
 	],
-	rehypePlugins: [rehypeAccessibleEmojis as any, [rehypePrettyCode, prettyCodeOptions]],
+	rehypePlugins: [
+		rehypeAccessibleEmojis as any,
+		[
+			rehypeExternalLinks,
+			{
+				target: "_blank",
+				rel: ["noopener", "noreferrer"],
+				content: {
+					type: "element",
+					tagName: "i",
+					properties: { className: ["icon-box-arrow-up-right"], ariaHidden: "true" },
+					children: [],
+				},
+			},
+		],
+		[rehypePrettyCode, prettyCodeOptions],
+	],
 };
 
 export default markdownConfig;
