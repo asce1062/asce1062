@@ -1,6 +1,11 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      }
+    ],
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
@@ -23,6 +28,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", ".astro/**/*"],
-  "exclude": ["dist", "node_modules", ".astro"]
+  "include": ["src/**/*", ".astro/**/*", "db/**/*"],
+  "exclude": ["dist", "node_modules"]
 }

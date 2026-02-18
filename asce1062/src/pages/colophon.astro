@@ -139,8 +139,14 @@ const toolCredits = [
 				>.
 			</p>
 			<p class="text-sm">
-				Everything is statically generated. No server-side rendering, no edge functions, no complexity. Just files on a
-				CDN.
+				Almost everything is statically generated, just files on a CDN. The guestbook is the one exception: it uses
+				server-side rendering via a Netlify Function so entries appear instantly without waiting for a redeploy.
+				Guestbook data lives in a self-hosted <a
+					href={HOSTING.forms.url}
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">{HOSTING.forms.name}</a
+				> database.
 			</p>
 		</section>
 

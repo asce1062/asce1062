@@ -164,8 +164,8 @@ Before deploying, you need to link your repository to Netlify. Choose either the
    - **Branch to deploy:** `main`
 
 6. Add environment variables (click **"Show advanced"** → **"New variable"**)
-   - `GUESTBOOK_ID`: Your guestbook ID
-   - `NETLIFY_ACCESS`: Your Netlify access token
+   - `ASTRO_DB_REMOTE_URL`: Turso database URL (e.g. `libsql://alexmbugua-guestbook-<user>.turso.io`)
+   - `ASTRO_DB_APP_TOKEN`: Turso auth token
    - `NODE_VERSION`: `22`
 
 7. Click **"Deploy project"**
@@ -264,8 +264,8 @@ The Netlify CLI is already included as a devDependency in this project. You can 
    Edit `.env` and add your values:
 
    ```env
-   GUESTBOOK_ID=your_guestbook_id
-   NETLIFY_ACCESS=your_access_token
+   ASTRO_DB_REMOTE_URL=libsql://your-database.turso.io
+   ASTRO_DB_APP_TOKEN=your_turso_auth_token
    ```
 
    Note: Netlify CLI automatically uses `.env` file for local development.
@@ -391,8 +391,8 @@ The site is configured via `netlify.toml` with:
 
 Required variables (set in Netlify dashboard under Site settings → Environment variables):
 
-- `GUESTBOOK_ID` - Guestbook integration ID
-- `NETLIFY_ACCESS` - Netlify API access token
+- `ASTRO_DB_REMOTE_URL` - Turso database URL for guestbook
+- `ASTRO_DB_APP_TOKEN` - Turso auth token for guestbook
 
 Auto-configured by Netlify:
 

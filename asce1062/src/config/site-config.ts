@@ -164,8 +164,8 @@ export const HOSTING = {
 		description: "Auto-deploy on push to main branch",
 	},
 	forms: {
-		name: "Netlify Forms",
-		url: "https://www.netlify.com/platform/core/forms/",
-		description: "Form handling service for guestbook submissions",
+		name: "Astro DB + Turso",
+		url: "https://turso.tech",
+		description: "Self-hosted libSQL database for guestbook submissions",
 	},
 } as const;

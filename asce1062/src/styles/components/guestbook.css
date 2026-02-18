@@ -36,7 +36,7 @@
 	max-width: 100%;
 	line-height: 1.625;
 	padding: 1rem;
-	@apply bg-transparent border rounded-tr-[1rem] rounded-br-[1rem] rounded-bl-[1rem] rounded-tl-[0];
+	@apply bg-transparent border rounded-tr-[0.25rem] rounded-br-[0.25rem] rounded-bl-[0.25rem] rounded-tl-[0];
 	border-color: var(--color-base-300);
 }
 
@@ -71,10 +71,16 @@
 }
 
 /* Entry Message */
-.entry p {
+.entry-message {
 	font-size: 0.875rem;
 	font-weight: 400;
-	white-space: pre-line;
+	white-space: pre-wrap;
+	word-wrap: break-word;
 	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+	font-family: inherit;
 	color: var(--color-base-content);
+	overflow-x: auto;
 }

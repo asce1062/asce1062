@@ -1,14 +1,36 @@
 ---
+export const prerender = false;
+
 import Layout from "@/layouts/Layout.astro";
 import PreviewImage from "@/components/PreviewImage.astro";
 import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
-import { getGuestEntries } from "@/lib/api/guestbook";
+import { getGuestEntries, createGuestEntry } from "@/lib/api/guestbook";
 import "@/styles/components/guestbook.css";
 
 const image = "/src/assets/guestbook/guestbook.png";
 const title = "Guestbook";
 const description = "Drop me a note, let's connect ^^";
+
+if (Astro.request.method === "POST") {
+	const formData = await Astro.request.formData();
+	const name = formData.get("name") as string;
+	const email = formData.get("email") as string;
+	const url = formData.get("url") as string;
+	const message = formData.get("message") as string;
+	const honeypot = formData.get("bot-field");
+
+	if (
+		!honeypot &&
+		typeof name === "string" &&
+		typeof message === "string" &&
+		name.trim().length > 0 &&
+		message.trim().length > 0
+	) {
+		await createGuestEntry({ name, email, url, message });
+		return Astro.redirect("/success");
+	}
+}
 
 const entries = await getGuestEntries();
 ---
@@ -28,18 +50,11 @@ const entries = await getGuestEntries();
 	<p>
 		Just keep in mind:
 		<ul>
-			<li>It's not instant.</li>
-			<li>Messages are moderated and will appear the next time I ship an update.</li>
+			<li>Messages appear instantly, no waiting for the next time I ship an update.</li>
+			<li>All messages are subject to moderation and may be removed after the fact.</li>
+			<li>Be kind. Spam and abuse will be removed.</li>
 		</ul>
-		<form
-			id="form"
-			name="guestbook"
-			method="POST"
-			netlify-honeypot="bot-field"
-			data-netlify="true"
-			Content-Type="application/x-www-form-urlencoded"
-			action="/success">
-			<input type="hidden" name="form-name" value="guestbook" />
+		<form id="form" method="POST">
 			<p>
 				<label>
 					Name
@@ -80,24 +95,15 @@ const entries = await getGuestEntries();
 						rows="4"
 						required
 						class="block p-2.5 w-full text-sm input-allowed"
-						placeholder="Write your thoughts here..."></textarea>
+						placeholder="Say hi, leave a riddle, write a poem, or sketch some ASCII art..."></textarea>
 					<!-- prettier-ignore-end -->
 				</label>
 			</p>
 			<p>
 				<label class="consent">
 					<input type="checkbox" required /><small>
-						I consent to <a
-							href="https://www.netlify.com/platform/core/forms/"
-							target="_blank"
-							rel="noopener noreferrer">
-							Netlify Forms
-						</a> receiving this message and passing it through <a
-							href="https://akismet.com/"
-							target="_blank"
-							rel="noopener noreferrer">
-							Akismet
-						</a> spam filtering.
+						I consent to this message being stored in a self-hosted database with honeypot and pattern-based spam
+						filtering.
 					</small>
 				</label>
 			</p>

@@ -8,7 +8,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const initials = getInitials(entry.name);
-const formattedDate = formatEntryDate(entry.created_at);
+const formattedDate = formatEntryDate(entry.timestamp);
 ---
 
 <article class="entry">
@@ -17,8 +17,8 @@ const formattedDate = formatEntryDate(entry.created_at);
 		<div class="entry-header">
 			<h2>
 				{
-					entry.human_fields.Url ? (
-						<a href={entry.human_fields.Url} target="_blank" rel="noopener noreferrer">
+					entry.url ? (
+						<a href={entry.url} target="_blank" rel="noopener noreferrer">
 							{entry.name}
 						</a>
 					) : (
@@ -26,8 +26,8 @@ const formattedDate = formatEntryDate(entry.created_at);
 					)
 				}
 			</h2>
-			<time datetime={entry.created_at}>{formattedDate}</time>
+			<time datetime={entry.timestamp.toISOString()}>{formattedDate}</time>
 		</div>
-		<p>{entry.body}</p>
+		<pre class="entry-message">{entry.message}</pre>
 	</div>
 </article>

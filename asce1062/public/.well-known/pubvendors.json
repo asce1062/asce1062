@@ -2,24 +2,32 @@
   "publisherVendorsVersion": 1,
   "version": 1,
   "globalVendorListVersion": 1,
-  "updatedAt": "2026-02-16T00:00:00Z",
+  "updatedAt": "2026-02-18T00:00:00Z",
   "vendors": [
     {
       "id": 1,
       "Name": "Netlify",
       "Resources": [
-        "https://www.netlify.com",
-        "https://api.netlify.com/api/v1/forms/"
+        "https://www.netlify.com"
       ],
       "Purposes": [
         "Primary site hosting with edge CDN and automatic HTTPS",
-        "Form handling for guestbook submissions (via Netlify Forms)",
-        "Spam filtering via Akismet integration",
-        "CI/CD auto-deploy on push to main branch"
+        "CI/CD auto-deploy on push to main branch",
+        "Serverless functions for SSR guestbook route"
       ]
     },
     {
       "id": 2,
+      "Name": "Turso",
+      "Resources": [
+        "https://turso.tech"
+      ],
+      "Purposes": [
+        "Self-hosted libSQL database for guestbook submissions"
+      ]
+    },
+    {
+      "id": 3,
       "Name": "GitHub",
       "Resources": [
         "https://pages.github.com",
@@ -36,7 +44,7 @@
       ]
     },
     {
-      "id": 3,
+      "id": 4,
       "Name": "jandee (Vercel)",
       "Resources": [
         "https://jandee.vercel.app/"
@@ -46,7 +54,7 @@
       ]
     },
     {
-      "id": 4,
+      "id": 5,
       "Name": "Google",
       "Resources": [
         "/googleb10f4d7320179a73.html"
@@ -56,7 +64,7 @@
       ]
     },
     {
-      "id": 5,
+      "id": 6,
       "Name": "IcoMoon",
       "Resources": [
         "/fonts/icomoon/"
@@ -66,7 +74,7 @@
       ]
     },
     {
-      "id": 6,
+      "id": 7,
       "Name": "Pagefind",
       "Resources": [
         "/pagefind/"

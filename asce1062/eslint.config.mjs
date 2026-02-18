@@ -14,7 +14,16 @@ export default [
 
 	// Global ignores (applied to all configs)
 	{
-		ignores: ["dist/**", "node_modules/**", ".astro/**", "public/**", "*.config.mjs", "*.config.ts", "scripts/**"],
+		ignores: [
+			"dist/**",
+			"node_modules/**",
+			".astro/**",
+			"public/**",
+			"*.config.mjs",
+			"*.config.ts",
+			"scripts/**",
+			".netlify/**",
+		],
 	},
 
 	// TypeScript files configuration

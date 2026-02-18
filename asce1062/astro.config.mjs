@@ -1,18 +1,24 @@
 import { defineConfig } from "astro/config";
+import db from "@astrojs/db";
+import netlify from "@astrojs/netlify";
 import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
 import AstroPWA from "@vite-pwa/astro";
 
+const isProduction = process.env.NODE_ENV === "production" || process.env.NETLIFY === "true";
+
 // https://astro.build/config
 export default defineConfig({
 	site: "https://alexmbugua.me/",
+	...(isProduction && { adapter: netlify({ imageCDN: false }) }),
 	build: {
 		assets: "astro",
 		inlineStylesheets: "auto", // Optimize CSS delivery
 	},
 	integrations: [
+		db(),
 		sitemap({
 			filter: (page) => !page.includes("/404") && !page.includes("/success"),
 			changefreq: "weekly",
@@ -178,6 +184,7 @@ export default defineConfig({
 					/^\/blog\/\d{4}\/\d{2}\/\d{2}\//, // Allow legacy blog patterns /blog/YYYY/MM/DD/slug
 					/^\/search/, // Allow search page with or without query parameters
 					/^\/8biticon/, // Allow avatar generator with or without query parameters
+					/^\/guestbook/, // SSR route. Do not cache/intercept
 				],
 
 				// Precaching configuration
@@ -189,7 +196,7 @@ export default defineConfig({
 					"**/fonts/icomoon/**", // Exclude icomoon backup directory
 					"**/8bit/img/**", // Large avatar assets - cache at runtime
 				],
-				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
+				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
 				runtimeCaching: [
 					// GitHub OpenGraph images for project cards
 					{

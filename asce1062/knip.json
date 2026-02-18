@@ -9,7 +9,9 @@
     "netlify-plugin-submit-sitemap",
     "vite-plugin-pwa",
     "autoprefixer",
-    "postcss-nesting"
+    "postcss-nesting",
+    "papaparse",
+    "@types/papaparse"
   ],
   "ignore": [
     "public/fonts/icomoon/**",
@@ -25,7 +27,8 @@
     "src/lib/api/github.ts",
     "public/css/style.css",
     "src/config/index.ts",
-    "src/config/site-utils.ts"
+    "src/config/site-utils.ts",
+    "db/import-csv.ts"
   ],
   "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
   "ignoreExportsUsedInFile": {
