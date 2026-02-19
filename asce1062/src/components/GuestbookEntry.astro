@@ -1,19 +1,51 @@
 ---
-import type { GuestEntry } from "@/lib/api/guestbook";
-import { getInitials, formatEntryDate } from "@/lib/api/guestbook";
+import type { GuestEntry, EntryStyle } from "@/lib/api/guestbook";
+import { formatEntryDate } from "@/lib/api/guestbook";
 
 interface Props {
 	entry: GuestEntry;
 }
 
 const { entry } = Astro.props;
-const initials = getInitials(entry.name);
 const formattedDate = formatEntryDate(entry.timestamp);
+
+// Simple ASCII art detection
+// Lines with 2+ consecutive spaces
+// Normal prose never has double spaces, but ASCII art relies on them for alignment
+const isAsciiArt = / {2}/.test(entry.message);
+
+// Parse style JSON with fallback defaults
+const defaults: EntryStyle = {
+	bg: "neutral",
+	borderColor: "base-300",
+	borderWidth: "1px",
+	borderStyle: "solid",
+	borderRadius: "0.25rem",
+};
+
+let style: EntryStyle = defaults;
+if (entry.style) {
+	try {
+		style = { ...defaults, ...JSON.parse(entry.style) };
+	} catch {
+		// Invalid JSON. Use defaults
+	}
+}
+
+// Build inline style string
+const inlineStyles = [
+	style.bg !== "none" ? `--pattern-url: url(/notecards/${style.bg}.svg)` : null,
+	`border-color: var(--color-${style.borderColor})`,
+	`border-width: ${style.borderWidth}`,
+	`border-style: ${style.borderStyle}`,
+	`border-radius: ${style.borderRadius}`,
+]
+	.filter(Boolean)
+	.join("; ");
 ---
 
 <article class="entry">
-	<div class="entry-avatar">{initials}</div>
-	<div class="entry-bubble">
+	<div class="entry-bubble" style={inlineStyles}>
 		<div class="entry-header">
 			<h2>
 				{
@@ -28,6 +60,6 @@ const formattedDate = formatEntryDate(entry.timestamp);
 			</h2>
 			<time datetime={entry.timestamp.toISOString()}>{formattedDate}</time>
 		</div>
-		<pre class="entry-message">{entry.message}</pre>
+		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 	</div>
 </article>

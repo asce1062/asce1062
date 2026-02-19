@@ -5,7 +5,9 @@ import Layout from "@/layouts/Layout.astro";
 import PreviewImage from "@/components/PreviewImage.astro";
 import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
+import Expand from "@/components/ui/Expand.astro";
 import { getGuestEntries, createGuestEntry } from "@/lib/api/guestbook";
+import { patterns, borderColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
 const image = "/src/assets/guestbook/guestbook.png";
@@ -18,6 +20,7 @@ if (Astro.request.method === "POST") {
 	const email = formData.get("email") as string;
 	const url = formData.get("url") as string;
 	const message = formData.get("message") as string;
+	const style = formData.get("style") as string;
 	const honeypot = formData.get("bot-field");
 
 	if (
@@ -27,7 +30,7 @@ if (Astro.request.method === "POST") {
 		name.trim().length > 0 &&
 		message.trim().length > 0
 	) {
-		await createGuestEntry({ name, email, url, message });
+		await createGuestEntry({ name, email, url, message, style });
 		return Astro.redirect("/success");
 	}
 }
@@ -87,18 +90,130 @@ const entries = await getGuestEntries();
 				</label>
 			</p>
 			<p>
-				<label class="message">
-					Message<br /><br />
-					<!-- prettier-ignore-start -->
-					<textarea
-						name="message"
-						rows="4"
-						required
-						class="block p-2.5 w-full text-sm input-allowed"
-						placeholder="Say hi, leave a riddle, write a poem, or sketch some ASCII art..."></textarea>
-					<!-- prettier-ignore-end -->
-				</label>
+				<label class="message" for="message-textarea"> Message </label>
 			</p>
+
+			<input type="hidden" id="style-input" name="style" />
+
+			<div class="mb-4 max-w-[380px]">
+				<Expand title="Customize your card" id="customizer-panel">
+					<div slot="content" class="p-4">
+						<!-- Background Pattern -->
+						<div class="customizer-section">
+							<h4>Background Pattern</h4>
+							<div class="customizer-row">
+								<select id="pattern-select" class="input-allowed pattern-select">
+									<option value="none">None</option>
+									{patterns.map((p) => <option value={p}>{toTitleCase(p)}</option>)}
+								</select>
+								<div id="pattern-swatch" class="pattern-swatch"></div>
+							</div>
+						</div>
+
+						<!-- Border Radius -->
+						<div class="customizer-section">
+							<h4>Border Radius</h4>
+							<div class="flex gap-2">
+								{
+									radiusValues.map((r) => (
+										<div
+											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+											data-radius={r}
+											title={r}>
+											<div class="pe-3 pt-2">
+												<div
+													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+													style={`border-start-end-radius: ${r}`}
+												/>
+											</div>
+										</div>
+									))
+								}
+							</div>
+						</div>
+
+						<!-- Border Width -->
+						<div class="customizer-section">
+							<h4>Border Width</h4>
+							<div class="relative mt-6 mb-1">
+								<kbd
+									id="border-width-label"
+									class="kbd kbd-sm absolute bottom-full mb-1 -translate-x-1/2 text-[0.625rem]"
+									style="left: calc(14.29% + 0.446rem);">1px</kbd
+								>
+								<input
+									id="border-width-slider"
+									type="range"
+									min="0"
+									max="7"
+									step="1"
+									value="1"
+									class="w-full h-2 rounded-full appearance-none cursor-pointer bg-base-300 range-styled"
+								/>
+							</div>
+						</div>
+
+						<!-- Border Color -->
+						<div class="customizer-section">
+							<h4>Border Color</h4>
+							<div class="customizer-row">
+								{
+									borderColors.map((c) => (
+										<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
+									))
+								}
+							</div>
+						</div>
+
+						<!-- Border Style -->
+						<div class="customizer-section">
+							<h4>Border Style</h4>
+							<div class="flex gap-2">
+								{
+									borderStyles.map((s) => (
+										<div
+											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+											data-border-style={s}
+											title={s}>
+											<div class="pe-3 pt-2">
+												<div
+													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+													style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
+												/>
+											</div>
+										</div>
+									))
+								}
+							</div>
+						</div>
+
+						<div class="flex justify-end mb-4">
+							<button type="button" id="customizer-done" class="link-action font-medium text-sm px-5 py-2">
+								Done
+							</button>
+						</div>
+					</div>
+				</Expand>
+			</div>
+
+			<div class="mb-4">
+				<button type="button" id="customizer-random" class="link-action font-medium text-sm px-5 py-2">
+					Randomize
+				</button>
+			</div>
+
+			<div id="textarea-wrapper" class="textarea-wrapper">
+				<!-- prettier-ignore-start -->
+				<textarea
+					id="message-textarea"
+					name="message"
+					rows="4"
+					required
+					class="block p-2.5 w-full text-sm textarea-styled"
+					placeholder="Say hi, leave a riddle, write a poem, or sketch some ASCII art..."></textarea>
+				<!-- prettier-ignore-end -->
+			</div>
+
 			<p>
 				<label class="consent">
 					<input type="checkbox" required /><small>
@@ -120,5 +235,12 @@ const entries = await getGuestEntries();
 
 <script>
 	import { initGuestbookCounter } from "@/scripts/guestbookCounter";
-	initGuestbookCounter();
+	import { initGuestbookCustomizer } from "@/scripts/guestbookCustomizer";
+
+	function initGuestbook() {
+		initGuestbookCounter();
+		initGuestbookCustomizer();
+	}
+
+	document.addEventListener("astro:page-load", initGuestbook);
 </script>

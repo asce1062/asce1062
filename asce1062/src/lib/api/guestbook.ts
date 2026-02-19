@@ -4,6 +4,14 @@
  */
 import { db, Guestbook, desc, eq, isNull, or } from "astro:db";
 
+export interface EntryStyle {
+	bg: string;
+	borderColor: string;
+	borderWidth: string;
+	borderStyle: string;
+	borderRadius: string;
+}
+
 export interface GuestEntry {
 	id: number;
 	name: string;
@@ -12,6 +20,7 @@ export interface GuestEntry {
 	message: string;
 	timestamp: Date;
 	isSpam: boolean | null;
+	style: string | null;
 }
 
 // Basic Spam Detection
@@ -105,7 +114,13 @@ export async function getGuestEntries(): Promise<GuestEntry[]> {
 /**
  * Insert a new guestbook entry with automatic spam detection
  */
-export async function createGuestEntry(entry: { name: string; email: string; url: string; message: string }) {
+export async function createGuestEntry(entry: {
+	name: string;
+	email: string;
+	url: string;
+	message: string;
+	style?: string;
+}) {
 	const spam = isSpamMessage(entry.message);
 
 	if (spam) {
@@ -118,19 +133,8 @@ export async function createGuestEntry(entry: { name: string; email: string; url
 		url: entry.url.trim() || null,
 		message: entry.message,
 		isSpam: spam,
+		style: entry.style || null,
 	});
-}
-
-/**
- * Generate initials from a name (up to 2 characters)
- */
-export function getInitials(name: string): string {
-	return name
-		.split(" ")
-		.map((n) => n[0])
-		.join("")
-		.toUpperCase()
-		.slice(0, 2);
 }
 
 /**

@@ -1,0 +1,106 @@
+/**
+ * Guestbook Customizer Constants
+ *
+ * Static data for the guestbook entry theme customizer.
+ * Hero Pattern filenames from public/notecards/, border options, and helpers.
+ */
+
+export const patterns = [
+	"4-point-stars",
+	"anchors-away",
+	"architect",
+	"autumn",
+	"aztec",
+	"bamboo",
+	"bank-note",
+	"bathroom-floor",
+	"bevel-circle",
+	"boxes",
+	"brick-wall",
+	"bubbles",
+	"cage",
+	"charlie-brown",
+	"church-on-sunday",
+	"circles-and-squares",
+	"circuit-board",
+	"connections",
+	"cork-screw",
+	"current",
+	"curtain",
+	"cutout",
+	"death-star",
+	"diagonal-lines",
+	"diagonal-stripes",
+	"dominos",
+	"endless-clouds",
+	"eyes",
+	"falling-triangles",
+	"fancy-rectangles",
+	"flipped-diamonds",
+	"floating-cogs",
+	"floor-tile",
+	"formal-invitation",
+	"glamorous",
+	"graph-paper",
+	"groovy",
+	"happy-intersection",
+	"heavy-rain",
+	"hexagons",
+	"hideout",
+	"houndstooth",
+	"i-like-food",
+	"intersecting-circles",
+	"jigsaw",
+	"jupiter",
+	"kiwi",
+	"leaf",
+	"line-in-motion",
+	"lips",
+	"lisbon",
+	"melt",
+	"moroccan",
+	"morphing-diamonds",
+	"overcast",
+	"overlapping-circles",
+	"overlapping-diamonds",
+	"overlapping-hexagons",
+	"parkay-floor",
+	"piano-man",
+	"pie-factory",
+	"pixel-dots",
+	"plus",
+	"polka-dots",
+	"rails",
+	"rain",
+	"random-shapes",
+	"rounded-plus-connected",
+	"signal",
+	"skulls",
+	"slanted-stars",
+	"squares-in-squares",
+	"squares",
+	"stamp-collection",
+	"steel-beams",
+	"stripes",
+	"temple",
+	"texture",
+	"tic-tac-toe",
+	"tiny-checkers",
+	"volcano-lamp",
+	"wallpaper",
+	"wiggle",
+	"x-equals",
+	"yyy",
+	"zig-zag",
+];
+
+export const borderColors = ["base-300", "primary", "secondary", "accent", "info", "success", "warning", "error"];
+export const radiusValues = ["0rem", "0.25rem", "0.5rem", "1rem", "2rem"];
+export const borderStyles = ["solid", "dashed", "dotted", "double", "none"];
+
+export function toTitleCase(slug: string): string {
+	return slug
+		.split("-")
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(" ");
+}

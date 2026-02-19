@@ -59,6 +59,7 @@ export default [
 				HTMLIFrameElement: "readonly",
 				HTMLImageElement: "readonly",
 				HTMLLabelElement: "readonly",
+				HTMLSelectElement: "readonly",
 				Element: "readonly",
 				Event: "readonly",
 				KeyboardEvent: "readonly",
