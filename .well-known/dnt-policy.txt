@@ -52,10 +52,11 @@ or browse away.
 FORMS
 
 The only data received from you is that which you freely give through the
-email or guestbook forms. These are powered by Netlify Forms
-(https://www.netlify.com/platform/core/forms/), which sends input through
-Akismet (https://akismet.com/) spam filtering. Should you want a copy or
-would like anything you sent deleted, contact us (see below).
+email or guestbook forms. Guestbook submissions are stored in a self-hosted
+Turso (https://turso.tech) database (libSQL). Spam is filtered using a
+honeypot field and content pattern detection. No third-party services
+process your data. Should you want a copy or would like anything you sent
+deleted, contact us (see below).
 
 SERVER LOGS
 
@@ -89,7 +90,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-02-16.
+This policy was last reviewed and reasserted on 2026-02-18.
 
 REFERENCE
 
