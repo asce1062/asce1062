@@ -1,6 +1,7 @@
 ---
 import type { GuestEntry, EntryStyle } from "@/lib/api/guestbook";
 import { formatEntryDate } from "@/lib/api/guestbook";
+import EntryActions from "@/components/GuestBookEntryActions.astro";
 
 interface Props {
 	entry: GuestEntry;
@@ -44,8 +45,14 @@ const inlineStyles = [
 	.join("; ");
 ---
 
-<article class="entry">
+<article class="entry" id={`entry-${entry.id}`}>
 	<div class="entry-bubble" style={inlineStyles}>
+		<EntryActions
+			entryId={entry.id}
+			entryName={entry.name}
+			entryStyle={entry.style || ""}
+			entryMessage={entry.message}
+		/>
 		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 		<div class="entry-meta">
 			<h2>

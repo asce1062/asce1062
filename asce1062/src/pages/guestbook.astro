@@ -5,6 +5,7 @@ import Layout from "@/layouts/Layout.astro";
 import PreviewImage from "@/components/PreviewImage.astro";
 import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
+import ShareNotification from "@/components/ShareNotification.astro";
 import Expand from "@/components/ui/Expand.astro";
 import { getGuestEntries, createGuestEntry } from "@/lib/api/guestbook";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
@@ -176,10 +177,16 @@ const entries = await getGuestEntries();
 											data-border-style={s}
 											title={s}>
 											<div class="pe-3 pt-2">
-												<div
-													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
-													style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
-												/>
+												{s === "none" ? (
+													<div class="h-6 w-8 flex items-center justify-center text-base-content/40">
+														<i class="icon-x-lg -mt-1 -ml-1" />
+													</div>
+												) : (
+													<div
+														class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+														style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
+													/>
+												)}
 											</div>
 										</div>
 									))
@@ -188,8 +195,8 @@ const entries = await getGuestEntries();
 						</div>
 
 						<div class="flex justify-end mb-4">
-							<button type="button" id="customizer-done" class="link-action font-medium text-sm px-5 py-2">
-								Done
+							<button type="button" id="customizer-done" class="btn btn-neutral">
+								<i class="font-retro">Done</i>
 							</button>
 						</div>
 					</div>
@@ -197,8 +204,11 @@ const entries = await getGuestEntries();
 			</div>
 
 			<div class="mb-4">
-				<button type="button" id="customizer-random" class="link-action font-medium text-sm px-5 py-2">
-					Randomize
+				<button
+					type="button"
+					id="customizer-random"
+					class="h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100 hover:text-accent hover:rotate-6 cursor-pointer">
+					<i class="icon-magic text-lg"></i>
 				</button>
 			</div>
 
@@ -210,7 +220,7 @@ const entries = await getGuestEntries();
 					rows="4"
 					required
 					class="block p-2.5 w-full text-sm textarea-styled"
-					placeholder="Say hi, leave a riddle, write a poem, or sketch some ASCII art..."></textarea>
+					placeholder="Say hi, write a poem, or sketch some ASCII art..."></textarea>
 				<!-- prettier-ignore-end -->
 			</div>
 
@@ -223,23 +233,31 @@ const entries = await getGuestEntries();
 				</label>
 			</p>
 			<p>
-				<button type="submit" class="link-action link-action--success font-medium text-sm px-5 py-2.5 me-2 mb-2"
-					>Sign Guestbook
+				<button type="submit" class="btn btn-success"
+					><span class="font-retro text-success-content">Sign Guestbook</span>
 				</button>
 			</p>
 		</form>
 		<PrivacyPolicy />
 		{entries.map((entry) => <GuestbookEntry entry={entry} />)}
 	</p>
+	<ShareNotification id="entry-action-notification" message="Copied!" />
 </Layout>
 
 <script>
 	import { initGuestbookCounter } from "@/scripts/guestbookCounter";
 	import { initGuestbookCustomizer } from "@/scripts/guestbookCustomizer";
+	import { initEntryActions } from "@/scripts/guestbookEntryActions";
+	import { initShareNotification } from "@/scripts/shareManager";
 
 	function initGuestbook() {
 		initGuestbookCounter();
 		initGuestbookCustomizer();
+		initEntryActions();
+		// Guard: notification element may not exist during view transition navigation
+		if (document.getElementById("entry-action-notification")) {
+			initShareNotification("entry-action-notification");
+		}
 	}
 
 	document.addEventListener("astro:page-load", initGuestbook);

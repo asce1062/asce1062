@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('../fonts/icomoon.eot?nir4ud');
-  src:  url('../fonts/icomoon.eot?nir4ud#iefix') format('embedded-opentype'),
-    url('../fonts/icomoon.ttf?nir4ud') format('truetype'),
-    url('../fonts/icomoon.woff?nir4ud') format('woff'),
-    url('../fonts/icomoon.svg?nir4ud#icomoon') format('svg');
+  src:  url('../fonts/icomoon.eot?epout7');
+  src:  url('../fonts/icomoon.eot?epout7#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.ttf?epout7') format('truetype'),
+    url('../fonts/icomoon.woff?epout7') format('woff'),
+    url('../fonts/icomoon.svg?epout7#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-dice:before {
+  content: "\e9ad";
+}
 .icon-note:before {
   content: "\e9a7";
 }
@@ -78,6 +81,15 @@
 }
 .icon-git-commit:before {
   content: "\e991";
+}
+.icon-stars:before {
+  content: "\e9ae";
+}
+.icon-magic:before {
+  content: "\e9af";
+}
+.icon-printer:before {
+  content: "\e9b0";
 }
 .icon-cookie:before {
   content: "\e9ac";

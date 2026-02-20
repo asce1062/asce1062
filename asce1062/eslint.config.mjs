@@ -61,6 +61,7 @@ export default [
 				HTMLLabelElement: "readonly",
 				HTMLSelectElement: "readonly",
 				Element: "readonly",
+				DOMException: "readonly",
 				Event: "readonly",
 				KeyboardEvent: "readonly",
 				MouseEvent: "readonly",
