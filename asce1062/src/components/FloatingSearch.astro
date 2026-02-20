@@ -28,12 +28,9 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 					<h2 id="floating-search-title" class="m-0 leading-none">
 						<a href="/search">Search</a>
 					</h2>
-					<a
-						id="close-floating-search"
-						class="icon no-underline transition-colors flex items-center justify-center link-action"
-						aria-label="Close search">
+					<button id="close-floating-search" class="btn btn-neutral" aria-label="Close search">
 						<i class="icon-x-lg" />
-					</a>
+					</button>
 				</div>
 				<div id="pagefind-search-floating">
 					<SearchBox searchId="floating-searchbox" showTips={true} />

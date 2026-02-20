@@ -1,0 +1,58 @@
+---
+interface Props {
+	entryId: number;
+	entryName: string;
+	entryStyle: string;
+	entryMessage: string;
+}
+
+const { entryId, entryName, entryStyle, entryMessage } = Astro.props;
+
+const issueTitle = encodeURIComponent(`[Guestbook] Entry #${entryId} by ${entryName}`);
+const issueBody = encodeURIComponent(
+	`**Entry ID:** ${entryId}\n**Author:** ${entryName}\n\n**Reason for request:**\n<!-- Please describe what you'd like changed or removed -->\n`
+);
+const githubUrl = `https://github.com/asce1062/asce1062/issues/new?title=${issueTitle}&body=${issueBody}`;
+
+const emailSubject = encodeURIComponent(`[Guestbook] Entry #${entryId} by ${entryName}`);
+const emailBody = encodeURIComponent(`Entry ID: ${entryId}\nAuthor: ${entryName}\n\nReason for request:\n`);
+const emailUrl = `mailto:alex.mbugua@outlook.com?subject=${emailSubject}&body=${emailBody}`;
+---
+
+<div class="entry-actions">
+	<button
+		class="entry-actions-trigger"
+		aria-expanded="false"
+		aria-haspopup="true"
+		aria-label="Entry actions"
+		type="button">
+		<i class="icon-three-dots-vertical"></i>
+	</button>
+	<div class="entry-actions-menu" role="menu" hidden>
+		<button class="entry-action group" role="menuitem" data-action="copy-style" data-style={entryStyle}>
+			<i class="icon-code group-hover:text-accent group-hover:rotate-6"></i>
+			<span>Copy Style</span>
+		</button>
+		<a class="entry-action group" role="menuitem" href={githubUrl} target="_blank" rel="noopener noreferrer">
+			<i class="icon-github group-hover:text-accent group-hover:rotate-6"></i>
+			<span>Request Edit/Remove</span>
+		</a>
+		<a class="entry-action group" role="menuitem" href={emailUrl}>
+			<i class="icon-envelope-at group-hover:text-accent group-hover:rotate-6"></i>
+			<span>Request via Email</span>
+		</a>
+		<button class="entry-action group" role="menuitem" data-action="copy-message" data-message={entryMessage}>
+			<i class="icon-clipboard group-hover:text-accent group-hover:rotate-6"></i>
+			<span>Copy Message</span>
+		</button>
+		<button
+			class="entry-action group"
+			role="menuitem"
+			data-action="share-entry"
+			data-entry-id={entryId}
+			data-entry-name={entryName}>
+			<i class="icon-share group-hover:text-accent group-hover:-rotate-6"></i>
+			<span>Share Entry</span>
+		</button>
+	</div>
+</div>

@@ -34,30 +34,47 @@ html[data-theme="dark"] .entry-bubble {
 	--pattern-fill: oklch(23.219% 0.004 308.229);
 }
 
+/* Ensure content always sits above the patterned ::before layer */
+.entry-bubble > * {
+	position: relative;
+	z-index: 1;
+}
+
 .entry-bubble::before {
 	content: "";
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 	z-index: 0;
-	background-color: var(--pattern-fill);
-	mask-image: var(--pattern-url, none);
-	-webkit-mask-image: var(--pattern-url, none);
-	mask-size: 60px;
-	-webkit-mask-size: 60px;
-	mask-repeat: repeat;
-	-webkit-mask-repeat: repeat;
 	border-radius: inherit;
+
+	/* Fallback: show SVG pattern directly with low opacity */
+	background-image: var(--pattern-url, none);
+	background-size: 60px;
+	background-repeat: repeat;
+	opacity: 0.06;
 }
 
-/* Entry Header */
+/* Modern: use mask to show pattern in the themed fill color */
+@supports (mask-image: none) {
+	.entry-bubble::before {
+		background-image: none;
+		background-color: var(--pattern-fill);
+		mask-image: var(--pattern-url, none);
+		mask-size: 60px;
+		mask-repeat: repeat;
+		opacity: 1;
+	}
+}
+
+/* Entry Meta Info (guest name and timestamp) */
 .entry-meta {
 	position: relative;
 	z-index: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
-	margin-top: 0.5rem;
+	margin-top: 1rem;
 	background-color: var(--color-neutral);
 	padding: 0.25rem 0.5rem;
 	border-radius: 0rem;
@@ -159,14 +176,23 @@ html[data-theme="dark"] .textarea-wrapper {
 	inset: 0;
 	pointer-events: none;
 	z-index: 0;
-	background-color: var(--pattern-fill);
-	mask-image: var(--pattern-url, none);
-	-webkit-mask-image: var(--pattern-url, none);
-	mask-size: 60px;
-	-webkit-mask-size: 60px;
-	mask-repeat: repeat;
-	-webkit-mask-repeat: repeat;
 	border-radius: inherit;
+
+	background-image: var(--pattern-url, none);
+	background-size: 60px;
+	background-repeat: repeat;
+	opacity: 0.06;
+}
+
+@supports (mask-image: none) {
+	.textarea-wrapper::before {
+		background-image: none;
+		background-color: var(--pattern-fill);
+		mask-image: var(--pattern-url, none);
+		mask-size: 60px;
+		mask-repeat: repeat;
+		opacity: 1;
+	}
 }
 
 .textarea-styled {
@@ -224,14 +250,23 @@ html[data-theme="dark"] .pattern-swatch {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background-color: var(--pattern-fill);
-	mask-image: var(--pattern-url, none);
-	-webkit-mask-image: var(--pattern-url, none);
-	mask-size: 60px;
-	-webkit-mask-size: 60px;
-	mask-repeat: repeat;
-	-webkit-mask-repeat: repeat;
 	border-radius: inherit;
+
+	background-image: var(--pattern-url, none);
+	background-size: 60px;
+	background-repeat: repeat;
+	opacity: 0.06;
+}
+
+@supports (mask-image: none) {
+	.pattern-swatch::before {
+		background-image: none;
+		background-color: var(--pattern-fill);
+		mask-image: var(--pattern-url, none);
+		mask-size: 60px;
+		mask-repeat: repeat;
+		opacity: 1;
+	}
 }
 
 /* Option cards (radius / style selectors) */
@@ -261,4 +296,110 @@ html[data-theme="dark"] .pattern-swatch {
 
 .color-swatch:hover {
 	outline-color: var(--color-accent);
+}
+
+/* All entries need position so they participate in z-index stacking */
+.entry {
+	position: relative;
+	z-index: 0;
+}
+
+/* Elevate entry when its menu is open so dropdown isn't covered by sibling cards */
+.entry:has(.entry-actions-trigger[aria-expanded="true"]) {
+	z-index: 10;
+}
+
+/* Entry Actions Menu */
+.entry-actions {
+	position: relative;
+	z-index: 10;
+	width: fit-content;
+	margin-left: auto;
+	margin-bottom: 1rem;
+}
+
+.entry-actions-trigger {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0.25rem 0.5rem;
+	background-color: var(--color-neutral);
+	border: 1px solid var(--color-base-300);
+	border-radius: 0rem;
+	cursor: pointer;
+	opacity: 0.4;
+	transition: opacity 0.15s;
+	color: var(--color-base-content);
+	font-size: 0.875rem;
+}
+
+.entry-bubble:hover .entry-actions-trigger,
+.entry-actions-trigger[aria-expanded="true"] {
+	opacity: 1;
+}
+
+@media (pointer: coarse) {
+	.entry-actions-trigger {
+		opacity: 0.7;
+	}
+}
+
+.entry-actions-menu {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	margin-top: 0.25rem;
+	min-width: 11rem;
+	background-color: var(--color-base-100);
+	border: 1px solid var(--color-base-300);
+	border-radius: 0rem;
+	box-shadow: 3px 3px 0 var(--color-base-300);
+	padding: 0.25rem 0;
+	z-index: 20;
+}
+
+.entry-action {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.375rem 0.75rem;
+	border: none;
+	background: none;
+	cursor: pointer;
+	font-size: 0.8rem;
+	color: var(--color-base-content);
+	text-decoration: none;
+	text-align: left;
+	transition: background-color 0.1s;
+}
+
+.entry-action:hover {
+	background-color: var(--color-base-200);
+}
+
+.entry-action i {
+	font-size: 0.875rem;
+	width: 1rem;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+/* Anchor highlight animation */
+.entry--highlighted {
+	animation: entry-highlight 1.5s ease-out;
+}
+
+@keyframes entry-highlight {
+	0%,
+	20% {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 4px;
+	}
+	100% {
+		outline: 2px solid transparent;
+		outline-offset: 4px;
+	}
 }
