@@ -51,13 +51,18 @@ html[data-theme="dark"] .entry-bubble {
 }
 
 /* Entry Header */
-.entry-header {
+.entry-meta {
 	position: relative;
 	z-index: 1;
 	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 0.5rem;
+	flex-direction: column;
+	align-items: flex-end;
+	margin-top: 0.5rem;
+	background-color: var(--color-neutral);
+	padding: 0.25rem 0.5rem;
+	border-radius: 0rem;
+	width: fit-content;
+	margin-left: auto;
 }
 
 .entry h2 {
@@ -204,7 +209,7 @@ html[data-theme="dark"] .textarea-wrapper {
 	width: 3rem;
 	height: 3rem;
 	border: 1px solid var(--color-base-300);
-	border-radius: 0.25rem;
+	border-radius: 0rem;
 	flex-shrink: 0;
 	background-color: var(--color-neutral);
 	--pattern-fill: oklch(84.133% 0.065 90.856);
@@ -242,7 +247,7 @@ html[data-theme="dark"] .pattern-swatch {
 .color-swatch {
 	width: 1.75rem;
 	height: 1.75rem;
-	border-radius: 50%;
+	border-radius: 0rem;
 	cursor: pointer;
 	border: 2px solid transparent;
 	outline: 2px solid transparent;

@@ -16,7 +16,7 @@ const isAsciiArt = / {2}/.test(entry.message);
 
 // Parse style JSON with fallback defaults
 const defaults: EntryStyle = {
-	bg: "neutral",
+	bg: "topography",
 	borderColor: "base-300",
 	borderWidth: "1px",
 	borderStyle: "solid",
@@ -46,7 +46,8 @@ const inlineStyles = [
 
 <article class="entry">
 	<div class="entry-bubble" style={inlineStyles}>
-		<div class="entry-header">
+		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
+		<div class="entry-meta">
 			<h2>
 				{
 					entry.url ? (
@@ -60,6 +61,5 @@ const inlineStyles = [
 			</h2>
 			<time datetime={entry.timestamp.toISOString()}>{formattedDate}</time>
 		</div>
-		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 	</div>
 </article>

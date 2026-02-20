@@ -141,7 +141,7 @@ export async function createGuestEntry(entry: {
  * Format date for guestbook entry display
  */
 export function formatEntryDate(date: Date): string {
-	return date.toLocaleDateString("en-gb", {
+	return date.toLocaleDateString("en-us", {
 		year: "numeric",
 		month: "short",
 		day: "numeric",

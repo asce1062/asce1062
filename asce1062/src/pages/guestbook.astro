@@ -7,7 +7,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
 import Expand from "@/components/ui/Expand.astro";
 import { getGuestEntries, createGuestEntry } from "@/lib/api/guestbook";
-import { patterns, borderColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
+import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
 const image = "/src/assets/guestbook/guestbook.png";
@@ -158,7 +158,7 @@ const entries = await getGuestEntries();
 							<h4>Border Color</h4>
 							<div class="customizer-row">
 								{
-									borderColors.map((c) => (
+									swatchColors.map((c) => (
 										<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
 									))
 								}

@@ -86,6 +86,7 @@ export const patterns = [
 	"texture",
 	"tic-tac-toe",
 	"tiny-checkers",
+	"topography",
 	"volcano-lamp",
 	"wallpaper",
 	"wiggle",
@@ -94,7 +95,18 @@ export const patterns = [
 	"zig-zag",
 ];
 
-export const borderColors = ["base-300", "primary", "secondary", "accent", "info", "success", "warning", "error"];
+export const swatchColors = [
+	"base-100",
+	"base-200",
+	"base-300",
+	"primary",
+	"secondary",
+	"accent",
+	"info",
+	"success",
+	"warning",
+	"error",
+];
 export const radiusValues = ["0rem", "0.25rem", "0.5rem", "1rem", "2rem"];
 export const borderStyles = ["solid", "dashed", "dotted", "double", "none"];
 
