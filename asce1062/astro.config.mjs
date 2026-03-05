@@ -185,6 +185,7 @@ export default defineConfig({
 					/^\/search/, // Allow search page with or without query parameters
 					/^\/8biticon/, // Allow avatar generator with or without query parameters
 					/^\/guestbook/, // SSR route. Do not cache/intercept
+					/^\/admin/, // SSR routes. Do not cache/intercept
 				],
 
 				// Precaching configuration

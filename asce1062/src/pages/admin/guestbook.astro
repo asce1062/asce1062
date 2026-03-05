@@ -1,0 +1,217 @@
+---
+/**
+ * Admin moderation page for guestbook entries
+ * Lists pending/hidden entries with reasons/scores, approve/hide buttons, filter tabs
+ */
+export const prerender = false;
+
+import Layout from "@/layouts/Layout.astro";
+import { getModeratedEntries, updateEntryStatus, safeParseReasons, getModerationLog } from "@/lib/api/guestbook";
+import { formatDate } from "@/lib/content/utils";
+import type { ModerationStatus } from "@/lib/api/guestbook";
+
+// Handle moderation actions
+let actionMessage = "";
+
+if (Astro.request.method === "POST") {
+	const formData = await Astro.request.formData();
+	const entryId = Number(formData.get("entryId"));
+	const action = String(formData.get("action") ?? "");
+
+	if (
+		Number.isInteger(entryId) &&
+		entryId > 0 &&
+		(action === "approve" || action === "approve-clear" || action === "hide")
+	) {
+		const newStatus: ModerationStatus = action === "hide" ? "hidden" : "visible";
+		const clearFlags = action === "approve-clear";
+		await updateEntryStatus(entryId, newStatus, { clearFlags });
+		if (action === "approve-clear") {
+			actionMessage = `Entry #${entryId} approved and flags cleared.`;
+		} else {
+			actionMessage = `Entry #${entryId} ${action === "approve" ? "approved" : "hidden"}.`;
+		}
+	}
+}
+
+// Fetch entries
+const url = new URL(Astro.request.url);
+const filter = (url.searchParams.get("filter") as "pending" | "hidden" | "all" | "audit") || "all";
+const entries = filter === "audit" ? [] : await getModeratedEntries(filter as "pending" | "hidden" | "all");
+const auditLog = filter === "audit" ? await getModerationLog() : [];
+---
+
+<Layout title="Guestbook Moderation" description="Admin: review guestbook entries">
+	<h2>Guestbook Moderation</h2>
+
+	{actionMessage && <div class="mb-4 p-3 bg-success/10 border border-success text-sm">{actionMessage}</div>}
+
+	<nav class="flex gap-2 mb-6">
+		<a href={`/admin/guestbook?filter=all`} class:list={["btn btn-sm", { "btn-accent": filter === "all" }]}> All </a>
+		<a href={`/admin/guestbook?filter=pending`} class:list={["btn btn-sm", { "btn-accent": filter === "pending" }]}>
+			Pending
+		</a>
+		<a href={`/admin/guestbook?filter=hidden`} class:list={["btn btn-sm", { "btn-accent": filter === "hidden" }]}>
+			Hidden
+		</a>
+		<a href={`/admin/guestbook?filter=audit`} class:list={["btn btn-sm", { "btn-accent": filter === "audit" }]}>
+			Audit Trail
+		</a>
+	</nav>
+
+	{
+		filter === "audit" ? (
+			auditLog.length === 0 ? (
+				<p class="text-base-content/60">No moderation actions recorded yet.</p>
+			) : (
+				<div class="overflow-x-auto">
+					<table class="table table-sm w-full text-xs font-mono">
+						<thead>
+							<tr class="text-base-content/50">
+								<th>Entry</th>
+								<th class="text-right">Action</th>
+								<th class="text-right">Status change</th>
+								<th class="text-right">Reasons before</th>
+								<th class="text-right">Score</th>
+								<th class="text-right">Actor</th>
+								<th class="text-right">At</th>
+							</tr>
+						</thead>
+						<tbody>
+							{auditLog.map((row: any) => {
+								const reasonsBefore = safeParseReasons(row.reasonsBefore);
+								return (
+									<tr class="border-t border-base-300">
+										<td class="py-2">
+											<a href={`/admin/guestbook?filter=all#entry-${row.entryId}`} class="link link-hover">
+												#{row.entryId}
+											</a>
+										</td>
+										<td class="py-2 text-right">
+											<span
+												class:list={[
+													"badge badge-sm",
+													{
+														"badge-secondary": row.action === "approve",
+														"badge-success": row.action === "approve_clear",
+														"badge-error": row.action === "hide",
+													},
+												]}>
+												{row.action}
+											</span>
+										</td>
+										<td class="py-2 text-right text-base-content/60">
+											{row.fromStatus ?? "—"} → {row.toStatus}
+										</td>
+										<td class="py-2 text-right">
+											{reasonsBefore.length > 0 ? (
+												<div class="flex flex-wrap justify-end gap-1">
+													{reasonsBefore.map((r: string) => (
+														<span class="px-1 py-0.5 bg-base-300 rounded">{r}</span>
+													))}
+												</div>
+											) : (
+												<span class="text-base-content/30">—</span>
+											)}
+										</td>
+										<td class="py-2 text-right text-base-content/60">{row.scoreBefore ?? "—"}</td>
+										<td class="py-2 text-right text-base-content/60">{row.actor}</td>
+										<td class="py-2 text-right text-base-content/50 whitespace-nowrap">{formatDate(row.at)}</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			)
+		) : entries.length === 0 ? (
+			<p class="text-base-content/60">No entries to review.</p>
+		) : (
+			<div class="space-y-4">
+				{entries.map((entry) => {
+					const reasons = safeParseReasons(entry.moderationReason);
+					return (
+						<div id={`entry-${entry.id}`} class="p-4 border border-base-300 bg-neutral rounded">
+							<div class="flex justify-between items-start mb-2">
+								<div>
+									<span class="text-xs text-base-content/40 font-mono mr-2">#{entry.id}</span>
+									<strong>{entry.name}</strong>
+									{entry.url && (
+										<a href={entry.url} target="_blank" rel="noopener noreferrer" class="text-xs ml-2">
+											{entry.url}
+										</a>
+									)}
+									{entry.email && <span class="text-xs ml-2 text-base-content/50">{entry.email}</span>}
+								</div>
+								<div class="flex items-center gap-2">
+									<span
+										class:list={[
+											"text-xs px-2 py-0.5 rounded font-mono",
+											{
+												"badge badge-warning": entry.status === "pending",
+												"badge badge-error": entry.status === "hidden" || entry.isSpam,
+												"badge badge-success": entry.status === "visible",
+											},
+										]}>
+										{entry.status || (entry.isSpam ? "hidden (legacy)" : "visible (legacy)")}
+									</span>
+									{entry.moderationScore != null && <span class="badge">score: {entry.moderationScore}</span>}
+								</div>
+							</div>
+
+							{reasons.length > 0 && (
+								<div class="flex gap-1 mb-2 flex-wrap">
+									{reasons.map((r: string) => (
+										<span class="text-xs px-1.5 py-0.5 bg-base-300 rounded font-mono">{r}</span>
+									))}
+								</div>
+							)}
+
+							{/* prettier-ignore */}
+							<pre class="text-sm whitespace-pre-wrap break-words mb-3 max-h-40 overflow-y-auto bg-base-100 p-2 rounded">{entry.message}</pre>
+
+							<div class="flex justify-between items-center">
+								<div>
+									<time class="text-xs text-base-content/50">{formatDate(entry.timestamp)}</time>
+									{entry.moderatedAt && (
+										<p class="text-xs text-base-content/40 mt-0.5">
+											moderated by {entry.moderatedBy ?? "admin"} · {formatDate(entry.moderatedAt)}
+										</p>
+									)}
+								</div>
+								<form method="POST" class="flex gap-2">
+									<input type="hidden" name="entryId" value={entry.id} />
+									{(entry.status === "pending" || entry.status === "hidden" || entry.isSpam) && (
+										<button type="submit" name="action" value="approve" class="btn btn-secondary btn-sm">
+											Approve
+										</button>
+									)}
+									{(entry.status === "pending" || entry.status === "hidden" || entry.isSpam) &&
+										entry.moderationReason && (
+											<button
+												type="submit"
+												name="action"
+												value="approve-clear"
+												class="btn btn-success btn-sm"
+												title="Approve and remove moderation flags (use for false positives)">
+												Approve & Clear
+											</button>
+										)}
+									{(entry.status === "pending" || entry.status === "visible") && (
+										<button type="submit" name="action" value="hide" class="btn btn-primary btn-sm">
+											Hide
+										</button>
+									)}
+								</form>
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		)
+	}
+
+	<div class="mt-8 text-xs text-base-content/40">
+		<p>{filter === "audit" ? `Log rows: ${auditLog.length}` : `Entries: ${entries.length}`} | Filter: {filter}</p>
+	</div>
+</Layout>

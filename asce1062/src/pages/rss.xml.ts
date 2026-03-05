@@ -70,7 +70,7 @@ export async function GET(context: { site: string | URL }) {
       <ttl>60</ttl>
       <generator>Astro RSS Generator</generator>
       <!-- Podcast Metadata for platforms like YouTube -->
-      <managingEditor>tnkratos@gmail.com (Alex Mbugua Ngugi)</managingEditor>
+      <managingEditor>alex@alexmbugua.me (Alex Mbugua Ngugi)</managingEditor>
       <image>
         <url>${channelImage}</url>
         <title>${BLOG.title}</title>
@@ -78,7 +78,7 @@ export async function GET(context: { site: string | URL }) {
       </image>
       <itunes:owner>
         <itunes:name>Alex Mbugua Ngugi</itunes:name>
-        <itunes:email>tnkratos@gmail.com</itunes:email>
+        <itunes:email>alex@alexmbugua.me</itunes:email>
       </itunes:owner>
       <itunes:author>Alex Mbugua Ngugi</itunes:author>
       <itunes:explicit>no</itunes:explicit>
@@ -100,7 +100,7 @@ export async function GET(context: { site: string | URL }) {
       </itunes:category>
       <itunes:category text="Music"/>
       <atom:link href="${new URL("/rss.xml", context.site).href}" rel="self" type="application/rss+xml" />
-      <copyright>© ${new Date().getFullYear()} Alex Mbugua Ngugi. You are free to Share i.e copy and redistribute the material in any medium or format. You are free to Adapt i.e transform, and build upon the material. Content by Alex Ngugi is licensed under Attribution Non-Commercial Creative Commons License (https://creativecommons.org/licenses/by-nc-sa/4.0/). For commercial uses, don't hesitate to contact me: mailto:tnkratos@gmail.com</copyright>
+      <copyright>© ${new Date().getFullYear()} Alex Mbugua Ngugi. You are free to Share i.e copy and redistribute the material in any medium or format. You are free to Adapt i.e transform, and build upon the material. Content by Alex Ngugi is licensed under Attribution Non-Commercial Creative Commons License (https://creativecommons.org/licenses/by-nc-sa/4.0/). For commercial uses, don't hesitate to contact me: mailto:alex@alexmbugua.me</copyright>
     `,
 		xmlns: {
 			dc: "http://purl.org/dc/elements/1.1/",

@@ -69,7 +69,7 @@ async function handleShareEntry(button: HTMLElement): Promise<void> {
 			});
 			return;
 		} catch (err) {
-			// User cancelled or share failed — fall back to clipboard
+			// User cancelled or share failed. Fall back to clipboard
 			if ((err as DOMException).name === "AbortError") return;
 		}
 	}

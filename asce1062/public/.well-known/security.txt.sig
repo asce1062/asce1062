@@ -1,17 +1,35 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+# Security Policy
+# https://securitytxt.org/
+# Existence of this security.txt file does not imply consent to perform security tests against alexmbugua.me
+
+Contact: mailto:security@alexmbugua.me
+Contact: https://github.com/asce1062/asce1062/issues
+Encryption: https://alexmbugua.me/.well-known/openpgpkey/hu/t5s8ztdbon8yzntexy6oz5y48etqsnbb
+Encryption: https://alexmbugua.me/public.pgp
+Preferred-Languages: en
+Canonical: https://alexmbugua.me/.well-known/security.txt
+Signature: https://alexmbugua.me/.well-known/security.txt.sig
+Policy: https://alexmbugua.me/privacy
+
+# PGP fingerprint: 18AE 4232 9AC1 F56F 843B  88C6 73B4 8769 BB38 F964
+# Key: Ed25519, expires 2028-03-01
+# WKD direct method: /.well-known/openpgpkey/hu/<z-base32-sha1-of-localpart>
+#   security@ → t5s8ztdbon8yzntexy6oz5y48etqsnbb
+#   alex@     → cddpr77ezsy7h967hgjydxhhmnt76n8w
+#   contact@  → dj3498u4hyyarh35rkjfnghbjxug6b19
+
+# Site is primarily hosted on Netlify with GitHub Pages as a backup.
+# All testing must comply with Netlify and GitHub security policies.
+# If any vulnerabilities are found related to site code or configuration, please contact me.
+
+Expires: 2028-03-01T00:00:00.000Z
 -----BEGIN PGP SIGNATURE-----
 
-iQJMBAABCAA2FiEE9Yz7js8dJ8K2F2AjFzFwWFyxM3sFAmmTSaYYHGFsZXgubWJ1
-Z3VhQG91dGxvb2suY29tAAoJEBcxcFhcsTN7fecP/3IF1zXuWnyOy5nhpjgFh6BJ
-Cv1veN0x+Xzlbs7s8sERCJGsRrBU6eFZf4mhAadMM6liNOvMoIelQITySXQ33hxZ
-WEPLSCVElidScM0Ehl2kZzxwqlScd/aBXAzxkfsoZSHQivswwN9uXNxIZ3auy2CO
-iJbiQLuZnQ/mxk2UqK03ldvvs9ESkGVjP0AvI+SZ/24r571YkXf+1mgSsQtn8p02
-PPfFrlQlDRMXaAuSf1RYqheVN2oR7xILhiQQHykinrPxNV4nDGeSCW0+GZoKwzXP
-wf/txXH5oHSDhiQM+gzjDKuRd2TwPhUH6t0G9ER/lMqKyURfBH2bwUdtG+RAJTEG
-0feqrAouuY2WBxAGmtHmjEbMsLcwGEQpId4rH7LcvDpSv2+oz10DGPi0iwWGE0kF
-jvc3ideduYtV5GVIbtJrksUw0Ete5ZdiVFpj9PwBKgQIe1YVk9P+JOUwKoBvcgB4
-QmuBV5ALRP0Of6aGQF4/br+fXfmV7WVFc0ZPGQqs5IiTziemfqHt85KNdwjx6qSj
-T/XbatLIhfI51DwVvhk096HmdEiZ7sHE0hw91vxuplEybwEEoBoG5qtL3IWErcST
-5XkxiGvII51xm0Gzk9/1VUl6oxYP6wsLo/SBkLWHR5Krw7rlM3ftOGBWWviybwLN
-4q2ZTxY/nu/lqF87e+50
-=3qfC
+iIkEARYKADEWIQQYrkIymsH1b4Q7iMZztIdpuzj5ZAUCaaXVZRMcYWxleEBhbGV4
+bWJ1Z3VhLm1lAAoJEHO0h2m7OPlkDoYA+gOq+JHIutrUJKez/nI5WB4IfnDa64OJ
+g2R3S44tDJGwAQCNN76mF59igKg9d/sDzz4zOQ8nfi1TcUxprl0KYy7CAQ==
+=0B8V
 -----END PGP SIGNATURE-----

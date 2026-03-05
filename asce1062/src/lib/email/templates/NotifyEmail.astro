@@ -1,0 +1,240 @@
+---
+/**
+ * Admin notification email HTML template.
+ * Rendered server-side via AstroContainer. Never served as a page.
+ */
+import type { ClassificationResult } from "@/lib/api/guestbook";
+import { hexLight, hexDark } from "@/config/design-tokens";
+import { getPatternDataUri, parseEntryStyle } from "@/lib/email/helpers";
+import { BASE_URL, MAX_ADMIN_PREVIEW_CHARS } from "@/config/email-config";
+
+interface Props {
+	name: string;
+	email: string;
+	url: string;
+	message: string;
+	style?: string;
+	classification: ClassificationResult;
+	entryId: number;
+	submittedAt: Date;
+	theme: "light" | "dark";
+}
+
+const { name, email, url, message, style: styleJson, classification, entryId, submittedAt, theme } = Astro.props;
+
+const L = theme === "dark" ? hexDark : hexLight;
+
+// Badge colors: semantic token for border/text (theme-aware). Fixed light tint for bg (no token exists for 10%-opacity variants)
+const STATUS_STYLES = {
+	visible: { bg: "#d0f0e8", border: L["success"], text: L["success"], label: "✅ VISIBLE" },
+	pending: { bg: "#fef3cd", border: L["warning"], text: L["warning"], label: "⚠️ PENDING" },
+	hidden: { bg: "#fde8e8", border: L["error"], text: L["error"], label: "🚫 HIDDEN" },
+};
+
+const status = STATUS_STYLES[classification.status as keyof typeof STATUS_STYLES] ?? STATUS_STYLES.hidden;
+const entryUrl = `${BASE_URL}/guestbook#entry-${entryId}`;
+const reviewUrl = `${BASE_URL}/admin/guestbook`;
+const reasons = classification.reasons.length > 0 ? classification.reasons.join(", ") : "none";
+const formattedDate = submittedAt.toUTCString();
+const previewMsg = message.length > MAX_ADMIN_PREVIEW_CHARS ? message.slice(0, MAX_ADMIN_PREVIEW_CHARS) + "…" : message;
+const truncated = message.length > MAX_ADMIN_PREVIEW_CHARS;
+
+// Body background. Remote URL.
+const bodyPattern = theme === "dark" ? `${BASE_URL}/topography.svg` : `${BASE_URL}/topographylight.svg`;
+const bodyBgCss = `background-color:${L["base-100"]};background-image:url("${bodyPattern}");`;
+
+// Card pattern. Inline base64 so it survives clients that block remote images.
+// Notecard SVGs are small (<5 KB) and don't push email past most email clients' 102 KB clip limit.
+const { bg: entrybg } = parseEntryStyle(styleJson);
+const patternFill = theme === "dark" ? hexDark["base-300"] : hexLight["base-300"];
+const patternDataUri = getPatternDataUri(entrybg, patternFill);
+const msgBgCss = patternDataUri
+	? `background-color:${L["base-100"]};background-image:url("${patternDataUri}");background-size:60px;background-repeat:repeat;`
+	: `background-color:${L["base-100"]};`;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+		<meta name="x-apple-disable-message-reformatting" />
+	</head>
+	<body style={`margin:0;padding:0;${bodyBgCss}font-family:'Courier New',Courier,monospace;`}>
+		<!-- Preheader: inbox preview text. Hidden visually in all email clients -->
+		<div
+			style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+			{status.label} - {name}: {previewMsg.slice(0, 90)}
+		</div>
+		<table
+			role="presentation"
+			width="100%"
+			cellpadding="0"
+			cellspacing="0"
+			border="0"
+			style={`${bodyBgCss}padding:24px 0;`}>
+			<tr>
+				<td align="center">
+					<table
+						role="presentation"
+						width="600"
+						cellpadding="0"
+						cellspacing="0"
+						border="0"
+						style="max-width:600px;width:100%;">
+						<!-- Header -->
+						<tr>
+							<td style={`background:${L["base-200"]};border:2px solid ${L["base-300"]};padding:16px 20px;`}>
+								<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+									<tr>
+										<td style={`color:${L["base-content"]};font-size:16px;font-weight:bold;`}>
+											&#128214; alexmbugua.me &mdash; guestbook
+										</td>
+										<td align="right" style="white-space:nowrap;">
+											<span
+												style={`background:${status.bg};color:${status.text};border:1px solid ${status.border};padding:4px 10px;font-size:11px;font-weight:bold;letter-spacing:0.5px;`}>
+												{status.label}
+											</span>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<!-- Score / reasons bar -->
+						<tr>
+							<td
+								style={`background:${L["base-300"]};border-left:2px solid ${L["base-300"]};border-right:2px solid ${L["base-300"]};padding:8px 20px;`}>
+								<span style={`color:${L["base-content"]};font-size:12px;`}>
+									<strong>Score:</strong>{" "}{classification.score}&nbsp;&nbsp;
+									<strong>Reasons:</strong>{" "}{reasons}
+								</span>
+							</td>
+						</tr>
+
+						<!-- Entry details -->
+						<tr>
+							<td
+								style={`background:${L["base-200"]};border-left:2px solid ${L["base-300"]};border-right:2px solid ${L["base-300"]};padding:16px 20px;`}>
+								<table
+									role="presentation"
+									width="100%"
+									cellpadding="4"
+									cellspacing="0"
+									border="0"
+									style={`font-size:13px;color:${L["base-content"]};`}>
+									<tr>
+										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>Name</td
+										>
+										<td><strong>{name}</strong></td>
+									</tr>
+									{
+										email && (
+											<tr>
+												<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+													Email
+												</td>
+												<td>{email}</td>
+											</tr>
+										)
+									}
+									{
+										url && (
+											<tr>
+												<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+													URL
+												</td>
+												<td>
+													<a href={url} style={`color:${L["accent"]};`}>
+														{url}
+													</a>
+												</td>
+											</tr>
+										)
+									}
+									<tr>
+										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>Time</td
+										>
+										<td>{formattedDate}</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<tr>
+							<td
+								style={`background:${L["base-200"]};border-left:2px solid ${L["base-300"]};border-right:2px solid ${L["base-300"]};padding:0 20px 16px;`}>
+								<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+									<tr>
+										<td style={`border:1px solid ${L["base-300"]};${msgBgCss}padding:12px;`}>
+											<!--
+												max-height + overflow-y:auto for clients that support it (Gmail web, Apple Mail).
+												Server-side truncation at MAX_ADMIN_PREVIEW_CHARS is the safety net for clients that don't.
+											-->
+											<pre
+												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${L["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}
+												>{previewMsg}{truncated && <span style={`color:${L["neutral-content"]};font-style:italic;`}> … (truncated, {message.length} chars total)</span>}</pre
+											>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<tr>
+							<td style={`background:${L["base-200"]};border:2px solid ${L["base-300"]};padding:16px 20px;`}>
+								<table cellpadding="0" cellspacing="0" border="0" role="presentation">
+									<tr>
+										{
+											classification.status === "visible" && (
+												<td style="padding-right:12px;">
+													<table cellpadding="0" cellspacing="0" border="0" role="presentation">
+														<tr>
+															<td style={`background:${L["success"]};`}>
+																<a
+																	href={entryUrl}
+																	style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["success-content"]};`}>
+																	View Entry &rarr;
+																</a>
+															</td>
+														</tr>
+													</table>
+												</td>
+											)
+										}
+										{
+											classification.status !== "visible" && (
+												<td>
+													<table cellpadding="0" cellspacing="0" border="0" role="presentation">
+														<tr>
+															<td style={`background:${L["warning"]};`}>
+																<a
+																	href={reviewUrl}
+																	style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["warning-content"]};`}>
+																	Review in Admin &rarr;
+																</a>
+															</td>
+														</tr>
+													</table>
+												</td>
+											)
+										}
+									</tr>
+								</table>
+							</td>
+						</tr>
+
+						<!-- Footer -->
+						<tr>
+							<td style={`padding:16px 0;text-align:center;font-size:11px;color:${L["neutral-content"]};`}>
+								<a href={`${BASE_URL}/guestbook`} style={`color:${L["neutral-content"]};text-decoration:none;`}>
+									alexmbugua.me/guestbook
+								</a>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>

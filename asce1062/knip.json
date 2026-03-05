@@ -10,29 +10,29 @@
     "vite-plugin-pwa",
     "autoprefixer",
     "postcss-nesting",
-    "papaparse",
-    "@types/papaparse"
+    "drizzle-orm"
   ],
-  "ignore": [
-    "public/fonts/icomoon/**",
-    "scripts/**",
-    "src/scripts/scrollProgress.ts",
-    "src/scripts/keyboardShortcuts.ts",
-    "src/scripts/themeManager.ts",
-    "src/scripts/guestbookCounter.ts",
-    "src/scripts/copyToClipboard.ts",
-    "src/scripts/shareManager.ts",
-    "src/scripts/iframeTheme.ts",
-    "src/scripts/paletteCopy.ts",
-    "src/lib/api/github.ts",
-    "public/css/style.css",
-    "src/config/index.ts",
-    "src/config/site-utils.ts",
-    "db/import-csv.ts"
+  "ignore": ["public/css/**", "public/fonts/**", "public/**/demo-files/**"],
+
+  "entry": [
+    "astro.config.*",
+    "markdown.config.ts",
+    "src/pages/**/*.{astro,mdx}",
+    "src/layouts/**/*.astro",
+    "src/components/**/*.astro",
+    "src/scripts/**/*.{ts,js}",
+    "scripts/**/*.{ts,js,mjs}",
+    "db/**/*.{ts,js}"
   ],
-  "entry": ["markdown.config.ts", "src/pages/**/*.{astro,mdx}", "src/layouts/**/*.astro", "src/components/**/*.astro"],
+
   "ignoreExportsUsedInFile": {
     "interface": true,
-    "type": true
+    "type": true,
+    "function": true
+  },
+
+  "ignoreIssues": {
+    "src/lib/email/templates/**/*.astro": ["types"],
+    "src/lib/email/helpers/**": ["exports"]
   }
 }

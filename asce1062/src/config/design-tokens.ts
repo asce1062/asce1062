@@ -126,6 +126,50 @@ export interface ColorValue {
 	dark: string;
 }
 
+// =============================================================================
+// HEX COLOR VALUES
+// Resolved sRGB hex equivalents of the theme's OKLCH tokens. https://oklch.net/
+// Useful anywhere CSS variables are unavailable: emails, canvas, og-image, etc.
+// Matches the shape of ColorValue so both tables can live side-by-side.
+// =============================================================================
+
+export interface HexColorValue {
+	id: string;
+	light: string; // sRGB hex, light theme
+	dark: string; // sRGB hex, dark theme
+}
+
+const hexColorValues: HexColorValue[] = [
+	// Base
+	{ id: "base-100", light: "#ece3ca", dark: "#09090b" },
+	{ id: "base-200", light: "#e4d8b4", dark: "#171618" },
+	{ id: "base-300", light: "#dbca9b", dark: "#1e1d1f" },
+	{ id: "base-content", light: "#793205", dark: "#fef2c6" },
+	// Semantic
+	{ id: "primary", light: "#ff9fa0", dark: "#ff6266" },
+	{ id: "primary-content", light: "#801518", dark: "#440607" },
+	{ id: "secondary", light: "#b7f6cd", dark: "#01df72" },
+	{ id: "secondary-content", light: "#00642e", dark: "#022d14" },
+	{ id: "accent", light: "#d08700", dark: "#fdc700" },
+	{ id: "accent-content", light: "#793205", dark: "#411e03" },
+	{ id: "neutral", light: "#ebc390", dark: "#120a11" },
+	{ id: "neutral-content", light: "#4b2900", dark: "#a49d99" },
+	// Status
+	{ id: "info", light: "#0082ce", dark: "#4ea0ff" },
+	{ id: "info-content", light: "#fef2c6", dark: "#162455" },
+	{ id: "success", light: "#00776f", dark: "#005d58" },
+	{ id: "success-content", light: "#fef2c6", dark: "#fde484" },
+	{ id: "warning", light: "#f34700", dark: "#9f2d00" },
+	{ id: "warning-content", light: "#fef2c6", dark: "#fde484" },
+	{ id: "error", light: "#ff6266", dark: "#f82834" },
+	{ id: "error-content", light: "#7c2808", dark: "#421104" },
+];
+
+// Derived O(1) lookup maps
+// Used where many tokens are needed at once
+export const hexLight: Record<string, string> = Object.fromEntries(hexColorValues.map((c) => [c.id, c.light]));
+export const hexDark: Record<string, string> = Object.fromEntries(hexColorValues.map((c) => [c.id, c.dark]));
+
 export const colorValues: ColorValue[] = [
 	// Base
 	{ id: "base-100", role: "Base 100", light: "oklch(91.637% 0.034 90.515)", dark: "oklch(14.076% 0.004 285.822)" },

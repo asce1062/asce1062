@@ -13,6 +13,7 @@
  */
 /* eslint-disable astro/no-set-html-directive */
 import { SITE, SOCIAL, PROFESSIONAL, SEO, BLOG } from "@/config/site-config";
+import { formatDate } from "@/lib/content/utils";
 
 interface Props {
 	title: string;
@@ -48,13 +49,7 @@ const ogImageHeight = isArticle ? 630 : 400;
 const ogImageType = "image/png";
 
 // Format published date for Twitter label
-const formattedDate = datePublished
-	? new Date(datePublished).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-		})
-	: undefined;
+const formattedDate = datePublished ? formatDate(new Date(datePublished), "medium") : undefined;
 
 // Use centralized social profiles from site-config
 const socialProfiles = [...SOCIAL.profiles];

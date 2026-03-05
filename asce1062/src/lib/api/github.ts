@@ -417,34 +417,6 @@ export async function getChangelogEntries(
 }
 
 /**
- * Group changelog entries by year
- */
-export function groupEntriesByYear(entries: ChangelogEntry[]): Map<number, ChangelogEntry[]> {
-	const groups = new Map<number, ChangelogEntry[]>();
-
-	for (const entry of entries) {
-		const year = getYearFromDate(entry.date);
-		const existing = groups.get(year) || [];
-		existing.push(entry);
-		groups.set(year, existing);
-	}
-
-	return groups;
-}
-
-/**
- * Format date for display
- */
-export function formatChangelogDate(dateString: string): string {
-	const date = new Date(dateString);
-	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
-}
-
-/**
  * Get year from date string
  */
 export function getYearFromDate(dateString: string): number {

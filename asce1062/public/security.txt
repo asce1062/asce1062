@@ -4,22 +4,25 @@
 # Existence of this security.txt file does not imply consent to perform
 # security tests against alexmbugua.me
 
-Contact: mailto:alex.mbugua@outlook.com
+Contact: mailto:security@alexmbugua.me
 Contact: https://github.com/asce1062/asce1062/issues
+Encryption: https://alexmbugua.me/.well-known/openpgpkey/hu/t5s8ztdbon8yzntexy6oz5y48etqsnbb
 Encryption: https://alexmbugua.me/public.pgp
 Preferred-Languages: en
 Canonical: https://alexmbugua.me/.well-known/security.txt
 Signature: https://alexmbugua.me/.well-known/security.txt.sig
 Policy: https://alexmbugua.me/privacy
 
+# PGP fingerprint: 18AE 4232 9AC1 F56F 843B  88C6 73B4 8769 BB38 F964
+# Key: Ed25519, expires 2028-03-01
+# WKD direct method: /.well-known/openpgpkey/hu/<z-base32-sha1-of-localpart>
+#   security@ → t5s8ztdbon8yzntexy6oz5y48etqsnbb
+#   alex@     → cddpr77ezsy7h967hgjydxhhmnt76n8w
+#   contact@  → dj3498u4hyyarh35rkjfnghbjxug6b19
+
 # Site is primarily hosted on Netlify with GitHub Pages as a backup.
 # All testing must comply with Netlify and GitHub security policies.
 # If any vulnerabilities are found related to site code or
 # configuration, please contact me.
-#
-# WKD (Web Key Directory) is not yet available. The current PGP key
-# is issued for @outlook.com. WKD requires a key on a domain we
-# control. Once updated to ping@alexmbugua.me, the key will be
-# published via WKD at /.well-known/openpgpkey/ for auto-discovery.
 
-Expires: 2028-02-16T00:00:00.000Z
+Expires: 2028-03-01T00:00:00.000Z

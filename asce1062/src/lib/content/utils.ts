@@ -10,14 +10,14 @@ type ContentEntry = CollectionEntry<"blog"> | CollectionEntry<"notes">;
 /**
  * Format publication date for display
  */
-export function formatDate(date: Date, format: "long" | "short" = "long"): string {
+export function formatDate(date: Date, format: "long" | "medium" | "short" = "long"): string {
 	if (format === "short") {
 		return date.toISOString().slice(0, 10);
 	}
 
 	return date.toLocaleDateString("en-US", {
 		year: "numeric",
-		month: "long",
+		month: format === "medium" ? "short" : "long",
 		day: "numeric",
 	});
 }

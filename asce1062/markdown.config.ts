@@ -16,7 +16,7 @@ import { transformerCopyButton } from "@rehype-pretty/transformers";
 
 /**
  * Custom remark plugin that calculates reading time and word count.
- * Writes directly to Astro's frontmatter — no bridge plugin needed.
+ * Writes directly to Astro's frontmatter.
  * @see https://docs.astro.build/en/recipes/reading-time/
  */
 function remarkReadingTime() {

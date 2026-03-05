@@ -18,16 +18,14 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 	<h3>Security</h3>
 	<p>
 		Security contact information is published at <a href="/.well-known/security.txt">/.well-known/security.txt</a>,
-		signed with a
-		<a href="/.well-known/security.txt.sig">detached PGP signature</a>. The public key is available at
-		<a href="/public.pgp">/public.pgp</a>.
+		signed with a <a href="/.well-known/security.txt.sig">detached PGP signature</a>. The public key is available at
+		<a href="/public.pgp">/public.pgp</a> and via <b>WKD</b> at
+		<a href="/.well-known/openpgpkey/hu/t5s8ztdbon8yzntexy6oz5y48etqsnbb"> /.well-known/openpgpkey/ </a> for automatic discovery
+		by GPG, Thunderbird, and other OpenPGP clients.
 	</p>
 	<p>
-		<b>WKD (Web Key Directory):</b>
-		WKD-based key discovery is not yet available because the current PGP key is issued for an
-		<code>@outlook.com</code> address, and WKD requires a key on a domain you control. Once the contact email is updated to
-		<code>ping@alexmbugua.me</code>, the public key will be published via WKD at <code>/.well-known/openpgpkey/</code> for
-		automatic discovery.
+		PGP fingerprint: <code>18AE 4232 9AC1 F56F 843B 88C6 73B4 8769 BB38 F964</code> (Ed25519, expires 2028-03-01). The key
+		covers <code>alex@</code>, <code>security@</code>, and <code>contact@alexmbugua.me</code>.
 	</p>
 	<p>
 		Existence of the security.txt file does not imply consent to perform security tests against this site. This site is
@@ -44,13 +42,18 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 
 	<h3>Well-Known Resources</h3>
 	<ul>
-		<li><a href="/.well-known/change-password">/.well-known/change-password</a> — password change URL</li>
-		<li><a href="/.well-known/dnt">/.well-known/dnt</a> — tracking status (JSON)</li>
-		<li><a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a> — DNT compliance policy</li>
-		<li><a href="/.well-known/privacy.txt">/.well-known/privacy.txt</a> — machine-readable privacy contact</li>
-		<li><a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a> — third-party vendor transparency</li>
-		<li><a href="/.well-known/security.txt">/.well-known/security.txt</a> — security contact information</li>
-		<li><a href="/.well-known/security.txt.sig">/.well-known/security.txt.sig</a> — PGP signature for security.txt</li>
-		<li><a href="/public.pgp">/public.pgp</a> — PGP public key</li>
+		<li><a href="/.well-known/change-password">/.well-known/change-password</a> - password change URL</li>
+		<li><a href="/.well-known/dnt">/.well-known/dnt</a> - tracking status (JSON)</li>
+		<li><a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a> - DNT compliance policy</li>
+		<li><a href="/.well-known/privacy.txt">/.well-known/privacy.txt</a> - machine-readable privacy contact</li>
+		<li><a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a> - third-party vendor transparency</li>
+		<li><a href="/.well-known/security.txt">/.well-known/security.txt</a> - security contact information</li>
+		<li><a href="/.well-known/security.txt.sig">/.well-known/security.txt.sig</a> - PGP signature for security.txt</li>
+		<li><a href="/.well-known/openpgpkey/policy">/.well-known/openpgpkey/policy</a> - WKD policy sentinel</li>
+		<li
+			><a href="/.well-known/openpgpkey/hu/cddpr77ezsy7h967hgjydxhhmnt76n8w">/.well-known/openpgpkey/hu/…</a> - WKD key files
+			(alex@, security@, contact@)</li
+		>
+		<li><a href="/public.pgp">/public.pgp</a> - PGP public key (ASCII-armored)</li>
 	</ul>
 </Layout>

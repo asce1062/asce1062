@@ -7,7 +7,14 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
 import ShareNotification from "@/components/ShareNotification.astro";
 import Expand from "@/components/ui/Expand.astro";
-import { getGuestEntries, createGuestEntry } from "@/lib/api/guestbook";
+import {
+	getGuestEntries,
+	createGuestEntry,
+	getNotificationFlags,
+	markAdminNotified,
+	markCopySent,
+} from "@/lib/api/guestbook";
+import { notifyNewEntry, sendEntryCopy } from "@/lib/api/guestbook-notify";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
@@ -22,7 +29,18 @@ if (Astro.request.method === "POST") {
 	const url = formData.get("url") as string;
 	const message = formData.get("message") as string;
 	const style = formData.get("style") as string;
+	const theme = formData.get("theme") === "dark" ? "dark" : "light";
+	const sendCopy = formData.get("send-copy") === "on";
 	const honeypot = formData.get("bot-field");
+
+	// Extract client IP (Netlify headers → standard fallbacks → dev stub)
+	const ip =
+		Astro.request.headers.get("x-nf-client-connection-ip") ||
+		Astro.request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+		Astro.request.headers.get("client-ip") ||
+		(import.meta.env.DEV ? "127.0.0.1" : undefined);
+
+	const userAgent = Astro.request.headers.get("user-agent") || undefined;
 
 	if (
 		!honeypot &&
@@ -31,7 +49,54 @@ if (Astro.request.method === "POST") {
 		name.trim().length > 0 &&
 		message.trim().length > 0
 	) {
-		await createGuestEntry({ name, email, url, message, style });
+		const { classification, entryId, submittedAt } = await createGuestEntry({
+			name,
+			email,
+			url,
+			message,
+			style,
+			ip,
+			userAgent,
+		});
+
+		// Await notifications before redirecting
+		// Fire-and-forget is not safe in serverless
+		// Function shuts down after response, cutting off any unawaited async work
+		const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "");
+		try {
+			const flags = await getNotificationFlags(entryId);
+			if (!flags.adminNotifiedAt) {
+				const result = await notifyNewEntry({
+					name,
+					email,
+					url,
+					message,
+					style,
+					classification,
+					entryId,
+					theme,
+					submittedAt,
+				});
+				if (result.ok) await markAdminNotified(entryId);
+			}
+			if (sendCopy && validEmail && !flags.copySentAt) {
+				// spam/hidden/rate-limited guard is applied inside sendEntryCopy
+				const result = await sendEntryCopy({
+					name,
+					email,
+					message,
+					style,
+					classification,
+					entryId,
+					theme,
+					submittedAt,
+				});
+				if (result.ok) await markCopySent(entryId);
+			}
+		} catch (err) {
+			console.error("[guestbook] Notification error:", err);
+		}
+
 		return Astro.redirect("/success");
 	}
 }
@@ -41,17 +106,17 @@ const entries = await getGuestEntries();
 
 <Layout title={title} ogImage="social-preview.png" description={description}>
 	<PreviewImage src={image} altText={title} />
-	<h1>{title}</h1>
+	<h2>{title}</h2>
 	<p>{description}</p>
 	<p>
-		In the spirit of the beautifully chaotic, handcrafted web of yesteryear — when we all had personal homepages filled
+		In the spirit of the beautifully chaotic, handcrafted web of yesteryear, when we all had personal homepages filled
 		with <span class="blink">blinking text</span>, dubious counters <strong>
 			Visitor# <span id="counter">000000</span>
 		</strong>, way too many <marquee>marquee tags</marquee> and
 		<span class="faded-text">color faded text (not just to impress recruiters)</span>, I've decided to bring back the
 		classic guestbook.
 	</p>
-	<p>
+	<div>
 		Just keep in mind:
 		<ul>
 			<li>Messages appear instantly, no waiting for the next time I ship an update.</li>
@@ -59,6 +124,7 @@ const entries = await getGuestEntries();
 			<li>Be kind. Spam and abuse will be removed.</li>
 		</ul>
 		<form id="form" method="POST">
+			<input type="hidden" name="theme" id="theme-input" value="light" />
 			<p>
 				<label>
 					Name
@@ -68,7 +134,7 @@ const entries = await getGuestEntries();
 			<p>
 				<label>
 					Email <small>(optional, not published)</small>
-					<br /><input class="input-allowed" type="email" name="email" />
+					<br /><input class="input-allowed" type="email" name="email" id="email-input" />
 				</label>
 			</p>
 			<p>
@@ -232,6 +298,13 @@ const entries = await getGuestEntries();
 					</small>
 				</label>
 			</p>
+			<p id="send-copy-row" style="display:none">
+				<label class="consent">
+					<input type="checkbox" name="send-copy" id="send-copy-checkbox" /><small>
+						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span></small
+					>
+				</label>
+			</p>
 			<p>
 				<button type="submit" class="btn btn-success"
 					><span class="font-retro text-success-content">Sign Guestbook</span>
@@ -240,7 +313,7 @@ const entries = await getGuestEntries();
 		</form>
 		<PrivacyPolicy />
 		{entries.map((entry) => <GuestbookEntry entry={entry} />)}
-	</p>
+	</div>
 	<ShareNotification id="entry-action-notification" message="Copied!" />
 </Layout>
 
@@ -250,10 +323,39 @@ const entries = await getGuestEntries();
 	import { initEntryActions } from "@/scripts/guestbookEntryActions";
 	import { initShareNotification } from "@/scripts/shareManager";
 
+	function initSendCopyToggle() {
+		const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
+		const sendCopyRow = document.getElementById("send-copy-row");
+		const sendCopyCheckbox = document.getElementById("send-copy-checkbox") as HTMLInputElement | null;
+		const sendCopyEmail = document.getElementById("send-copy-email");
+		if (!emailInput || !sendCopyRow || !sendCopyCheckbox) return;
+
+		function toggle() {
+			const hasValidEmail = emailInput!.checkValidity() && emailInput!.value.trim().length > 0;
+			sendCopyRow!.style.display = hasValidEmail ? "" : "none";
+			if (!hasValidEmail) sendCopyCheckbox!.checked = false;
+			if (sendCopyEmail) sendCopyEmail.textContent = hasValidEmail ? emailInput!.value.trim() : "";
+		}
+
+		emailInput.addEventListener("input", toggle);
+		toggle();
+	}
+
+	function initThemeCapture() {
+		const form = document.getElementById("form") as HTMLFormElement | null;
+		const themeInput = document.getElementById("theme-input") as HTMLInputElement | null;
+		if (!form || !themeInput) return;
+		form.addEventListener("submit", () => {
+			themeInput.value = document.documentElement.dataset.theme ?? "light";
+		});
+	}
+
 	function initGuestbook() {
 		initGuestbookCounter();
 		initGuestbookCustomizer();
 		initEntryActions();
+		initSendCopyToggle();
+		initThemeCapture();
 		// Guard: notification element may not exist during view transition navigation
 		if (document.getElementById("entry-action-notification")) {
 			initShareNotification("entry-action-notification");

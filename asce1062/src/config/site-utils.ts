@@ -14,15 +14,6 @@ export function getPageTitle(title: string): string {
 }
 
 /**
- * Get absolute URL from path
- * @param path - Relative path (e.g., "/blog")
- * @param baseUrl - Optional base URL override (defaults to SITE.url)
- */
-export function getAbsoluteUrl(path: string, baseUrl: string = SITE.url): string {
-	return new URL(path, baseUrl).href;
-}
-
-/**
  * Get OG image URL
  * @param imagePath - Image path or filename
  * @param baseUrl - Optional base URL override

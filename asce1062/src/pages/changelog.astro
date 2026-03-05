@@ -20,11 +20,11 @@ import {
 	getRepoSlugFromUrl,
 	getBaseRepoUrl,
 	getChangelogEntries,
-	formatChangelogDate,
 	renderMarkdownToHtml,
 	getYearFromDate,
 	type ChangelogEntry,
 } from "@/lib/api/github";
+import { formatDate } from "@/lib/content/utils";
 
 // Parse repo info from config
 const repoSlug = getRepoSlugFromUrl(SOCIAL.repo);
@@ -171,7 +171,7 @@ if (repoSlug) {
 									<div class="flex flex-wrap items-center gap-3 text-xs text-neutral-content mb-2">
 										<time datetime={entry.date}>
 											<i class="icon-calendar mr-1" />
-											{formatChangelogDate(entry.date)}
+											{formatDate(new Date(entry.date))}
 										</time>
 										<span>
 											<i class="icon-person mr-1" />

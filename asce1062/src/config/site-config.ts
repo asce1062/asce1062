@@ -54,7 +54,7 @@ export const NOTEBOOK = {
  */
 export const SOCIAL = {
 	/** Primary email address */
-	email: "alex.mbugua@outlook.com",
+	email: "alex@alexmbugua.me",
 	/** Twitter/X handle (without @) */
 	twitter: "alex_immer",
 	/** GitHub username */

@@ -1,6 +1,6 @@
 ---
 import type { GuestEntry, EntryStyle } from "@/lib/api/guestbook";
-import { formatEntryDate } from "@/lib/api/guestbook";
+import { formatDate } from "@/lib/content/utils";
 import EntryActions from "@/components/GuestBookEntryActions.astro";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const formattedDate = formatEntryDate(entry.timestamp);
+const formattedDate = formatDate(entry.timestamp, "medium");
 
 // Simple ASCII art detection
 // Lines with 2+ consecutive spaces
