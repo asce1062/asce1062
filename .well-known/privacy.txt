@@ -1,3 +1,4 @@
 Entity: Alex Mbugua Ngugi,KE
 Privacy-policy: https://alexmbugua.me/privacy
-Contact: mailto:alex.mbugua@outlook.com
+Contact: mailto:alex@alexmbugua.me
+Encryption: https://alexmbugua.me/.well-known/openpgpkey/hu/cddpr77ezsy7h967hgjydxhhmnt76n8w

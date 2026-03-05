@@ -62,8 +62,8 @@ SERVER LOGS
 
 Standard server logs (IP addresses, User Agent strings) may be retained by
 the hosting providers for operational and security purposes:
-- Netlify (https://www.netlify.com) — primary host
-- GitHub Pages (https://pages.github.com) — alternate host
+- Netlify (https://www.netlify.com) - primary host
+- GitHub Pages (https://pages.github.com) - alternate host
 
 These logs are not used for tracking and are subject to each provider's
 own privacy policy.
@@ -76,13 +76,12 @@ are used for functionality only and not for tracking purposes.
 CONTACT
 
 For questions about this policy:
-- Email: alex.mbugua@outlook.com
+- Email: alex@alexmbugua.me
 - GitHub: https://github.com/asce1062/asce1062/issues
 - PGP: https://alexmbugua.me/public.pgp
+- WKD: https://alexmbugua.me/.well-known/openpgpkey/hu/cddpr77ezsy7h967hgjydxhhmnt76n8w
 
-Note: WKD (Web Key Directory) key discovery is not yet available because
-the current PGP key is for @outlook.com. Once updated to
-ping@alexmbugua.me, WKD will be enabled at /.well-known/openpgpkey/.
+PGP fingerprint: 18AE 4232 9AC1 F56F 843B  88C6 73B4 8769 BB38 F964
 
 Or whichever way you prefer to ask - we will happily oblige.
 
@@ -90,7 +89,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-02-18.
+This policy was last reviewed and reasserted on 2028-03-01.
 
 REFERENCE
 
