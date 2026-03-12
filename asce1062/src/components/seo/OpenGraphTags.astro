@@ -13,6 +13,7 @@
  */
 /* eslint-disable astro/no-set-html-directive */
 import { SITE, SOCIAL, PROFESSIONAL, SEO, BLOG } from "@/config/site-config";
+import { getSocialProfileUrls } from "@/config/site-utils";
 import { formatDate } from "@/lib/content/utils";
 
 interface Props {
@@ -51,8 +52,8 @@ const ogImageType = "image/png";
 // Format published date for Twitter label
 const formattedDate = datePublished ? formatDate(new Date(datePublished), "medium") : undefined;
 
-// Use centralized social profiles from site-config
-const socialProfiles = [...SOCIAL.profiles];
+// Extract URL strings from structured profiles for JSON-LD
+const socialProfiles = getSocialProfileUrls();
 
 // Extract reading time number for timeRequired (e.g., "3 min read" -> 3)
 const readingTimeMinutes = readingTime ? parseInt(readingTime.match(/\d+/)?.[0] || "1") : undefined;

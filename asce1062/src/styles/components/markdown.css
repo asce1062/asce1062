@@ -1,0 +1,254 @@
+/*
+============================================
+Markdown Content Styles
+Scoped styles for MDX / markdown-rendered
+content in /blog and /notes.
+============================================
+*/
+
+@layer components {
+	/*
+  ============================================
+  Checkboxes (Markdown Task Lists)
+  ============================================
+  */
+
+	input[type="checkbox"] {
+		appearance: none;
+		-webkit-appearance: none;
+		width: 1em;
+		height: 1em;
+		margin: 0 0.35em 0 0;
+		padding: 0;
+		vertical-align: -0.1em;
+		display: inline-block;
+		font-family: "icomoon" !important;
+		font-size: 1em;
+		line-height: 1;
+		border: none;
+		background: none;
+	}
+
+	/* Unchecked: icon-square (\e9aa) */
+	input[type="checkbox"]::before {
+		content: "\e9aa";
+	}
+
+	/* Checked: icon-check-square (\f0ed) */
+	input[type="checkbox"]:checked::before {
+		content: "\f0ed";
+	}
+
+	/*
+  ============================================
+  Blockquotes
+  ============================================
+  */
+
+	blockquote {
+		@apply border-l-4 pl-4 pr-2 italic my-4 py-2;
+		border-color: var(--color-warning);
+		background-color: color-mix(in oklab, var(--color-primary), transparent 80%);
+		color: var(--color-base-content);
+	}
+
+	blockquote ol {
+		@apply list-decimal ml-6;
+		color: var(--color-primary-content);
+	}
+
+	/*
+  ============================================
+  Details / Callouts
+  ============================================
+  */
+
+	details:not(.table-of-contents details) > :nth-child(n + 2),
+	#expand-content p {
+		@apply pl-4 border-l p-2;
+		border-color: var(--color-warning);
+	}
+
+	/*
+  ============================================
+  Tables
+  ============================================
+  */
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 1.5rem 0;
+		font-size: 0.875rem;
+		display: block;
+		overflow-x: auto;
+	}
+
+	thead tr {
+		background-color: var(--color-base-200);
+		border-bottom: 2px solid var(--color-base-300);
+	}
+
+	th {
+		padding: 0.625rem 1rem;
+		text-align: right;
+		font-weight: 700;
+		color: var(--color-warning);
+		white-space: nowrap;
+		border: 1px solid var(--color-base-300);
+	}
+
+	th:first-child {
+		text-align: left;
+	}
+
+	td {
+		padding: 0.5rem 1rem;
+		color: var(--color-base-content);
+		border: 1px solid var(--color-base-300);
+		text-align: right;
+	}
+
+	td:first-child {
+		text-align: left;
+	}
+
+	/* CC Presskit icons. black on transparent; invert in dark theme */
+	.cc-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	html[data-theme="dark"] .cc-icon {
+		filter: invert(1);
+	}
+
+	tbody tr:nth-child(odd) {
+		background-color: var(--color-base-100);
+	}
+
+	tbody tr:nth-child(even) {
+		background-color: var(--color-base-200);
+	}
+
+	@media (hover: hover) {
+		tbody tr:hover {
+			background-color: color-mix(in oklab, var(--color-primary), transparent 85%);
+		}
+	}
+
+	/*
+  ============================================
+  Code Blocks & Syntax Highlighting
+  ============================================
+  */
+
+	code:not(pre code) {
+		@apply px-1 py-0.5 font-normal text-sm;
+		background-color: var(--color-neutral);
+		color: var(--color-neutral-content);
+	}
+
+	code {
+		@apply text-xs! md:text-sm!;
+	}
+
+	pre:not(.pre-art) {
+		@apply px-0!;
+		@apply border;
+		border-color: var(--color-base-300);
+	}
+
+	code {
+		@apply text-sm md:text-base leading-loose!;
+	}
+
+	pre > code {
+		counter-reset: line;
+	}
+
+	pre,
+	code,
+	figure {
+		@apply overflow-x-auto px-2;
+	}
+
+	/* Shiki Theme Support */
+	code[data-theme*=" "],
+	code[data-theme*=" "] span {
+		color: var(--shiki-light);
+		background-color: var(--shiki-light-bg);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		html[data-theme="dark"] code[data-theme*=" "],
+		html[data-theme="dark"] code[data-theme*=" "] span {
+			color: var(--shiki-dark);
+			background-color: var(--shiki-dark-bg);
+		}
+	}
+
+	/* Line Numbers */
+	code[data-line-numbers] {
+		counter-reset: line;
+	}
+
+	code[data-line-numbers] > [data-line]::before {
+		counter-increment: line;
+		content: counter(line);
+		@apply inline-block w-4 mr-4 text-right text-gray-500;
+	}
+
+	pre [data-line] {
+		@apply px-4 border-l-2 border-l-transparent;
+	}
+
+	/* Code Highlighting */
+	[data-highlighted-line] {
+		background: rgba(200, 200, 255, 0.1);
+		@apply border-l-blue-400;
+	}
+
+	[data-highlighted-chars] {
+		@apply bg-zinc-600/50;
+		box-shadow: 0 0 0 4px rgb(82 82 91 / 0.5);
+	}
+
+	[data-chars-id] {
+		@apply shadow-none p-1 border-b-2;
+	}
+
+	[data-chars-id] span {
+		@apply text-inherit!;
+	}
+
+	[data-chars-id="v"] {
+		@apply text-pink-300! bg-rose-800/50 border-b-pink-600 font-bold;
+	}
+
+	[data-chars-id="s"] {
+		@apply text-yellow-300! bg-yellow-800/50 border-b-yellow-600 font-bold;
+	}
+
+	[data-chars-id="i"] {
+		@apply text-purple-200! bg-purple-800/50 border-b-purple-600 font-bold;
+	}
+
+	/* Code Block Titles */
+	[data-rehype-pretty-code-title] {
+		@apply py-2 px-4 font-semibold text-sm border;
+		background-color: var(--color-base-200);
+		color: var(--color-base-content);
+		border-color: var(--color-base-300);
+	}
+
+	figcaption + pre {
+		@apply rounded-t-none!;
+	}
+
+	figure {
+		@apply mb-6 mt-1;
+	}
+}

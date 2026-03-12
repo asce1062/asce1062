@@ -1,0 +1,131 @@
+---
+/**
+ * AsciiWidget
+ *
+ * Shared markup for ASCII art displays:
+ * 	- dice randomize button
+ *  - copy button
+ * 	- font label
+ * 	- art pre
+ * All namespaced under a widgetId.
+ *
+ * Generated IDs (all prefixed with widgetId):
+ *   {widgetId}           - root element (stores data-ascii-current JSON on render)
+ *   {widgetId}-data      - hidden data carrier (data-variants JSON)
+ *   {widgetId}-randomize - dice button
+ *   {widgetId}-font      - font name label
+ *   {widgetId}-wrap      - inline-block position:relative wrapper (animation container)
+ *   {widgetId}-art       - <pre> element
+ *
+ * The copy button reads data-ascii-current from the root element.
+ * Callers must populate data-ascii-current on each render:
+ *   widgetEl.dataset.asciiCurrent = JSON.stringify({ text, font, art }, null, 2)
+ *
+ * artClass: extra classes on the <pre> for context-specific font-size/color.
+ * class:    extra classes on the root div (e.g. "inline-block text-left" for 404).
+ */
+import "@/styles/components/asciiWidget.css";
+
+interface Props {
+	widgetId: string;
+	variants: string;
+	artClass?: string;
+	class?: string;
+}
+
+const { widgetId, variants, artClass = "", class: className = "" } = Astro.props;
+---
+
+<div id={widgetId} class:list={["ascii-widget", className]}>
+	<!-- data carrier: hidden, read by the page's init script -->
+	<div id={`${widgetId}-data`} data-variants={variants} class="hidden"></div>
+
+	<!-- controls: dice + copy + font label — not part of the scroll region -->
+	<div class="ascii-widget-controls">
+		<button
+			id={`${widgetId}-randomize`}
+			class="ascii-widget-btn ascii-widget-randomize"
+			aria-label="Randomize ASCII art">
+			<i class="icon-dice"></i>
+		</button>
+		<div class="ascii-widget-meta">
+			<button class="ascii-widget-btn ascii-widget-copy" data-widget-id={widgetId} aria-label="Copy ASCII art as JSON">
+				<i class="icon-clipboard ascii-copy-icon"></i>
+				<i class="icon-check2 text-success ascii-check-icon hidden"></i>
+			</button>
+			<p id={`${widgetId}-font`} class="ascii-widget-font">&nbsp;</p>
+		</div>
+	</div>
+
+	<!-- art scroll region: only this overflows horizontally -->
+	<div class="ascii-widget-scroll">
+		<!-- animation container for about/404; sidebar uses .nav-easter-egg instead -->
+		<div id={`${widgetId}-wrap`} class="inline-block relative">
+			<pre id={`${widgetId}-art`} class:list={["pre-art ascii-widget-art", artClass]}></pre>
+		</div>
+	</div>
+</div>
+
+<script>
+	/**
+	 * Copy button handler for all AsciiWidget instances on the page.
+	 * Reads data-ascii-current (set by each page's init script) from the
+	 * widget root and copies it as formatted JSON to the clipboard.
+	 * Uses icon toggle (clipboard → checkmark) as feedback, matching the
+	 * palette page copy button pattern.
+	 */
+
+	const RESET_MS = 2000;
+
+	/**
+	 * Format the variant for copying:
+	 *
+	 * 1. Visual art. literal newlines. For pasting anywhere and it reads correctly.
+	 * 2. Valid JSON in a ```json code fence. Properly escaped \n json and can be
+	 *    parsed without modification.
+	 */
+	function formatVariant(raw: string): string {
+		const { text, font, art } = JSON.parse(raw) as { text: string; font: string; art: string };
+
+		const visual = `[${font}]\n\n` + "```figlet\n" + art + "\n```";
+		const json = "```json\n" + JSON.stringify({ text, font, art }, null, 2) + "\n```";
+
+		return visual + "\n\n" + json;
+	}
+
+	function initAsciiCopy(): void {
+		document.querySelectorAll<HTMLButtonElement>(".ascii-widget-copy").forEach((btn) => {
+			btn.addEventListener("click", async () => {
+				const widgetId = btn.dataset.widgetId;
+				if (!widgetId) return;
+
+				const widgetEl = document.getElementById(widgetId);
+				const raw = widgetEl?.dataset.asciiCurrent;
+				if (!raw) return;
+
+				try {
+					await navigator.clipboard.writeText(formatVariant(raw));
+					showCopied(btn);
+				} catch {
+					// Clipboard write failed silently. no feedback shown.
+				}
+			});
+		});
+	}
+
+	function showCopied(btn: HTMLButtonElement): void {
+		const copyIcon = btn.querySelector<HTMLElement>(".ascii-copy-icon");
+		const checkIcon = btn.querySelector<HTMLElement>(".ascii-check-icon");
+		if (!copyIcon || !checkIcon) return;
+
+		copyIcon.classList.add("hidden");
+		checkIcon.classList.remove("hidden");
+
+		setTimeout(() => {
+			copyIcon.classList.remove("hidden");
+			checkIcon.classList.add("hidden");
+		}, RESET_MS);
+	}
+
+	document.addEventListener("astro:page-load", initAsciiCopy);
+</script>

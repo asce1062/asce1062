@@ -56,35 +56,43 @@ if (repoSlug) {
 ---
 
 <Layout title="Changelog" description="Project commit history and recent changes" ogImage="social-preview.png">
-	<article class="prose prose-neutral dark:prose-invert max-w-none">
-		<h2><i class="icon-diff-modified"></i> Changelog</h2>
-		<p class="text-sm text-neutral-content mb-6">
-			{totalCount > 0 ? `${totalCount} total commits` : "Project history"}
-		</p>
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is a <a href="https://indieweb.org/release_notes" target="_blank" rel="noopener noreferrer">changelog page</a
+			><sup><a href="https://slashpages.net/#changelog" target="_blank" rel="noopener noreferrer">1</a></sup>.
+		</h2>
+		<!-- prettier-ignore-end -->
 
-		<h2>My Tinkering Log</h2>
-		<p class="text-sm mb-4">
-			I know I should stop "playing" with my site all the time and focus on writing; but I am having so much fun
-			learning and experimenting with Astro. Want to see what I've been messing with on the webbed site, instead of
-			actually writing content? Here's a list of changes I've made to my Astro site:
-		</p>
-
-		<!-- Repository link -->
-		{
-			baseRepoUrl && (
-				<p class="text-sm mb-8">
-					<a
-						href={`${baseRepoUrl}/commits`}
-						class="link-action link-action--accent no-underline"
-						target="_blank"
-						rel="noopener noreferrer">
-						<i class="icon-github" />
-						View all commits on GitHub
-						<i class="icon-box-arrow-up-right text-xs" />
-					</a>
-				</p>
-			)
-		}
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">git log --oneline</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-diff-modified"></i> My Tinkering Log</h2>
+			{totalCount > 0 && <p class="text-sm text-neutral-content mb-2">{totalCount} total commits</p>}
+			<p class="text-sm mb-4">
+				I know I should stop "playing" with my site all the time and focus on writing; but I am having so much fun
+				learning and experimenting with Astro. Want to see what I've been messing with on the webbed site, instead of
+				actually writing content? Here's a list of changes I've made to my Astro site:
+			</p>
+			{
+				baseRepoUrl && (
+					<p class="text-sm mb-4">
+						<a
+							href={`${baseRepoUrl}/commits`}
+							class="link-action link-action--accent no-underline"
+							target="_blank"
+							rel="noopener noreferrer">
+							<i class="icon-github" />
+							View all commits on GitHub
+							<i class="icon-box-arrow-up-right text-xs" />
+						</a>
+					</p>
+				)
+			}
+		</section>
 
 		<!-- Error state -->
 		{

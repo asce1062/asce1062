@@ -1,0 +1,125 @@
+---
+title: "Licensing & Disclaimer"
+pubDate: 2026-03-12
+description: "How this site's content, music, and code is licensed."
+tags: ["site", "meta", "legal"]
+permalink: "2026-03-12-licensing"
+updatedDate: 2026-03-12
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout collection="notes"
+    title={frontmatter.title}
+    description={frontmatter.description}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+`cat ~/LICENSE.md`.
+
+This page covers what you can do with the stuff on this site, what I ask in return, and a few things that aren't mine to give away.
+<br/>
+---
+<br/>
+## `$ ls ~/licenses/`
+
+Everything here falls under [Creative Commons](https://creativecommons.org/) licensing. The short version: share it, remix it, just don't sell it, and give me a nod.
+
+### Written Content & Site
+
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="hover:opacity-80 transition-opacity" target="_blank">
+  <img alt="Creative Commons License" style="border-width: 0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" class="rounded" />
+</a>
+
+All written content, posts, notes, and pages on this site are licensed under **[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)** — Attribution-NonCommercial-ShareAlike 4.0 International.
+
+**You are free to:**
+
+| |Permissions |
+|---|---|
+| <img src="https://mirrors.creativecommons.org/presskit/icons/share.svg" alt="share" class="cc-icon" /> | **Share** — copy and redistribute the material in any medium or format |
+| <img src="https://mirrors.creativecommons.org/presskit/icons/remix.svg" alt="remix" class="cc-icon" /> | **Adapt** — remix, transform, and build upon the material |
+
+*The licensor cannot revoke these freedoms as long as you follow the license terms.*
+
+**Under the following terms:**
+
+| | Conditions |
+|---|---|
+| <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="attribution" class="cc-icon" /> | **Attribution** — give appropriate credit, provide a link to the license, and indicate if changes were made[^1] |
+| <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="non-commercial" class="cc-icon" /> | **NonCommercial** — may not use the material for commercial purposes[^2] |
+| <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="share-alike" class="cc-icon" /> | **ShareAlike** — distribute contributions under the same license as the original[^3] |
+| <i class="icon-circle-slash" /> | **No additional restrictions** — do not apply legal terms or technological measures that legally restrict others from doing anything the license permits[^4] |
+
+> **Notices.** You do not have to comply with the license for elements of the material in the public domain or where your use is permitted by an applicable exception or limitation.[^5] No warranties are given. The license may not give you all of the permissions necessary for your intended use — other rights such as publicity, privacy, or moral rights may limit how you use the material.[^6]
+<br/>
+
+### Music
+
+Music by <ins>Alex Ngugi</ins> is licensed under **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** — Attribution-NonCommercial.
+
+- You can share and adapt it freely
+- Credit `Alex Mbugua Ngugi` and link back to the source
+- No commercial use without explicit permission
+
+> For commercial licensing enquiries: [alex@alexmbugua.me](mailto:alex@alexmbugua.me)
+<br/>
+
+---
+<br/>
+
+## `$ cat ~/NOTICE.md`
+
+### What's not covered
+
+- **Original artwork** — property of the site owner. Please [contact me](mailto:alex@alexmbugua.me) before using or distributing elsewhere.
+- **Third-party assets** — the logo, icons, code libraries, fonts, and tooling carry their own licenses. See the [colophon](/colophon) for what powers this site.
+- **Source code** — the site's [source is public on GitHub](https://github.com/asce1062/asce1062) and inherits the licenses of its respective dependencies.
+<br/>
+
+---
+<br/>
+
+## `$ cat ~/DISCLAIMER.md`
+
+The content on this site is provided **as-is**, with no guarantees of completeness, accuracy, or timeliness.
+1. **Opinions**
+    - personal.
+    - They belong solely to me and do not represent any organisation I'm affiliated with.
+    - Not intended to malign any religion, ethnic group, club, organisation, company, or individual.
+2. **Accuracy**
+    - I try to get things right.
+    - I don't guarantee it.
+    - Pages here are [living documents](/notes/2026-03-12-guiding-principles) and subject to change without notice.
+3. **Links**
+    - I'm not responsible for external content.
+    - Follow links at your own risk.
+4. **Advice**
+    - Nothing here constitutes professional advice of any kind.
+    - Please seek professional assistance should you require it.
+5. **Changes**
+    - I reserve the right to modify this page at any time.
+    - Continued use of the site constitutes acceptance of the current version.
+<br/>
+### Content & Postings
+
+You may not modify, print, copy, or include any part of this site in another work — printed, electronic, embedded, or framed — without prior consent from the site owner.
+<br/>
+
+---
+<br/>
+
+## `$ echo $CONTACT`
+
+Questions about licensing, commercial use, or anything in here?
+
+Reach me at [alex@alexmbugua.me](mailto:alex@alexmbugua.me).
+
+[^1]: "Appropriate credit" means the creator name, copyright notice, license notice, disclaimer notice, and a link to the material — each to the extent reasonably practicable.
+[^2]: "Commercial purposes" means use primarily intended for or directed toward commercial advantage or monetary compensation.
+[^3]: Compatible licenses are listed at [creativecommons.org/compatiblelicenses](https://creativecommons.org/compatiblelicenses).
+[^4]: This does not restrict the exercise of rights under applicable exceptions and limitations, including fair use and fair dealing.
+[^5]: Exceptions and limitations include fair use, fair dealing, and analogous user rights that apply to your specific use.
+[^6]: You may need to obtain additional permissions before using the material as intended.
+
+</ContentLayout>

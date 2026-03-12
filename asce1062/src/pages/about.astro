@@ -1,0 +1,161 @@
+---
+/**
+ * About Page
+ * Engineer, chip musician, retro web enthusiast. Get to know Alex Mbugua.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SOCIAL } from "@/config/site-config";
+import asciiData from "@/data/ascii-art.json";
+import AsciiWidget from "@/components/AsciiWidget.astro";
+
+type AsciiVariant = { text: string; font: string; art: string };
+const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => v.text !== "404"));
+---
+
+<Layout
+	title="About"
+	description="Engineer, chip musician, retro web enthusiast. Get to know Alex Mbugua."
+	ogImage="social-preview.png">
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is an <a href="https://indieweb.org/about" target="_blank" rel="noopener noreferrer">about page</a><sup
+				><a href="https://slashpages.net/#about" target="_blank" rel="noopener noreferrer">1</a></sup
+			>.
+		</h2>
+		<!-- prettier-ignore-end -->
+		<!-- whoami -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">whoami</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-person"></i> Alex Mbugua</h2>
+			<p>
+				This is me. I code stuff. My name is Alex, though if we met online you might know me as “asce1062”,
+				“alex.immer”, “3341”, or “FrostyFeet”. I like all sorts of weird (computer) things.
+			</p>
+			<p>
+				I'm a full-stack engineer, chip musician, open-source tinkerer, and the person behind this site. Based in
+				Nairobi, building things on the internet.
+			</p>
+			<p>
+				By day, I design and build secure, scalable cloud systems for high-impact platforms. By night (and most
+				weekends), I compose
+				<a href="https://asce1062.github.io/" target="_blank" rel="noopener noreferrer">chip music</a>, reverse-engineer
+				things for the joy of understanding them, and tinker with this website instead of actually writing content for
+				it.
+			</p>
+			<p>
+				My curiosity started early. I had a hand-me-down Casio Databank when I was six. I spent an unreasonable amount
+				of time poking through every menu and feature, trying to figure out how it worked and what else it might be
+				capable of. Looking back, that was probably my first introduction to reverse engineering, even if I didn't have
+				the words for it yet.
+			</p>
+			<p>
+				A few years later we had an Amiga 2000 at home. That machine opened the door to games, trackers, and the strange
+				magic of computers making music. At first I wanted to build my own games, but over time I realized the parts I
+				loved most were writing code and composing music.
+			</p>
+			<p>
+				So I've stuck with those over the years, with the same curiosity that started with a calculator watch and a
+				beige computer.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">neofetch</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-gear"></i> System Profile</h2>
+
+			<div class="mt-4">
+				<AsciiWidget widgetId="neofetch" variants={variantsJson} artClass="text-secondary text-xs leading-tight" />
+
+				<div class="mt-4 space-y-1.5 text-sm">
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Role</span>
+						<span>Full-Stack Engineer, Leader, Mentor</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Location</span>
+						<span>Nairobi, Kenya</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Experience</span>
+						<span>8+ years</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Focus</span>
+						<span>Cloud architecture, security, auth, EdTech</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Music</span>
+						<span>Chip music, indie rock, folk rock, dream pop, shoegaze, Phonk</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Aesthetic</span>
+						<span>Retro. Monospace. No roundness.</span>
+					</div>
+					<div class="flex gap-3">
+						<span class="text-warning w-24 shrink-0">Status</span>
+						<span><span class="text-success">&#9679;</span> Online and hydrated</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<script>
+			import { setupAsciiWidget } from "@/scripts/asciiWidget";
+			import type { AsciiRevealTeardown } from "@/scripts/asciiWidget";
+
+			let _teardown: AsciiRevealTeardown | null = null;
+
+			function initNeofetch(): void {
+				_teardown?.();
+				_teardown = setupAsciiWidget("neofetch");
+			}
+
+			document.addEventListener("astro:page-load", initNeofetch);
+		</script>
+
+		<section class="mb-6">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
+			</p>
+			<p>
+				Check out some of my other <a href="/interests">interests</a>, what I'm up to <a href="/now">now</a>, or
+				generate your own <a href="/8biticon">8-bit avatar</a>.
+			</p>
+			<p>
+				I have a digital version of my <a href="/resume">resume</a> available here.
+			</p>
+			<p>
+				Wanna <a href={`mailto:${SOCIAL.email}`}>contact me</a> or just <a href="/hello">say hello</a>?
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/interests" class="link-action no-underline">
+					<i class="icon-collection"></i>
+					Interests
+				</a>
+				<a href="/now" class="link-action no-underline">
+					<i class="icon-hourglass-split"></i>
+					Now
+				</a>
+				<a href="/hello" class="link-action no-underline">
+					<i class="icon-chat-square-heart"></i>
+					Hello
+				</a>
+				<a href="/8biticon" class="link-action no-underline">
+					<i class="icon-grid-3x3-gap"></i>
+					8-bit Avatar
+				</a>
+			</div>
+		</section>
+	</article>
+</Layout>

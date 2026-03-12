@@ -1,25 +1,138 @@
 ---
+/**
+ * 404 Page
+ */
 import Layout from "@/layouts/Layout.astro";
+import asciiData from "@/data/ascii-art.json";
+import AsciiWidget from "@/components/AsciiWidget.astro";
+
+type AsciiVariant = { text: string; font: string; art: string };
+const variants404 = (asciiData as AsciiVariant[]).filter((v) => v.text === "404");
+const variantsJson = JSON.stringify(variants404);
 ---
 
-<Layout title="404" ogImage="social-preview.png" description="womp womp :(">
-	<div class="text-center">
-		<pre
-			id="ascii-404">
-                __
-                / _)
+<Layout title="404" description="This page doesn't exist." ogImage="social-preview.png">
+	<article>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cd /page-not-found</span>
+				<span class="blink">_</span>
+			</p>
+			<p class="text-error text-sm font-bold mb-0"> bash: cd: /page-not-found: No such file or directory </p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat /dev/404</span>
+				<span class="blink">_</span>
+			</p>
+
+			<div class="text-center">
+				<AsciiWidget
+					widgetId="neofetch"
+					variants={variantsJson}
+					artClass="text-secondary text-xs leading-tight"
+					class="inline-block text-left"
+				/>
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/what-happened.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-question-circle"></i> Looks like you're lost.</h2>
+			<p>
+				This page doesn't exist. It may have moved, been removed, or the URL might just be wrong. Nothing to de<i
+					class="icon-bug"
+					aria-label="bug"></i> here, genuinely nothing at this path.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<div class="overflow-x-auto text-center">
+				<div class="inline-block text-left">
+					<p class="text-xs text-neutral-content mb-3">
+						<span class="text-neutral-content font-bold">#</span>
+						<span class="ml-1 text-neutral-content">you are not the only one wandering</span>
+					</p>
+					<!-- prettier-ignore-start -->
+					<pre
+						class="pre-art text-neutral-content text-xs leading-tight m-0 opacity-60"
+						aria-hidden="true">
+               __
+              / _)
      _.----._/ /
     /         /
  __/ (  | (  |
 /__.-'|_|--|_|
-██╗  ██╗ ██████╗ ██╗  ██╗
-██║  ██║██╔═████╗██║  ██║
-███████║██║██╔██║███████║
-╚════██║████╔╝██║╚════██║
-     ██║╚██████╔╝     ██║
-     ╚═╝ ╚═════╝      ╚═╝
-                </pre>
-		<h1>uh oh, page not found!</h1>
-		this page doesn't exist. perhaps you'd like to head <a href="/">home</a> for now?
-	</div>
+               __
+       (o_    ( o&gt;
+(o_    //\    ///\
+(/)_   V_/_   \V_/_
+</pre>
+					<!-- prettier-ignore-end -->
+				</div>
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls ~/find-your-way/</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-signpost-split"></i> Find your way back.</h2>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/" class="link-action no-underline">
+					<i class="icon-house-heart"></i>
+					Home
+				</a>
+				<a href="/blog" class="link-action no-underline">
+					<i class="icon-journal-richtext"></i>
+					Blog
+				</a>
+				<a href="/notes" class="link-action no-underline">
+					<i class="icon-stickies"></i>
+					Notebook
+				</a>
+				<a href="/search" class="link-action no-underline">
+					<i class="icon-search-heart"></i>
+					Search
+				</a>
+			</div>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="space-y-3">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit 1</span>
+				<span class="blink">_</span>
+			</p>
+			<p>
+				If you think something is genuinely broken, feel free to <a href="/hello">let me know</a>.
+			</p>
+		</section>
+	</article>
 </Layout>
+
+<script>
+	import { setupAsciiWidget } from "@/scripts/asciiWidget";
+	import type { AsciiRevealTeardown } from "@/scripts/asciiWidget";
+
+	let _teardown: AsciiRevealTeardown | null = null;
+
+	function init404(): void {
+		_teardown?.();
+		// replayOnDice: art is visible on load, animate immediately on dice click.
+		_teardown = setupAsciiWidget("neofetch", { replayOnDice: true });
+	}
+
+	document.addEventListener("astro:page-load", init404);
+</script>

@@ -248,6 +248,16 @@ export default [
 	},
 
 	/**
+	 * Console easter egg (intentional console.log usage)
+	 */
+	{
+		files: ["src/scripts/consoleEgg.ts"],
+		rules: {
+			"no-console": "off",
+		},
+	},
+
+	/**
 	 * Astro environment types (allow triple-slash references)
 	 */
 	{

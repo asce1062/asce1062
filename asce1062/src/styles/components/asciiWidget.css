@@ -1,0 +1,91 @@
+/*
+============================================
+ASCII Widget
+============================================
+Shared styles for the AsciiWidget component:
+dice randomize button, copy button, font label, art pre.
+
+Used in: Sidebar easter egg, about page neofetch, 404 page art.
+Context-specific overrides (art font-size, container opacity, etc.)
+live in their respective stylesheets.
+============================================
+*/
+
+/* constrain root so inline-block in 404 doesn't expand past viewport */
+.ascii-widget {
+	max-width: 100%;
+}
+
+/* art scrolls independently; controls above stay fixed */
+.ascii-widget-scroll {
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+/* font label + copy button on the same row */
+.ascii-widget-meta {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin-bottom: 0.125rem;
+}
+
+/* Shared base for dice and copy buttons */
+.ascii-widget-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--color-neutral-content);
+	background: none;
+	border: none;
+	padding: 0;
+	font-size: 0.875rem;
+	line-height: 1;
+	transition:
+		color 0.15s ease,
+		transform 0.15s ease;
+}
+
+.ascii-widget-btn:hover {
+	color: var(--color-accent);
+}
+
+/* Dice tilts left, copy tilts right */
+.ascii-widget-randomize:hover {
+	transform: rotate(-6deg);
+}
+
+.ascii-widget-copy:hover {
+	transform: rotate(6deg);
+}
+
+.ascii-widget-font {
+	font-size: 0.625rem;
+	color: var(--color-neutral-content);
+	font-style: italic;
+	margin: 0;
+	opacity: 0.7;
+	line-height: 1.4;
+}
+
+.ascii-widget-art {
+	margin: 0;
+	white-space: pre;
+	cursor: text;
+	user-select: text;
+	line-height: 1;
+	font-family:
+		"0xProto", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/*
+============================================
+Reduced motion
+============================================
+*/
+@media (prefers-reduced-motion: reduce) {
+	.ascii-widget-btn {
+		transition: none;
+	}
+}

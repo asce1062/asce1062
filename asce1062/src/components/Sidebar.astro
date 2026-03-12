@@ -1,0 +1,140 @@
+---
+/**
+ * Sidebar Component
+ *
+ * CSS checkbox-driven nav drawer.
+ *
+ * #nav-toggle checkbox (hidden) is the state machine.
+ * body:has(#nav-toggle:checked) in sidebar.css handles panel/overlay/hamburger.
+ * The hamburger label lives in Header.astro (for="nav-toggle").
+ * JS handles: Escape key, scroll lock, close-on-click, header offset.
+ */
+import "@/styles/components/sidebar.css";
+import { mainNavigation, navSections } from "@/data/navigation";
+import asciiData from "@/data/ascii-art.json";
+import AsciiWidget from "@/components/AsciiWidget.astro";
+
+const currentPath = Astro.url.pathname;
+
+function isActive(linkHref: string): boolean {
+	if (linkHref === "/" && currentPath === "/") return true;
+	if (linkHref !== "/" && currentPath.startsWith(linkHref)) return true;
+	return false;
+}
+
+const grouped = navSections.map((s) => ({
+	label: s.label,
+	items: mainNavigation.filter((link) => link.section === s.key),
+}));
+
+type AsciiVariant = { text: string; font: string; art: string };
+const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => v.text !== "404"));
+---
+
+<!-- State machine: hidden checkbox -->
+<input type="checkbox" id="nav-toggle" class="nav-toggle-input" autocomplete="off" />
+
+<!-- Nav panel -->
+<aside
+	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100 bg-[url('/topographylight.svg')] dark:bg-[url('/topography.svg')]"
+	aria-label="Site navigation">
+	<div class="nav-brand">
+		<!-- prettier-ignore -->
+		<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$</span></span>
+	</div>
+
+	<nav class="nav-body" aria-label="Main navigation">
+		{
+			grouped.map(({ label, items }) =>
+				items.length > 0 ? (
+					<div class="nav-section">
+						<div class="nav-section-label">
+							<span class="badge badge-secondary badge-sm">&#x276F;</span>
+							<span class="badge badge-success badge-sm">{label}</span>
+						</div>
+						<ul class="nav-list" role="list">
+							{items.map((link) => {
+								const active = isActive(link.href);
+								return (
+									<li>
+										<b>
+											<a
+												class:list={["nav-link", { "nav-link--active": active }]}
+												href={link.href}
+												aria-label={link.ariaLabel}
+												aria-current={active ? "page" : undefined}
+												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+												{link.multiPathIcon && link.pathCount ? (
+													<span class={`${link.icon} nav-icon`} aria-hidden="true">
+														{Array.from({ length: link.pathCount }, (_, i) => (
+															<span class={`path${i + 1}`} />
+														))}
+													</span>
+												) : (
+													<i class={`${link.icon} nav-icon`} aria-hidden="true" />
+												)}
+												<span class="nav-text">{link.name}</span>
+											</a>
+										</b>
+									</li>
+								);
+							})}
+						</ul>
+					</div>
+				) : null
+			)
+		}
+
+		<!-- ASCII easter egg. visible on overscroll -->
+		<div class="nav-easter-egg" aria-hidden="true">
+			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
+		</div>
+	</nav>
+
+	<!-- Avatar footer -->
+	<div class="nav-status">
+		<!-- Controls: randomize + gender -->
+		<div class="nav-avatar-controls">
+			<button id="nav-avatar-randomize" class="nav-avatar-btn" aria-label="Randomize avatar" title="Randomize">
+				<i class="icon-stars"></i>
+			</button>
+			<!-- prettier-ignore-start -->
+			<button class="nav-avatar-btn" data-avatar-gender="male" aria-label="Male avatar" title="Male">
+				<span class="icon-male"
+					><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
+					></span><span class="path5"></span><span class="path6"></span></span
+				>
+			</button>
+			<button class="nav-avatar-btn" data-avatar-gender="female" aria-label="Female avatar" title="Female">
+				<span class="icon-female"
+					><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
+					></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"
+					></span><span class="path9"></span><span class="path10"></span></span
+				>
+			</button>
+			<!-- prettier-ignore-end -->
+		</div>
+
+		<!-- Avatar canvas (click → /8biticon with current state) -->
+		<a
+			id="nav-avatar-link"
+			href="/8biticon"
+			aria-label="Open avatar generator"
+			class="hover:bg-transparent! hover:color-inherit! no-underline">
+			<canvas id="nav-avatar-canvas" width="400" height="400" class="nav-status-avatar" aria-hidden="true"></canvas>
+		</a>
+	</div>
+</aside>
+
+<!-- Overlay transparent click trap. closes nav -->
+<label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>
+
+<script>
+	import "@/scripts/sidebarNav";
+</script>
+<script>
+	import "@/scripts/sidebarEgg";
+</script>
+<script>
+	import "@/scripts/sidebarAvatar";
+</script>

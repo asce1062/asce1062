@@ -1,0 +1,162 @@
+---
+title: "Fixing ASCII Art Rendering in 0xProto with Nerd Fonts"
+pubDate: 2026-03-13
+description: "How to use the Nerd Fonts Mono variant of a typeface for full Unicode coverage, and generate WOFF2 from TTF using fontTools."
+image:
+    url: "/src/assets/blog/fixing-ascii-art-rendering.png"
+    alt: "patching & Converting Web Fonts with Nerd Fonts"
+tags: ["fonts", "web", "nerd-fonts", "ascii-art", "typography", "tools", "unicode"]
+permalink: "2026-03-13-fixing-ascii-art-0xproto-nerd-font-mono"
+updatedDate: 2026-03-13
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}
+    tableOfContents={tableOfContents}>
+
+# Fixing ASCII Art Rendering in 0xProto with NerdFontMono
+<br/>
+`fc-query 0xProto`.
+
+The base font looked great until I tried rendering ASCII art with Block Elements and the glyphs just weren't there.
+Here's how I fixed it, and how you can do the same for any developer typeface.
+<br/>
+---
+<br/>
+## `$ whatis nerd-fonts`
+
+[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts) is an open source project that takes popular developer fonts
+and patches them with thousands of additional glyphs crucially the full **Unicode Box Drawing** and **Block Elements** ranges.
+
+Three patched variants are available for every font:
+
+| Variant | Advance width policy | Use case |
+|---|---|---|
+| **NerdFontMono** | Strict monospace<br/>every glyph 1× cell wide | Terminal, code editors, ASCII art |
+| **NerdFontPropo** | Proportional<br/>added glyphs can be wide | GUI apps, proportional UI text |
+| **NerdFont** (default) | Mixed<br/>icons are 2× wide | Terminals that support double-wide chars |
+
+For web ASCII art, **NerdFontMono** is the right pick. Every character, <em>including</em> the <u>32 Block Elements</u> (`U+2580–U+259F`)
+from the [original font](https://github.com/0xType/0xProto) and <u>128 Box Drawing characters</u> (`U+2500–U+257F`),
+is rendered at exactly the same advance width as a regular letter. That's what keeps art pixel-perfect in the browser.
+
+---
+<br/>
+## `$ cat ~/why-we-needed-this.md`
+
+The base 0xProto ships with full Box Drawing coverage but **zero Block Elements**
+I only discovered this gap when ASCII art on some [fonts](https://github.com/patorjk/figlet.js) like ***ANSI Shadow***–style
+started rendering broken in the browser (visually corrupted, yet copy-paste was correct).
+
+A quick audit with fontTools made the problem obvious:
+
+```diff title="fontTools audit — 0xProto base font"
+- Block Elements  (U+2580–U+259F):   0 / 32  glyphs present
++ Box Drawing     (U+2500–U+257F): 128 / 128  glyphs present
+```
+
+The NerdFontMono patch fills both ranges at a consistent **620-unit advance width**, identical to the rest of 0xProto's glyph metrics (`upem 1000`).<br/>
+Swapping the font files fixed the rendering without touching a single line of CSS.
+
+---
+<br/>
+## `$ ls ~/download-options/`
+
+Nerd Fonts releases ship `.ttf` files only. Grab the **Mono** variant for the typeface you need:
+
+```text title="0xProto — NerdFontMono TTF files" /Mono/#v
+0xProtoNerdFontMono-Regular.ttf
+0xProtoNerdFontMono-Bold.ttf
+0xProtoNerdFontMono-Italic.ttf
+```
+
+Individual font families are available at [nerdfonts.com](https://www.nerdfonts.com/font-downloads)
+or directly from the [GitHub releases](https://github.com/ryanoasis/nerd-fonts/releases).
+
+> **Why not `NerdFontPropo`?** Audit showed _NerdFontPropo_ sets Block Element advance widths to **618** units vs 0xProto's **620**
+(a 2-unit mismatch that causes visible column-drift in multi-line art). `NerdFontMono` <u>enforces</u> _strict equality for all added glyphs_.
+
+---
+<br/>
+## `$ convert ttf woff2`
+
+Nerd Fonts provides TTF only. For web serving, **WOFF2** (TTF + Brotli compression) is the modern standard.
+Roughly 30% smaller than TTF and supported by 97%+ of browsers.
+
+Start by installing the tooling:
+
+```bash title="install dependencies"
+pip install fonttools brotli
+```
+
+Then convert all three variants in one pass:
+
+```python title="generate-woff2.py" showLineNumbers {9,10}
+from fontTools.ttLib import TTFont
+
+variants = [
+    ("0xProtoNerdFontMono-Regular.ttf", "0xProto-Regular.woff2"),
+    ("0xProtoNerdFontMono-Bold.ttf",    "0xProto-Bold.woff2"),
+    ("0xProtoNerdFontMono-Italic.ttf",  "0xProto-Italic.woff2"),
+]
+
+for src, dst in variants:
+    f = TTFont(src)
+    f.flavor = "woff2"
+    f.save(dst)
+    print(f"✓ {dst}")
+```
+
+Lines <u>9–10</u> are all that matters: set `flavor` to `"woff2"` and save.
+No glyph data is altered, only the container format and compression change.
+
+Serve both formats via `@font-face`. WOFF2 first, TTF as the fallback:
+
+```css title="style.css" showLineNumbers {3-5} "woff2"#v "truetype"#s
+@font-face {
+  font-family: "0xProto";
+  src:
+    url("/fonts/0xProto/0xProto-Regular.woff2") format("woff2"),
+    url("/fonts/0xProto/0xProto-Regular.ttf")   format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+The browser picks the first format it can decode (effectively every modern browser takes `woff2` and never touches the TTF fallback).
+
+---
+<br/>
+## `$ cat ~/LICENSE-notes.md`
+
+Both 0xProto and Nerd Fonts are released under the **[SIL Open Font License 1.1](https://openfontlicense.org/)**. The OFL explicitly permits:
+
+- Format conversion (`TTF` → `WOFF2`)
+- Redistribution bundled with a software project
+- Modification, provided a different name is used for modified versions
+
+That last point is already handled. Nerd Fonts renames the patched typeface (`0xProto` → `0xProto Nerd Font Mono`), so the naming requirement is satisfied.
+Generating WOFF2 for your own web deployment is permitted without restriction.
+
+What the OFL does **not** permit: selling the fonts as standalone products.
+
+See also: [Licensing & Disclaimer](/notes/2026-03-12-licensing).
+
+---
+<br/>
+## `$ echo $TLDR`
+
+1. Audit your font for missing Unicode ranges before assuming a rendering bug is CSS. <u>fontTools</u> makes this trivial.
+2. Use **NerdFontMono** for monospace web contexts; the `default` and `Propo` variants <u>will</u> cause alignment drift.
+3. Convert `TTF` → `WOFF2` with `fonttools` + `brotli`; serve both via `@font-face` for broad browser coverage.
+4. `OFL 1.1` permits this workflow <u>freely</u>. Format conversion is <u>not</u> a modification.
+
+</ContentLayout>

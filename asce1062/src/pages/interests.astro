@@ -1,0 +1,368 @@
+---
+/**
+ * Interests
+ * The things Alex is actually, genuinely into.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SITE, SOCIAL } from "@/config/site-config";
+
+const xda = SOCIAL.profiles.find((p) => p.name === "XDA Forums");
+const uc = SOCIAL.profiles.find((p) => p.name === "UnknownCheats");
+const steam = SOCIAL.profiles.find((p) => p.name === "Steam");
+const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
+---
+
+<Layout
+	title="Interests"
+	description={`The things ${SITE.authorShort} is genuinely into. chip music, retro hardware, web craft, games, and other computer-shaped obsessions.`}>
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is an
+			<a href="https://chrisburnell.com/note/slash-interests/" target="_blank" rel="noopener noreferrer">
+				interests page</a
+			><sup><a href="https://slashpages.net/#interests" target="_blank" rel="noopener noreferrer">1</a></sup>.
+		</h2>
+		<!-- prettier-ignore-end -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/interests.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-heart"></i> Things I actually light up about.</h2>
+			<p>
+				This is not a list of hobbies I vaguely dabble in. These are the things I return to on weekends, read about at
+				odd hours, and drag into conversations whether or not they are welcome.
+			</p>
+			<p> Some of it overlaps with my work. Most of it started long before the work did. All of it is genuine. </p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls -la ~/interests/</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-collection"></i> The list</h2>
+			<div class="space-y-6 mt-4">
+				<div class="border-l-2 pl-4" style="border-color: var(--color-primary);">
+					<h3 class="badge badge-primary mb-2 font-bold">chip music &amp; trackers/</h3>
+					<p class="mt-0 mb-2">
+						Writing music on hardware that wasn't designed to be a music studio, four channels, a few kilobytes, and a
+						hard limit on everything. Those constraints are the point, trackers are the tool, and that's how I got
+						started.
+					</p>
+					<p class="mt-0 mb-0 text-sm text-neutral-content">
+						Armed with a spreadsheet crossed with a sequencer, I've been composing chip music since the Amiga days. You
+						can hear most of it at
+						<a href="https://asce1062.github.io/" target="_blank" rel="noopener noreferrer"> asce1062.github.io </a>.
+					</p>
+				</div>
+
+				<div class="border-l-2 pl-4" style="border-color: var(--color-secondary);">
+					<h3 class="badge badge-secondary mb-2 font-bold">reverse engineering/</h3>
+					<p class="mt-0 mb-2">
+						Not malicious. Just curious. Started with a Casio Databank when I was younger. Poking through every menu
+						looking for edges. Better tools now, about the same amount of patience.
+					</p>
+					<p class="mt-0 mb-2">
+						Games are a particularly rich vein. Cheat codes, the easter eggs, debug menus left in shipping builds,
+						messages buried in ROM nobody was supposed to find. Modding goes a step further. Understanding the game well
+						enough to change it, add to it, or break it in interesting ways. I have spent more hours than I should admit
+						in game memory and
+						{
+							uc && (
+								<a href={uc.url} target="_blank" rel="noopener noreferrer">
+									modding communities
+								</a>
+							)
+						}.
+					</p>
+					<p class="mt-0 mb-2">
+						Mobile hardware took this somewhere else entirely. Unlocking bootloaders, building custom kernels, porting
+						AOSP to devices the manufacturer stopped caring about. It is the same instinct applied to a different
+						substrate. If the vendor won't ship a security patch, build your own ROM. I published several custom Android
+						builds on
+						{
+							xda && (
+								<a href={xda.url} target="_blank" rel="noopener noreferrer">
+									XDA Forums
+								</a>
+							)
+						}
+						back when that was the only way to get a supported Android on hardware people still used every day.
+					</p>
+				</div>
+
+				<div class="border-l-2 pl-4" style="border-color: var(--color-accent);">
+					<h3 class="badge badge-accent mb-2 font-bold">web craft &amp; personal sites/</h3>
+					<p class="mt-0 mb-2">
+						The web is still the most open publishing platform humans have built and personal websites are the proof.
+						Sites with actual opinions, personality quirks, and craft put into them. Sites where you can tell a real
+						person lives there. The IndieWeb movement gets this right. Own your content, own your presence, link to
+						actual humans.
+					</p>
+					<p class="mt-0 mb-0 text-sm text-neutral-content">
+						This site is my contribution. The source is
+						<a href="https://github.com/asce1062/asce1062" target="_blank" rel="noopener noreferrer">public</a>. That is
+						intentional. See also: <a href="/colophon">how it is built</a>.
+					</p>
+				</div>
+
+				<div class="border-l-2 pl-4" style="border-color: var(--color-error);">
+					<h3 class="badge badge-error mb-2 font-bold">security &amp; auth/</h3>
+					<p class="mt-0 mb-2">
+						Security is what happens when you take reverse engineering seriously and then start building things for
+						other people. Understanding how things break makes you better at building things that don't. I design and
+						maintain auth systems, think about threat models, and try to leave every system a little more honest about
+						its attack surface than I found it.
+					</p>
+					<p class="mt-0 mb-0 text-sm text-neutral-content">
+						If you found something on this site that shouldn't be there,
+						<i class="icon-bug"></i>,
+						<a href="/.well-known/security.txt"> here is where to go </a>.
+					</p>
+				</div>
+
+				<div class="border-l-2 pl-4" style="border-color: var(--color-success);">
+					<h3 class="badge badge-success mb-2 font-bold">games/</h3>
+					<p class="mt-0 mb-2">
+						Games were the first software that made me feel like computers could be magic. Playing on the Amiga, then
+						consoles, then PC. My wheelhouse is FPS, MMO, RPG, looter shooters, and auto-battlers. If there's loot and a
+						progression loop, I'm probably in.
+					</p>
+					<p class="mt-0 mb-2">
+						<em>Borderlands</em> is the franchise I keep coming back to despite everything. The writing and gunplay in the
+						first two games set a bar the series has struggled to clear since, but I still show up. Right now I'm putting
+						time into <em>Teamfight Tactics</em> (made it to Diamond, Master next set?) and
+						<em>The First Descendant</em> (free-to-play looter shooter, exceptionally well executed).
+					</p>
+					<p class="mt-0 mb-0 text-sm text-neutral-content">
+						I make video content about games occasionally.
+						<a href="https://www.youtube.com/@asce1062" target="_blank" rel="noopener noreferrer">YouTube</a>.
+						{
+							steam && (
+								<>
+									Find me on{" "}
+									<a href={steam.url} target="_blank" rel="noopener noreferrer">
+										Steam
+									</a>
+								</>
+							)
+						}
+						{
+							psn && (
+								<>
+									{" "}
+									and{" "}
+									<a href={psn.url} target="_blank" rel="noopener noreferrer">
+										PSN
+									</a>
+								</>
+							)
+						}.
+					</p>
+				</div>
+
+				<!-- open source -->
+				<div class="border-l-2 pl-4" style="border-color: var(--color-warning);">
+					<h3 class="badge badge-warning mb-2 font-bold">open source &amp; building in the open/</h3>
+					<p class="mt-0 mb-2">
+						Code that other people can read, use, and improve is code that outlasts its original context. I maintain a
+						few small things, contribute to tools I actually use, and default to sharing over hoarding where I can.
+					</p>
+					<p class="mt-0 mb-0 text-sm text-neutral-content">
+						Most of what I maintain is on
+						<a href="https://github.com/asce1062" target="_blank" rel="noopener noreferrer"> GitHub </a>.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/interests/music.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-boombox"></i> Music</h2>
+			<p>
+				My musical tastes are pretty broad, and I find myself hopping from genre to genre as time ticks on. One month I
+				might be on an amapiano kick, the next I'll be obsessed with hip hop, and then I'll move on to drum and bass and
+				jungle.
+			</p>
+			<p class="mb-4">In general, here are a handful of my favourite genres:</p>
+			<div class="space-y-3 text-sm">
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">African</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Afrobeats</span>
+						<span class="badge badge-neutral badge-sm">Amapiano</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Classical</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Baroque</span>
+						<span class="badge badge-neutral badge-sm">Classical Era</span>
+						<span class="badge badge-neutral badge-sm">Romantic Era</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Electronic</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Chillstep</span>
+						<span class="badge badge-neutral badge-sm">Deep House</span>
+						<span class="badge badge-neutral badge-sm">Drum and Bass</span>
+						<span class="badge badge-neutral badge-sm">Dubstep</span>
+						<span class="badge badge-neutral badge-sm">House</span>
+						<span class="badge badge-neutral badge-sm">Jungle</span>
+						<span class="badge badge-neutral badge-sm">Techno</span>
+						<span class="badge badge-neutral badge-sm">Trance</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Hip Hop</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Crunk</span>
+						<span class="badge badge-neutral badge-sm">Drill</span>
+						<span class="badge badge-neutral badge-sm">Gangsta Rap</span>
+						<span class="badge badge-neutral badge-sm">Grime</span>
+						<span class="badge badge-neutral badge-sm">Instrumental Hip Hop</span>
+						<span class="badge badge-neutral badge-sm">Lo-fi</span>
+						<span class="badge badge-neutral badge-sm">Old School Hip Hop</span>
+						<span class="badge badge-neutral badge-sm">Phonk</span>
+						<span class="badge badge-neutral badge-sm">Southern Hip Hop</span>
+						<span class="badge badge-neutral badge-sm">Trap</span>
+						<span class="badge badge-neutral badge-sm">Underground Hip Hop</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Jazz</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Bossa Nova</span>
+						<span class="badge badge-neutral badge-sm">Jazz Funk</span>
+						<span class="badge badge-neutral badge-sm">Jazz Fusion</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Latin</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Reggaeton</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Metal</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Heavy Metal</span>
+						<span class="badge badge-neutral badge-sm">Industrial Metal</span>
+						<span class="badge badge-neutral badge-sm">Nu Metal</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Reggae</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Dancehall</span>
+						<span class="badge badge-neutral badge-sm">Roots Reggae</span>
+					</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0 font-medium">Rock</span>
+					<span class="flex flex-wrap gap-1">
+						<span class="badge badge-neutral badge-sm">Dream Pop</span>
+						<span class="badge badge-neutral badge-sm">Experimental Rock</span>
+						<span class="badge badge-neutral badge-sm">Folk Rock</span>
+						<span class="badge badge-neutral badge-sm">Hard Rock</span>
+						<span class="badge badge-neutral badge-sm">Indie Folk</span>
+						<span class="badge badge-neutral badge-sm">Indie Rock</span>
+						<span class="badge badge-neutral badge-sm">Psychedelic Rock</span>
+						<span class="badge badge-neutral badge-sm">Shoegaze</span>
+					</span>
+				</div>
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/interests/misc.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-north-star"></i> Also in the orbit</h2>
+			<p class="text-neutral-content mb-4 text-sm">
+				Things I follow, read about, or get distracted by. In no particular order.
+			</p>
+			<ul>
+				<li>
+					<span class="text-warning font-bold">Technology:</span>
+					<span class="text-base-content">
+						I've always been a big fan of computers, gadgets, learning about tech, working on tech, talking about it,
+						you name it.
+					</span>
+				</li>
+				<li>
+					<span class="text-warning font-bold">Sci-Fi movies:</span>
+					<span class="text-base-content">I have a list I need to publish.</span>
+				</li>
+				<li>
+					<span class="text-warning font-bold">Looper:</span>
+					<span class="text-base-content">The best movie of all time.</span>
+				</li>
+				<li>
+					<span class="text-warning font-bold">Anime:</span>
+					<span class="text-base-content">I have a list I need to publish.</span>
+				</li>
+				<li>
+					<span class="text-warning font-bold">Card games:</span>
+					<span class="text-base-content">
+						I'm particularly enjoying
+						<a href="https://itsamandafullworld.odoo.com/shop/game-chafu-2" target="_blank" rel="noopener noreferrer">
+							"Game Chafu"
+						</a> by
+						<a href="https://itsamandafullworld.odoo.com/" target="_blank" rel="noopener noreferrer"> Manda </a>. See
+						how it's played on
+						<a href="https://youtu.be/4qcOspKct6Y" target="_blank" rel="noopener noreferrer"> YouTube </a>.
+					</span>
+				</li>
+				<li>
+					<span class="text-base-content font-bold">
+						<em>Matcha ice cream </em>🤤
+					</span>
+				</li>
+			</ul>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="space-y-3">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
+			</p>
+			<p>
+				If something on this list overlaps with something you are into, I would genuinely like to hear about it. Email
+				is the best way. Or leave something in the <a href="/guestbook">guestbook</a> if you prefer.
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/about" class="link-action no-underline">
+					<i class="icon-person"></i>
+					About
+				</a>
+				<a href="/now" class="link-action no-underline">
+					<i class="icon-hourglass-split"></i>
+					Now
+				</a>
+				<a href="/blog" class="link-action no-underline">
+					<i class="icon-journal-richtext"></i>
+					Blog
+				</a>
+				<a href="/guestbook" class="link-action no-underline">
+					<i class="icon-journal-bookmark"></i>
+					Guestbook
+				</a>
+			</div>
+		</section>
+	</article>
+</Layout>

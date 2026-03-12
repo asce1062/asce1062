@@ -61,19 +61,57 @@ export const SOCIAL = {
 	github: "asce1062",
 	/** GitHub repository URL */
 	repo: "https://github.com/asce1062/asce1062/tree/main/asce1062",
-	/** Social profile URLs for JSON-LD schemas */
+	/**
+	 * Social profiles
+	 * Single source of truth for identity verification and JSON-LD schemas.
+	 * Fields: name (platform), url (canonical link), handle (optional display id), comment (optional note)
+	 */
 	profiles: [
-		"https://github.com/asce1062",
-		"https://www.linkedin.com/in/alex-mbugua",
-		"https://x.com/alex_immer",
-		"https://discord.com/users/asce1062",
-		"https://www.facebook.com/kaizoku.asce",
-		"https://www.youtube.com/@asce1062",
-		"https://soundcloud.com/aleximmer",
-		"https://asce1062.github.io",
-		"https://alexmbugua.me",
-		"https://steamcommunity.com/id/alexasce",
-		"https://www.reddit.com/user/asce1062/",
+		{ name: "GitHub", url: "https://github.com/asce1062", handle: "asce1062" },
+		{ name: "LinkedIn", url: "https://www.linkedin.com/in/alex-mbugua", handle: "alex-mbugua" },
+		{
+			name: "X / Twitter",
+			url: "https://x.com/alex_immer",
+			handle: "@alex_immer",
+			comment: "I don't use Twitter but I do own this account",
+		},
+		{ name: "TikTok", url: "https://www.tiktok.com/@asce1062", handle: "@asce1062" },
+		{ name: "Discord", url: "https://discord.com/users/asce1062", handle: "asce1062" },
+		{ name: "Facebook", url: "https://www.facebook.com/kaizoku.asce", handle: "kaizoku.asce" },
+		{ name: "YouTube", url: "https://www.youtube.com/@asce1062", handle: "@asce1062" },
+		{ name: "SoundCloud", url: "https://soundcloud.com/aleximmer", handle: "aleximmer" },
+		{ name: "Twitch", url: "https://www.twitch.tv/asce1062", handle: "asce1062" },
+		{ name: "Spotify", url: "https://open.spotify.com/user/alex.immer", handle: "alex.immer" },
+		{ name: "Steam", url: "https://steamcommunity.com/id/alexasce", handle: "alexasce" },
+		{ name: "Reddit", url: "https://www.reddit.com/user/asce1062/", handle: "u/asce1062" },
+		{ name: "PSN Profile", url: "https://psnprofiles.com/asce-3341", handle: "asce-3341" },
+		{ name: "XDA Forums", url: "https://xdaforums.com/m/asce1062.4692299/", handle: "asce1062" },
+		{ name: "UnknownCheats", url: "https://www.unknowncheats.me/forum/members/413602.html", handle: "asce1062" },
+		{ name: "CrustyWindows wiki", url: "https://crustywindo.ws/User:Asce1062", handle: "Asce1062" },
+		{
+			name: "alexmbugua.me",
+			url: "https://alexmbugua.me",
+			handle: "alexmbugua.me",
+			comment: "This site, of course ^^",
+		},
+		{
+			name: "Personal site mirror",
+			url: "https://asce1062.github.io/asce1062",
+			handle: "asce1062.github.io/asce1062",
+			comment: "Mirror of this site hosted on GitHub Pages",
+		},
+		{
+			name: "music.alexmbugua.me",
+			url: "https://music.alexmbugua.me",
+			handle: "music.alexmbugua.me",
+			comment: "Music site",
+		},
+		{
+			name: "Music site mirror",
+			url: "https://asce1062.github.io/",
+			handle: "asce1062.github.io",
+			comment: "Mirror of music site hosted on GitHub Pages",
+		},
 	],
 } as const;
 
@@ -169,3 +207,25 @@ export const HOSTING = {
 		description: "Self-hosted libSQL database for guestbook submissions",
 	},
 } as const;
+
+/**
+ * Controlled domains and subdomains
+ * Single source of truth for identity verification, JSON-LD, and infrastructure docs.
+ * Fields: a root domain and an optional list of subdomains/paths.
+ */
+export const DOMAINS = [
+	{
+		root: "alexmbugua.me",
+		subdomains: [
+			"music.alexmbugua.me",
+			"music-api.alexmbugua.me",
+			"cdn.alexmbugua.me",
+			"api.alexmbugua.me",
+			"send.alexmbugua.me",
+		],
+	},
+	{
+		root: "asce1062.github.io",
+		subdomains: ["asce1062.github.io/asce1062"],
+	},
+] as const;

@@ -3,6 +3,7 @@
  * Single source of truth for all site navigation links
  */
 import { SITE, SOCIAL } from "@/config/site-config";
+import { getGithubProfileUrl } from "@/config/site-utils";
 
 export interface NavigationLink {
 	name: string;
@@ -14,22 +15,71 @@ export interface NavigationLink {
 	animation?: "rotate-left" | "rotate-right";
 	multiPathIcon?: boolean; // For icons with multiple path elements
 	pathCount?: number; // Number of path elements for multi-path icons
+	section?: "main" | "explore" | "meta"; // Nav drawer grouping
 }
+
+/**
+ * Sidebar section definitions
+ * Order controls render order
+ * */
+export const navSections: { key: NavigationLink["section"]; label: string }[] = [
+	{ key: "main", label: "main" },
+	{ key: "explore", label: "explore" },
+	{ key: "meta", label: "meta" },
+];
 
 export interface SocialLink extends NavigationLink {
 	platform: string;
 }
 
+const githubProfile = SOCIAL.profiles.find((p) => p.name === "GitHub");
+const linkedinProfile = SOCIAL.profiles.find((p) => p.name === "LinkedIn");
+const discordProfile = SOCIAL.profiles.find((p) => p.name === "Discord");
+
 /**
- * Main site navigation links (Header)
+ * Main site navigation links (Sidebar)
  */
 export const mainNavigation: NavigationLink[] = [
+	// ── main ──
 	{
 		name: "Home",
 		href: "/",
 		icon: "icon-house-heart",
 		ariaLabel: "Visit the Home page",
 		animation: "rotate-left",
+		section: "main",
+	},
+	{
+		name: "About",
+		href: "/about",
+		icon: "icon-person",
+		ariaLabel: "Learn more about Alex",
+		animation: "rotate-right",
+		section: "main",
+	},
+	{
+		name: "Hello",
+		href: "/hello",
+		icon: "icon-chat-square-heart",
+		ariaLabel: "How to reach Alex and where he is actually active online",
+		animation: "rotate-left",
+		section: "main",
+	},
+	{
+		name: "Feed",
+		href: "/rss.xml",
+		icon: "icon-rss",
+		ariaLabel: "Subscribe to RSS feed",
+		animation: "rotate-right",
+		section: "main",
+	},
+	{
+		name: "Email",
+		href: `mailto:${SOCIAL.email}`,
+		icon: "icon-envelope-at",
+		ariaLabel: `Email ${SITE.authorShort}`,
+		animation: "rotate-left",
+		section: "main",
 	},
 	{
 		name: "Guestbook",
@@ -37,27 +87,25 @@ export const mainNavigation: NavigationLink[] = [
 		icon: "icon-journal-bookmark",
 		ariaLabel: "Visit the Guestbook page",
 		animation: "rotate-right",
+		section: "main",
 	},
+
+	// ── explore ──
 	{
 		name: "Blog",
 		href: "/blog",
 		icon: "icon-journal-richtext",
 		ariaLabel: "Visit the Blog page",
-		animation: "rotate-left",
+		animation: "rotate-right",
+		section: "explore",
 	},
 	{
 		name: "Notebook",
 		href: "/notes",
 		icon: "icon-stickies",
 		ariaLabel: "Visit the Notebook page",
-		animation: "rotate-right",
-	},
-	{
-		name: "Projects",
-		href: "/projects",
-		icon: "icon-braces-asterisk",
-		ariaLabel: "Visit the Projects page",
 		animation: "rotate-left",
+		section: "explore",
 	},
 	{
 		name: "Now",
@@ -65,14 +113,120 @@ export const mainNavigation: NavigationLink[] = [
 		icon: "icon-hourglass-split",
 		ariaLabel: "Visit the Now page",
 		animation: "rotate-right",
+		section: "explore",
 	},
-	// {
-	// 	name: "Search",
-	// 	href: "/search",
-	// 	icon: "icon-search-heart",
-	// 	ariaLabel: "Visit the Search blogs page",
-	// 	animation: "rotate-right",
-	// },
+	{
+		name: "Verify",
+		href: "/verify",
+		icon: "icon-patch-check",
+		ariaLabel: "Identity verification. Canonical accounts and contact points",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Resume",
+		href: "/blog/2025-06-19-resume",
+		icon: "icon-body-text",
+		ariaLabel: `View ${SITE.authorShort}'s resume`,
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Interests",
+		href: "/interests",
+		icon: "icon-heart",
+		ariaLabel: "The things Alex is genuinely into",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Tags",
+		href: "/tags",
+		icon: "icon-bookmarks",
+		ariaLabel: "Visit the Blog Tags page",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Why",
+		href: "/notes/2026-03-12-guiding-principles",
+		icon: "icon-question-circle",
+		ariaLabel: "Guiding principles behind this site",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Changelog",
+		href: "/changelog",
+		icon: "icon-diff-modified",
+		ariaLabel: "Project release history and recent changes",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Humans",
+		href: "/humans.txt",
+		icon: "icon-people",
+		ariaLabel: "The humans behind this site",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Palette",
+		href: "/palette",
+		icon: "icon-palette",
+		ariaLabel: "Design system color palette and tokens",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Privacy",
+		href: "/privacy",
+		icon: "icon-cookie",
+		ariaLabel: "Privacy policy and data handling",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Licensing",
+		href: "/notes/2026-03-12-licensing",
+		icon: "icon-info-circle",
+		ariaLabel: "Licensing terms and site disclaimer",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Projects",
+		href: "/projects",
+		icon: "icon-braces-asterisk",
+		ariaLabel: "Visit the Projects page",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Colophon",
+		href: "/colophon",
+		icon: "icon-book",
+		ariaLabel: "Credits, philosophy, and the story behind this site",
+		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Meta",
+		href: "/meta",
+		icon: "icon-gear",
+		ariaLabel: "Site diagnostics and build metadata",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
+		name: "Search",
+		href: "/search",
+		icon: "icon-search-heart",
+		ariaLabel: "Visit the Search blogs page",
+		animation: "rotate-right",
+		section: "explore",
+	},
 	{
 		name: "8biticon",
 		href: "/8biticon",
@@ -81,63 +235,65 @@ export const mainNavigation: NavigationLink[] = [
 		animation: "rotate-left",
 		multiPathIcon: true,
 		pathCount: 10,
+		section: "explore",
 	},
+
+	// ── meta ──
 	{
-		name: "Tags",
-		href: "/tags",
-		icon: "icon-bookmarks",
-		ariaLabel: "Visit the Blog Tags page",
+		name: "PGP Key",
+		href: "/public.pgp",
+		icon: "icon-key",
+		ariaLabel: "Download Alex's PGP public key",
 		animation: "rotate-right",
+		section: "meta",
 	},
+	...(githubProfile
+		? [
+				{
+					name: "GitHub",
+					href: githubProfile.url,
+					icon: "icon-github",
+					ariaLabel: "Visit Alex's GitHub profile",
+					animation: "rotate-left" as const,
+					external: true,
+					section: "meta" as const,
+				},
+			]
+		: []),
+	...(linkedinProfile
+		? [
+				{
+					name: "LinkedIn",
+					href: linkedinProfile.url,
+					icon: "icon-linkedin",
+					ariaLabel: "Visit Alex's LinkedIn profile",
+					animation: "rotate-right" as const,
+					external: true,
+					section: "meta" as const,
+				},
+			]
+		: []),
 	{
-		name: "Resume",
+		name: "Resume.pdf",
 		href: "/resume",
 		icon: "icon-filetype-pdf",
-		ariaLabel: "Visit the view Alex's resume as PDF page",
+		ariaLabel: `View ${SITE.authorShort}'s resume as PDF`,
 		animation: "rotate-left",
+		section: "meta",
 	},
-	{
-		name: "Colophon",
-		href: "/colophon",
-		icon: "icon-book",
-		ariaLabel: "Credits, philosophy, and the story behind this site",
-		animation: "rotate-right",
-	},
-	{
-		name: "Changelog",
-		href: "/changelog",
-		icon: "icon-diff-modified",
-		ariaLabel: "Project release history and recent changes",
-		animation: "rotate-left",
-	},
-	{
-		name: "Palette",
-		href: "/palette",
-		icon: "icon-palette",
-		ariaLabel: "Design system color palette and tokens",
-		animation: "rotate-right",
-	},
-	{
-		name: "Privacy",
-		href: "/privacy",
-		icon: "icon-cookie",
-		ariaLabel: "Privacy policy and data handling",
-		animation: "rotate-left",
-	},
-	{
-		name: "Meta",
-		href: "/meta",
-		icon: "icon-gear",
-		ariaLabel: "Site diagnostics and build metadata",
-		animation: "rotate-right",
-	},
-	{
-		name: "RSS Feed",
-		href: "/rss.xml",
-		icon: "icon-rss",
-		ariaLabel: "Subscribe to my blog",
-		animation: "rotate-left",
-	},
+	...(discordProfile
+		? [
+				{
+					name: "Discord",
+					href: discordProfile.url,
+					icon: "icon-discord",
+					ariaLabel: "Find Alex on Discord",
+					animation: "rotate-left" as const,
+					external: true,
+					section: "meta" as const,
+				},
+			]
+		: []),
 ];
 
 /**
@@ -146,7 +302,7 @@ export const mainNavigation: NavigationLink[] = [
 export const socialLinks: SocialLink[] = [
 	{
 		name: "asce1062",
-		href: "https://github.com/asce1062",
+		href: getGithubProfileUrl(),
 		icon: "icon-github",
 		platform: "GitHub",
 		external: true,
@@ -217,6 +373,6 @@ export const siteMetadata = {
 	astroUrl: "https://astro.build",
 	commitHash: shortCommitHash,
 	commitHashFull: fullCommitHash,
-	commitUrl: fullCommitHash ? `https://github.com/${SOCIAL.github}/asce1062/commit/${fullCommitHash}` : null,
+	commitUrl: fullCommitHash ? `${getGithubProfileUrl()}/asce1062/commit/${fullCommitHash}` : null,
 	buildTime: new Date().toISOString(),
 };

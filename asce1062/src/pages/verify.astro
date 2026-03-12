@@ -1,0 +1,186 @@
+---
+/**
+ * Verify Page
+ * Identity Verification Page
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SITE, SOCIAL, DOMAINS } from "@/config/site-config";
+import { getGithubProfileUrl } from "@/config/site-utils";
+
+const pgpFingerprint = "18AE 4232 9AC1 F56F 843B 88C6 73B4 8769 BB38 F964";
+
+const allProfiles = SOCIAL.profiles;
+
+const domainTree = DOMAINS;
+---
+
+<Layout
+	title="Verify"
+	description={`System of record for ${SITE.authorShort}'s online identity. Check here to verify accounts, domains, and contact points.`}>
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is a <a href="https://www.mollywhite.net/verify/" target="_blank" rel="noopener noreferrer">verify page</a
+			><sup><a href="https://slashpages.net#verify" target="_blank" rel="noopener noreferrer">1</a></sup>.
+		</h2>
+		<!-- prettier-ignore-end -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">whoami</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-patch-check"></i> Verify</h2>
+			<p class="text-sm">
+				It serves as the system of record for my online identity. If you're trying to figure out whether an account,
+				domain, or contact point is actually me, this is the place to check first.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">finger {SOCIAL.email}</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-person-add"></i> Contact & Follow</h2>
+			<p class="text-sm text-neutral-content mb-4">The best places to reach or follow me:</p>
+			<ul class="text-sm">
+				<li>
+					<span class="font-bold">This website</span>:
+					<a href={SITE.url} target="_blank" rel="noopener noreferrer"> alexmbugua.me </a>
+					<span class="text-neutral-content"> · </span>
+					<a href="/rss.xml" class="underline decoration-wavy decoration-1">RSS</a>
+				</li>
+				<li>
+					<span class="font-bold">Email</span>:
+					<a href={`mailto:${SOCIAL.email}`}>
+						{SOCIAL.email}
+					</a>
+				</li>
+				<li>
+					<span class="font-bold">GitHub</span>:
+					<a href={getGithubProfileUrl()} target="_blank" rel="noopener noreferrer">
+						@{SOCIAL.github}
+					</a>
+				</li>
+				<li>
+					<span class="font-bold">TikTok</span>:
+					<a href="https://www.tiktok.com/@asce1062" target="_blank" rel="noopener noreferrer"> @asce1062 </a>
+				</li>
+				<li>
+					<span class="font-bold">YouTube</span>:
+					<a href="https://www.youtube.com/@asce1062" target="_blank" rel="noopener noreferrer"> @asce1062 </a>
+				</li>
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">dig {domainTree.map((d) => d.root).join(", ")} +short</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-globe"></i> Controlled Domains</h2>
+			<p class="text-sm text-neutral-content mb-4">These domains and subdomains are under my control:</p>
+			<div class="p-4 text-sm space-y-3">
+				{
+					domainTree.map(({ root, subdomains }) => (
+						<div class="space-y-1">
+							<div class="flex gap-2 items-center">
+								<span class="text-success">&#x25B8;</span>
+								<code class="text-primary-content bg-primary/50">{root}</code>
+							</div>
+							{subdomains.map((sub) => (
+								<div class="flex gap-2 items-center pl-4">
+									<span class="text-neutral-content">&#x2514;</span>
+									<code class="text-info-content bg-info/50">{sub}</code>
+								</div>
+							))}
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/.accounts</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-id-badge"></i> All Controlled Accounts</h2>
+			<p class="text-sm text-neutral-content mb-4">Every account across the web that belongs to me:</p>
+			<ul class="text-sm">
+				{
+					allProfiles.map(
+						({ url, name, handle, comment }: { url: string; name: string; handle?: string; comment?: string }) => (
+							<li>
+								<span class="font-medium">{name}</span>:
+								<a href={url} target="_blank" rel="noopener noreferrer">
+									{handle ?? url}
+								</a>
+								{comment && <span class="text-secondary-content text-xs"> // {comment}</span>}
+							</li>
+						)
+					)
+				}
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">gpg --fingerprint {SOCIAL.email}</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-key"></i> PGP Key</h2>
+			<p class="text-sm mb-3">
+				Public key available at
+				<a href="/public.pgp"> /public.pgp </a>
+				.WKD is configured. Most OpenPGP clients can fetch it automatically via email address.
+			</p>
+			<div class="inline-block border border-base-300 p-3 text-xs">
+				<span class="block text-neutral-content mb-1 text-xs"><u>Ed25519 fingerprint</u></span>
+				<code class="bg-secondary/50 text-secondary-content tracking-wide">{pgpFingerprint}</code>
+			</div>
+			<p class="text-xs text-neutral-content mt-2">
+				Covers
+				<code class="bg-accent/50 text-accent-content px-1">alex@</code>,
+				<code class="bg-info/50 text-info-content px-1">security@</code>, and
+				<code class="bg-success/50 text-success-content px-1">contact@alexmbugua.me</code>.
+			</p>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="space-y-3">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
+			</p>
+			<p class="text-sm"
+				>If there's an account claiming to be me that's not on this list, it's probably an impersonator.</p
+			>
+			<p class="text-sm">
+				If you are unsure, feel free to
+				<a href="/hello"> contact me directly </a>.
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/hello" class="link-action no-underline">
+					<i class="icon-chat-square-heart"></i>
+					Hello
+				</a>
+				<a href="/about" class="link-action no-underline">
+					<i class="icon-person"></i>
+					About
+				</a>
+				<a href="/guestbook" class="link-action no-underline">
+					<i class="icon-journal-bookmark"></i>
+					Guestbook
+				</a>
+			</div>
+		</section>
+	</article>
+</Layout>

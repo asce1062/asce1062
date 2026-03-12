@@ -20,6 +20,7 @@ yarn.lock
 # Generated files
 .DS_Store
 *.log
+src/data/ascii-art.json
 
 # Blog posts
 *.mdx

@@ -9,6 +9,7 @@
  */
 import Layout from "@/layouts/Layout.astro";
 import { SITE, SOCIAL, HOSTING } from "@/config/site-config";
+import { getGithubProfileUrl } from "@/config/site-utils";
 
 // Tech stack for narrative display
 const techStack = [
@@ -21,14 +22,16 @@ const techStack = [
 // Credits data
 const fontCredits = [
 	{
-		name: "0xProto",
+		name: "0xProto Nerd Font Mono",
 		url: "https://github.com/0xType/0xProto",
-		description: "Primary monospace font. Designed for source code legibility",
+		description:
+			"Primary monospace font. Designed for source code legibility. Patched by Nerd Fonts for extended Unicode glyph coverage.",
+		via: { name: "Nerd Fonts", url: "https://github.com/ryanoasis/nerd-fonts" },
 	},
 	{
 		name: "Uni 05_53",
 		url: "https://www.craigkroeger.com/fonts/fonts",
-		description: "Retro pixel font by Craig Kroeger. For that pixelated feel",
+		description: "Retro pixel font by Craig Kroeger. For that pixelated feel.",
 	},
 ];
 
@@ -50,17 +53,42 @@ const toolCredits = [
 	{ name: "Pagefind", url: "https://pagefind.app/", description: "Static search" },
 	{ name: "Workbox", url: "https://developer.chrome.com/docs/workbox", description: "PWA & offline support" },
 ];
+
+const asciiCredits = [
+	{
+		name: "figlet.js by patorjk",
+		url: "https://github.com/patorjk/figlet.js",
+		description: "The figlet.js library used to pre-generate all ASCII art at build time",
+	},
+	{
+		name: "Text to ASCII Art Generator (TAAG)",
+		url: "https://patorjk.com/software/taag/",
+		description: "Patorjk's Create text art from words.",
+	},
+];
 ---
 
 <Layout
 	title="Colophon"
 	description="Credits, design philosophy, and the story behind this site"
 	ogImage="social-preview.png">
-	<article class="prose prose-neutral dark:prose-invert max-w-none">
-		<h2><i class="icon-book"></i> Colophon</h2>
-		<p class="text-sm text-neutral-content mb-6">Credits, philosophy, and the story behind this site</p>
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is a <a
+				href="https://en.wikipedia.org/wiki/Samuel_Palmer_(printer)"
+				target="_blank"
+				rel="noopener noreferrer">colophon page</a
+			><sup><a href="https://slashpages.net/#colophon" target="_blank" rel="noopener noreferrer">1</a></sup>.
+		</h2>
+		<!-- prettier-ignore-end -->
 		<!-- Philosophy Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/philosophy.md</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-lightbulb"></i> Philosophy
 			</h2>
@@ -86,6 +114,11 @@ const toolCredits = [
 
 		<!-- Tech Stack Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">npm list --depth=0</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-command-palette"></i> Tech Stack
 			</h2>
@@ -117,6 +150,11 @@ const toolCredits = [
 
 		<!-- Hosting Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">dig alexmbugua.me</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-cloud-upload"></i> Hosting
 			</h2>
@@ -152,6 +190,11 @@ const toolCredits = [
 
 		<!-- Typography & Design Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">fc-list | grep -i design</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-palette"></i> Typography & Design
 			</h2>
@@ -168,11 +211,27 @@ const toolCredits = [
 								rel="noopener noreferrer">
 								{font.name}
 							</a>
-							<span class="text-neutral-content"> - {font.description}</span>
+							{font.via && (
+								<span class="text-neutral-content text-xs">
+									{" "}
+									via{" "}
+									<a href={font.via.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+										{font.via.name}
+									</a>
+								</span>
+							)}
+							<span class="text-neutral-content"> — {font.description}</span>
 						</li>
 					))
 				}
 			</ul>
+			<p class="text-xs text-neutral-content mt-3">
+				WOFF2 files are generated from the Nerd Fonts TTF releases using fontTools. See the note on{" "}
+				<a href="/notes/2026-03-13-patching-web-fonts-with-nerd-fonts" class="underline decoration-dashed">
+					patching &amp; converting web fonts
+				</a>{" "}
+				for details.
+			</p>
 
 			<h3 class="mt-6 mb-3 text-success">Icons</h3>
 			<p class="text-sm mb-2">
@@ -190,6 +249,34 @@ const toolCredits = [
 							<a href={icon.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
 								{icon.name}
 							</a>
+						</li>
+					))
+				}
+			</ul>
+
+			<h3 class="mt-6 mb-3 text-success">ASCII Art</h3>
+			<p class="text-sm mb-2">
+				All ASCII art on this site is pre-generated at build time using
+				<a
+					href="https://github.com/patorjk/figlet.js"
+					class="underline decoration-dashed"
+					target="_blank"
+					rel="noopener noreferrer">
+					figlet.js
+				</a>
+				by
+				<a href="https://patorjk.com/" class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+					patorjk
+				</a>.
+			</p>
+			<ul class="text-sm space-y-2 text-neutral-content">
+				{
+					asciiCredits.map((credit) => (
+						<li>
+							<a href={credit.url} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+								{credit.name}
+							</a>
+							<span> - {credit.description}</span>
 						</li>
 					))
 				}
@@ -216,6 +303,11 @@ const toolCredits = [
 
 		<!-- Accessibility Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">axe --include="body"</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-universal-access"></i> Accessibility
 			</h2>
@@ -236,6 +328,11 @@ const toolCredits = [
 
 		<!-- Performance Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">lighthouse --only-categories=performance</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-speedometer2"></i> Performance
 			</h2>
@@ -255,6 +352,11 @@ const toolCredits = [
 
 		<!-- Open Source Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">git log --oneline</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-github"></i> Open Source
 			</h2>
@@ -304,6 +406,11 @@ const toolCredits = [
 
 		<!-- Personal Note Section -->
 		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">echo $AUTHOR</span>
+				<span class="blink">_</span>
+			</p>
 			<h2>
 				<i class="icon-person"></i> A Note from {SITE.authorShort}
 			</h2>
@@ -317,33 +424,28 @@ const toolCredits = [
 					influences still shape how I think about design.
 				</p>
 				<p>
-					Thanks for visiting. If you'd like to connect, you can find me on <a
-						href={`https://github.com/${SOCIAL.github}`}
-						class="underline decoration-dashed"
-						target="_blank"
-						rel="noopener noreferrer">GitHub</a
-					>,
-					<a
-						href={`https://x.com/${SOCIAL.twitter}`}
-						class="underline decoration-dashed"
-						target="_blank"
-						rel="noopener noreferrer">X/Twitter</a
-					>, or drop a note in the <a href="/guestbook" class="underline decoration-dashed">guestbook</a>.
+					Thanks for visiting. If you'd like to connect, you can find me on
+					<a href={getGithubProfileUrl()} class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">
+						GitHub
+					</a>,
+					<a href="/hello" class="underline decoration-dashed"> say hello </a>
+					, or drop a note in the
+					<a href="/guestbook" class="underline decoration-dashed"> guestbook </a>.
 				</p>
 			</div>
 		</section>
 
-		<!-- Footer -->
 		<hr class="my-8 border-base-300" />
 
-		<footer class="text-sm text-neutral-content">
-			<p class="mb-2">
-				Built by <strong>{SITE.author}</strong> · {SITE.titleSuffix}
+		<section class="mb-6">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
 			</p>
-			<p class="space-x-4">
-				<a href="/meta" class="underline decoration-dashed">Site diagnostics → /meta</a>
-				<a href="/palette" class="underline decoration-dashed">Design tokens → /palette</a>
+			<p class="text-sm text-neutral-content">
+				Built by <strong class="text-base-content">{SITE.author}</strong> · {SITE.titleSuffix}
 			</p>
-		</footer>
+		</section>
 	</article>
 </Layout>

@@ -1,0 +1,70 @@
+---
+title: "Guiding Principles"
+pubDate: 2026-03-11
+description: "The guiding principles by which I approach how I work on, and write for alexmbugua.me."
+tags: ["site", "webdev", "personal", "why"]
+permalink: "2026-03-12-guiding-principles"
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout collection="notes"
+    title={frontmatter.title}
+    description={frontmatter.description}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+
+## This is a [why page](https://www.miriamsuzanne.com/2024/07/02/slash-why/).
+
+Documented below are the guiding principles by which I approach how I work on, and write for alexmbugua.me.
+These tenets are foundational across my site and are core to who I am as a [human](/humans.txt).
+
+
+1. **It's meant to be fun.**
+    - For me, and for whomever comes here.
+    - This is a personal site, If something stops being fun, I'm doing it wrong.
+    - The moment it feels like a chore, I step back and ask why.
+
+2. **Unapologetic whimsy.**
+    - I like terminal colors, blinking cursors, ASCII art, and pixel avatars.
+    - my [aesthetic](/palette), my writing style, my art, my topics.
+
+3. **Uniquely me.**
+    - This site is not a template.
+    - It reflects what I actually care about, how I actually think, and what I actually find interesting.
+
+4. **No creative boxing.**
+    - I don't restrict what I write about.
+    - Chip music sits next to
+    <ins>reverse</ins> engineering sits next to
+    <ins>personal</ins> essays sits next to <ins>web</ins>
+    development. That's not a bug. That's the point.
+    - Curiosity doesn't stay in lanes, and neither does this site.
+
+5. **Learning and teaching.**
+    - I write to understand things better.
+    - If something I write helps someone else understand it too, that's a bonus worth having.
+    - The best explanation is the one you had to figure out yourself and then translate for someone else.
+
+6. **Beginner's mindset.**
+    - I try to approach everything as if I'm still learning. ***Because I am***.
+    - Expertise is not the absence of questions, it's knowing which questions to ask.
+    - I'd rather be curious than certain.
+
+7. **Living documents.**
+    - Notes, pages and posts here get updated.
+    - I don't treat published as finished.
+    - If I learn something new, I add it. If I was wrong, I correct it.
+
+8. **Community building.**
+    - The [guestbook](/guestbook) is not decorative.
+    - Neither is the [hello page](/hello).
+    - I genuinely want to hear from people who find their way here.
+    - Say hi! I'm a friendly enough chap. 😄
+
+9. **Canonical presence.**
+    - This is the authoritative source for anything I've written or made.
+    - This site is mine, and it will outlast any platform I'm on.
+
+</ContentLayout>

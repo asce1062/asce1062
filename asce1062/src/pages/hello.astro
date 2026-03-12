@@ -1,0 +1,327 @@
+---
+/**
+ * Hello
+ * How I prefer to keep in touch.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { SITE, SOCIAL } from "@/config/site-config";
+import { getGithubProfileUrl } from "@/config/site-utils";
+
+const tiktok = SOCIAL.profiles.find((p) => p.name === "TikTok");
+const youtube = SOCIAL.profiles.find((p) => p.name === "YouTube");
+const linkedin = SOCIAL.profiles.find((p) => p.name === "LinkedIn");
+const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
+---
+
+<Layout title="Hello 👋" description={`How to reach ${SITE.authorShort} and where he is actually active online.`}>
+	<article>
+		<!-- prettier-ignore-start -->
+		<h2>
+			This is a
+			<a href="https://alastairjohnston.com/" target="_blank" rel="noopener noreferrer"> hello page</a><sup
+				><a href="https://slashpages.net/#hello" target="_blank" rel="noopener noreferrer">1</a></sup
+			>. 👋
+		</h2>
+		<!-- prettier-ignore-end -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">hello</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-chat-square-heart"></i> Hello.</h2>
+			<p>
+				My name is <u>Alex</u>, or you can call me “asce”, “ascii” or “Frosty”. You can learn more
+				<a href="/about"> about me here </a>.
+			</p>
+			<p>
+				I have points-of-presence in <em>a lot</em> of <a href="/verify">places</a>. If you'd like to contact me, I'd
+				suggest doing so through e-mail. Some other places you can reach me are listed below. Come say hi! I'm a
+				friendly enough chap. 😄
+			</p>
+		</section>
+
+		<!-- email / preferred -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">mail -s "hey" {SOCIAL.email}</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-comment"></i> Preferred: <i class="icon-envelope-at"></i> Email</h2>
+			<p class="mb-4">
+				Email is my preferred way to have a real conversation. I read everything and try to reply to anything that is
+				not a pitch or bulk mail. If you have something thoughtful to say, this is the way.
+			</p>
+			<a href={`mailto:${SOCIAL.email}`} class="link-action link-action--accent no-underline">
+				<i class="icon-envelope-at"></i>
+				{SOCIAL.email}
+			</a>
+		</section>
+
+		<!-- where to find me -->
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls ~/active/</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-broadcast"></i> Where to find me</h2>
+			<p class="text-neutral-content mb-4">Places I actually show up:</p>
+			<ul class="space-y-2">
+				<li>
+					<span class="font-bold">This site</span>:
+					<a href={SITE.url} target="_blank" rel="noopener noreferrer">alexmbugua.me</a>
+					<span class="text-secondary-content text-xs"> // my home on the internet</span>
+				</li>
+				<li>
+					<span class="font-bold">Now</span>:
+					<a href="/now">/now</a>
+					<span class="text-secondary-content text-xs"> // what I'm currently focused on</span>
+				</li>
+				<li>
+					<span class="font-bold">GitHub</span>:
+					<a href={getGithubProfileUrl()} target="_blank" rel="noopener noreferrer">@{SOCIAL.github}</a>
+					<span class="text-secondary-content text-xs"> // where my code lives</span>
+				</li>
+				{
+					tiktok && (
+						<li>
+							<span class="font-bold">TikTok</span>:
+							<a href={tiktok.url} target="_blank" rel="noopener noreferrer">
+								{tiktok.handle}
+							</a>
+							<span class="text-secondary-content text-xs"> // most active social presence</span>
+						</li>
+					)
+				}
+				{
+					youtube && (
+						<li>
+							<span class="font-bold">YouTube</span>:
+							<a href={youtube.url} target="_blank" rel="noopener noreferrer">
+								{youtube.handle}
+							</a>
+							<span class="text-secondary-content text-xs"> // Gaming and occasional music content</span>
+						</li>
+					)
+				}
+				{
+					discord && (
+						<li>
+							<span class="font-bold">Discord</span>:
+							<a href={discord.url} target="_blank" rel="noopener noreferrer">
+								{discord.handle}
+							</a>
+							<span class="text-secondary-content text-xs"> // Communities and chatting</span>
+						</li>
+					)
+				}
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/channels.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-diagram-3"></i> How I use each channel</h2>
+			<div class="space-y-5 mt-4">
+				<div class="border-l-2 pl-4" style="border-color: var(--color-primary);">
+					<h3 class="badge badge-primary mb-1 font-bold">email/</h3>
+					<p class="mt-0 mb-0">
+						Direct conversation. Questions, feedback, collaboration ideas, or just saying hi. I prefer email over DMs on
+						any platform.
+					</p>
+				</div>
+				<div class="border-l-2 pl-4" style="border-color: var(--color-secondary);">
+					<h3 class="badge badge-secondary mb-1 font-bold">this site/</h3>
+					<p class="mt-0 mb-0">
+						My main output. Blog posts, notes, projects, and the occasional longer piece. If I have thought about
+						something long enough to write it down properly, it ends up here. There is also a
+						<a href="/guestbook" class="underline decoration-wavy decoration-1"> guestbook </a>
+						if you want to leave a note publicly.
+					</p>
+				</div>
+				<div class="border-l-2 pl-4" style="border-color: var(--color-accent);">
+					<h3 class="badge badge-accent mb-1 font-bold">github/</h3>
+					<p class="mt-0 mb-0">
+						Where my code lives. Open source projects, this site's source, and the occasional contribution to things I
+						actually use. Issues and PRs are welcome on anything I maintain.
+					</p>
+				</div>
+				<div class="border-l-2 pl-4" style="border-color: var(--color-error);">
+					<h3 class="badge badge-error mb-1 font-bold">tiktok/</h3>
+					<p class="mt-0 mb-0">
+						My most active social presence right now. Mostly chip music content, retro-computing things, and whatever
+						else crosses my desk. Short-form, low-commitment, genuinely fun.
+					</p>
+				</div>
+				<div class="border-l-2 pl-4" style="border-color: var(--color-success);">
+					<h3 class="badge badge-success mb-1 font-bold">youtube/</h3>
+					<p class="mt-0 mb-0">
+						Home for my gaming content. I post pre-recorded gameplay's and occasionally go live here.
+					</p>
+				</div>
+				{
+					discord && (
+						<div class="border-l-2 pl-4" style="border-color: var(--color-info);">
+							<h3 class="badge badge-info mb-1 font-bold">discord/</h3>
+							<p class="mt-0 mb-0">
+								Mostly for communities I'm part of. If we share a server, feel free to ping me. I'm not always
+								monitoring DMs here, email is still better.
+							</p>
+						</div>
+					)
+				}
+				{
+					linkedin && (
+						<div class="border-l-2 pl-4" style="border-color: var(--color-warning);">
+							<h3 class="badge badge-warning mb-1 font-bold">linkedin/</h3>
+							<p class="mt-0 mb-0">
+								I keep a profile there and I do check messages occasionally. It is the right place for professional
+								enquiries, though email is still faster and more likely to get a response.
+							</p>
+						</div>
+					)
+				}
+			</div>
+		</section>
+
+		<section class="text-sm mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">grep -v "^active" ~/platforms.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-circle-slash"></i> Where I'm not really</h2>
+			<div class="border border-base-300 bg-base-200/50 p-4 space-y-2">
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0">X / Twitter</span>
+					<span>I own the account. I'm not really there. Don't expect a reply.</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0">Facebook</span>
+					<span>Account exists, essentially archived. Not checking it.</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0">Reddit</span>
+					<span>Mostly a reader. I have an account but I rarely post.</span>
+				</div>
+				<div class="flex gap-4">
+					<span class="text-neutral-content w-28 shrink-0">DMs in general</span>
+					<span>Prefer email. DMs get lost. Email doesn't.</span>
+				</div>
+			</div>
+			<p class="text-xs text-neutral-content mt-3">
+				The full list of accounts that are actually mine is on the
+				<a href="/verify" class="underline decoration-dashed"> /verify </a>
+				page.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/before-you-ping.txt</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-info-circle"></i> A few things worth knowing first</h2>
+			<ul class="space-y-3 mt-4">
+				<li>
+					<span>
+						Make sure you
+						<a href="/verify"> verify </a>
+						you are actually talking to me.
+					</span>
+				</li>
+				<li>
+					<span>
+						I won't necessarily respond right away. Most of the time I'm chronically online and will reply
+						embarrassingly fast. Occasionally I take extended hiatuses and you might not hear from me for a while. No
+						offense, just life.
+					</span>
+				</li>
+				<li>
+					<span>
+						Get to know <a href="/about">me</a>! You can check out my,
+						<a href="/interests">interests</a>, what I'm up to, <a href="/now">now</a>,
+						<a href="/notes/2026-03-12-guiding-principles">why</a> I do what I do here, or read through some of my more
+						<a href="/tags/motivation">personal musings</a>.
+					</span>
+				</li>
+				<li>
+					<span>
+						Most things I have to say online end up here on the site eventually. Blog posts, notes, project write-ups.
+						Worth doing a little
+						<a href="/search"> spelunking </a>
+						before asking something I may have already written about.
+					</span>
+				</li>
+				<li>
+					<span>
+						Not looking to say hi but want to stay current? Subscribe to the
+						<a href="/rss.xml" class="underline decoration-wavy decoration-1"> RSS feed </a>. No algorithm, no noise,
+						just posts when I publish them.
+					</span>
+				</li>
+				<li>
+					<span>
+						Professional enquiries: you can view my resume
+						<a href="/resume"> as PDF </a>
+						or read the
+						<a href="/blog/2025-06-19-resume"> text version </a>.
+					</span>
+				</li>
+				<li>
+					<span>
+						There is a
+						<a href="/guestbook" class="underline decoration-wavy decoration-1"> guestbook </a>
+						if you would rather say something publicly. I read every entry.
+					</span>
+				</li>
+				<li>
+					<span>
+						In the Nairobi / Westlands area and want to meet up? Send me a message and who knows! Maybe I'm free for
+						such a thing.
+					</span>
+				</li>
+				<li>
+					<span>
+						Bug hunters should go <a href="/.well-known/security.txt">here</a>.
+					</span>
+				</li>
+			</ul>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="space-y-3">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
+			</p>
+			<p>
+				If you made it here, you probably have something to say. I would genuinely like to hear it. Send me an <a
+					href={`mailto:${SOCIAL.email}`}>email</a
+				>. It's the best way.
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href={`mailto:${SOCIAL.email}`} class="link-action link-action--accent no-underline">
+					<i class="icon-envelope-at"></i>
+					{SOCIAL.email}
+				</a>
+				<a href="/guestbook" class="link-action no-underline">
+					<i class="icon-journal-bookmark"></i>
+					Guestbook
+				</a>
+				<a href="/verify" class="link-action no-underline">
+					<i class="icon-patch-check"></i>
+					Verify
+				</a>
+			</div>
+		</section>
+	</article>
+</Layout>

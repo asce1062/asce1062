@@ -1,0 +1,122 @@
+/*
+============================================
+ASCII Phosphor Reveal Animation
+============================================
+Shared styles for the phosphor "wake-up" animation used on ASCII art blocks.
+
+Container element receives: art-reveal-idle | art-reveal-playing | art-reveal-done
+Art <pre> element should have class "art-target" (added by asciiReveal.ts).
+Line spans (.art-line) and scan overlay (.art-scan) are injected by the script.
+
+Used by:
+  - Sidebar easter egg (nav-easter-egg container)
+  - About page neofetch art (overflow-x-auto container)
+============================================
+*/
+
+/* Idle: art hidden before the animation fires. */
+.art-reveal-idle .art-target {
+	opacity: 0;
+}
+
+/* Line spans injected during animation. must stay block + pre. */
+.art-line {
+	display: block;
+	white-space: pre;
+}
+
+/*
+============================================
+Scanline sweep overlay
+============================================
+*/
+.art-scan {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 2;
+}
+
+.art-scan::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 40%;
+	top: -40%;
+	background: linear-gradient(
+		to bottom,
+		transparent 0%,
+		color-mix(in oklab, var(--color-secondary), transparent 88%) 50%,
+		transparent 100%
+	);
+	animation: art-scan-sweep 900ms ease-in-out forwards;
+}
+
+@keyframes art-scan-sweep {
+	from {
+		top: -40%;
+	}
+	to {
+		top: 120%;
+	}
+}
+
+/*
+============================================
+Per-line phosphor bloom: dark → glow peak → settle
+============================================
+*/
+@keyframes art-line-on {
+	0% {
+		opacity: 0;
+		text-shadow: none;
+	}
+	28% {
+		opacity: 1;
+		text-shadow:
+			0 0 8px var(--color-secondary),
+			0 0 2px var(--color-secondary);
+	}
+	62% {
+		opacity: 1;
+		text-shadow: 0 0 5px var(--color-secondary);
+	}
+	100% {
+		opacity: 1;
+		text-shadow: 0 0 2px var(--color-secondary);
+	}
+}
+
+/* Playing state: lines animate in with staggered delays. */
+.art-reveal-playing .art-line {
+	opacity: 0;
+	animation: art-line-on 600ms ease-out forwards;
+}
+
+/* Done: hold the final keyframe glow on the spans (spans kept alive, not replace). */
+.art-reveal-done .art-line {
+	opacity: 1;
+	text-shadow: 0 0 2px var(--color-secondary);
+}
+
+/*
+============================================
+Reduced motion: skip all effects, reveal instantly
+============================================
+*/
+@media (prefers-reduced-motion: reduce) {
+	.art-reveal-idle .art-target {
+		opacity: 1;
+	}
+
+	.art-reveal-playing .art-line {
+		animation: none;
+		opacity: 1;
+	}
+
+	.art-scan {
+		display: none;
+	}
+}

@@ -2,12 +2,11 @@
 /**
  * Header Component
  *
- * Header with breadcrumb navigation, theme switcher, search button,
- * and collapsible main navigation.
+ * Top bar with breadcrumb navigation, theme switcher, search button, and site h1.
+ * Navigation is now in the Sidebar component.
  */
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
-import CollapsibleNav from "@/components/CollapsibleNav.astro";
-import { mainNavigation, siteMetadata } from "@/data/navigation";
+import { siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
@@ -17,6 +16,9 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 <header>
 	<div id="navigation" class="mb-3">
+		<label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+			<i class="icon-list hover:-rotate-6"></i>
+		</label>
 		<div class="float-right flex flex-col gap-2">
 			<ThemeSwitcher default="dark" />
 			{
@@ -52,12 +54,12 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 									<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
 										{data}
 									</a>
-									{index === link.length - 1 && <span class="blink bg-secondary -ml-2">&nbsp;</span>}
+									{index === link.length - 1 && <span class="blink -ml-2">_</span>}
 								</span>
 							))}
 						</span>
 					) : (
-						<span class="blink bg-secondary -ml-2">&nbsp;</span>
+						<span class="blink -ml-2">_</span>
 					)
 				}
 			</span>
@@ -65,8 +67,4 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 	</div>
 	<h1>{siteMetadata.greeting}</h1>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
-	<div class="flex flex-col gap-6 min-h-12">
-		<CollapsibleNav items={mainNavigation} currentPath={currentPath} id="main-nav" />
-	</div>
-	<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
 </header>

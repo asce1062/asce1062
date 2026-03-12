@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+# Change to the project directory where node_modules and package.json are located
+cd asce1062
+
+# Regenerate ascii-art.json and stage it if it changed
+npm run generate:ascii
+git add src/data/ascii-art.json
