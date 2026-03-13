@@ -5,8 +5,6 @@
     "lightningcss",
     "@netlify/plugin-sitemap",
     "@netlify/plugin-lighthouse",
-    "netlify-plugin-checklinks",
-    "netlify-plugin-submit-sitemap",
     "vite-plugin-pwa",
     "autoprefixer",
     "postcss-nesting",

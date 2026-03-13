@@ -69,15 +69,10 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 }
 
 <script>
-	import { initTocLinks, initScrollDirection } from "@/scripts/tableOfContents";
+	import { init } from "@/scripts/tableOfContents";
 
-	// Initialize on first load
-	initTocLinks();
-	initScrollDirection();
-
-	// Reinitialize after view transitions
-	document.addEventListener("astro:page-load", () => {
-		initTocLinks();
-		initScrollDirection();
-	});
+	// astro:page-load fires on the initial hard load and after every soft
+	// navigation. This single listener is sufficient — no separate immediate
+	// call needed, and no DOMContentLoaded guard required.
+	document.addEventListener("astro:page-load", init);
 </script>

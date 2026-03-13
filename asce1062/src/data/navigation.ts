@@ -28,10 +28,6 @@ export const navSections: { key: NavigationLink["section"]; label: string }[] = 
 	{ key: "meta", label: "meta" },
 ];
 
-export interface SocialLink extends NavigationLink {
-	platform: string;
-}
-
 const githubProfile = SOCIAL.profiles.find((p) => p.name === "GitHub");
 const linkedinProfile = SOCIAL.profiles.find((p) => p.name === "LinkedIn");
 const discordProfile = SOCIAL.profiles.find((p) => p.name === "Discord");
@@ -324,52 +320,6 @@ export const sidebarOptions: SidebarOption[] = [
 		icon: "icon-command-palette",
 		label: "Pause",
 		description: "Stops the site's blinking cursor flourishes.",
-	},
-];
-
-/**
- * Social media links (Footer)
- */
-export const socialLinks: SocialLink[] = [
-	{
-		name: "asce1062",
-		href: getGithubProfileUrl(),
-		icon: "icon-github",
-		platform: "GitHub",
-		external: true,
-		ariaLabel: "Visit Alex's GitHub profile",
-	},
-	{
-		name: "Alex Mbugua",
-		href: "https://www.linkedin.com/in/alex-mbugua",
-		icon: "icon-linkedin",
-		platform: "LinkedIn",
-		external: true,
-		ariaLabel: "Visit Alex's LinkedIn profile",
-	},
-];
-
-/**
- * Contact and resume links (Footer)
- */
-export const contactLinks: NavigationLink[] = [
-	{
-		name: "Resume",
-		href: "/blog/2025-06-19-resume",
-		icon: "icon-body-text",
-		ariaLabel: `View ${SITE.authorShort}'s resume`,
-	},
-	{
-		name: "Resume.pdf",
-		href: "/resume",
-		icon: "icon-filetype-pdf",
-		ariaLabel: `View ${SITE.authorShort}'s resume as PDF`,
-	},
-	{
-		name: SOCIAL.email,
-		href: `mailto:${SOCIAL.email}`,
-		icon: "icon-envelope-at",
-		ariaLabel: `Email ${SITE.authorShort}`,
 	},
 ];
 
