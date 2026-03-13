@@ -12,6 +12,7 @@ import { pwaInfo } from "virtual:pwa-info";
 import "@/styles/global.css";
 import { SITE, SEO } from "@/config/site-config";
 import { getPageTitle } from "@/config/site-utils";
+import { PREF_KEYS } from "@/lib/prefs";
 
 interface Props {
 	title: string;
@@ -77,6 +78,20 @@ const pageTitle = getPageTitle(title);
 
 		<link href="/css/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
+
+		<!-- Early-apply cursor blink preference to prevent flash of unwanted animation.
+		     Key injected via define:vars from PREF_KEYS in src/lib/prefs.ts. -->
+		<script is:inline define:vars={{ cursorBlinkKey: PREF_KEYS.cursorBlink }}>
+			(function () {
+				try {
+					if (localStorage.getItem(cursorBlinkKey) === "paused") {
+						document.documentElement.setAttribute("data-no-blink", "");
+					}
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
 
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}

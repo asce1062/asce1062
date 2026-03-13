@@ -1,0 +1,32 @@
+/*
+============================================
+Content Utilities
+Layout and prose container utilities.
+============================================
+*/
+
+@utility content-prose {
+	max-width: var(--content-width);
+}
+
+@utility table-of-contents {
+	& ul {
+		@apply list-disc ml-2 space-y-4 list-outside pl-5;
+	}
+
+	& ul ul {
+		@apply ml-8 my-4;
+	}
+
+	& li {
+		@apply my-4;
+	}
+
+	& a {
+		@apply underline decoration-dashed underline-offset-8;
+	}
+
+	& summary {
+		@apply cursor-pointer;
+	}
+}

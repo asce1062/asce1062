@@ -57,7 +57,7 @@ started rendering broken in the browser (visually corrupted, yet copy-paste was 
 
 A quick audit with fontTools made the problem obvious:
 
-```diff title="fontTools audit — 0xProto base font"
+```diff title="fontTools audit - 0xProto base font"
 - Block Elements  (U+2580–U+259F):   0 / 32  glyphs present
 + Box Drawing     (U+2500–U+257F): 128 / 128  glyphs present
 ```
@@ -71,7 +71,7 @@ Swapping the font files fixed the rendering without touching a single line of CS
 
 Nerd Fonts releases ship `.ttf` files only. Grab the **Mono** variant for the typeface you need:
 
-```text title="0xProto — NerdFontMono TTF files" /Mono/#v
+```text title="0xProto - NerdFontMono TTF files" /Mono/#v
 0xProtoNerdFontMono-Regular.ttf
 0xProtoNerdFontMono-Bold.ttf
 0xProtoNerdFontMono-Italic.ttf

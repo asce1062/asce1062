@@ -43,11 +43,13 @@ This site does not:
 - Share data with third-party advertisers or data brokers
 - Serve targeted advertisements
 
-SESSION STORAGE
+LOCAL STORAGE
 
-This site writes to session storage so that your chosen dark/light mode
-persists as you navigate. This disappears the moment you close the tab
-or browse away.
+This site writes two values to your browser's localStorage: your chosen
+light/dark theme preference, and whether you have chosen to pause the
+blinking cursor effect. These persist across browser restarts by design
+so your preferences are remembered between visits. They never leave your
+device and are never transmitted to a server.
 
 FORMS
 
@@ -89,7 +91,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2028-03-01.
+This policy was last reviewed and reasserted on 2026-03-13.
 
 REFERENCE
 

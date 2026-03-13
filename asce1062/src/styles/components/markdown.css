@@ -13,7 +13,8 @@ content in /blog and /notes.
   ============================================
   */
 
-	input[type="checkbox"] {
+	/* Task list checkboxes only. Scoped to li to avoid matching other form inputs. */
+	li input[type="checkbox"] {
 		appearance: none;
 		-webkit-appearance: none;
 		width: 1em;
@@ -30,12 +31,12 @@ content in /blog and /notes.
 	}
 
 	/* Unchecked: icon-square (\e9aa) */
-	input[type="checkbox"]::before {
+	li input[type="checkbox"]::before {
 		content: "\e9aa";
 	}
 
 	/* Checked: icon-check-square (\f0ed) */
-	input[type="checkbox"]:checked::before {
+	li input[type="checkbox"]:checked::before {
 		content: "\f0ed";
 	}
 

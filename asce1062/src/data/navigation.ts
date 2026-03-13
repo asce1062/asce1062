@@ -297,6 +297,37 @@ export const mainNavigation: NavigationLink[] = [
 ];
 
 /**
+ * Sidebar option item.
+ * Each entry renders a labelled toggle in the Options section.
+ * Behaviour (storage key, DOM attribute) is wired in the corresponding
+ * client script. The data layer only describes the UI.
+ */
+export interface SidebarOption {
+	/** Unique id. Used as the checkbox id and the aria-describedby anchor. */
+	id: string;
+	/** Icon class name (icomoon). Rendered as <i class="icon nav-icon" />. */
+	icon: string;
+	/** Short label shown next to the icon (brief. one or two words). */
+	label: string;
+	/** One-sentence plain-language description shown on info hover/focus
+	 *  and always visible on touch/no-hover devices. */
+	description: string;
+}
+
+/**
+ * Options section entries.
+ * Toggle user preferences.
+ */
+export const sidebarOptions: SidebarOption[] = [
+	{
+		id: "cursor-blink-toggle",
+		icon: "icon-command-palette",
+		label: "Pause",
+		description: "Stops the site's blinking cursor flourishes.",
+	},
+];
+
+/**
  * Social media links (Footer)
  */
 export const socialLinks: SocialLink[] = [

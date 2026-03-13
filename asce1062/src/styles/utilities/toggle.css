@@ -1,0 +1,140 @@
+/*
+============================================
+Toggle
+Reusable squared retro toggle input.
+Usage:   <input type="checkbox" class="toggle" />
+Color:   toggle-primary | toggle-secondary | toggle-accent | toggle-neutral
+         toggle-info | toggle-success | toggle-warning | toggle-error
+Size:    toggle-xs | toggle-sm | (default) | toggle-lg
+============================================
+*/
+
+@utility toggle {
+	appearance: none;
+	-webkit-appearance: none;
+	position: relative;
+	display: inline-block;
+	width: 2.5rem;
+	height: 1.25rem;
+	min-width: 2.5rem;
+	flex-shrink: 0;
+	background-color: var(--color-base-300);
+	border: 1px solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
+	cursor: pointer;
+	vertical-align: middle;
+	transition:
+		background-color 0.15s ease,
+		border-color 0.15s ease;
+
+	/* Thumb */
+	&::after {
+		content: "";
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: calc(50% - 4px);
+		height: calc(100% - 4px);
+		background-color: var(--color-base-content);
+		opacity: 0.35;
+		transition:
+			left 0.15s ease,
+			opacity 0.15s ease,
+			background-color 0.15s ease;
+	}
+
+	&:checked {
+		background-color: var(--toggle-color, var(--color-base-content));
+		border-color: var(--toggle-color, var(--color-base-content));
+	}
+
+	&:checked::after {
+		left: calc(50% + 2px);
+		background-color: var(--toggle-content, var(--color-base-100));
+		opacity: 1;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--toggle-color, var(--color-base-content));
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		&::after {
+			transition: none;
+		}
+	}
+}
+
+/* Color variants */
+.toggle-primary {
+	--toggle-color: var(--color-primary);
+	--toggle-content: var(--color-primary-content);
+	@apply toggle;
+}
+
+.toggle-secondary {
+	--toggle-color: var(--color-secondary);
+	--toggle-content: var(--color-secondary-content);
+	@apply toggle;
+}
+
+.toggle-accent {
+	--toggle-color: var(--color-accent);
+	--toggle-content: var(--color-accent-content);
+	@apply toggle;
+}
+
+.toggle-neutral {
+	--toggle-color: var(--color-neutral);
+	--toggle-content: var(--color-neutral-content);
+	@apply toggle;
+}
+
+.toggle-info {
+	--toggle-color: var(--color-info);
+	--toggle-content: var(--color-info-content);
+	@apply toggle;
+}
+
+.toggle-success {
+	--toggle-color: var(--color-success);
+	--toggle-content: var(--color-success-content);
+	@apply toggle;
+}
+
+.toggle-warning {
+	--toggle-color: var(--color-warning);
+	--toggle-content: var(--color-warning-content);
+	@apply toggle;
+}
+
+.toggle-error {
+	--toggle-color: var(--color-error);
+	--toggle-content: var(--color-error-content);
+	@apply toggle;
+}
+
+/* Size variants */
+.toggle-xs {
+	width: 1.75rem;
+	height: 0.875rem;
+	min-width: 1.75rem;
+}
+
+.toggle-sm {
+	width: 2rem;
+	height: 1rem;
+	min-width: 2rem;
+}
+
+.toggle-lg {
+	width: 3rem;
+	height: 1.5rem;
+	min-width: 3rem;
+}

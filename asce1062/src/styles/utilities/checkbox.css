@@ -1,0 +1,113 @@
+/*
+============================================
+Checkbox
+Reusable icomoon icon-based checkbox input.
+Usage:   <input type="checkbox" class="checkbox" />
+Color:   checkbox-primary | checkbox-secondary | checkbox-accent | checkbox-neutral
+         checkbox-info | checkbox-success | checkbox-warning | checkbox-error
+Size:    checkbox-xs | checkbox-sm | (default, inherits) | checkbox-lg
+============================================
+*/
+
+@utility checkbox {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 1em;
+	height: 1em;
+	margin: 0 0.35em 0 0;
+	padding: 0;
+	vertical-align: -0.1em;
+	display: inline-block;
+	font-family: "icomoon" !important;
+	font-size: 1em;
+	line-height: 1;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: color-mix(in oklch, var(--checkbox-color, var(--color-base-content)) 45%, transparent);
+	transition: color 0.15s ease;
+
+	/* Unchecked: icon-square */
+	&::before {
+		content: "\e9aa";
+	}
+
+	/* Checked: icon-check-square. full color */
+	&:checked {
+		color: var(--checkbox-color, var(--color-base-content));
+	}
+
+	&:checked::before {
+		content: "\f0ed";
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--checkbox-color, var(--color-base-content));
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		& {
+			transition: none;
+		}
+	}
+}
+
+/* Color variants */
+.checkbox-primary {
+	--checkbox-color: var(--color-primary);
+	@apply checkbox;
+}
+
+.checkbox-secondary {
+	--checkbox-color: var(--color-secondary);
+	@apply checkbox;
+}
+
+.checkbox-accent {
+	--checkbox-color: var(--color-accent);
+	@apply checkbox;
+}
+
+.checkbox-neutral {
+	--checkbox-color: var(--color-neutral);
+	@apply checkbox;
+}
+
+.checkbox-info {
+	--checkbox-color: var(--color-info);
+	@apply checkbox;
+}
+
+.checkbox-success {
+	--checkbox-color: var(--color-success);
+	@apply checkbox;
+}
+
+.checkbox-warning {
+	--checkbox-color: var(--color-warning);
+	@apply checkbox;
+}
+
+.checkbox-error {
+	--checkbox-color: var(--color-error);
+	@apply checkbox;
+}
+
+/* Size variants drive font-size; width/height are 1em so they scale automatically */
+.checkbox-xs {
+	font-size: 0.75rem;
+}
+
+.checkbox-sm {
+	font-size: 0.875rem;
+}
+
+.checkbox-lg {
+	font-size: 1.25rem;
+}

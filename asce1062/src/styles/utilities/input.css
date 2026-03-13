@@ -1,0 +1,112 @@
+/*
+============================================
+Input
+Monospace text input utility.
+Usage:   <input class="input" />
+Color:   input-primary | input-secondary | input-accent | input-neutral
+         input-info | input-success | input-warning | input-error
+Named:   input-allowed (success ring) | input-honeypot (error ring, anti-spam)
+Size:    input-sm | (default) | input-lg
+============================================
+*/
+
+@utility input {
+	border: 1px solid var(--color-neutral-content);
+	padding: 0.5rem 0.75rem;
+	font-family: var(--font-proto);
+	font-weight: 400;
+	border-radius: var(--radius-DEFAULT);
+	background-color: var(--color-base-200);
+	color: var(--color-base-content);
+
+	&::placeholder {
+		color: var(--color-neutral-content);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--input-ring, var(--color-base-300));
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+}
+
+/* Color variants */
+.input-primary {
+	--input-ring: var(--color-primary);
+	@apply input;
+}
+
+.input-secondary {
+	--input-ring: var(--color-secondary);
+	@apply input;
+}
+
+.input-accent {
+	--input-ring: var(--color-accent);
+	@apply input;
+}
+
+.input-neutral {
+	--input-ring: var(--color-neutral);
+	@apply input;
+}
+
+.input-info {
+	--input-ring: var(--color-info);
+	@apply input;
+}
+
+.input-success {
+	--input-ring: var(--color-success);
+	@apply input;
+}
+
+.input-warning {
+	--input-ring: var(--color-warning);
+	@apply input;
+}
+
+.input-error {
+	--input-ring: var(--color-error);
+	@apply input;
+}
+
+/* Named variants */
+.input-allowed {
+	--input-ring: var(--color-success);
+	@apply input;
+}
+
+.input-honeypot {
+	--input-ring: var(--color-error);
+	@apply input;
+	color: var(--color-neutral-content);
+	background-color: color-mix(in oklab, var(--color-warning), transparent 80%) !important;
+}
+
+.input-honeypot:focus {
+	animation: shake 0.3s linear;
+}
+
+/* Size variants */
+.input-sm {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+}
+
+.input-lg {
+	padding: 0.75rem 1rem;
+	font-size: 1rem;
+}
+
+/* Browser autofill override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+	-webkit-box-shadow: 0 0 0px 1000px var(--color-neutral) inset;
+	-webkit-text-fill-color: var(--color-base-content);
+}

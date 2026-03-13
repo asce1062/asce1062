@@ -9,10 +9,10 @@
  * Usage:
  *   const teardown = setupAsciiReveal(artEl, container, { diceBtn? })
  *
- *   artEl     — <pre> with ASCII art text (rendered by caller before calling setup)
- *   container — wrapping element that receives art-reveal-* classes;
+ *   artEl     - <pre> with ASCII art text (rendered by caller before calling setup)
+ *   container - wrapping element that receives art-reveal-* classes;
  *               promoted to position:relative if static (for the scan overlay)
- *   diceBtn   — optional; clicking clears storedArt so the next scroll-in play()
+ *   diceBtn   - optional; clicking clears storedArt so the next scroll-in play()
  *               reads the freshly rendered text. Caller renders new art first,
  *               this module clears the cache second (add render listener before
  *               calling setupAsciiReveal to guarantee listener order).
@@ -73,7 +73,7 @@ export function setupAsciiReveal(
 		removeScan();
 		container.classList.remove("art-reveal-playing", "art-reveal-done");
 		container.classList.add("art-reveal-idle");
-		// Restore plain textContent — removes injected spans from a previous play.
+		// Restore plain textContent. removes injected spans from a previous play.
 		if (storedArt !== null) {
 			artEl.textContent = storedArt;
 		}
@@ -98,7 +98,7 @@ export function setupAsciiReveal(
 		removeScan(); // clear any stale overlay from an interrupted animation
 
 		// Split art into per-line spans for the staggered phosphor reveal.
-		// Joined with "" — no separator — to avoid whitespace nodes inside <pre>.
+		// Joined with "". No separator to avoid whitespace nodes inside <pre>.
 		const lines = storedArt.split("\n");
 		artEl.innerHTML = lines.map((line) => `<span class="art-line">${escapeHTML(line) || "\u200b"}</span>`).join("");
 

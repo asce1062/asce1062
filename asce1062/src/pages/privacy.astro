@@ -4,56 +4,232 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 ---
 
 <Layout title="Privacy Policy" ogImage="social-preview.png" description="How this site handles your data: it doesn't.">
-	<h2>Privacy Policy</h2>
-	<PrivacyPolicy />
+	<article>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/.privacy</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-shield-check"></i> Privacy Policy</h2>
+			<PrivacyPolicy />
+		</section>
 
-	<h3>Do Not Track</h3>
-	<p>
-		This site honors the <a href="https://www.w3.org/TR/tracking-dnt/">DNT header</a>. The tracking status is
-		<b>"N" (Not Tracking)</b>, as declared in
-		<a href="/.well-known/dnt">/.well-known/dnt</a>. The full policy is available at
-		<a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a>.
-	</p>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls /cookies/ /trackers/ /analytics/ 2&gt;&amp;1</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-circle-slash"></i> No cookies. No trackers. No analytics.</h2>
+			<p>
+				There are no advertising cookies, tracking pixels, fingerprinting scripts, or analytics beacons on this site. No
+				third-party scripts load in the background. What you see in the page source is everything that runs.
+			</p>
+			<p>
+				The only things written to your browser are two <code>localStorage</code> values. The theme and cursor-blink preference.
+				No cookies. No session identifiers. Nothing that follows you around.
+			</p>
+		</section>
 
-	<h3>Security</h3>
-	<p>
-		Security contact information is published at <a href="/.well-known/security.txt">/.well-known/security.txt</a>,
-		signed with a <a href="/.well-known/security.txt.sig">detached PGP signature</a>. The public key is available at
-		<a href="/public.pgp">/public.pgp</a> and via <b>WKD</b> at
-		<a href="/.well-known/openpgpkey/hu/t5s8ztdbon8yzntexy6oz5y48etqsnbb"> /.well-known/openpgpkey/ </a> for automatic discovery
-		by GPG, Thunderbird, and other OpenPGP clients.
-	</p>
-	<p>
-		PGP fingerprint: <code>18AE 4232 9AC1 F56F 843B 88C6 73B4 8769 BB38 F964</code> (Ed25519, expires 2028-03-01). The key
-		covers <code>alex@</code>, <code>security@</code>, and <code>contact@alexmbugua.me</code>.
-	</p>
-	<p>
-		Existence of the security.txt file does not imply consent to perform security tests against this site. This site is
-		primarily hosted on Netlify with GitHub Pages as a backup. Guestbook data is stored in a self-hosted Turso (libSQL)
-		database. All testing must comply with respective hosting provider security policies.
-	</p>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/.local/share/preferences</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
+			<p>Two values are written to your browser's <code>localStorage</code>:</p>
+			<ol>
+				<li>
+					<u><code>theme</code></u>
+					<ul>
+						<li><code>"light"</code> or <code>"dark"</code></li>
+						<li>Your chosen color scheme.</li>
+						<li>Defaults to <code>"dark"</code>.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>cursor-blink</code></u>
+					<ul>
+						<li><code>"paused"</code> when you've disabled the blinking cursor effect.</li>
+						<li>Absent by default (cursors blink).</li>
+					</ul>
+				</li>
+			</ol>
+			<p>
+				These are stored in <code>localStorage</code>, not <code>sessionStorage</code>. That means they persist across
+				browser restarts by design so your preferences stick between visits without you having to re-configure them
+				every time.
+			</p>
+			<p>
+				You can clear them at any time via your browser's developer tools (<kbd>Application</kbd> → <kbd
+					>Local Storage</kbd
+				>), or by toggling the options in the sidebar.
+			</p>
+		</section>
 
-	<h3>Third-Party Vendors</h3>
-	<p>
-		This site does not use advertising or tracking vendors. A full transparency listing of all third-party services used
-		by this site is published at
-		<a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a>.
-	</p>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat /var/mail/inbox | grep --from=you</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-envelope-at"></i> Data I receive from you</h2>
+			<p>
+				The only data I receive is what you voluntarily send. That means email you write to me, or a guestbook entry you
+				submit. Nothing else.
+			</p>
+			<p>
+				Guestbook submissions are stored in a self-hosted <a
+					href="https://turso.tech"
+					target="_blank"
+					rel="noopener noreferrer">Turso</a
+				> (libSQL) database. Spam is filtered using a honeypot field and content pattern detection. No third-party services
+				process your submission. If you'd like a copy of anything you've sent, or want it deleted, just ask.
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="mailto:alex@alexmbugua.me" class="link-action no-underline">
+					<i class="icon-envelope-at"></i>
+					alex@alexmbugua.me
+				</a>
+				<a
+					href="https://github.com/asce1062/asce1062/issues"
+					class="link-action no-underline"
+					target="_blank"
+					rel="noopener noreferrer">
+					<i class="icon-github"></i>
+					Open an issue
+				</a>
+			</div>
+		</section>
 
-	<h3>Well-Known Resources</h3>
-	<ul>
-		<li><a href="/.well-known/change-password">/.well-known/change-password</a> - password change URL</li>
-		<li><a href="/.well-known/dnt">/.well-known/dnt</a> - tracking status (JSON)</li>
-		<li><a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a> - DNT compliance policy</li>
-		<li><a href="/.well-known/privacy.txt">/.well-known/privacy.txt</a> - machine-readable privacy contact</li>
-		<li><a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a> - third-party vendor transparency</li>
-		<li><a href="/.well-known/security.txt">/.well-known/security.txt</a> - security contact information</li>
-		<li><a href="/.well-known/security.txt.sig">/.well-known/security.txt.sig</a> - PGP signature for security.txt</li>
-		<li><a href="/.well-known/openpgpkey/policy">/.well-known/openpgpkey/policy</a> - WKD policy sentinel</li>
-		<li
-			><a href="/.well-known/openpgpkey/hu/cddpr77ezsy7h967hgjydxhhmnt76n8w">/.well-known/openpgpkey/hu/…</a> - WKD key files
-			(alex@, security@, contact@)</li
-		>
-		<li><a href="/public.pgp">/public.pgp</a> - PGP public key (ASCII-armored)</li>
-	</ul>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">curl -sI https://alexmbugua.me | grep -i ^tk:</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-patch-check"></i> Do Not Track</h2>
+			<p>
+				This site honors the <a href="https://www.w3.org/TR/tracking-dnt/" target="_blank" rel="noopener noreferrer"
+					>DNT header</a
+				>. Tracking status is <b>"N" (Not Tracking)</b>, declared at <a href="/.well-known/dnt">/.well-known/dnt</a>.
+				The full compliance policy is at <a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a>.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">gpg --import /public.pgp && gpg --verify /.well-known/security.txt.sig</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-key"></i> Security</h2>
+			<p>
+				Security contact information is published at <a href="/.well-known/security.txt">/.well-known/security.txt</a>,
+				signed with a <a href="/.well-known/security.txt.sig">detached PGP signature</a>. The public key is at
+				<a href="/public.pgp">/public.pgp</a> and via <b>WKD</b> at
+				<a href="/.well-known/openpgpkey/hu/t5s8ztdbon8yzntexy6oz5y48etqsnbb">/.well-known/openpgpkey/</a> for automatic discovery
+				by GPG, Thunderbird, and other OpenPGP clients.
+			</p>
+			<p>
+				PGP fingerprint: <code>18AE 4232 9AC1 F56F 843B 88C6 73B4 8769 BB38 F964</code> (Ed25519, expires 2028-03-01). The
+				key covers <code>alex@</code>, <code>security@</code>, and <code>contact@alexmbugua.me</code>.
+			</p>
+			<p>
+				Existence of the security.txt file does not imply consent to perform security tests against this site. This site
+				is primarily hosted on Netlify with GitHub Pages as a backup. Guestbook data is stored in a self-hosted Turso
+				(libSQL) database. All testing must comply with respective hosting provider security policies.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat /.well-known/pubvendors.json | jq '.vendors'</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-diagram-3"></i> Third-party vendors</h2>
+			<p>
+				This site does not use advertising or tracking vendors. A full transparency listing of all third-party services
+				is published at <a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a>.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls -1 /.well-known/</span>
+				<span class="blink">_</span>
+			</p>
+			<h2><i class="icon-list-ul"></i> Well-known resources</h2>
+			<ul>
+				<li>
+					<a href="/.well-known/change-password">/.well-known/change-password</a> — password change URL
+				</li>
+				<li>
+					<a href="/.well-known/dnt">/.well-known/dnt</a> — tracking status (JSON)
+				</li>
+				<li>
+					<a href="/.well-known/dnt-policy.txt">/.well-known/dnt-policy.txt</a> — DNT compliance policy
+				</li>
+				<li>
+					<a href="/.well-known/privacy.txt">/.well-known/privacy.txt</a> — machine-readable privacy contact
+				</li>
+				<li>
+					<a href="/.well-known/pubvendors.json">/.well-known/pubvendors.json</a> — third-party vendor transparency
+				</li>
+				<li>
+					<a href="/.well-known/security.txt">/.well-known/security.txt</a> — security contact information
+				</li>
+				<li>
+					<a href="/.well-known/security.txt.sig">/.well-known/security.txt.sig</a> — PGP signature for security.txt
+				</li>
+				<li>
+					<a href="/.well-known/openpgpkey/policy">/.well-known/openpgpkey/policy</a> — WKD policy sentinel
+				</li>
+				<li>
+					<a href="/.well-known/openpgpkey/hu/cddpr77ezsy7h967hgjydxhhmnt76n8w">/.well-known/openpgpkey/hu/…</a> — WKD key
+					files (alex@, security@, contact@)
+				</li>
+				<li>
+					<a href="/public.pgp">/public.pgp</a> — PGP public key (ASCII-armored)
+				</li>
+			</ul>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="mb-6">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink">_</span>
+			</p>
+			<blockquote>
+				<p>
+					<em> This site is built on the principle that a personal website doesn't need to surveil its visitors. </em>
+				</p>
+			</blockquote>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/verify" class="link-action no-underline">
+					<i class="icon-patch-check"></i>
+					Verify
+				</a>
+				<a href="/hello" class="link-action no-underline">
+					<i class="icon-chat-square-heart"></i>
+					Hello
+				</a>
+				<a href="/colophon" class="link-action no-underline">
+					<i class="icon-book"></i>
+					Colophon
+				</a>
+				<a href="/about" class="link-action no-underline">
+					<i class="icon-person"></i>
+					About
+				</a>
+			</div>
+		</section>
+	</article>
 </Layout>

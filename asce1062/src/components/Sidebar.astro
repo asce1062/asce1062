@@ -10,7 +10,7 @@
  * JS handles: Escape key, scroll lock, close-on-click, header offset.
  */
 import "@/styles/components/sidebar.css";
-import { mainNavigation, navSections } from "@/data/navigation";
+import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 
@@ -85,6 +85,47 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			)
 		}
 
+		<!-- Options section: user-controlled site preferences -->
+		{
+			sidebarOptions.length > 0 && (
+				<div class="nav-section">
+					<div class="nav-section-label">
+						<span class="badge badge-secondary badge-sm">&#x276F;</span>
+						<span class="badge badge-success badge-sm">Options</span>
+					</div>
+					<div class="nav-options-list">
+						{sidebarOptions.map((option) => (
+							<div class="nav-option">
+								<div class="nav-option-control">
+									<div class="nav-option-label-group">
+										<i class={`${option.icon} nav-icon`} aria-hidden="true" />
+										<label class="nav-option-label" for={option.id}>
+											{option.label}
+										</label>
+										<sup
+											class="nav-option-info-btn no-underline hover:bg-transparent text-info hover:text-info cursor-default"
+											aria-label="More info"
+											aria-describedby={`${option.id}-helper`}>
+											<i class="icon-info-circle" aria-hidden="true" />
+										</sup>
+									</div>
+									<input
+										type="checkbox"
+										id={option.id}
+										class="toggle toggle-xs"
+										aria-describedby={`${option.id}-helper`}
+									/>
+								</div>
+								<p id={`${option.id}-helper`} class="nav-option-helper">
+									{option.description}
+								</p>
+							</div>
+						))}
+					</div>
+				</div>
+			)
+		}
+
 		<!-- ASCII easter egg. visible on overscroll -->
 		<div class="nav-easter-egg" aria-hidden="true">
 			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
@@ -137,4 +178,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 </script>
 <script>
 	import "@/scripts/sidebarAvatar";
+</script>
+<script>
+	import "@/scripts/cursorBlink";
 </script>

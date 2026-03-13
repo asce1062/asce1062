@@ -35,7 +35,7 @@ function initNav(): void {
 		);
 	});
 
-	// Close on Escape key. document persists — signal prevents accumulation.
+	// Close on Escape key. document persists, signal prevents accumulation.
 	document.addEventListener(
 		"keydown",
 		(e: KeyboardEvent) => {

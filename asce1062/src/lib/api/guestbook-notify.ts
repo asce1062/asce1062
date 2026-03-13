@@ -174,7 +174,7 @@ async function sendEmail(payload: SendEmailPayload): Promise<EmailResult> {
 	const apiKey = import.meta.env.RESEND_API_KEY;
 	const tag = `[guestbook-notify:${payload.kind}:${payload.entryId}]`;
 	if (!apiKey) {
-		console.warn(`${tag} Missing RESEND_API_KEY — skipping`);
+		console.warn(`${tag} Missing RESEND_API_KEY. Skipping`);
 		return { ok: false, reason: "missing_api_key" };
 	}
 
@@ -346,7 +346,7 @@ export async function sendEntryCopy(input: EntryCopyInput): Promise<EmailResult>
 
 	const from = sanitizeHeaderValue(import.meta.env.GUESTBOOK_FROM_EMAIL);
 	if (!from) {
-		console.warn(`${tag} Missing GUESTBOOK_FROM_EMAIL — skipping`);
+		console.warn(`${tag} Missing GUESTBOOK_FROM_EMAIL. Skipping`);
 		return { ok: false, reason: "missing_from_email" };
 	}
 
@@ -354,7 +354,7 @@ export async function sendEntryCopy(input: EntryCopyInput): Promise<EmailResult>
 	// Dedicated reply-to alias keeps reply address stable even if NOTIFY_TO changes
 	const replyToEmail = parseEmailAddress(import.meta.env.GUESTBOOK_REPLY_TO || adminEmail);
 	if (!replyToEmail) {
-		console.warn(`${tag} No valid reply-to address configured — skipping`);
+		console.warn(`${tag} No valid reply-to address configured. Skipping`);
 		return { ok: false, reason: "missing_reply_to" };
 	}
 

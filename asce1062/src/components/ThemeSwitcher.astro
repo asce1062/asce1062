@@ -12,44 +12,27 @@
 <script>
 	import { initThemeSwitcher, handleThemeToggle, setupThemeShortcut } from "@/scripts/themeManager";
 
-	// Store handlers so we can remove them later
-	let themeToggleHandler: (() => void) | null = null;
-	let shortcutCleanup: (() => void) | null = null;
+	let _themeAc: AbortController | null = null;
 
-	function setupThemeToggle() {
+	function setup(): void {
+		// Abort the previous navigation's listeners before re-registering.
+		// AbortController handles both the button click and the keyboard shortcut,
+		// so neither can accumulate across Astro soft navigations.
+		_themeAc?.abort();
+		_themeAc = new AbortController();
+		const { signal } = _themeAc;
+
 		initThemeSwitcher();
 
-		const themeButton = document.getElementById("theme-toggle-btn");
-		if (!themeButton) return;
-
-		// Remove old event listener if it exists
-		if (themeToggleHandler) {
-			themeButton.removeEventListener("click", themeToggleHandler);
+		const btn = document.getElementById("theme-toggle-btn");
+		if (btn) {
+			btn.addEventListener("click", handleThemeToggle, { signal });
 		}
 
-		// Create new handler
-		themeToggleHandler = () => {
-			handleThemeToggle();
-		};
-
-		// Add new event listener
-		themeButton.addEventListener("click", themeToggleHandler);
-
-		// Setup keyboard shortcut (Ctrl/Cmd + Shift + L)
-		if (shortcutCleanup) {
-			shortcutCleanup();
-		}
-		shortcutCleanup = setupThemeShortcut();
+		setupThemeShortcut(signal);
 	}
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", setupThemeToggle);
-	} else {
-		// DOM already loaded, run immediately
-		setupThemeToggle();
-	}
-
-	// Reinitialize after view transitions
-	document.addEventListener("astro:page-load", setupThemeToggle);
+	// astro:page-load fires on initial hard load and after every soft navigation.
+	// This single listener is sufficient. no DOMContentLoaded guard needed.
+	document.addEventListener("astro:page-load", setup);
 </script>

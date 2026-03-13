@@ -292,7 +292,7 @@ const entries = await getGuestEntries();
 
 			<p>
 				<label class="consent">
-					<input type="checkbox" required /><small>
+					<input type="checkbox" class="checkbox" required /><small>
 						I consent to this message being stored in a self-hosted database with honeypot and pattern-based spam
 						filtering.
 					</small>
@@ -300,7 +300,7 @@ const entries = await getGuestEntries();
 			</p>
 			<p id="send-copy-row" style="display:none">
 				<label class="consent">
-					<input type="checkbox" name="send-copy" id="send-copy-checkbox" /><small>
+					<input type="checkbox" class="checkbox" name="send-copy" id="send-copy-checkbox" /><small>
 						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span></small
 					>
 				</label>

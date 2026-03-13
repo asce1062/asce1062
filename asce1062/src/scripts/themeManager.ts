@@ -1,142 +1,135 @@
 /**
  * Theme Manager
- * Handles theme switching logic without global function pollution
+ *
+ * Handles light/dark theme switching.
+ *
+ * Priority for reading the current theme:
+ *   URL param (?theme=light|dark) - highest; for embeds and screenshots
+ *   localStorage                  - authoritative user preference
+ *   data-theme attribute          - fallback; reflects what's painted on screen
+ *   "dark"                        - site default
+ *
+ * localStorage is the source of truth. data-theme is a derived value set by
+ * our own setTheme() and by the astro-themes early-init script; it is used
+ * as a last-resort fallback only when storage is unavailable.
+ *
+ * The keyboard shortcut listener is managed via AbortController so it is
+ * automatically cleaned up and re-registered on each soft navigation without
+ * any manual removeEventListener bookkeeping.
  */
+
+import { getPref, setPref, PREF_KEYS } from "@/lib/prefs";
 
 export type Theme = "light" | "dark";
 
+// Element ID of the theme icon. matches the <i id="toggleIcon"> in ThemeSwitcher.astro
+const ICON_ELEMENT_ID = "toggleIcon";
+
+// Computed once at module load. navigator.userAgent doesn't change per session
+const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+
 /**
- * Check if theme is being forced via URL parameter
- * Returns the theme if ?theme=light or ?theme=dark is present, null otherwise
+ * Read the URL theme override, if present.
+ * Returns the theme if ?theme=light or ?theme=dark, otherwise null.
  */
 export function getThemeFromUrl(): Theme | null {
-	const urlParams = new URLSearchParams(window.location.search);
-	const themeParam = urlParams.get("theme");
-
-	if (themeParam === "light" || themeParam === "dark") {
-		return themeParam;
-	}
-
-	return null;
+	const param = new URLSearchParams(window.location.search).get("theme");
+	return param === "light" || param === "dark" ? param : null;
 }
 
 /**
- * Get the current theme from URL param, localStorage, or data-theme attribute
- * Priority: URL param > data-theme > localStorage > default (dark)
+ * Get the current theme.
+ * Priority: URL param > localStorage > data-theme attribute > "dark" (default)
  */
 export function getCurrentTheme(): Theme {
-	// URL parameter takes highest priority (for embeds/screenshots)
 	const urlTheme = getThemeFromUrl();
-	if (urlTheme) {
-		return urlTheme;
-	}
+	if (urlTheme) return urlTheme;
 
-	const dataTheme = document.documentElement.attributes.getNamedItem("data-theme")?.value;
+	// localStorage is authoritative. the user's explicit, persisted choice
+	const stored = getPref(PREF_KEYS.theme);
+	if (stored === "light" || stored === "dark") return stored;
 
-	if (dataTheme === "light" || dataTheme === "dark") {
-		return dataTheme;
-	}
+	// data-theme is a derived fallback. reflects what astro-themes last painted
+	const attr = document.documentElement.getAttribute("data-theme");
+	if (attr === "light" || attr === "dark") return attr;
 
-	const storedTheme = localStorage.getItem("theme");
-	return storedTheme === "light" ? "light" : "dark";
+	return "dark";
 }
 
 /**
- * Check if current theme is light mode
- */
-export function isLightMode(): boolean {
-	return getCurrentTheme() === "light";
-}
-
-/**
- * Set a specific theme
+ * Apply a theme. Pass persist: false to avoid writing to localStorage
+ * (e.g. when the theme is forced by a URL parameter).
  */
 export function setTheme(theme: Theme, persist: boolean = true): Theme {
-	// Update localStorage (unless URL param is forcing theme)
-	if (persist && !getThemeFromUrl()) {
-		localStorage.setItem("theme", theme);
+	if (persist) {
+		setPref(PREF_KEYS.theme, theme);
 	}
-
-	// Update data-theme attribute
 	document.documentElement.setAttribute("data-theme", theme);
-
-	// Dispatch custom event for astro-themes integration
+	// astro-themes integration
 	document.dispatchEvent(new CustomEvent("set-theme", { detail: theme }));
-
 	return theme;
 }
 
 /**
- * Toggle between light and dark themes
+ * Toggle between light and dark, persist the new value, and return it.
  */
 export function toggleTheme(): Theme {
-	const currentTheme = getCurrentTheme();
-	const newTheme: Theme = currentTheme === "light" ? "dark" : "light";
-
-	return setTheme(newTheme);
+	return setTheme(getCurrentTheme() === "light" ? "dark" : "light");
 }
 
 /**
- * Update the theme toggle icon
+ * Update the theme icon element to reflect the current theme.
+ * Uses classList.replace to avoid wiping unrelated classes.
  */
-export function updateThemeIcon(iconElementId: string = "toggleIcon"): void {
-	const icon = document.getElementById(iconElementId);
+export function updateThemeIcon(): void {
+	const icon = document.getElementById(ICON_ELEMENT_ID);
 	if (!icon) return;
-
-	const lightMode = isLightMode();
-	icon.className = lightMode ? "icon-moon" : "icon-sun";
-}
-
-/**
- * Initialize theme from URL parameter if present
- * Call this early to apply URL-based theme before content renders
- */
-export function initThemeFromUrl(): void {
-	const urlTheme = getThemeFromUrl();
-	if (urlTheme) {
-		setTheme(urlTheme, false); // Don't persist URL-based themes
+	const isLight = getCurrentTheme() === "light";
+	if (!icon.classList.replace(isLight ? "icon-sun" : "icon-moon", isLight ? "icon-moon" : "icon-sun")) {
+		// classList.replace returns false when the old class isn't present (first run)
+		icon.classList.add(isLight ? "icon-moon" : "icon-sun");
 	}
 }
 
 /**
- * Initialize theme switcher
- * Sets up the initial icon state and applies URL theme if present
+ * If a URL theme is present, apply it without persisting.
+ * Call early to avoid a flash of the wrong theme for embed/screenshot use.
  */
-export function initThemeSwitcher(iconElementId: string = "toggleIcon"): void {
+export function initThemeFromUrl(): void {
+	const urlTheme = getThemeFromUrl();
+	if (urlTheme) setTheme(urlTheme, false);
+}
+
+/**
+ * Initialize the theme switcher: apply any URL override and sync the icon.
+ */
+export function initThemeSwitcher(): void {
 	initThemeFromUrl();
-	updateThemeIcon(iconElementId);
+	updateThemeIcon();
 }
 
 /**
- * Handle theme toggle button click
+ * Handle a theme toggle button click.
  */
-export function handleThemeToggle(iconElementId: string = "toggleIcon"): void {
+export function handleThemeToggle(): void {
 	toggleTheme();
-	updateThemeIcon(iconElementId);
+	updateThemeIcon();
 }
 
 /**
- * Setup global keyboard shortcut for theme toggle
- * Default: Ctrl/Cmd + Shift + L
+ * Register the Ctrl/Cmd+Shift+L keyboard shortcut.
+ * Tied to an AbortSignal so the caller controls the lifecycle.
  */
-export function setupThemeShortcut(
-	iconElementId: string = "toggleIcon",
-	shortcut: { key: string; ctrlOrCmd: boolean; shift: boolean } = { key: "l", ctrlOrCmd: true, shift: true }
-): () => void {
-	const handler = (e: KeyboardEvent) => {
-		const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
-		const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
-		const matchesShortcut =
-			e.key.toLowerCase() === shortcut.key && ctrlOrCmd === shortcut.ctrlOrCmd && e.shiftKey === shortcut.shift;
-
-		if (matchesShortcut) {
-			e.preventDefault();
-			handleThemeToggle(iconElementId);
-		}
-	};
-
-	document.addEventListener("keydown", handler);
-
-	// Return cleanup function
-	return () => document.removeEventListener("keydown", handler);
+export function setupThemeShortcut(signal: AbortSignal): void {
+	document.addEventListener(
+		"keydown",
+		(e: KeyboardEvent) => {
+			const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+			if (e.key.toLowerCase() === "l" && ctrlOrCmd && e.shiftKey) {
+				e.preventDefault();
+				handleThemeToggle();
+			}
+		},
+		{ signal }
+	);
 }

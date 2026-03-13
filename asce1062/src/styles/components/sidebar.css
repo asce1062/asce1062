@@ -165,6 +165,80 @@ body:has(#nav-toggle:checked) {
 
 /*
 ============================================
+Options Section
+User-controlled site preferences inside the sidebar.
+============================================
+*/
+.nav-options-list {
+	padding: 0.1875rem 0 0.375rem;
+}
+
+.nav-option {
+	display: flex;
+	flex-direction: column;
+}
+
+.nav-option-control {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.25rem 0.5rem;
+	min-height: 2rem;
+}
+
+/* Icon + label + info btn. grouped tightly together */
+.nav-option-label-group {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	min-width: 0;
+}
+
+.nav-option-label {
+	font-size: 0.8125rem;
+	color: var(--color-base-content);
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/*
+Helper text.
+Always visible on touch / no-hover devices.
+On hover-capable devices, revealed when the info button is hovered or focused.
+Also accessible to screen readers via aria-describedby on the toggle input.
+*/
+.nav-option-helper {
+	font-size: 0.6875rem;
+	font-style: italic;
+	color: var(--color-base-content);
+	opacity: 0.6;
+	padding: 0 0.5rem 0.3125rem;
+	margin: 0;
+	line-height: 1.35;
+	display: none;
+}
+
+/* Always visible on touch / no-hover devices */
+@media (hover: none), (pointer: coarse) {
+	.nav-option-helper {
+		display: block;
+	}
+}
+
+/* On hover-capable devices: reveal when info button is hovered or keyboard-focused */
+@media (hover: hover) {
+	.nav-option-control:has(.nav-option-info-btn:hover) + .nav-option-helper,
+	.nav-option-control:has(.nav-option-info-btn:focus-visible) + .nav-option-helper {
+		display: block;
+	}
+}
+
+/*
+============================================
 ASCII Easter Egg (overscroll)
 ============================================
 */
@@ -336,7 +410,8 @@ Reduced Motion
 	.nav-menu,
 	.nav-hamburger,
 	.nav-link,
-	.nav-icon {
+	.nav-icon,
+	.nav-option-info-btn {
 		transition: none;
 	}
 }
