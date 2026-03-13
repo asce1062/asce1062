@@ -82,6 +82,18 @@
       "Purposes": [
         "Static site search (self-hosted, generated at build time)"
       ]
+    },
+    {
+      "id": 8,
+      "Name": "figlet.js (patorjk)",
+      "Resources": [
+        "https://github.com/patorjk/figlet.js",
+        "https://patorjk.com/software/taag/"
+      ],
+      "Purposes": [
+        "ASCII art text generation (build-time only, self-hosted output)",
+        "Pre-generated ASCII art bundled as static data"
+      ]
     }
   ]
 }
