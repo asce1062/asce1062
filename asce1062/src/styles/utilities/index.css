@@ -12,3 +12,4 @@ Imports all utility files in dependency order.
 @import "./checkbox.css";
 @import "./toggle.css";
 @import "./link-action.css";
+@import "./avatar-frame.css";

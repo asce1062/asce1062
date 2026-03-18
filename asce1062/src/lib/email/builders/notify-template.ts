@@ -21,6 +21,7 @@ export interface NotifyTemplateInput {
 	url: string;
 	message: string;
 	style?: string;
+	avatarState?: string | null;
 	classification: ClassificationResult;
 	entryId: number;
 	submittedAt: Date;
@@ -47,7 +48,12 @@ export async function renderNotifyEmail(
 	// Validate user-supplied URL. Only http/https allowed. invalid → omit link entirely
 	const safeUrl = sanitizeUrl(input.url);
 
-	const html = await renderEmailHtml(NotifyEmail, { ...input, url: safeUrl });
+	// Use a public URL so clients (which strip data: URIs) can fetch the image
+	const avatarImageDataUri = input.avatarState
+		? `${BASE_URL}/api/avatar.png?state=${encodeURIComponent(input.avatarState)}`
+		: null;
+
+	const html = await renderEmailHtml(NotifyEmail, { ...input, url: safeUrl, avatarImageDataUri });
 
 	const text = [
 		`New guestbook entry from ${input.name}`,

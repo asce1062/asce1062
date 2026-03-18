@@ -34,8 +34,9 @@ import "@/styles/components/avatar.css";
 	 */
 	import { AvatarRenderer } from "@/scripts/avatarRenderer";
 	import { AvatarStateManager } from "@/scripts/avatarStateManager";
-	import { copyToClipboard, initShareNotification } from "@/scripts/shareManager";
-	import type { Gender } from "@/data/avatarConfig";
+	import { avatarStore, AVATAR_CHANGE_EVENT } from "@/scripts/avatarStore";
+	import { copyToClipboard, initShareNotification, showNotification } from "@/scripts/feedbackManager";
+	import type { Gender, AvatarState } from "@/data/avatarConfig";
 	import { avatarConfig, getImagePath } from "@/data/avatarConfig";
 
 	/**
@@ -79,6 +80,13 @@ import "@/styles/components/avatar.css";
 		 * Setup all event listeners
 		 */
 		private setupEventListeners(): void {
+			// Save avatar button: commits current state to localStorage.
+			const saveBtn = document.getElementById("save-avatar-btn");
+			saveBtn?.addEventListener("click", () => {
+				avatarStore.saveToStorage();
+				showNotification("avatar-save-notification");
+			});
+
 			// Gender radio buttons
 			this.genderRadios.forEach((radio) => {
 				radio.addEventListener("change", async (e) => {
@@ -106,6 +114,28 @@ import "@/styles/components/avatar.css";
 			// Download button
 			const downloadBtn = document.getElementById("download-btn");
 			downloadBtn?.addEventListener("click", () => this.download());
+
+			// External avatar changes (e.g. sidebar mini widget randomize/gender)
+			window.addEventListener(AVATAR_CHANGE_EVENT, (e) => {
+				// Skip events that this controller itself triggered to avoid re-entrant loops.
+				if (this.stateManager.isUpdating) return;
+				const { gender, state } = (e as CustomEvent<{ gender: Gender; state: AvatarState }>).detail;
+				const prevGender = this.stateManager.getGender();
+				this.stateManager.applyExternalChange(gender, state);
+				// If gender changed, sync tab highlights and preload new image set before rendering.
+				if (prevGender !== gender) {
+					this.layerTabs.forEach((tab, index) => {
+						tab.classList.toggle("active", index === 0);
+					});
+					this.renderer.preloadImages(gender).then(() => {
+						this.renderLayerItems();
+						this.renderer.renderAvatar(gender, state).catch(() => {});
+					});
+				} else {
+					this.renderLayerItems();
+					this.renderer.renderAvatar(gender, state).catch(() => {});
+				}
+			});
 		}
 
 		/**
@@ -249,8 +279,9 @@ import "@/styles/components/avatar.css";
 		const shareBtn = document.getElementById("share-btn");
 		if (!shareBtn || !controllerInstance) return;
 
-		// Initialize share notification
+		// Initialize share + save notifications
 		initShareNotification("avatar-share-notification");
+		initShareNotification("avatar-save-notification");
 
 		// Remove old event listener if it exists
 		shareBtn.replaceWith(shareBtn.cloneNode(true));

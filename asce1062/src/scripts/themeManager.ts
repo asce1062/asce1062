@@ -3,30 +3,85 @@
  *
  * Handles light/dark theme switching.
  *
- * Priority for reading the current theme:
- *   URL param (?theme=light|dark) - highest; for embeds and screenshots
- *   localStorage                  - authoritative user preference
+ * Theme priority:
+ *   URL param (?theme=light|dark) - highest; for embeds and screenshots only
+ *   match-device mode             - live OS preference; wins over stored manual choice
+ *   localStorage                  - authoritative persisted user preference
  *   data-theme attribute          - fallback; reflects what's painted on screen
  *   "dark"                        - site default
  *
- * localStorage is the source of truth. data-theme is a derived value set by
- * our own setTheme() and by the astro-themes early-init script; it is used
- * as a last-resort fallback only when storage is unavailable.
+ * getCurrentTheme()   — what is currently displayed, including URL overrides.
+ *                       Use for icon sync and toggle display state.
+ * resolveActiveTheme() — what the theme should be per stored preferences.
+ *                        Does NOT consider URL params; URL overrides are
+ *                        presentation-only (embed/screenshot) and not persisted.
+ *
+ * localStorage is the source of truth for persistence. data-theme is a derived
+ * value set by our own setTheme() and by the astro-themes early-init script.
  *
  * The keyboard shortcut listener is managed via AbortController so it is
- * automatically cleaned up and re-registered on each soft navigation without
- * any manual removeEventListener bookkeeping.
+ * automatically cleaned up and re-registered on each soft navigation.
+ *
+ * BROWSER-ONLY: this module uses window, navigator, and document. Import only
+ * from client-side <script> blocks, never from SSR code paths.
  */
 
-import { getPref, setPref, PREF_KEYS } from "@/lib/prefs";
+import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
 
 export type Theme = "light" | "dark";
+
+/**
+ * Dispatched on document when match-device-theme mode is programmatically
+ * enabled or disabled (e.g. a manual theme toggle turns it off).
+ * detail: true = enabled, false = disabled.
+ */
+export const MATCH_DEVICE_THEME_CHANGE_EVENT = "match-device-theme-change";
 
 // Element ID of the theme icon. matches the <i id="toggleIcon"> in ThemeSwitcher.astro
 const ICON_ELEMENT_ID = "toggleIcon";
 
-// Computed once at module load. navigator.userAgent doesn't change per session
-const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+/** Return the OS/browser preferred color scheme. */
+export function getSystemTheme(): Theme {
+	return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/** True when match-device-theme mode is persisted as enabled. */
+export function isMatchDeviceTheme(): boolean {
+	return getPref(PREF_KEYS.matchDeviceTheme) === "1";
+}
+
+/**
+ * Enable match-device-theme mode.
+ * Immediately applies and persists the device-preferred theme, then broadcasts
+ * so any sidebar toggle UI can sync its checked state.
+ */
+export function enableMatchDeviceTheme(): void {
+	setPref(PREF_KEYS.matchDeviceTheme, "1");
+	setTheme(getSystemTheme());
+	document.dispatchEvent(new CustomEvent(MATCH_DEVICE_THEME_CHANGE_EVENT, { detail: true }));
+}
+
+/**
+ * Disable match-device-theme mode.
+ * Does not change the active theme; the current theme becomes the new manual
+ * preference. Broadcasts so the sidebar toggle UI can sync.
+ */
+export function disableMatchDeviceTheme(): void {
+	removePref(PREF_KEYS.matchDeviceTheme);
+	document.dispatchEvent(new CustomEvent(MATCH_DEVICE_THEME_CHANGE_EVENT, { detail: false }));
+}
+
+/**
+ * Derive the correct active theme from stored preferences.
+ * Use for runtime decisions: "what should the theme be right now?"
+ * Does NOT consider URL params. URL overrides are presentation-only.
+ */
+export function resolveActiveTheme(): Theme {
+	if (isMatchDeviceTheme()) return getSystemTheme();
+	const stored = getPref(PREF_KEYS.theme);
+	if (stored === "light" || stored === "dark") return stored;
+	return "dark";
+}
 
 /**
  * Read the URL theme override, if present.
@@ -38,18 +93,19 @@ export function getThemeFromUrl(): Theme | null {
 }
 
 /**
- * Get the current theme.
+ * Get the currently displayed theme, including URL overrides.
  * Priority: URL param > localStorage > data-theme attribute > "dark" (default)
+ * Use for icon sync and toggle display state. For theme logic use resolveActiveTheme().
  */
 export function getCurrentTheme(): Theme {
 	const urlTheme = getThemeFromUrl();
 	if (urlTheme) return urlTheme;
 
-	// localStorage is authoritative. the user's explicit, persisted choice
+	// localStorage is authoritative. The user's explicit, persisted choice.
 	const stored = getPref(PREF_KEYS.theme);
 	if (stored === "light" || stored === "dark") return stored;
 
-	// data-theme is a derived fallback. reflects what astro-themes last painted
+	// data-theme is a derived fallback. Reflects what astro-themes last painted.
 	const attr = document.documentElement.getAttribute("data-theme");
 	if (attr === "light" || attr === "dark") return attr;
 
@@ -79,16 +135,15 @@ export function toggleTheme(): Theme {
 
 /**
  * Update the theme icon element to reflect the current theme.
- * Uses classList.replace to avoid wiping unrelated classes.
+ * Removes both icon classes before adding the correct one to prevent
+ * accumulation if the element starts in an unexpected state.
  */
 export function updateThemeIcon(): void {
 	const icon = document.getElementById(ICON_ELEMENT_ID);
 	if (!icon) return;
 	const isLight = getCurrentTheme() === "light";
-	if (!icon.classList.replace(isLight ? "icon-sun" : "icon-moon", isLight ? "icon-moon" : "icon-sun")) {
-		// classList.replace returns false when the old class isn't present (first run)
-		icon.classList.add(isLight ? "icon-moon" : "icon-sun");
-	}
+	icon.classList.remove("icon-sun", "icon-moon");
+	icon.classList.add(isLight ? "icon-moon" : "icon-sun");
 }
 
 /**
@@ -110,8 +165,11 @@ export function initThemeSwitcher(): void {
 
 /**
  * Handle a theme toggle button click.
+ * A manual toggle always cancels match-device-theme mode first so the manual
+ * choice becomes the new persisted preference.
  */
 export function handleThemeToggle(): void {
+	disableMatchDeviceTheme();
 	toggleTheme();
 	updateThemeIcon();
 }
@@ -119,16 +177,29 @@ export function handleThemeToggle(): void {
 /**
  * Register the Ctrl/Cmd+Shift+L keyboard shortcut.
  * Tied to an AbortSignal so the caller controls the lifecycle.
+ * Ignored when focus is inside an editable field (input, textarea, select,
+ * contenteditable) to prevent accidental firing while the user is typing.
  */
 export function setupThemeShortcut(signal: AbortSignal): void {
+	// Evaluated here rather than at module scope so this module is safe to import
+	// before the browser environment is fully available (e.g. test contexts).
+	const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+
 	document.addEventListener(
 		"keydown",
 		(e: KeyboardEvent) => {
 			const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
-			if (e.key.toLowerCase() === "l" && ctrlOrCmd && e.shiftKey) {
-				e.preventDefault();
-				handleThemeToggle();
+			if (!(e.key.toLowerCase() === "l" && ctrlOrCmd && e.shiftKey)) return;
+
+			// Do not fire while the user is typing in an editable field.
+			const target = e.target as HTMLElement | null;
+			if (target) {
+				const tag = target.tagName;
+				if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable) return;
 			}
+
+			e.preventDefault();
+			handleThemeToggle();
 		},
 		{ signal }
 	);

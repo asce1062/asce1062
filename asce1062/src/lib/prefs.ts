@@ -15,6 +15,9 @@
 export const PREF_KEYS = {
 	theme: "theme",
 	cursorBlink: "cursor-blink",
+	avatarState: "avatar-state",
+	/** Set to "1" when match-device-theme mode is active; absent otherwise. */
+	matchDeviceTheme: "match-device-theme",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */

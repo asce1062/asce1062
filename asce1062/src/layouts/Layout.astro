@@ -93,6 +93,26 @@ const pageTitle = getPageTitle(title);
 			})();
 		</script>
 
+		<!-- Early-apply match-device-theme preference to prevent FOUC.
+		     Runs after astro-themes has set data-theme from localStorage["theme"],
+		     then immediately overrides with the device-preferred theme if match
+		     mode is active. Also updates localStorage["theme"] so astro-themes
+		     stays consistent across soft navigations. -->
+		<script is:inline define:vars={{ matchDeviceThemeKey: PREF_KEYS.matchDeviceTheme, themeKey: PREF_KEYS.theme }}>
+			(function () {
+				try {
+					if (localStorage.getItem(matchDeviceThemeKey) === "1") {
+						const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+						const theme = prefersDark ? "dark" : "light";
+						document.documentElement.setAttribute("data-theme", theme);
+						localStorage.setItem(themeKey, theme);
+					}
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
+
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 

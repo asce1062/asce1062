@@ -4,9 +4,10 @@ interface Props {
 	entryName: string;
 	entryStyle: string;
 	entryMessage: string;
+	entryAvatarState?: string | null;
 }
 
-const { entryId, entryName, entryStyle, entryMessage } = Astro.props;
+const { entryId, entryName, entryStyle, entryMessage, entryAvatarState } = Astro.props;
 
 const issueTitle = encodeURIComponent(`[Guestbook] Entry #${entryId} by ${entryName}`);
 const issueBody = encodeURIComponent(
@@ -45,6 +46,18 @@ const emailUrl = `mailto:guestbook@alexmbugua.me?subject=${emailSubject}&body=${
 			<i class="icon-clipboard group-hover:text-accent group-hover:rotate-6"></i>
 			<span>Copy Message</span>
 		</button>
+		{
+			entryAvatarState && (
+				<button
+					class="entry-action group"
+					role="menuitem"
+					data-action="copy-avatar"
+					data-avatar-state={entryAvatarState}>
+					<i class="icon-person-bounding-box group-hover:text-accent group-hover:rotate-6" />
+					<span>Copy Avatar</span>
+				</button>
+			)
+		}
 		<button
 			class="entry-action group"
 			role="menuitem"

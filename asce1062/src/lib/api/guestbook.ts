@@ -36,6 +36,10 @@ export interface GuestEntry {
 	moderatedBy: string | null;
 	/** Rule version active when entry was classified. 1-indexed, incremented on rule changes */
 	moderationVersion: number | null;
+	/** Serialized avatar state: "gender=male&avatar=3-54-12-14-15-21". Null when not opted in. */
+	avatarState: string | null;
+	/** True when the submitter opted to attach their avatar to this entry */
+	avatarOptIn: boolean | null;
 }
 
 export interface ClassificationResult {
@@ -60,6 +64,10 @@ export interface CreateEntryInput {
 	url: string;
 	message: string;
 	style?: string;
+	/** Serialized avatar state string. Only stored when avatarOptIn is true. */
+	avatarState?: string | null;
+	/** Whether the submitter opted to attach their avatar */
+	avatarOptIn?: boolean;
 	ip?: string;
 	userAgent?: string;
 }
@@ -734,6 +742,8 @@ export async function createGuestEntry(
 		messageHash,
 		isSpam: classification.status === "hidden",
 		style: entry.style || null,
+		avatarState: entry.avatarOptIn ? entry.avatarState || null : null,
+		avatarOptIn: entry.avatarOptIn ?? false,
 		status: classification.status,
 		moderationReason: classification.reasons.length > 0 ? JSON.stringify(classification.reasons) : null,
 		moderationScore: classification.score,

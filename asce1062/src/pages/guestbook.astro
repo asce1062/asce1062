@@ -7,6 +7,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 import GuestbookEntry from "@/components/GuestbookEntry.astro";
 import ShareNotification from "@/components/ShareNotification.astro";
 import Expand from "@/components/ui/Expand.astro";
+import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
 import {
 	getGuestEntries,
 	createGuestEntry,
@@ -29,6 +30,8 @@ if (Astro.request.method === "POST") {
 	const url = formData.get("url") as string;
 	const message = formData.get("message") as string;
 	const style = formData.get("style") as string;
+	const avatarState = formData.get("avatarState") as string | null;
+	const avatarOptIn = formData.get("avatarOptIn") === "on";
 	const theme = formData.get("theme") === "dark" ? "dark" : "light";
 	const sendCopy = formData.get("send-copy") === "on";
 	const honeypot = formData.get("bot-field");
@@ -55,6 +58,8 @@ if (Astro.request.method === "POST") {
 			url,
 			message,
 			style,
+			avatarState,
+			avatarOptIn,
 			ip,
 			userAgent,
 		});
@@ -72,6 +77,7 @@ if (Astro.request.method === "POST") {
 					url,
 					message,
 					style,
+					avatarState: avatarOptIn ? avatarState : null,
 					classification,
 					entryId,
 					theme,
@@ -86,6 +92,7 @@ if (Astro.request.method === "POST") {
 					email,
 					message,
 					style,
+					avatarState: avatarOptIn ? avatarState : null,
 					classification,
 					entryId,
 					theme,
@@ -161,6 +168,7 @@ const entries = await getGuestEntries();
 			</p>
 
 			<input type="hidden" id="style-input" name="style" />
+			<input type="hidden" id="avatar-state-input" name="avatarState" />
 
 			<div class="mb-4 max-w-[380px]">
 				<Expand title="Customize your card" id="customizer-panel">
@@ -260,6 +268,19 @@ const entries = await getGuestEntries();
 							</div>
 						</div>
 
+						<!-- 8-bit Avatar -->
+						<div class="customizer-section">
+							<h4>8-bit Avatar</h4>
+							<AvatarMiniWidget instanceId="guestbook" canvasClass="guestbook-avatar-canvas avatar-frame" />
+							<label class="consent">
+								<input type="checkbox" id="avatar-opt-in" name="avatarOptIn" class="checkbox checkbox-xs" />
+								<small>Include avatar in this entry</small>
+							</label>
+							<p id="avatar-random-notice" class="avatar-random-notice" style="display:none">
+								<small><i class="icon-info-circle"></i> No avatar customized — a random one will be generated.</small>
+							</p>
+						</div>
+
 						<div class="flex justify-end mb-4">
 							<button type="button" id="customizer-done" class="btn btn-neutral">
 								<i class="font-retro">Done</i>
@@ -320,8 +341,10 @@ const entries = await getGuestEntries();
 <script>
 	import { initGuestbookCounter } from "@/scripts/guestbookCounter";
 	import { initGuestbookCustomizer } from "@/scripts/guestbookCustomizer";
+	import { initGuestbookAvatarWidget } from "@/scripts/guestbookAvatarWidget";
 	import { initEntryActions } from "@/scripts/guestbookEntryActions";
-	import { initShareNotification } from "@/scripts/shareManager";
+	import { initShareNotification } from "@/scripts/feedbackManager";
+	import "@/scripts/entryAvatarRenderer";
 
 	function initSendCopyToggle() {
 		const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
@@ -353,6 +376,7 @@ const entries = await getGuestEntries();
 	function initGuestbook() {
 		initGuestbookCounter();
 		initGuestbookCustomizer();
+		initGuestbookAvatarWidget();
 		initEntryActions();
 		initSendCopyToggle();
 		initThemeCapture();

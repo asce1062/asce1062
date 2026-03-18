@@ -7,7 +7,7 @@ image:
     alt: "patching & Converting Web Fonts with Nerd Fonts"
 tags: ["fonts", "web", "nerd-fonts", "ascii-art", "typography", "tools", "unicode"]
 permalink: "2026-03-13-fixing-ascii-art-0xproto-nerd-font-mono"
-updatedDate: 2026-03-13
+updatedDate: 2026-03-17
 ---
 import ContentLayout from "@/layouts/ContentLayout.astro";
 
@@ -114,12 +114,12 @@ for src, dst in variants:
     print(f"✓ {dst}")
 ```
 
-Lines <u>9–10</u> are all that matters: set `flavor` to `"woff2"` and save.
+Lines <u>11–12</u> are all that matters: set `flavor` to `"woff2"` and save.
 No glyph data is altered, only the container format and compression change.
 
 Serve both formats via `@font-face`. WOFF2 first, TTF as the fallback:
 
-```css title="style.css" showLineNumbers {3-5} "woff2"#v "truetype"#s
+```css title="style.css" showLineNumbers {3-5} "woff2"#v "ttf"#s "truetype"#s
 @font-face {
   font-family: "0xProto";
   src:
@@ -137,7 +137,8 @@ The browser picks the first format it can decode (effectively every modern brows
 <br/>
 ## `$ cat ~/LICENSE-notes.md`
 
-Both 0xProto and Nerd Fonts are released under the **[SIL Open Font License 1.1](https://openfontlicense.org/)**. The OFL explicitly permits:
+Both 0xProto and Nerd Fonts are released under the **[SIL Open Font License 1.1](https://openfontlicense.org/)**.
+The OFL explicitly permits:
 
 - Format conversion (`TTF` → `WOFF2`)
 - Redistribution bundled with a software project
@@ -154,7 +155,7 @@ See also: [Licensing & Disclaimer](/notes/2026-03-12-licensing).
 <br/>
 ## `$ echo $TLDR`
 
-1. Audit your font for missing Unicode ranges before assuming a rendering bug is CSS. <u>fontTools</u> makes this trivial.
+1. ***Audit*** your font for <em>missing Unicode ranges</em> before assuming a rendering bug is CSS, browser or operating system related. <u>fontTools</u> makes this trivial.
 2. Use **NerdFontMono** for monospace web contexts; the `default` and `Propo` variants <u>will</u> cause alignment drift.
 3. Convert `TTF` → `WOFF2` with `fonttools` + `brotli`; serve both via `@font-face` for broad browser coverage.
 4. `OFL 1.1` permits this workflow <u>freely</u>. Format conversion is <u>not</u> a modification.

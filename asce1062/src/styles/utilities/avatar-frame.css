@@ -1,0 +1,28 @@
+/**
+ * Avatar Stamp Frame
+ *
+ * Reusable 3-D frame for pixel-art avatar canvases.
+ * Applied to any <canvas> (or wrapper) that should look like
+ * a raised postage stamp.
+ *
+ * Customize per surface with the CSS custom property:
+ *   --avatar-frame-size   controls both width and height (default: 3rem / 48px)
+ *
+ * Example overrides:
+ *   .my-context { --avatar-frame-size: 4rem; }   → 64 px
+ *   .my-context { --avatar-frame-size: 5rem; }   → 80 px
+ */
+
+.avatar-frame {
+	display: block;
+	width: var(--avatar-frame-size, 3rem);
+	height: var(--avatar-frame-size, 3rem);
+	flex-shrink: 0;
+	background: var(--color-base-100);
+	border: 2px solid var(--color-warning);
+	box-shadow: 3px 3px 0 var(--color-base-content);
+	padding: 1px;
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: crisp-edges;
+}

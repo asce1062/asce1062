@@ -10,6 +10,8 @@ interface Props {
 const { entry } = Astro.props;
 const formattedDate = formatDate(entry.timestamp, "medium");
 
+const hasAvatar = entry.avatarOptIn === true && typeof entry.avatarState === "string" && entry.avatarState.length > 0;
+
 // Simple ASCII art detection
 // Lines with 2+ consecutive spaces
 // Normal prose never has double spaces, but ASCII art relies on them for alignment
@@ -47,12 +49,28 @@ const inlineStyles = [
 
 <article class="entry" id={`entry-${entry.id}`}>
 	<div class="entry-bubble" style={inlineStyles}>
-		<EntryActions
-			entryId={entry.id}
-			entryName={entry.name}
-			entryStyle={entry.style || ""}
-			entryMessage={entry.message}
-		/>
+		<div class="entry-top">
+			{
+				hasAvatar && (
+					<div class="entry-avatar-stamp" title="8-bit avatar">
+						<canvas
+							class="entry-avatar-canvas avatar-frame"
+							data-avatar-state={entry.avatarState}
+							width="48"
+							height="48"
+							aria-hidden="true"
+						/>
+					</div>
+				)
+			}
+			<EntryActions
+				entryId={entry.id}
+				entryName={entry.name}
+				entryStyle={entry.style || ""}
+				entryMessage={entry.message}
+				entryAvatarState={hasAvatar ? entry.avatarState : null}
+			/>
+		</div>
 		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 		<div class="entry-meta">
 			<h2>

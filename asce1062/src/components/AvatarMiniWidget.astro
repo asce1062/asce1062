@@ -1,0 +1,84 @@
+---
+/**
+ * AvatarMiniWidget
+ *
+ * Reusable avatar mini widget.
+ * Layout: controls LEFT, canvas CENTRE, actions RIGHT.
+ *
+ *   [randomize]  [ canvas ]  [  edit  ]
+ *   [ male    ]              [  save  ]
+ *   [ female  ]
+ *
+ * Props:
+ *   instanceId  - unique string used as data-widget-id for controller scoping.
+ *   canvasClass - extra CSS class(es) applied to the <canvas> for size overrides.
+ *                 Core sizing classes come from the consuming surface's stylesheet.
+ *                 e.g. "nav-status-avatar" (sidebar) or "guestbook-avatar-canvas" (form).
+ *
+ * Controller: bind via bindAvatarMiniWidget(instanceId) from avatarMiniWidget.ts.
+ */
+
+interface Props {
+	instanceId: string;
+	canvasClass?: string;
+}
+
+const { instanceId, canvasClass = "" } = Astro.props;
+---
+
+<div class="avatar-mini-widget" data-widget-id={instanceId}>
+	<div class="avatar-mini-controls">
+		<button
+			type="button"
+			class="nav-avatar-btn avatar-mini-randomize hover:rotate-6"
+			aria-label="Randomize avatar"
+			title="Randomize">
+			<i class="icon-stars"></i>
+		</button>
+		<!-- prettier-ignore-start -->
+		<button
+			type="button"
+			class="nav-avatar-btn avatar-mini-gender"
+			data-gender="male"
+			aria-label="Male avatar"
+			title="Male">
+			<span class="icon-male"
+				><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
+				></span><span class="path5"></span><span class="path6"></span></span
+			>
+		</button>
+		<button
+			type="button"
+			class="nav-avatar-btn avatar-mini-gender"
+			data-gender="female"
+			aria-label="Female avatar"
+			title="Female">
+			<span class="icon-female"
+				><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
+				></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"
+				></span><span class="path9"></span><span class="path10"></span></span
+			>
+		</button>
+		<!-- prettier-ignore-end -->
+	</div>
+
+	<canvas class={canvasClass || undefined} width="400" height="400" aria-hidden="true"></canvas>
+
+	<div class="avatar-mini-actions">
+		<a
+			class="nav-avatar-btn avatar-mini-edit no-underline hover:-rotate-6"
+			href="/8biticon"
+			aria-label="Customize avatar"
+			title="Customize">
+			<i class="icon-pencil"></i>
+		</a>
+		<button
+			type="button"
+			class="nav-avatar-btn avatar-mini-save hover:-rotate-6"
+			aria-label="Save avatar"
+			title="Save avatar">
+			<i class="icon-floppy avatar-mini-save-icon"></i>
+			<i class="icon-check2 text-success avatar-mini-save-check hidden"></i>
+		</button>
+	</div>
+</div>

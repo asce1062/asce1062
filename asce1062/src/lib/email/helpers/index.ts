@@ -1,8 +1,8 @@
 /**
  * Email template helpers.
  *
- * - parseEntryStyle  Safe parser for the styleJson DB column → EntryStyle
- * - getPatternDataUri  SVG notecard → inline base64 data URI for email backgrounds
+ * - parseEntryStyle   Safe parser for the styleJson DB column → EntryStyle
+ * - getPatternDataUri SVG notecard → inline base64 data URI for email backgrounds
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -58,6 +58,35 @@ export function parseEntryStyle(styleJson: string | undefined): EntryStyle {
 	} catch {
 		return ENTRY_STYLE_DEFAULTS;
 	}
+}
+
+// ---------------------------------------------------------------------------
+// CSS unit conversion for email
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a single CSS length value to px for email clients.
+ * Most email clients ignore rem/em. convert them to px.
+ * px and % values pass through unchanged.
+ * 1rem = 1em = 16px (base font size).
+ */
+export function emailPx(value: string): string {
+	return value.replace(/^(\d+(?:\.\d+)?)r?em$/, (_, n) => `${Math.round(parseFloat(n) * 16)}px`);
+}
+
+// ---------------------------------------------------------------------------
+// Entry border CSS for email
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a CSS border + border-radius string from a parsed EntryStyle,
+ * resolving token names to hex and converting rem to px for email clients.
+ */
+export function entryBorderCss(style: EntryStyle, palette: Record<string, string>): string {
+	const color = palette[style.borderColor] ?? palette["base-300"] ?? "#ccc";
+	const radius = `border-radius:${emailPx(style.borderRadius)};`;
+	if (style.borderStyle === "none") return `border:none;${radius}`;
+	return `border:${style.borderWidth} ${style.borderStyle} ${color};${radius}`;
 }
 
 // ---------------------------------------------------------------------------

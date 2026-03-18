@@ -67,7 +67,7 @@ Content management with Hygraph(graphQL), Auth0, SSO flows, SAML, OAuth, Terrafo
           📄 <strong>Resume:</strong>
           <a
             style="font-weight: bold"
-            href="asce1062/public/Alex Mbugua Ngugi - Resume.pdf"
+            href="asce1062/public/Alex-Mbugua-Ngugi-Resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >

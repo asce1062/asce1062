@@ -5,7 +5,7 @@
  */
 import type { ClassificationResult } from "@/lib/api/guestbook";
 import { hexLight, hexDark } from "@/config/design-tokens";
-import { getPatternDataUri, parseEntryStyle } from "@/lib/email/helpers";
+import { getPatternDataUri, parseEntryStyle, entryBorderCss } from "@/lib/email/helpers";
 import { BASE_URL, MAX_ADMIN_PREVIEW_CHARS } from "@/config/email-config";
 
 interface Props {
@@ -14,13 +14,25 @@ interface Props {
 	url: string;
 	message: string;
 	style?: string;
+	avatarImageDataUri?: string | null;
 	classification: ClassificationResult;
 	entryId: number;
 	submittedAt: Date;
 	theme: "light" | "dark";
 }
 
-const { name, email, url, message, style: styleJson, classification, entryId, submittedAt, theme } = Astro.props;
+const {
+	name,
+	email,
+	url,
+	message,
+	style: styleJson,
+	avatarImageDataUri,
+	classification,
+	entryId,
+	submittedAt,
+	theme,
+} = Astro.props;
 
 const L = theme === "dark" ? hexDark : hexLight;
 
@@ -45,9 +57,10 @@ const bodyBgCss = `background-color:${L["base-100"]};background-image:url("${bod
 
 // Card pattern. Inline base64 so it survives clients that block remote images.
 // Notecard SVGs are small (<5 KB) and don't push email past most email clients' 102 KB clip limit.
-const { bg: entrybg } = parseEntryStyle(styleJson);
+const entryStyle = parseEntryStyle(styleJson);
 const patternFill = theme === "dark" ? hexDark["base-300"] : hexLight["base-300"];
-const patternDataUri = getPatternDataUri(entrybg, patternFill);
+const patternDataUri = getPatternDataUri(entryStyle.bg, patternFill);
+const msgBorderCss = entryBorderCss(entryStyle, L);
 const msgBgCss = patternDataUri
 	? `background-color:${L["base-100"]};background-image:url("${patternDataUri}");background-size:60px;background-repeat:repeat;`
 	: `background-color:${L["base-100"]};`;
@@ -166,7 +179,21 @@ const msgBgCss = patternDataUri
 								style={`background:${L["base-200"]};border-left:2px solid ${L["base-300"]};border-right:2px solid ${L["base-300"]};padding:0 20px 16px;`}>
 								<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 									<tr>
-										<td style={`border:1px solid ${L["base-300"]};${msgBgCss}padding:12px;`}>
+										<td style={`${msgBorderCss}${msgBgCss}padding:12px;`}>
+											<!-- Avatar stamp -->
+											{
+												avatarImageDataUri && (
+													<div style="line-height:0;margin-bottom:16px;">
+														<img
+															src={avatarImageDataUri}
+															width="48"
+															height="48"
+															alt="8-bit avatar"
+															style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${L["base-100"]};border:2px solid ${L["warning"]};box-shadow:3px 3px 0 ${L["base-content"]};padding:1px;`}
+														/>
+													</div>
+												)
+											}
 											<!--
 												max-height + overflow-y:auto for clients that support it (Gmail web, Apple Mail).
 												Server-side truncation at MAX_ADMIN_PREVIEW_CHARS is the safety net for clients that don't.

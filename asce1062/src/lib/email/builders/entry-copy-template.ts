@@ -12,6 +12,7 @@ export interface EntryCopyTemplateInput {
 	name: string;
 	message: string;
 	style?: string;
+	avatarState?: string | null;
 	status: ModerationStatus;
 	entryId: number;
 	theme: "light" | "dark";
@@ -25,7 +26,12 @@ export async function renderEntryCopyEmail(
 	const entryUrl = `${BASE_URL}/guestbook#entry-${input.entryId}`;
 	const subject = `Your guestbook entry on ${siteHost}`;
 
-	const html = await renderEmailHtml(EntryCopyEmail, { ...input });
+	// Use a public URL so clients (which strip data: URIs) can fetch the image
+	const avatarImageDataUri = input.avatarState
+		? `${BASE_URL}/api/avatar.png?state=${encodeURIComponent(input.avatarState)}`
+		: null;
+
+	const html = await renderEmailHtml(EntryCopyEmail, { ...input, avatarImageDataUri });
 
 	const text = [
 		`Hi ${input.name},`,

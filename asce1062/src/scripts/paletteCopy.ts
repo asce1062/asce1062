@@ -5,6 +5,8 @@
  * with icon toggle feedback (clipboard → checkmark)
  */
 
+import { flashCheckIcon } from "@/scripts/feedbackManager";
+
 const RESET_DELAY = 2000;
 
 /**
@@ -90,17 +92,8 @@ function showOklchCopiedState(codeElement: HTMLElement, originalValue: string): 
 function showSuccessState(btn: HTMLButtonElement): void {
 	const copyIcon = btn.querySelector<HTMLElement>(".copy-icon");
 	const checkIcon = btn.querySelector<HTMLElement>(".check-icon");
-
 	if (!copyIcon || !checkIcon) return;
-
-	copyIcon.classList.add("hidden");
-	checkIcon.classList.remove("hidden");
-
-	// Reset after delay
-	setTimeout(() => {
-		copyIcon.classList.remove("hidden");
-		checkIcon.classList.add("hidden");
-	}, RESET_DELAY);
+	flashCheckIcon(copyIcon, checkIcon, RESET_DELAY);
 }
 
 // Auto-initialize on page load (for Astro view transitions)

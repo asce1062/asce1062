@@ -7,7 +7,7 @@
  */
 import type { ModerationStatus } from "@/lib/api/guestbook";
 import { hexLight, hexDark } from "@/config/design-tokens";
-import { getPatternDataUri, parseEntryStyle } from "@/lib/email/helpers";
+import { getPatternDataUri, parseEntryStyle, entryBorderCss } from "@/lib/email/helpers";
 import { SOCIAL } from "@/config/site-config";
 import { BASE_URL, GITHUB_ISSUES_URL, MAX_COPY_MSG_CHARS } from "@/config/email-config";
 
@@ -15,23 +15,19 @@ interface Props {
 	name: string;
 	message: string;
 	style?: string; // JSON string, same format stored in DB
+	avatarImageDataUri?: string | null;
 	status: ModerationStatus;
 	entryId: number;
 	theme: "light" | "dark";
 }
 
-const { name, message, style: styleJson, status, entryId, theme } = Astro.props;
+const { name, message, style: styleJson, avatarImageDataUri, status, entryId, theme } = Astro.props;
 
 // Single color palette selected at render time
 const C = theme === "dark" ? hexDark : hexLight;
 
 const entryStyle = parseEntryStyle(styleJson);
-
-const borderColor = C[entryStyle.borderColor] ?? C["base-300"];
-const borderCss =
-	entryStyle.borderStyle === "none"
-		? `border:none;border-radius:${entryStyle.borderRadius};`
-		: `border:${entryStyle.borderWidth} ${entryStyle.borderStyle} ${borderColor};border-radius:${entryStyle.borderRadius};`;
+const borderCss = entryBorderCss(entryStyle, C);
 
 // Body background. Remote URL.
 const bodyPattern = theme === "dark" ? `${BASE_URL}/topography.svg` : `${BASE_URL}/topographylight.svg`;
@@ -101,6 +97,20 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 								<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 									<tr>
 										<td style={`${borderCss}${cardBgCss}padding:16px;`}>
+											<!-- Avatar stamp -->
+											{
+												avatarImageDataUri && (
+													<div style="line-height:0;margin-bottom:16px;">
+														<img
+															src={avatarImageDataUri}
+															width="48"
+															height="48"
+															alt="8-bit avatar"
+															style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${C["base-100"]};border:2px solid ${C["warning"]};box-shadow:3px 3px 0 ${C["base-content"]};padding:1px;`}
+														/>
+													</div>
+												)
+											}
 											<!--
 												max-height + overflow-y:auto for clients that support it.
 												Server-side truncation at MAX_COPY_MSG_CHARS is the safety net for clients that don't.

@@ -13,6 +13,7 @@ import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
+import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
 
 const currentPath = Astro.url.pathname;
 
@@ -134,36 +135,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 
 	<!-- Avatar footer -->
 	<div class="nav-status">
-		<!-- Controls: randomize + gender -->
-		<div class="nav-avatar-controls">
-			<button id="nav-avatar-randomize" class="nav-avatar-btn" aria-label="Randomize avatar" title="Randomize">
-				<i class="icon-stars"></i>
-			</button>
-			<!-- prettier-ignore-start -->
-			<button class="nav-avatar-btn" data-avatar-gender="male" aria-label="Male avatar" title="Male">
-				<span class="icon-male"
-					><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
-					></span><span class="path5"></span><span class="path6"></span></span
-				>
-			</button>
-			<button class="nav-avatar-btn" data-avatar-gender="female" aria-label="Female avatar" title="Female">
-				<span class="icon-female"
-					><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"
-					></span><span class="path5"></span><span class="path6"></span><span class="path7"></span><span class="path8"
-					></span><span class="path9"></span><span class="path10"></span></span
-				>
-			</button>
-			<!-- prettier-ignore-end -->
-		</div>
-
-		<!-- Avatar canvas (click → /8biticon with current state) -->
-		<a
-			id="nav-avatar-link"
-			href="/8biticon"
-			aria-label="Open avatar generator"
-			class="hover:bg-transparent! hover:color-inherit! no-underline">
-			<canvas id="nav-avatar-canvas" width="400" height="400" class="nav-status-avatar" aria-hidden="true"></canvas>
-		</a>
+		<AvatarMiniWidget instanceId="sidebar" canvasClass="nav-status-avatar avatar-frame" />
 	</div>
 </aside>
 
@@ -181,4 +153,5 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 </script>
 <script>
 	import "@/scripts/cursorBlink";
+	import "@/scripts/matchDeviceTheme";
 </script>

@@ -309,13 +309,22 @@ html[data-theme="dark"] .pattern-swatch {
 	z-index: 10;
 }
 
+/* Top row: avatar stamp (left) + actions menu (right) */
+.entry-top {
+	display: flex;
+	align-items: flex-start;
+	margin-bottom: 1rem;
+	/* Must sit above sibling elements (z-index: 1 from .entry-bubble > *) so the
+	   actions dropdown isn't covered by the entry message or meta rows. */
+	z-index: 2;
+}
+
 /* Entry Actions Menu */
 .entry-actions {
 	position: relative;
 	z-index: 10;
 	width: fit-content;
 	margin-left: auto;
-	margin-bottom: 1rem;
 }
 
 .entry-actions-trigger {
@@ -402,4 +411,39 @@ html[data-theme="dark"] .pattern-swatch {
 		outline: 2px solid transparent;
 		outline-offset: 4px;
 	}
+}
+
+/*
+============================================
+Avatar Stamp (entry cards)
+Pixel art "sticker" in the bottom-right corner.
+Wrapper handles positioning only; canvas uses .avatar-frame for the frame.
+============================================
+*/
+.entry-avatar-stamp {
+	line-height: 0;
+}
+
+/*
+============================================
+Guestbook form avatar mini-widget
+Layout is globally available in sidebar.css (.avatar-mini-widget etc.).
+Only surface-specific overrides live here.
+============================================
+*/
+/* Uses .avatar-frame utility; only form-specific overrides live here. */
+.guestbook-avatar-canvas {
+	--avatar-frame-size: 5rem; /* 80px; 400×400 internal canvas */
+}
+
+/* Bump up the mini widget gap slightly for the form context */
+.customizer-section .avatar-mini-widget {
+	gap: 0.75rem;
+	margin-bottom: 0.625rem;
+}
+
+.avatar-random-notice {
+	margin: 0.375rem 0 0;
+	font-style: italic;
+	opacity: 0.65;
 }

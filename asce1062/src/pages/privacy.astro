@@ -27,8 +27,8 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				third-party scripts load in the background. What you see in the page source is everything that runs.
 			</p>
 			<p>
-				The only things written to your browser are two <code>localStorage</code> values. The theme and cursor-blink preference.
-				No cookies. No session identifiers. Nothing that follows you around.
+				The only things written to your browser are four <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
+				and your avatar customisation. No cookies. No session identifiers. Nothing that follows you around.
 			</p>
 		</section>
 
@@ -39,7 +39,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				<span class="blink">_</span>
 			</p>
 			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
-			<p>Two values are written to your browser's <code>localStorage</code>:</p>
+			<p>Four values are written to your browser's <code>localStorage</code>:</p>
 			<ol>
 				<li>
 					<u><code>theme</code></u>
@@ -50,10 +50,26 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 					</ul>
 				</li>
 				<li>
+					<u><code>match-device-theme</code></u>
+					<ul>
+						<li><code>"1"</code> when you've enabled the "Match device" toggle in the sidebar.</li>
+						<li>Absent by default (manual theme selection).</li>
+						<li>When active, the site theme follows your OS/browser color scheme preference live.</li>
+					</ul>
+				</li>
+				<li>
 					<u><code>cursor-blink</code></u>
 					<ul>
 						<li><code>"paused"</code> when you've disabled the blinking cursor effect.</li>
 						<li>Absent by default (cursors blink).</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>avatar-state</code></u>
+					<ul>
+						<li>Your 8-bit avatar customisation, e.g. <code>"gender=male&amp;avatar=3-54-12-14-15-21"</code>.</li>
+						<li>Only written if you use the avatar builder on the <a href="/8biticon">/8biticon</a> page.</li>
+						<li>Absent until you interact with the builder.</li>
 					</ul>
 				</li>
 			</ol>

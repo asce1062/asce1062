@@ -32,6 +32,10 @@ const Guestbook = defineTable({
 		adminNotifiedAt: column.date({ optional: true }),
 		/** Set after the entry-copy email is successfully sent. Prevents duplicate sends on route retry */
 		copySentAt: column.date({ optional: true }),
+		/** Serialized avatar state: "gender=male&avatar=3-54-12-14-15-21". Null when not opted in. */
+		avatarState: column.text({ optional: true }),
+		/** True when the submitter opted to attach their avatar to this entry */
+		avatarOptIn: column.boolean({ optional: true }),
 	},
 	indexes: {
 		/** Speeds up rate-limit window queries: countRecentPostsByIp */

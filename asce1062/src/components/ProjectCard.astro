@@ -120,7 +120,7 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 						{tools.map((tool) => {
 							const iconClass = getLanguageIcon(tool.name) || tool.icon;
 							return (
-								<span class="text-xs sm:text-sm transition-all duration-300 bg-success text-success-content px-2 py-1 font-bold flex items-center gap-1 font-retro">
+								<span class="badge badge-success badge-lg px-2 py-1 flex items-center gap-1">
 									{iconClass && <i class={iconClass} />}
 									{tool.name}
 								</span>

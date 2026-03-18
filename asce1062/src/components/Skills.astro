@@ -12,7 +12,7 @@ import type { SkillsSection, SkillCategory } from "@/types";
 				{section.items && (
 					<div class="mt-4 space-y-2 text-sm text-base-content">
 						{section.items.map((item: string) => (
-							<div class="p-1 ml-0 mr-2 inline-block bg-secondary text-secondary-content">{item}</div>
+							<div class="p-1 ml-0 mr-2 inline-block badge badge-secondary badge-lg">{item}</div>
 						))}
 					</div>
 				)}
@@ -21,12 +21,12 @@ import type { SkillsSection, SkillCategory } from "@/types";
 					<div>
 						{section.categories.map((category: SkillCategory) => (
 							<div class="mt-4">
-								<h3 class="mb-1 text-sm text-neutral-content underline decoration-dashed font-bold">
+								<h3 class="mb-1 badge badge-neutral badge-sm underline decoration-wavy decoration-1 underline-offset-2">
 									{category.categoryTitle}
 								</h3>
 								<div class="flex flex-wrap gap-2">
 									{category.skills.map((skill: string) => (
-										<code class="text-xs bg-success text-success-content">{skill}</code>
+										<code class="text-xs badge badge-success badge-lg">{skill}</code>
 									))}
 								</div>
 							</div>

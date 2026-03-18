@@ -71,11 +71,10 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 	 * Copy button handler for all AsciiWidget instances on the page.
 	 * Reads data-ascii-current (set by each page's init script) from the
 	 * widget root and copies it as formatted JSON to the clipboard.
-	 * Uses icon toggle (clipboard → checkmark) as feedback, matching the
-	 * palette page copy button pattern.
+	 * Uses icon toggle (clipboard → checkmark) as feedback via flashCheckIcon.
 	 */
 
-	const RESET_MS = 2000;
+	import { flashCheckIcon } from "@/scripts/feedbackManager";
 
 	/**
 	 * Format the variant for copying:
@@ -117,14 +116,7 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 		const copyIcon = btn.querySelector<HTMLElement>(".ascii-copy-icon");
 		const checkIcon = btn.querySelector<HTMLElement>(".ascii-check-icon");
 		if (!copyIcon || !checkIcon) return;
-
-		copyIcon.classList.add("hidden");
-		checkIcon.classList.remove("hidden");
-
-		setTimeout(() => {
-			copyIcon.classList.remove("hidden");
-			checkIcon.classList.add("hidden");
-		}, RESET_MS);
+		flashCheckIcon(copyIcon, checkIcon);
 	}
 
 	document.addEventListener("astro:page-load", initAsciiCopy);

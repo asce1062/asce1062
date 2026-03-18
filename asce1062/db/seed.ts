@@ -20,6 +20,8 @@ export default async function seed() {
 				borderStyle: "double",
 				borderRadius: "0rem",
 			}),
+			avatarState: "gender=male&avatar=3-54-12-14-15-1",
+			avatarOptIn: true,
 		},
 		{
 			id: 3,
@@ -38,6 +40,8 @@ export default async function seed() {
 				borderStyle: "solid",
 				borderRadius: "0.5rem",
 			}),
+			avatarState: "gender=male&avatar=2-41-18-7-9-5",
+			avatarOptIn: true,
 		},
 		{
 			id: 2,
@@ -56,6 +60,8 @@ export default async function seed() {
 				borderStyle: "dashed",
 				borderRadius: "0.25rem",
 			}),
+			avatarState: "gender=female&avatar=3-14-22-41-7-11",
+			avatarOptIn: true,
 		},
 		{
 			id: 1,
@@ -86,6 +92,8 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 				borderStyle: "double",
 				borderRadius: "0rem",
 			}),
+			avatarState: "gender=male&avatar=3-54-12-14-15-21",
+			avatarOptIn: true,
 		},
 
 		// -------------------------------------------------------------------------
@@ -179,11 +187,13 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 			moderationVersion: 1,
 			style: JSON.stringify({
 				bg: "overcast",
-				borderColor: "base-300",
-				borderWidth: "1px",
+				borderColor: "error",
+				borderWidth: "4px",
 				borderStyle: "solid",
-				borderRadius: "0.25rem",
+				borderRadius: "2rem",
 			}),
+			avatarState: "gender=female&avatar=3-17-29-50-12-18",
+			avatarOptIn: true,
 		},
 		{
 			id: 8,
@@ -304,6 +314,8 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 				borderStyle: "solid",
 				borderRadius: "0rem",
 			}),
+			avatarState: "gender=male&avatar=1-58-9-15-25-17",
+			avatarOptIn: true,
 		},
 		{
 			id: 22,
@@ -445,6 +457,8 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 				borderStyle: "solid",
 				borderRadius: "0.5rem",
 			}),
+			avatarState: "gender=female&avatar=4-26-32-22-3-3",
+			avatarOptIn: true,
 		},
 
 		// Was pending (rate_limited), admin reviewed and approved as a real person
@@ -470,6 +484,8 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 				borderStyle: "dashed",
 				borderRadius: "0.25rem",
 			}),
+			avatarState: "gender=male&avatar=2-30-29-20-16-19",
+			avatarOptIn: true,
 		},
 
 		// -------------------------------------------------------------------------

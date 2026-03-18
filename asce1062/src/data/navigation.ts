@@ -321,6 +321,12 @@ export const sidebarOptions: SidebarOption[] = [
 		label: "Pause",
 		description: "Stops the site's blinking cursor flourishes.",
 	},
+	{
+		id: "match-device-theme-toggle",
+		icon: "icon-sun",
+		label: "Match device",
+		description: "Follows your OS/browser preferred color scheme. Manually switching the theme turns this off.",
+	},
 ];
 
 /**

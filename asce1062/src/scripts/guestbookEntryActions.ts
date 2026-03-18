@@ -3,7 +3,7 @@
  * Handles guestbook entry action menus: toggle, clipboard, share, anchor highlight
  */
 
-import { copyToClipboard } from "@/scripts/shareManager";
+import { copyToClipboard } from "@/scripts/feedbackManager";
 
 const NOTIFICATION_ID = "entry-action-notification";
 
@@ -55,6 +55,14 @@ async function handleCopyMessage(button: HTMLElement): Promise<void> {
 	await copyToClipboard(message, NOTIFICATION_ID);
 }
 
+/** Copy a link to /8biticon pre-loaded with this entry's avatar */
+async function handleCopyAvatar(button: HTMLElement): Promise<void> {
+	const avatarState = button.dataset.avatarState;
+	if (!avatarState) return;
+	const url = `${window.location.origin}/8biticon?${avatarState}`;
+	await copyToClipboard(url, NOTIFICATION_ID);
+}
+
 /** Share entry via Web Share API or clipboard fallback */
 async function handleShareEntry(button: HTMLElement): Promise<void> {
 	const entryId = button.dataset.entryId;
@@ -90,6 +98,9 @@ async function dispatchAction(target: HTMLElement): Promise<void> {
 			break;
 		case "copy-message":
 			await handleCopyMessage(target);
+			break;
+		case "copy-avatar":
+			await handleCopyAvatar(target);
 			break;
 		case "share-entry":
 			await handleShareEntry(target);

@@ -77,6 +77,7 @@ export interface NotifyInput {
 	url: string;
 	message: string;
 	style?: string;
+	avatarState?: string | null;
 	classification: ClassificationResult;
 	entryId: number;
 	theme: "light" | "dark";
@@ -89,6 +90,7 @@ export interface EntryCopyInput {
 	email: string;
 	message: string;
 	style?: string;
+	avatarState?: string | null;
 	/** Full classification so sendEntryCopy can apply spam guards internally */
 	classification: ClassificationResult;
 	entryId: number;
@@ -277,7 +279,7 @@ export async function notifyNewEntry(input: NotifyInput): Promise<EmailResult> {
 
 	let rendered: { subject: string; html: string; text: string };
 	try {
-		rendered = await renderNotifyEmail({ ...input });
+		rendered = await renderNotifyEmail({ ...input, avatarState: input.avatarState ?? null });
 	} catch (err) {
 		// Log only error type. Never log err.message (may capture rendered props in some environments)
 		console.error(`${tag} template_error: ${err instanceof Error ? err.name : typeof err}`);
@@ -364,6 +366,7 @@ export async function sendEntryCopy(input: EntryCopyInput): Promise<EmailResult>
 			name: input.name,
 			message: input.message,
 			style: input.style,
+			avatarState: input.avatarState ?? null,
 			status: classification.status,
 			entryId: input.entryId,
 			theme: input.theme,
