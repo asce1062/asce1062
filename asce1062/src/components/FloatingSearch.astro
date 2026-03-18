@@ -131,6 +131,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 		// Close on Escape key
 		document.addEventListener("keydown", (e) => {
+			if (!e.key) return;
 			if (e.key === "Escape" && !modal.classList.contains("pointer-events-none")) {
 				closeSearch();
 			}
@@ -142,6 +143,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			initSearchShortcut('#floating-searchbox input[type="text"]');
 			// Also open modal when shortcut is pressed (if modal is closed)
 			document.addEventListener("keydown", (e) => {
+				if (!e.key) return;
 				const isCtrlOrCmd = e.ctrlKey || e.metaKey;
 				if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
 					e.preventDefault();

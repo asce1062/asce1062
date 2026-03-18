@@ -188,6 +188,8 @@ export function setupThemeShortcut(signal: AbortSignal): void {
 	document.addEventListener(
 		"keydown",
 		(e: KeyboardEvent) => {
+			// e.key is undefined on synthetic events fired by autofill/autocomplete
+			if (!e.key) return;
 			const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
 			if (!(e.key.toLowerCase() === "l" && ctrlOrCmd && e.shiftKey)) return;
 

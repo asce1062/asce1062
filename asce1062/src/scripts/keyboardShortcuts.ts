@@ -18,6 +18,8 @@ export interface ShortcutConfig {
  */
 export function registerShortcut(config: ShortcutConfig): () => void {
 	const handler = (e: KeyboardEvent) => {
+		// e.key is undefined on synthetic events fired by autofill/autocomplete
+		if (!e.key) return;
 		// Check if key matches (case-insensitive)
 		const keyMatch = e.key.toLowerCase() === config.key.toLowerCase();
 		if (!keyMatch) return;
