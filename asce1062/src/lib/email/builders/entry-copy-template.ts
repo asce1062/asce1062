@@ -26,10 +26,16 @@ export async function renderEntryCopyEmail(
 	const entryUrl = `${BASE_URL}/guestbook#entry-${input.entryId}`;
 	const subject = `Your guestbook entry on ${siteHost}`;
 
-	// Use a public URL so clients (which strip data: URIs) can fetch the image
-	const avatarImageDataUri = input.avatarState
-		? `${BASE_URL}/api/avatar.png?state=${encodeURIComponent(input.avatarState)}`
-		: null;
+	// Use a public URL so clients (which strip data: URIs) can fetch the image.
+	// gender and avatar are passed as separate params to avoid double-encoding
+	// issues with Netlify's function infrastructure (it re-splits %26 in values).
+	const avatarImageDataUri = (() => {
+		if (!input.avatarState) return null;
+		const p = new URLSearchParams(input.avatarState);
+		const gender = p.get("gender");
+		const avatar = p.get("avatar");
+		return gender && avatar ? `${BASE_URL}/api/avatar.png?gender=${gender}&avatar=${avatar}` : null;
+	})();
 
 	const html = await renderEmailHtml(EntryCopyEmail, { ...input, avatarImageDataUri });
 

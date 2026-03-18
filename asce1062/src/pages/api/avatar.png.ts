@@ -1,32 +1,38 @@
 /**
- * GET /api/avatar.png?state=gender%3Dmale%26avatar%3D3-54-12-14-15-21
+ * GET /api/avatar.png?gender=male&avatar=3-54-12-14-15-21
  *
- * Composites an avatar from its stored state string and returns a PNG image.
+ * Composites an avatar from its gender + avatar params and returns a PNG image.
  * Used by email templates so clients that strip data: URIs can fetch it via HTTP.
  *
- * The response is immutable-cached: the same state always produces the same image.
+ * Params are kept separate (not wrapped in a single `state` value) to avoid
+ * double-encoding issues with Netlify's function infrastructure, which can
+ * incorrectly re-split percent-encoded `&` characters in query values.
+ *
+ * The response is immutable-cached: the same params always produce the same image.
  */
 import type { APIRoute } from "astro";
 import { compositeAvatarPng } from "@/lib/email/helpers/avatarImage";
 
-// Longest valid state: "gender=female&avatar=XX-XX-XX-XX-XX-XX" ≈ 38 chars. 256 is a safe ceiling.
-const MAX_STATE_LENGTH = 256;
+// Must not be prerendered
+// This is a dynamic endpoint that composites
+// avatar layers at request time based on query params.
+// Without this, Astro/Netlify prerender it at build time (with no params),
+// store the error response body as dist/api/avatar.png,
+// and Netlify serves that static file for every request,
+// bypassing the function entirely.
+export const prerender = false;
 
 export const GET: APIRoute = async ({ url }) => {
-	// Reject repeated state params. get() silently takes the first, which is confusing.
-	if (url.searchParams.getAll("state").length > 1) {
-		return new Response("Duplicate state parameter", { status: 400 });
+	const gender = url.searchParams.get("gender");
+	const avatar = url.searchParams.get("avatar");
+
+	if (!gender || !avatar) {
+		return new Response("Missing gender or avatar parameter", { status: 400 });
 	}
 
-	const state = url.searchParams.get("state");
-
-	if (!state) {
-		return new Response("Missing state parameter", { status: 400 });
-	}
-
-	if (state.length > MAX_STATE_LENGTH) {
-		return new Response("State parameter too long", { status: 400 });
-	}
+	// Reconstruct the state string expected by compositeAvatarPng.
+	// Values are validated inside compositeAvatarPng; no extra sanitization needed here.
+	const state = `gender=${gender}&avatar=${avatar}`;
 
 	const result = await compositeAvatarPng(state);
 
@@ -41,7 +47,7 @@ export const GET: APIRoute = async ({ url }) => {
 	return new Response(new Uint8Array(result.buffer), {
 		headers: {
 			"Content-Type": "image/png",
-			// Avatars are deterministic: same state → same image. Cache aggressively.
+			// Avatars are deterministic: same params → same image. Cache aggressively.
 			"Cache-Control": "public, max-age=31536000, immutable",
 		},
 	});
