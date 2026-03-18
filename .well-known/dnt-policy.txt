@@ -45,11 +45,21 @@ This site does not:
 
 LOCAL STORAGE
 
-This site writes two values to your browser's localStorage: your chosen
-light/dark theme preference, and whether you have chosen to pause the
-blinking cursor effect. These persist across browser restarts by design
-so your preferences are remembered between visits. They never leave your
-device and are never transmitted to a server.
+This site writes four values to your browser's localStorage:
+
+- "theme": "light" or "dark" - your chosen color scheme.
+- "match-device-theme": "1" when the "Match device" sidebar toggle is
+  enabled; absent otherwise. When active, the site theme follows your
+  OS/browser color scheme preference live.
+- "cursor-blink": "paused" when you have disabled the blinking cursor
+  effect; absent otherwise.
+- "avatar-state": your 8-bit avatar customisation (e.g.
+  "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
+  avatar builder at /8biticon; absent until you interact with it.
+
+All four values persist across browser restarts by design so your
+preferences are remembered between visits. They never leave your device
+and are never transmitted to a server.
 
 FORMS
 
@@ -91,7 +101,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-03-13.
+This policy was last reviewed and reasserted on 2026-03-18.
 
 REFERENCE
 

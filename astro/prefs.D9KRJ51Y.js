@@ -1,1 +1,0 @@
-const r={theme:"theme",cursorBlink:"cursor-blink"};function c(t){try{return localStorage.getItem(t)}catch{return null}}function o(t,e){try{localStorage.setItem(t,e)}catch{}}function a(t){try{localStorage.removeItem(t)}catch{}}export{r as P,c as g,a as r,o as s};

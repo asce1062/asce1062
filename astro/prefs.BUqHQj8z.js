@@ -1,0 +1,1 @@
+const a={theme:"theme",cursorBlink:"cursor-blink",avatarState:"avatar-state",matchDeviceTheme:"match-device-theme"};function r(e){try{return localStorage.getItem(e)}catch{return null}}function c(e,t){try{localStorage.setItem(e,t)}catch{}}function o(e){try{localStorage.removeItem(e)}catch{}}export{a as P,r as g,o as r,c as s};
