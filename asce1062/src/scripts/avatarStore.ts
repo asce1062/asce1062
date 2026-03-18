@@ -77,6 +77,19 @@ class AvatarStore {
 	}
 
 	/**
+	 * Return the persisted avatar state if it was saved for the given gender.
+	 * Returns null if nothing is saved or the saved avatar is for a different gender.
+	 * Use this to prefer a saved avatar over defaults when switching gender.
+	 */
+	getSavedStateForGender(gender: Gender): AvatarState | null {
+		const saved = getPref(PREF_KEYS.avatarState);
+		if (!saved) return null;
+		const parsed = parseAvatarState(saved);
+		if (!parsed || parsed.gender !== gender) return null;
+		return { ...parsed.state };
+	}
+
+	/**
 	 * Update state. Always dispatches "avatar-state-change" for same-page sync.
 	 * Pass { persist: true } to also write to localStorage.
 	 */

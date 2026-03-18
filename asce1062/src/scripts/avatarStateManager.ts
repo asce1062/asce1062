@@ -66,7 +66,9 @@ export class AvatarStateManager {
 	async changeGender(newGender: Gender): Promise<void> {
 		if (this.currentGender === newGender) return;
 		this.currentGender = newGender;
-		this.currentState = getDefaultState(this.currentGender);
+		// Prefer a saved avatar for this gender over defaults so switching gender
+		// does not discard a previously saved customisation.
+		this.currentState = avatarStore.getSavedStateForGender(newGender) ?? getDefaultState(newGender);
 		this.currentLayer = avatarConfig[this.currentGender][0].name;
 		this.updateURL();
 		this.syncStore();
@@ -133,8 +135,11 @@ export class AvatarStateManager {
 	private syncStore(): void {
 		this._isUpdating = true;
 		try {
+			// Only auto-persist if the user has a saved avatar specifically for the
+			// current gender. Using isRemembered() (any saved avatar) would cause a
+			// gender switch to overwrite a saved avatar of the other gender with defaults.
 			avatarStore.set(this.currentGender, this.currentState, {
-				persist: avatarStore.isRemembered(),
+				persist: avatarStore.getSavedStateForGender(this.currentGender) !== null,
 			});
 		} finally {
 			this._isUpdating = false;

@@ -18,10 +18,10 @@
 	width: var(--avatar-frame-size, 3rem);
 	height: var(--avatar-frame-size, 3rem);
 	flex-shrink: 0;
-	background: var(--color-base-100);
+	background: transparent;
 	border: 2px solid var(--color-warning);
 	box-shadow: 3px 3px 0 var(--color-base-content);
-	padding: 1px;
+	padding: 0px;
 	image-rendering: pixelated;
 	image-rendering: -moz-crisp-edges;
 	image-rendering: crisp-edges;
