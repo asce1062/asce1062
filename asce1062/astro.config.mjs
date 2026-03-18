@@ -169,6 +169,7 @@ export default defineConfig({
 				// Offline fallback
 				navigateFallback: "/offline",
 				navigateFallbackDenylist: [
+					/^\/api\//, // API routes — always hit the network, never serve fallback
 					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
 					/\.txt$/, // Don't intercept text files (robots.txt, humans.txt)
 					/\.pdf$/, // Don't intercept PDF files
@@ -199,6 +200,11 @@ export default defineConfig({
 				],
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
 				runtimeCaching: [
+					// API routes — never cache, always hit the network
+					{
+						urlPattern: /^\/api\//,
+						handler: "NetworkOnly",
+					},
 					// GitHub OpenGraph images for project cards
 					{
 						urlPattern: /^https:\/\/opengraph\.githubassets\.com\/.*/i,

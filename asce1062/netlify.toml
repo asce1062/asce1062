@@ -179,6 +179,12 @@ for = "/*.png"
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
+# API routes must not be cached by CDN or browsers — responses are dynamic
+[[headers]]
+for = "/api/*"
+[headers.values]
+Cache-Control = "no-store"
+
 [[headers]]
 for = "/*.jpg"
 [headers.values]
