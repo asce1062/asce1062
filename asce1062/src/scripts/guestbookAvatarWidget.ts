@@ -64,13 +64,15 @@ export function initGuestbookAvatarWidget(): void {
 	updateHiddenInput();
 	updateNotice();
 
-	// Checking opt-in saves the current avatar to localStorage so it persists across sessions.
-	// This is intentional: opting in is treated as implicit consent to remember the avatar.
+	// Checking opt-in saves the current avatar to localStorage for first-time users only.
+	// If a saved avatar already exists, opting in just submits the current in-memory state
+	// without overwriting localStorage — so a returning user who randomized before opting in
+	// does not lose their saved avatar.
 	optInCheckbox?.addEventListener(
 		"change",
 		() => {
 			updateNotice();
-			if (optInCheckbox.checked) {
+			if (optInCheckbox.checked && !avatarStore.isRemembered()) {
 				avatarStore.saveToStorage();
 			}
 		},

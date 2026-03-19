@@ -89,7 +89,9 @@ export class AvatarStateManager {
 	async randomize(): Promise<void> {
 		this.currentState = getRandomState(this.currentGender);
 		this.updateURL();
-		this.syncStore();
+		// Only persist when no saved avatar exists yet (first-time user).
+		// If a saved avatar exists, randomize is a preview-only action; the user must click Save to commit.
+		this.syncStore({ persist: !avatarStore.isRemembered() });
 		await this.notifyStateChange();
 	}
 
@@ -129,18 +131,23 @@ export class AvatarStateManager {
 
 	/**
 	 * Push current state to the store. Auto-persists to localStorage if the user
-	 * has a saved avatar (isRemembered). Also dispatches "avatar-state-change" so
+	 * has a saved avatar for the current gender. Also dispatches "avatar-state-change" so
 	 * the sidebar mini widget re-renders in real time while the user edits.
+	 *
+	 * Pass `{ persist: bool }` to override the auto-persist logic. Used by randomize(),
+	 * which has its own rule: only persist when no saved avatar exists yet (first-time user).
 	 */
-	private syncStore(): void {
+	private syncStore({ persist: overridePersist }: { persist?: boolean } = {}): void {
 		this._isUpdating = true;
 		try {
-			// Only auto-persist if the user has a saved avatar specifically for the
-			// current gender. Using isRemembered() (any saved avatar) would cause a
-			// gender switch to overwrite a saved avatar of the other gender with defaults.
-			avatarStore.set(this.currentGender, this.currentState, {
-				persist: avatarStore.getSavedStateForGender(this.currentGender) !== null,
-			});
+			const shouldPersist =
+				overridePersist !== undefined
+					? overridePersist
+					: // Auto-persist only for the current gender's saved avatar.
+						// Using isRemembered() (any saved avatar) would cause a gender switch
+						// to overwrite a saved avatar of the other gender with defaults.
+						avatarStore.getSavedStateForGender(this.currentGender) !== null;
+			avatarStore.set(this.currentGender, this.currentState, { persist: shouldPersist });
 		} finally {
 			this._isUpdating = false;
 		}

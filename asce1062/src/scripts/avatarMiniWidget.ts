@@ -79,13 +79,14 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 		{ signal }
 	);
 
-	// Randomize
+	// Randomize. Only persists to localStorage when no saved avatar exists yet (first-time user).
+	// If a saved avatar exists, randomize is a preview-only action; the user must click Save to commit.
 	randomizeBtn?.addEventListener(
 		"click",
 		() => {
 			options.onInteract?.();
 			const newState = getRandomState(avatarStore.gender);
-			avatarStore.set(avatarStore.gender, newState, { persist: avatarStore.isRemembered() });
+			avatarStore.set(avatarStore.gender, newState, { persist: !avatarStore.isRemembered() });
 		},
 		{ signal }
 	);
@@ -103,6 +104,9 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 	);
 
 	// Gender switch. Validate markup value before treating as domain type.
+	// Mirrors AvatarStateManager.changeGender: prefer a saved avatar for the target gender
+	// over defaults, and only persist when a saved avatar already exists for that gender.
+	// This prevents a gender switch from overwriting a saved avatar of the other gender.
 	genderBtns.forEach((btn) => {
 		btn.addEventListener(
 			"click",
@@ -111,7 +115,8 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 				if (next !== "male" && next !== "female") return;
 				if (next === avatarStore.gender) return;
 				options.onInteract?.();
-				avatarStore.set(next, getDefaultState(next), { persist: avatarStore.isRemembered() });
+				const savedForNext = avatarStore.getSavedStateForGender(next);
+				avatarStore.set(next, savedForNext ?? getDefaultState(next), { persist: savedForNext !== null });
 			},
 			{ signal }
 		);
