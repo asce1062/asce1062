@@ -3,7 +3,7 @@
  * HTML is rendered from NotifyEmail.astro. This file owns subject + plain-text.
  */
 import type { ClassificationResult } from "@/lib/api/guestbook";
-import NotifyEmail from "@/lib/email/templates/NotifyEmail.astro";
+import NotifyEmail from "@/components/email/NotifyEmail.astro";
 import { renderEmailHtml } from "@/lib/email/render";
 import {
 	BASE_URL,

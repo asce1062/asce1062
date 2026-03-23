@@ -4,7 +4,7 @@
  * HTML is rendered from EntryCopyEmail.astro. This file owns subject + plain-text.
  */
 import type { ModerationStatus } from "@/lib/api/guestbook";
-import EntryCopyEmail from "@/lib/email/templates/EntryCopyEmail.astro";
+import EntryCopyEmail from "@/components/email/EntryCopyEmail.astro";
 import { renderEmailHtml } from "@/lib/email/render";
 import { BASE_URL, MAX_COPY_MSG_CHARS, truncate, sanitizeUserText, wrapText } from "@/config/email-config";
 

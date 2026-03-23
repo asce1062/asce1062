@@ -35,7 +35,7 @@ async function getOGRoute() {
 		getImageOptions: (_path, page) => ({
 			title: page.frontmatter.title,
 			description: page.frontmatter.description,
-			logo: { path: "public/icon.png" },
+			logo: { path: "public/icons/icon.png" },
 			bgGradient: [[19, 15, 25]],
 			font: {
 				title: {

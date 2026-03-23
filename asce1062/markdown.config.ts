@@ -8,10 +8,6 @@ import getReadingTime from "reading-time";
 import { toString } from "mdast-util-to-string";
 import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
 import type { AstroUserConfig } from "astro";
-
-// Import syntax themes
-import lightTheme from "./public/theme/rosepine-dawn.json";
-import darkTheme from "./public/theme/rosepine-dark.json";
 import { transformerCopyButton } from "@rehype-pretty/transformers";
 
 /**
@@ -33,8 +29,8 @@ function remarkReadingTime() {
  */
 const prettyCodeOptions: RehypePrettyCodeOptions = {
 	theme: {
-		dark: darkTheme as any,
-		light: lightTheme as any,
+		dark: "rose-pine",
+		light: "rose-pine-dawn",
 	},
 	transformers: [
 		transformerCopyButton({
@@ -62,12 +58,15 @@ const prettyCodeOptions: RehypePrettyCodeOptions = {
 const markdownConfig: AstroUserConfig["markdown"] = {
 	syntaxHighlight: false, // Handled by rehype-pretty-code
 	remarkPlugins: [
-		remarkSlug as any, // TODO: Replace with rehype-slug (remark-slug is deprecated, has type conflicts)
+		// remark-slug is deprecated and ships no TS types. Cast required until migrated to rehype-slug.
+		remarkSlug as any,
 		[extractToc, { maxDepth: 3 }], // Extract TOC data up to h3
 		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
 		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
 	],
 	rehypePlugins: [
+		// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
+		// signature cast required. Tracked upstream in the plugin's type declarations.
 		rehypeAccessibleEmojis as any,
 		[
 			rehypeExternalLinks,
