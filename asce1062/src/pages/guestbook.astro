@@ -111,7 +111,7 @@ if (Astro.request.method === "POST") {
 const entries = await getGuestEntries();
 ---
 
-<Layout title={title} ogImage="social-preview.png" description={description}>
+<Layout title={title} ogImage="images/social-preview.png" description={description}>
 	<PreviewImage src={image} altText={title} />
 	<h2>{title}</h2>
 	<p>{description}</p>

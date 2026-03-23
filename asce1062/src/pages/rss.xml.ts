@@ -42,12 +42,12 @@ export async function GET(context: { site: string | URL }) {
 	);
 
 	const publicDir = path.resolve("./public");
-	const primaryImagePath = path.join(publicDir, "social-preview.png");
+	const primaryImagePath = path.join(publicDir, "images", "social-preview.png");
 
 	// Use primary if it exists, otherwise fallback
 	const channelImage = fs.existsSync(primaryImagePath)
-		? new URL("/social-preview.png", context.site).href
-		: new URL("/social-preview-no-bg.png", context.site).href;
+		? new URL("/images/social-preview.png", context.site).href
+		: new URL("/images/social-preview-no-bg.png", context.site).href;
 
 	// Get most recent date for <lastBuildDate> and <pubDate>
 	const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();

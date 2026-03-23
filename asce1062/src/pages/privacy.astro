@@ -3,7 +3,10 @@ import Layout from "@/layouts/Layout.astro";
 import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 ---
 
-<Layout title="Privacy Policy" ogImage="social-preview.png" description="How this site handles your data: it doesn't.">
+<Layout
+	title="Privacy Policy"
+	ogImage="images/social-preview.png"
+	description="How this site handles your data: it doesn't.">
 	<article>
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
@@ -138,7 +141,9 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
-				<span class="ml-1 text-warning">gpg --import /public.pgp && gpg --verify /.well-known/security.txt.sig</span>
+				<span class="ml-1 text-warning"
+					>gpg --import /downloads/public.pgp && gpg --verify /.well-known/security.txt.sig</span
+				>
 				<span class="blink">_</span>
 			</p>
 			<h2><i class="icon-key"></i> Security</h2>
