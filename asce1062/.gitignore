@@ -27,3 +27,8 @@ pnpm-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# Working documents (.md files — site content uses .mdx exclusively)
+# README.md is the only .md that belongs in the repo
+*.md
+!README.md

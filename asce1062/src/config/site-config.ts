@@ -124,7 +124,7 @@ export const SEO = {
 	/** Default language code */
 	language: "en",
 	/** Default OG image filename (relative to site root) */
-	ogImage: "social-preview.png",
+	ogImage: "images/social-preview.png",
 	/** SEO keywords */
 	keywords: [
 		"leader",

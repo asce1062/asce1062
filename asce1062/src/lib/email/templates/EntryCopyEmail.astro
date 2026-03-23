@@ -30,7 +30,7 @@ const entryStyle = parseEntryStyle(styleJson);
 const borderCss = entryBorderCss(entryStyle, C);
 
 // Body background. Remote URL.
-const bodyPattern = theme === "dark" ? `${BASE_URL}/topography.svg` : `${BASE_URL}/topographylight.svg`;
+const bodyPattern = theme === "dark" ? `${BASE_URL}/images/topography.svg` : `${BASE_URL}/images/topographylight.svg`;
 const bodyBgCss = `background-color:${C["base-100"]};background-image:url("${bodyPattern}");`;
 
 // Card pattern. Inline base64 so it survives clients that block remote images.

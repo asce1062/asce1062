@@ -237,7 +237,7 @@ export const mainNavigation: NavigationLink[] = [
 	// ── meta ──
 	{
 		name: "PGP Key",
-		href: "/public.pgp",
+		href: "/downloads/public.pgp",
 		icon: "icon-key",
 		ariaLabel: "Download Alex's PGP public key",
 		animation: "rotate-right",
