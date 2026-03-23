@@ -48,9 +48,9 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 					))
 				}
 			</div>
-			<span class="flex flex-wrap gap-2 justify-center md:justify-start text-sm text-neutral-content">
-				{date}
-				{readingTime && <span class="text-neutral-content">• {readingTime}</span>}
+			<span class="flex flex-wrap gap-2 justify-center md:justify-start">
+				<span class="badge badge-primary badge-xs">{date}</span> •
+				{readingTime && <span class="badge badge-secondary badge-xs"> {readingTime}</span>}
 			</span>
 		</div>
 	</div>

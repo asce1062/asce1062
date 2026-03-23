@@ -166,6 +166,10 @@ export default defineConfig({
 				clientsClaim: true,
 				skipWaiting: true,
 
+				// Strip known query params before precache lookup so URLs like
+				// /?theme=dark resolve to the cached / instead of falling back to /offline
+				ignoreURLParametersMatching: [/^theme$/, /^utm_\w+/i, /^fbclid$/i, /^ref$/i],
+
 				// Offline fallback
 				navigateFallback: "/offline",
 				navigateFallbackDenylist: [

@@ -147,8 +147,9 @@ content in /blog and /notes.
   */
 
 	code:not(pre code) {
-		@apply px-1 py-0.5 font-normal text-sm;
-		background-color: var(--color-neutral);
+		@apply px-1 py-0.5 text-xs font-semibold border;
+		background-color: color-mix(in oklab, var(--color-secondary), transparent 80%);
+		border-color: var(--color-base-300);
 		color: var(--color-neutral-content);
 	}
 

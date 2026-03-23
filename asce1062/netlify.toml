@@ -93,6 +93,22 @@ from = "/resume"
 to = "/blog/2025-06-19-resume/"
 status = 301
 
+# Notes Vanity URLs
+[[redirects]]
+from = "/architecture"
+to = "/notes/2026-03-20-architecture"
+status = 301
+
+[[redirects]]
+from = "/why"
+to = "/notes/2026-03-12-guiding-principles"
+status = 301
+
+[[redirects]]
+from = "/licensing"
+to = "/notes/2026-03-12-licensing"
+status = 301
+
 # Legacy Blog Patterns
 # /blog/YYYY/MM/DD/slug -> /blog/YYYY-MM-DD-slug/
 [[redirects]]

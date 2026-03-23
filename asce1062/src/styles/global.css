@@ -309,9 +309,9 @@
 	}
 
 	kbd {
-		@apply inline-block px-2 py-1 text-xs border;
-		background-color: var(--color-neutral);
-		border-color: var(--color-secondary);
+		@apply inline-block px-2 py-1 text-xs font-semibold border;
+		background-color: var(--color-base-200);
+		border-color: var(--color-base-300);
 		color: var(--color-neutral-content);
 	}
 
