@@ -3,7 +3,8 @@
  * Defines schema validation using Zod for type-safe content
  */
 
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { z } from "zod";
 import { glob } from "astro/loaders";
 
 /**
