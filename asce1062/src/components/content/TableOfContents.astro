@@ -72,7 +72,7 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 	import { init } from "@/scripts/tableOfContents";
 
 	// astro:page-load fires on the initial hard load and after every soft
-	// navigation. This single listener is sufficient — no separate immediate
+	// navigation. This single listener is sufficient. No separate immediate
 	// call needed, and no DOMContentLoaded guard required.
 	document.addEventListener("astro:page-load", init);
 </script>

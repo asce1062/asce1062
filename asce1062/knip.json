@@ -10,17 +10,19 @@
     "postcss-nesting",
     "drizzle-orm"
   ],
-  "ignore": ["public/css/**", "public/fonts/**", "public/**/demo-files/**"],
+  "ignore": ["public/fonts/**", "public/**/demo-files/**"],
 
   "entry": [
     "astro.config.*",
+    "vitest.config.*",
     "markdown.config.ts",
     "src/pages/**/*.{astro,mdx}",
     "src/layouts/**/*.astro",
     "src/components/**/*.astro",
     "src/scripts/**/*.{ts,js}",
     "scripts/**/*.{ts,js,mjs}",
-    "db/**/*.{ts,js}"
+    "db/**/*.{ts,js}",
+    "src/**/*.test.{ts,js}"
   ],
 
   "ignoreExportsUsedInFile": {

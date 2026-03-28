@@ -22,7 +22,7 @@
  * SCROLL_THRESHOLD = 50px (raised from 10px).
  *   With transition-transform duration-300 on the container, a 10px threshold
  *   is crossed and reversed within the 300ms window, causing the element to
- *   start animating one way and immediately snap back — the visible "bump".
+ *   start animating one way and immediately snap back (the visible "bump").
  *   50px requires intentional, sustained directional movement before the
  *   transition fires. Sub-50px oscillations (touchpad momentum, reading
  *   micro-adjustments) are silently ignored.

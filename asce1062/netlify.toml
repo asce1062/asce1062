@@ -221,7 +221,7 @@ for = "/**/*.svg"
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
-# API routes must not be cached by CDN or browsers — responses are dynamic
+# API routes must not be cached by CDN or browsers (responses are dynamic)
 [[headers]]
 for = "/api/*"
 [headers.values]

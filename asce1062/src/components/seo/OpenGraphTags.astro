@@ -238,13 +238,17 @@ const breadcrumbSchema =
 {isArticle && formattedDate && <meta name="twitter:data2" content={formattedDate} />}
 
 <!-- JSON-LD: Page-specific schema (BlogPosting for articles, WebPage for other pages) -->
+<!-- eslint-disable-next-line astro/no-set-html-directive -- safe: JSON.stringify output is not user-supplied HTML -->
 <script type="application/ld+json" set:html={JSON.stringify(isArticle ? blogPostingSchema : webPageSchema)} is:inline />
 
 <!-- JSON-LD: WebSite schema (stable, same for every page) -->
+<!-- eslint-disable-next-line astro/no-set-html-directive -- safe: JSON.stringify output is not user-supplied HTML -->
 <script type="application/ld+json" set:html={JSON.stringify(webSiteSchema)} is:inline />
 
 <!-- JSON-LD: Person schema (primary identity for personal site) -->
+<!-- eslint-disable-next-line astro/no-set-html-directive -- safe: JSON.stringify output is not user-supplied HTML -->
 <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
 
 <!-- JSON-LD: BreadcrumbList (for articles only) -->
+<!-- eslint-disable-next-line astro/no-set-html-directive -- safe: JSON.stringify output is not user-supplied HTML -->
 {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} is:inline />}
