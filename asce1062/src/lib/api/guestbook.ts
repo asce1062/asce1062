@@ -89,7 +89,7 @@ const URL_RE_GLOBAL = /\b(?:https?:\/\/|www\.)[^\s<>()]+[^\s<>().,;:!?]/gi;
 const SHORTENER_RE = /\b(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|rb\.gy|cutt\.ly|shorturl\.at)\b/i;
 
 /** Obfuscated links (spacing/typo tricks) */
-const OBFUSCATED_LINK_RE = /\b(hxxp|https?\s+:\s*\/\/|https?\s*:\s+\/\/|https?\s*:\s*\/\s*\/|www\s+\.)/i;
+const OBFUSCATED_LINK_RE = /\b(hxxp|https?\s+:\s*\/\/|https?\s*:\s+\/\/|https?\s*:\s*\/\s+\/|www\s+\.)/i;
 
 /** "dot com" style text obfuscation */
 const DOT_COM_RE = /\b(dot|d0t)\s*(com|net|org|io)\b/i;
@@ -225,7 +225,7 @@ const VALID_STATUSES = new Set<ModerationStatus>(["visible", "pending", "hidden"
  * Runtime assertion that a string is a valid ModerationStatus.
  * Throws at write-time to prevent invalid values from reaching the DB.
  */
-function assertStatus(s: string): asserts s is ModerationStatus {
+export function assertStatus(s: string): asserts s is ModerationStatus {
 	if (!VALID_STATUSES.has(s as ModerationStatus)) {
 		throw new Error(`[guestbook] Invalid status value: "${s}"`);
 	}

@@ -40,7 +40,7 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 	<!-- data carrier: hidden, read by the page's init script -->
 	<div id={`${widgetId}-data`} data-variants={variants} class="hidden"></div>
 
-	<!-- controls: dice + copy + font label — not part of the scroll region -->
+	<!-- controls: dice + copy + font label. Not part of the scroll region -->
 	<div class="ascii-widget-controls">
 		<button
 			id={`${widgetId}-randomize`}

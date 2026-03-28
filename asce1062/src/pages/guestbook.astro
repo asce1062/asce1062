@@ -50,7 +50,8 @@ if (Astro.request.method === "POST") {
 		typeof name === "string" &&
 		typeof message === "string" &&
 		name.trim().length > 0 &&
-		message.trim().length > 0
+		message.trim().length > 0 &&
+		message.trim().length <= 2000
 	) {
 		const { classification, entryId, submittedAt } = await createGuestEntry({
 			name,
@@ -277,7 +278,7 @@ const entries = await getGuestEntries();
 								<small>Include avatar in this entry</small>
 							</label>
 							<p id="avatar-random-notice" class="avatar-random-notice" style="display:none">
-								<small><i class="icon-info-circle"></i> No avatar customized — a random one will be generated.</small>
+								<small><i class="icon-info-circle"></i> No avatar customized. A random one will be generated.</small>
 							</p>
 						</div>
 
@@ -306,6 +307,7 @@ const entries = await getGuestEntries();
 					name="message"
 					rows="4"
 					required
+					maxlength="2000"
 					class="block p-2.5 w-full text-sm textarea-styled"
 					placeholder="Say hi, write a poem, or sketch some ASCII art..."></textarea>
 				<!-- prettier-ignore-end -->

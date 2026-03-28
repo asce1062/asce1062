@@ -2,3 +2,6 @@
 
 # Run lint-staged for file-specific linting and formatting
 npx lint-staged
+
+# Run tests after linting — fail the commit if any test fails
+npm test

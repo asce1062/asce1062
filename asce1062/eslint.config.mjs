@@ -266,4 +266,28 @@ export default [
 			"@typescript-eslint/triple-slash-reference": "off",
 		},
 	},
+
+	/**
+	 * Vitest test files.
+	 * Inject test globals (describe, it, expect, vi)
+	 */
+	{
+		files: ["**/*.test.{ts,js}", "**/*.spec.{ts,js}", "**/__tests__/**/*.{ts,js}"],
+		languageOptions: {
+			globals: {
+				...globals.node,
+				describe: "readonly",
+				it: "readonly",
+				expect: "readonly",
+				vi: "readonly",
+				beforeEach: "readonly",
+				afterEach: "readonly",
+				beforeAll: "readonly",
+				afterAll: "readonly",
+			},
+		},
+		rules: {
+			"no-console": "off",
+		},
+	},
 ];

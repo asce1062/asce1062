@@ -448,11 +448,16 @@ export function renderMarkdownToHtml(markdown: string): string {
 	html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 	html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
 
-	// Links [text](url)
-	html = html.replace(
-		/\[([^\]]+)\]\(([^)]+)\)/g,
-		'<a href="$2" class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">$1</a>'
-	);
+	// Links [text](url). Only http/https schemes allowed to prevent javascript: injection
+	html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text: string, url: string) => {
+		try {
+			const { protocol } = new URL(url);
+			if (protocol !== "https:" && protocol !== "http:") return text;
+		} catch {
+			return text;
+		}
+		return `<a href="${url}" class="underline decoration-dashed" target="_blank" rel="noopener noreferrer">${text}</a>`;
+	});
 
 	// Unordered lists (- item or * item)
 	html = html.replace(/^[-*] (.+)$/gm, '<li class="ml-4">$1</li>');

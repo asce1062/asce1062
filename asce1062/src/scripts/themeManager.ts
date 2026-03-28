@@ -10,9 +10,9 @@
  *   data-theme attribute          - fallback; reflects what's painted on screen
  *   "dark"                        - site default
  *
- * getCurrentTheme()   — what is currently displayed, including URL overrides.
- *                       Use for icon sync and toggle display state.
- * resolveActiveTheme() — what the theme should be per stored preferences.
+ * getCurrentTheme()   	- what is currently displayed, including URL overrides.
+ *                       	Use for icon sync and toggle display state.
+ * resolveActiveTheme() - what the theme should be per stored preferences.
  *                        Does NOT consider URL params; URL overrides are
  *                        presentation-only (embed/screenshot) and not persisted.
  *
