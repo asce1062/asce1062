@@ -33,7 +33,7 @@
     "@astrojs/sitemap": "^3.7.0",
     "@pagefind/default-ui": "^1.4.0",
     "@rehype-pretty/transformers": "^0.13.2",
-    "@stefanprobst/remark-extract-toc": "^2.2.0",
+    "@stefanprobst/rehype-extract-toc": "^3.0.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@vite-pwa/astro": "^1.2.0",
     "astro": "^5.18.0",
@@ -51,7 +51,7 @@
     "rehype-accessible-emojis": "^0.3.2",
     "rehype-external-links": "^3.0.0",
     "rehype-pretty-code": "^0.14.1",
-    "remark-slug": "^7.0.1",
+    "rehype-slug": "^6.0.0",
     "sharp": "^0.34.5",
     "shiki": "^3.23.0",
     "tailwindcss": "^4.2.1",
@@ -75,11 +75,11 @@
     "husky": "^9.1.7",
     "knip": "^5.85.0",
     "lint-staged": "^16.3.2",
-    "vitest": "^3.0.0",
     "netlify-cli": "^24.0.1",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-toml": "^2.0.6"
+    "prettier-plugin-toml": "^2.0.6",
+    "vitest": "^3.0.0"
   },
   "lint-staged": {
     "*.{js,ts,mjs,astro}": [

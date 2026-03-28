@@ -1,9 +1,9 @@
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeExternalLinks from "rehype-external-links";
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
-import extractToc from "@stefanprobst/remark-extract-toc";
-import withTocExport from "@stefanprobst/remark-extract-toc/mdx";
-import remarkSlug from "remark-slug"; // DEPRECATED: Replace with rehypeSlug
+import rehypeSlug from "rehype-slug";
+import extractToc from "@stefanprobst/rehype-extract-toc";
+import withTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import getReadingTime from "reading-time";
 import { toString } from "mdast-util-to-string";
 import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
@@ -58,13 +58,12 @@ const prettyCodeOptions: RehypePrettyCodeOptions = {
 const markdownConfig: AstroUserConfig["markdown"] = {
 	syntaxHighlight: false, // Handled by rehype-pretty-code
 	remarkPlugins: [
-		// remark-slug is deprecated and ships no TS types. Cast required until migrated to rehype-slug.
-		remarkSlug as any,
-		[extractToc, { maxDepth: 3 }], // Extract TOC data up to h3
-		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
 		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
 	],
 	rehypePlugins: [
+		rehypeSlug, // Add id attrs to headings — must run before extractToc
+		extractToc, // Attach TOC to vfile.data.toc — reads ids set by rehypeSlug
+		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
 		// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
 		// signature cast required. Tracked upstream in the plugin's type declarations.
 		rehypeAccessibleEmojis as any,
