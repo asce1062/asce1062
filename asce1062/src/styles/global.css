@@ -522,3 +522,8 @@ marquee {
 		background-position: 100% 50%;
 	}
 }
+
+/* Stars background — unlayered so it beats Tailwind's @layer utilities bg-[url(...)] */
+html[data-stars-bg] body {
+	background-image: url("/images/stars.anim.gif");
+}

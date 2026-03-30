@@ -113,6 +113,21 @@ const pageTitle = getPageTitle(title);
 			})();
 		</script>
 
+		<!-- Early-apply stars background preference before paint.
+		     Stamps data-stars-bg on <html> if the pref is "1" in localStorage.
+		     Runs after astro-themes so the background-image override takes effect correctly. -->
+		<script is:inline define:vars={{ starsBgKey: PREF_KEYS.starsBackground }}>
+			(function () {
+				try {
+					if (localStorage.getItem(starsBgKey) === "1") {
+						document.documentElement.setAttribute("data-stars-bg", "");
+					}
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
+
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 

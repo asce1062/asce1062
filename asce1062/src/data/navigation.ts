@@ -327,6 +327,12 @@ export const sidebarOptions: SidebarOption[] = [
 		label: "Match device",
 		description: "Follows your OS/browser preferred color scheme. Manually switching the theme turns this off.",
 	},
+	{
+		id: "stars-background-toggle",
+		icon: "icon-stars",
+		label: "Stars",
+		description: "Applies an animated star field background to the site.",
+	},
 ];
 
 /**

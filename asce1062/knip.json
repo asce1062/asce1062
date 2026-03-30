@@ -8,7 +8,8 @@
     "vite-plugin-pwa",
     "autoprefixer",
     "postcss-nesting",
-    "drizzle-orm"
+    "drizzle-orm",
+    "lint-staged"
   ],
   "ignore": ["public/fonts/**", "public/**/demo-files/**"],
 

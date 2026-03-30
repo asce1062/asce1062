@@ -6,5 +6,9 @@ cd asce1062
 # Run lint-staged for file-specific linting and formatting
 npx lint-staged
 
-# Run tests after linting — fail the commit if any test fails
-npm test
+# Run tests after linting. Fail the commit if any test fails
+STAGED_SOURCE=$(git diff --cached --name-only | grep -E '\.(ts|js|mjs|astro)$')
+
+if [ -n "$STAGED_SOURCE" ]; then
+  npm test
+fi

@@ -45,7 +45,7 @@ This site does not:
 
 LOCAL STORAGE
 
-This site writes four values to your browser's localStorage:
+This site writes five values to your browser's localStorage:
 
 - "theme": "light" or "dark" - your chosen color scheme.
 - "match-device-theme": "1" when the "Match device" sidebar toggle is
@@ -53,11 +53,13 @@ This site writes four values to your browser's localStorage:
   OS/browser color scheme preference live.
 - "cursor-blink": "paused" when you have disabled the blinking cursor
   effect; absent otherwise.
+- "stars-bg": "1" when the animated stars background is enabled via the
+  "Stars" sidebar toggle; absent otherwise.
 - "avatar-state": your 8-bit avatar customisation (e.g.
   "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
   avatar builder at /8biticon; absent until you interact with it.
 
-All four values persist across browser restarts by design so your
+All five values persist across browser restarts by design so your
 preferences are remembered between visits. They never leave your device
 and are never transmitted to a server.
 
@@ -101,7 +103,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-03-18.
+This policy was last reviewed and reasserted on 2026-03-30.
 
 REFERENCE
 
