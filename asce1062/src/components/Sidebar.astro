@@ -37,8 +37,9 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 
 <!-- Nav panel -->
 <aside
-	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100 bg-[url('/images/topographylight.svg')] dark:bg-[url('/images/topography.svg')]"
-	aria-label="Site navigation">
+	role="navigation"
+	aria-label="Main navigation"
+	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100 bg-[url('/images/topographylight.svg')] dark:bg-[url('/images/topography.svg')]">
 	<div class="nav-brand">
 		<!-- prettier-ignore -->
 		<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$</span></span>

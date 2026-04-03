@@ -7,12 +7,12 @@
  * /images/stars.anim.gif as the body background, overriding the topography texture.
  * When disabled: removes data-stars-bg, reverting to the themed topography background.
  *
- * localStorage key: "stars-bg" — "1" when enabled; absent when disabled.
+ * localStorage key: "stars-bg" - "1" when enabled; absent when disabled.
  *
  * Lifecycle pattern mirrors cursorBlink.ts and matchDeviceTheme.ts:
- *   Module load      → applyPref() — immediate attribute application
+ *   Module load      → applyPref() - immediate attribute application
  *   astro:after-swap → re-stamp before paint on soft navigation
- *   astro:page-load  → init() — sync toggle checkbox and re-attach listener
+ *   astro:page-load  → init() - sync toggle checkbox and re-attach listener
  *   storage event    → cross-tab sync
  *
  * BROWSER-ONLY. Import only from client-side <script> blocks.

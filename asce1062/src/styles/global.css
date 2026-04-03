@@ -67,12 +67,22 @@
 	}
 
 	/*
+	* Global focus-visible baseline
+	* Catches all interactive elements without their own :focus-visible rule
+	*/
+	:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 2px;
+	}
+
+	/*
   ============================================
   Dark Mode Transitions
   ============================================
   */
 
 	html {
+		background-color: var(--color-base-100);
 		transition:
 			background-color 0.3s ease,
 			color 0.3s ease;
@@ -101,8 +111,10 @@
 	body {
 		margin: 0;
 		font-family: var(--font-proto);
-		background-color: var(--color-base-100);
 		color: var(--color-base-content);
+		/* Stacking context so body::before (topography)
+		   is contained within body rather than escaping to the viewport stacking context */
+		isolation: isolate;
 		/* View transition fade. visibility starts visible after astro:page-load */
 		visibility: visible;
 		opacity: 1;
@@ -157,15 +169,6 @@
 	h5,
 	h6 {
 		font-weight: 600;
-	}
-
-	h1 {
-		font-size: 2.125em;
-	}
-
-	h2 {
-		font-size: 1.4em;
-		margin-bottom: 0.83em;
 	}
 
 	p {
@@ -227,7 +230,7 @@
 	@media screen and (width < 640px) {
 		p,
 		ul {
-			font-size: 14px;
+			font-size: 15px;
 		}
 	}
 }
@@ -242,6 +245,15 @@
 	h1 {
 		@apply text-2xl transition-all duration-100 md:text-3xl;
 		color: var(--color-base-content);
+	}
+
+	/* Greeting in Header */
+	.site-greeting {
+		@apply text-2xl transition-all duration-100 md:text-3xl;
+		color: var(--color-base-content);
+		font-weight: 700;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 
 	h2 {
@@ -261,7 +273,10 @@
 
 	h2,
 	h4,
-	a,
+	a {
+		color: var(--color-warning);
+	}
+
 	b {
 		color: var(--color-warning);
 	}
@@ -484,6 +499,7 @@ html[data-no-blink] .blink {
 @media (prefers-reduced-motion: reduce) {
 	.blink {
 		animation: none;
+		visibility: visible;
 	}
 }
 
@@ -501,10 +517,7 @@ marquee {
 		var(--color-secondary),
 		var(--color-accent),
 		var(--color-neutral),
-		var(--color-info),
-		var(--color-success),
-		var(--color-warning),
-		var(--color-error)
+		var(--color-warning)
 	);
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
@@ -523,7 +536,39 @@ marquee {
 	}
 }
 
-/* Stars background — unlayered so it beats Tailwind's @layer utilities bg-[url(...)] */
+/*
+Topography texture
+body::before renders the tiling SVG between the html canvas
+and body content. body has isolation:isolate (stacking context) so z-index:-1
+stays within body rather than escaping to the viewport. html provides the
+background-color canvas. SVG uses fill-opacity="0.4" internally.
+*/
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	background-image: url("/images/topographylight.svg");
+	z-index: -1;
+	pointer-events: none;
+}
+
+html[data-theme="dark"] body::before {
+	background-image: url("/images/topography.svg");
+}
+
+/* Stars replace topography. Hide ::before when starfield is active */
+html[data-stars-bg] body::before {
+	display: none;
+}
+
+/* Stars background (animated GIF). Unlayered to beat Tailwind base. */
 html[data-stars-bg] body {
 	background-image: url("/images/stars.anim.gif");
+}
+
+/* Reduced motion (suppress animated GIF) */
+@media (prefers-reduced-motion: reduce) {
+	html[data-stars-bg] body {
+		background-image: none;
+	}
 }

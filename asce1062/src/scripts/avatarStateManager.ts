@@ -5,9 +5,9 @@
  * and delegates persistence + same-page broadcasting to avatarStore.
  *
  * Every mutation (changeGender, updateLayerValue, randomize) calls syncStore(),
- * which writes to the store (and auto-persists to localStorage if the user has a saved avatar)
- * and dispatches "avatar-state-change" so the sidebar mini widget re-renders
- * in real time while the user edits their avatar.
+ * which writes to the store without persisting and dispatches "avatar-state-change"
+ * so the sidebar mini widget re-renders in real time. Persistence to localStorage
+ * only happens when the user explicitly clicks a Save button (avatarStore.saveToStorage()).
  *
  * On init the constructor reads from avatarStore (which already loaded from
  * localStorage or defaults), then overlays URL params if present.
@@ -89,9 +89,7 @@ export class AvatarStateManager {
 	async randomize(): Promise<void> {
 		this.currentState = getRandomState(this.currentGender);
 		this.updateURL();
-		// Only persist when no saved avatar exists yet (first-time user).
-		// If a saved avatar exists, randomize is a preview-only action; the user must click Save to commit.
-		this.syncStore({ persist: !avatarStore.isRemembered() });
+		this.syncStore();
 		await this.notifyStateChange();
 	}
 
@@ -130,24 +128,15 @@ export class AvatarStateManager {
 	}
 
 	/**
-	 * Push current state to the store. Auto-persists to localStorage if the user
-	 * has a saved avatar for the current gender. Also dispatches "avatar-state-change" so
-	 * the sidebar mini widget re-renders in real time while the user edits.
-	 *
-	 * Pass `{ persist: bool }` to override the auto-persist logic. Used by randomize(),
-	 * which has its own rule: only persist when no saved avatar exists yet (first-time user).
+	 * Push current state to the store. Never writes to localStorage. That is
+	 * exclusively the job of saveToStorage(), called by explicit Save buttons.
+	 * Dispatches "avatar-state-change" so the sidebar mini widget re-renders
+	 * in real time while the user edits.
 	 */
-	private syncStore({ persist: overridePersist }: { persist?: boolean } = {}): void {
+	private syncStore(): void {
 		this._isUpdating = true;
 		try {
-			const shouldPersist =
-				overridePersist !== undefined
-					? overridePersist
-					: // Auto-persist only for the current gender's saved avatar.
-						// Using isRemembered() (any saved avatar) would cause a gender switch
-						// to overwrite a saved avatar of the other gender with defaults.
-						avatarStore.getSavedStateForGender(this.currentGender) !== null;
-			avatarStore.set(this.currentGender, this.currentState, { persist: shouldPersist });
+			avatarStore.set(this.currentGender, this.currentState, { persist: false });
 		} finally {
 			this._isUpdating = false;
 		}

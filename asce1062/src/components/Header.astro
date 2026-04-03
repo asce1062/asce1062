@@ -17,7 +17,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 <header>
 	<div id="navigation" class="mb-3">
 		<label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
-			<i class="icon-list hover:-rotate-6"></i>
+			<i class="icon-list hover:-rotate-6" aria-hidden="true"></i>
 		</label>
 		<div class="float-right flex flex-col gap-2">
 			<ThemeSwitcher default="dark" />
@@ -26,23 +26,24 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 					<button
 						id="open-floating-search"
 						type="button"
-						class="float-right h-7 w-7 md:h-8 md:w-8 rounded-md transition-all duration-100 hover:text-accent hover:rotate-6 cursor-pointer"
+						class="float-right h-11 w-11 rounded-md transition-all duration-100 hover:text-accent hover:rotate-6 cursor-pointer flex items-center justify-center"
 						aria-label="Open search">
-						<i class="icon-search-heart" />
+						<i class="icon-search-heart" aria-hidden="true" />
 					</button>
 				)
 			}
 		</div>
+
 		<b>
 			<span class="italic">
-				<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12"></i>
+				<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12" aria-hidden="true"></i>
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
-						home
+						&#x24;HOME
 					</a> / <a
 						class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors"
 						href="/">
-						alex
+						asce1062
 					</a>
 				</span>
 				{
@@ -65,6 +66,6 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			</span>
 		</b>
 	</div>
-	<h1>{siteMetadata.greeting}</h1>
+	<p class="site-greeting">{siteMetadata.greeting}</p>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
 </header>

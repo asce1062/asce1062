@@ -61,8 +61,8 @@ const markdownConfig: AstroUserConfig["markdown"] = {
 		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
 	],
 	rehypePlugins: [
-		rehypeSlug, // Add id attrs to headings — must run before extractToc
-		extractToc, // Attach TOC to vfile.data.toc — reads ids set by rehypeSlug
+		rehypeSlug, // Add id attrs to headings (must run before extractToc)
+		extractToc, // Attach TOC to vfile.data.toc (reads ids set by rehypeSlug)
 		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
 		// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
 		// signature cast required. Tracked upstream in the plugin's type declarations.

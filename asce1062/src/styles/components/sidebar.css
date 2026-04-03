@@ -20,10 +20,10 @@ Only visual / component styles live here.
 .nav-hamburger {
 	display: inline-flex;
 	align-items: center;
-	justify-content: center;
-	width: 2rem;
+	justify-content: left;
+	width: 1.5rem;
 	height: 2rem;
-	padding: 0.25rem;
+	padding: 0rem;
 	flex-shrink: 0;
 	cursor: pointer;
 	color: var(--color-base-content);
@@ -124,7 +124,7 @@ body:has(#nav-toggle:checked) {
 	align-items: center;
 	width: 100%;
 	padding: 0.3125rem 0.5rem;
-	min-height: 2rem;
+	min-height: 2.75rem;
 	text-decoration: none;
 	transition: background-color 0.15s ease;
 }
@@ -133,6 +133,16 @@ body:has(#nav-toggle:checked) {
 .nav-link--active {
 	background-color: var(--color-base-200);
 	color: var(--color-base-content);
+}
+
+.nav-link--active {
+	border-left: 2px solid var(--color-accent);
+}
+
+.nav-link:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+	background-color: var(--color-base-200);
 }
 
 /* .nav-link:hover {

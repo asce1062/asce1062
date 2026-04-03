@@ -129,6 +129,23 @@
 
 	/*
 	============================================
+	ELEVATION - Glow-based system (Warm Void Terminal)
+	============================================
+	*/
+
+	/* Flat no shadow (default surfaces) */
+	--elevation-0: none;
+	/* Inset pressed/active states */
+	--elevation-1: inset 0 1px 2px oklch(0% 0 0 / 0.15);
+	/* Raised cards, panels */
+	--elevation-2: 0 2px 8px oklch(0% 0 0 / 0.12);
+	/* Floating toasts, modals, dropdowns */
+	--elevation-3: 0 8px 24px oklch(0% 0 0 / 0.2);
+	/* Focus accent outline (no glow token) */
+	--elevation-focus: 0 0 0 2px var(--color-accent);
+
+	/*
+	============================================
 	BORDER RADIUS - Retro squared design
 	============================================
 	*/
@@ -187,7 +204,7 @@ Dark mode activates when data-theme="dark" is set on html element
 ============================================
 */
 html[data-theme="dark"] {
-	--color-base-100: oklch(14.076% 0.004 285.822);
+	--color-base-100: oklch(12% 0.012 270);
 	--color-base-200: oklch(20.219% 0.004 308.229);
 	--color-base-300: oklch(23.219% 0.004 308.229);
 	--color-base-content: oklch(96% 0.059 95.617);

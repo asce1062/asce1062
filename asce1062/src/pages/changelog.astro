@@ -162,9 +162,8 @@ if (repoSlug) {
 									data-index={index}
 									data-year={year}>
 									{/* Entry header */}
-									<header class="flex flex-wrap items-center gap-2 mb-2">
-										<code class="px-2 py-0.5 text-xs bg-base-300 font-mono">{entry.shortSha}</code>
-										<h4 class="font-bold text-base m-0 flex-1">
+									<header class="mb-2">
+										<h4 class="font-bold text-base m-0">
 											<a
 												href={entry.url}
 												class="no-underline hover:underline hover:decoration-dashed"
@@ -189,6 +188,7 @@ if (repoSlug) {
 											<i class="icon-box-arrow-up-right mr-1" />
 											View on GitHub
 										</a>
+										<code class="ml-auto">{entry.shortSha}</code>
 									</div>
 
 									{/* Expandable commit body */}

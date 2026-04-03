@@ -20,7 +20,7 @@ export function createProgressBar(): void {
 	progressBar.className = "progress-bar h-1 w-0 transition-all duration-150";
 	progressBar.id = "scroll-progress-bar";
 	progressBar.style.background =
-		"linear-gradient(to right, var(--color-base-200), var(--color-base-300), var(--color-success),var(--color-secondary), var(--color-info), var(--color-primary), var(--color-error), var(--color-warning))";
+		"linear-gradient(to right, var(--color-primary), var(--color-accent), var(--color-secondary), var(--color-warning))";
 	progressBar.style.width = "0%";
 
 	progressContainer.appendChild(progressBar);
