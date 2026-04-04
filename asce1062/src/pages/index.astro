@@ -7,7 +7,7 @@ import Layout from "@/layouts/Layout.astro";
 	ogImage="images/social-preview.png"
 	description="Building secure, performant, scalable solutions in the cloud">
 	<article class="-mt-2">
-		<section class="mb-6">
+		<section class="mb-3 md:mb-6">
 			<p class="text-xs text-neutral-content">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">whoami</span>
@@ -49,3 +49,12 @@ import Layout from "@/layouts/Layout.astro";
 		</section>
 	</article>
 </Layout>
+
+<style>
+	@media screen and (max-width: 767px) {
+		article p {
+			margin-top: 0.4em;
+			margin-bottom: 0.4em;
+		}
+	}
+</style>
