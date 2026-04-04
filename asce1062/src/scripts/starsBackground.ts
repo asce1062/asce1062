@@ -9,11 +9,17 @@
  *
  * localStorage key: "stars-bg" - "1" when enabled; absent when disabled.
  *
+ * Mutual exclusion with Matrix: enabling Stars dispatches "background:activate"
+ * with detail "stars". matrixBackground.ts listens and fully disables itself
+ * (stops RAF loop, removes canvas). The same event (detail "matrix") triggers
+ * this script to fully disable itself.
+ *
  * Lifecycle pattern mirrors cursorBlink.ts and matchDeviceTheme.ts:
  *   Module load      → applyPref() - immediate attribute application
  *   astro:after-swap → re-stamp before paint on soft navigation
  *   astro:page-load  → init() - sync toggle checkbox and re-attach listener
  *   storage event    → cross-tab sync
+ *   background:activate (detail "matrix") → full self-disable
  *
  * BROWSER-ONLY. Import only from client-side <script> blocks.
  */
@@ -27,11 +33,19 @@ function isActive(): boolean {
 	return getPref(PREF_KEYS.starsBackground) === "1";
 }
 
+function enable(): void {
+	document.documentElement.setAttribute(ACTIVE_ATTR, "");
+}
+
+function disable(): void {
+	document.documentElement.removeAttribute(ACTIVE_ATTR);
+}
+
 function applyPref(): void {
 	if (isActive()) {
-		document.documentElement.setAttribute(ACTIVE_ATTR, "");
+		enable();
 	} else {
-		document.documentElement.removeAttribute(ACTIVE_ATTR);
+		disable();
 	}
 }
 
@@ -54,6 +68,8 @@ function init(): void {
 		() => {
 			if (toggle.checked) {
 				setPref(PREF_KEYS.starsBackground, "1");
+				// Notify matrix to fully disable itself (stop RAF + remove canvas).
+				document.dispatchEvent(new CustomEvent("background:activate", { detail: "stars" }));
 			} else {
 				removePref(PREF_KEYS.starsBackground);
 			}
@@ -75,8 +91,25 @@ document.addEventListener("astro:page-load", init);
 
 // Cross-tab sync: another tab changed the preference.
 window.addEventListener("storage", (e) => {
-	if (e.key !== PREF_KEYS.starsBackground) return;
-	applyPref();
+	if (e.key === PREF_KEYS.starsBackground) {
+		applyPref();
+		const toggle = document.getElementById(TOGGLE_ID) as HTMLInputElement | null;
+		if (toggle) toggle.checked = isActive();
+	}
+	// If matrix was enabled in another tab, disable stars here too.
+	if (e.key === PREF_KEYS.matrixBackground && e.newValue === "1") {
+		removePref(PREF_KEYS.starsBackground);
+		disable();
+		const toggle = document.getElementById(TOGGLE_ID) as HTMLInputElement | null;
+		if (toggle) toggle.checked = false;
+	}
+});
+
+// Mutual exclusion: matrix was activated in this tab — fully disable stars.
+document.addEventListener("background:activate", (e) => {
+	if ((e as CustomEvent).detail !== "matrix") return;
+	removePref(PREF_KEYS.starsBackground);
+	disable();
 	const toggle = document.getElementById(TOGGLE_ID) as HTMLInputElement | null;
-	if (toggle) toggle.checked = isActive();
+	if (toggle) toggle.checked = false;
 });

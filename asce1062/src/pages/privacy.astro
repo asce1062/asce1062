@@ -30,8 +30,8 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				third-party scripts load in the background. What you see in the page source is everything that runs.
 			</p>
 			<p>
-				The only things written to your browser are five <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
-				stars-bg, and your avatar customization. No cookies. No session identifiers. Nothing that follows you around.
+				The only things written to your browser are six <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
+				stars-bg, matrix-bg, and your avatar customization. No cookies. No session identifiers. Nothing that follows you around.
 			</p>
 		</section>
 
@@ -42,7 +42,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				<span class="blink">_</span>
 			</p>
 			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
-			<p>Five values are written to your browser's <code>localStorage</code>:</p>
+			<p>Six values are written to your browser's <code>localStorage</code>:</p>
 			<ol>
 				<li>
 					<u><code>theme</code></u>
@@ -73,6 +73,17 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 						<li><code>"1"</code> when you've enabled the "Stars" background toggle in the sidebar.</li>
 						<li>Absent by default (background off).</li>
 						<li>When active, an animated star field GIF is shown as the site background.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>matrix-bg</code></u>
+					<ul>
+						<li><code>"1"</code> when you've enabled the "Matrix" background toggle in the sidebar.</li>
+						<li>Absent by default (background off).</li>
+						<li
+							>When active, a Matrix-style hiragana rain canvas is shown as the site background. Mutually exclusive with
+							Stars.</li
+						>
 					</ul>
 				</li>
 				<li>

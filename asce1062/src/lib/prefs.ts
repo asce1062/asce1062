@@ -20,6 +20,8 @@ export const PREF_KEYS = {
 	matchDeviceTheme: "match-device-theme",
 	/** Set to "1" when animated stars GIF background is enabled; absent otherwise. */
 	starsBackground: "stars-bg",
+	/** Set to "1" when Matrix rain canvas background is enabled; absent otherwise. */
+	matrixBackground: "matrix-bg",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */

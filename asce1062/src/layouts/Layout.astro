@@ -128,6 +128,21 @@ const pageTitle = getPageTitle(title);
 			})();
 		</script>
 
+		<!-- Early-apply matrix background preference before paint.
+		     Stamps data-matrix-bg on <html> if the pref is "1" in localStorage.
+		     Canvas injection and animation are handled by matrixBackground.ts. -->
+		<script is:inline define:vars={{ matrixBgKey: PREF_KEYS.matrixBackground }}>
+			(function () {
+				try {
+					if (localStorage.getItem(matrixBgKey) === "1") {
+						document.documentElement.setAttribute("data-matrix-bg", "");
+					}
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
+
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 

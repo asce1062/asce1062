@@ -572,3 +572,22 @@ html[data-stars-bg] body {
 		background-image: none;
 	}
 }
+
+/* Matrix rain canvas (fixed behind all content) */
+#matrix-rain-canvas {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	width: 100%;
+	height: 100%;
+}
+
+/* When matrix is active: hide topography pseudo-element and suppress stars GIF */
+html[data-matrix-bg] body::before {
+	display: none;
+}
+
+html[data-matrix-bg] body {
+	background-image: none;
+}

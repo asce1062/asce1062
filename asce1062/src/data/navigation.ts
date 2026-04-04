@@ -333,6 +333,12 @@ export const sidebarOptions: SidebarOption[] = [
 		label: "Stars",
 		description: "Applies an animated star field background to the site.",
 	},
+	{
+		id: "matrix-background-toggle",
+		icon: "icon-columns",
+		label: "Matrix",
+		description: "Applies a Matrix-style hiragana rain canvas background. Mutually exclusive with Stars.",
+	},
 ];
 
 /**
