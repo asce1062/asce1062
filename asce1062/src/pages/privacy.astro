@@ -12,7 +12,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/.privacy</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-shield-check"></i> Privacy Policy</h2>
 			<PrivacyPolicy />
@@ -22,7 +22,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls /cookies/ /trackers/ /analytics/ 2&gt;&amp;1</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-circle-slash"></i> No cookies. No trackers. No analytics.</h2>
 			<p>
@@ -39,7 +39,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/.local/share/preferences</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
 			<p>Six values are written to your browser's <code>localStorage</code>:</p>
@@ -111,7 +111,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat /var/mail/inbox | grep --from=you</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-envelope-at"></i> Data I receive from you</h2>
 			<p>
@@ -146,7 +146,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">curl -sI https://alexmbugua.me | grep -i ^tk:</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-patch-check"></i> Do Not Track</h2>
 			<p>
@@ -163,7 +163,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				<span class="ml-1 text-warning"
 					>gpg --import /downloads/public.pgp && gpg --verify /.well-known/security.txt.sig</span
 				>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-key"></i> Security</h2>
 			<p>
@@ -188,7 +188,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat /.well-known/pubvendors.json | jq '.vendors'</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-diagram-3"></i> Third-party vendors</h2>
 			<p>
@@ -201,7 +201,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls -1 /.well-known/</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-list-ul"></i> Well-known resources</h2>
 			<ul>
@@ -245,7 +245,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<blockquote>
 				<p>

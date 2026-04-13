@@ -31,6 +31,28 @@ live in their respective stylesheets.
 }
 
 /* Shared base for dice and copy buttons */
+
+.icon-dice {
+	display: inline-block;
+	transform: rotate(180deg);
+}
+
+.icon-dice.spin {
+	animation: diceSpin 0.5s ease;
+}
+
+@keyframes diceSpin {
+	0% {
+		transform: rotate(180deg) scale(1);
+	}
+	50% {
+		transform: rotate(360deg) scale(1.2);
+	}
+	100% {
+		transform: rotate(540deg) scale(1);
+	}
+}
+
 .ascii-widget-btn {
 	display: inline-flex;
 	align-items: center;

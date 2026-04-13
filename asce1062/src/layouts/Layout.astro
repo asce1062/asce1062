@@ -76,6 +76,12 @@ const pageTitle = getPageTitle(title);
 			readingTime={readingTime}
 		/>
 
+		<!-- Preload critical fonts before CSS is parsed to reduce FOUT window -->
+		<link rel="preload" href="/fonts/0xProto/0xProto-Regular.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/0xProto/0xProto-Bold.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/0xProto/0xProto-Italic.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/icomoon/fonts/icomoon.woff" as="font" type="font/woff" crossorigin />
+
 		<link href="/fonts/icomoon/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
 
@@ -143,6 +149,23 @@ const pageTitle = getPageTitle(title);
 			})();
 		</script>
 
+		<!-- Early-apply flavor preference before paint.
+		     Stamps data-flavor on <html> if a flavor is stored in localStorage.
+		     Flavors are dark-mode-native; light mode is unaffected by the attribute.
+		     flavorManager.ts handles full lifecycle; this script only prevents FOUC. -->
+		<script is:inline define:vars={{ flavorKey: PREF_KEYS.flavor }}>
+			(function () {
+				try {
+					const flavor = localStorage.getItem(flavorKey);
+					if (flavor) {
+						document.documentElement.setAttribute("data-flavor", flavor);
+					}
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
+
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 
@@ -168,7 +191,7 @@ const pageTitle = getPageTitle(title);
 				<Header />
 			</div>
 
-			<div id="primary" class="w-full content-prose mx-auto px-4 pb-4 md:px-8 md:pb-8 relative grow flex flex-col">
+			<div id="primary" class="w-full content-prose mx-auto px-4 pb-8 md:px-8 md:pb-12 relative grow flex flex-col">
 				<!-- https://docs.astro.build/en/guides/view-transitions/#built-in-animation-directives -->
 				<main id="main-content" class="grow" transition:animate="fade">
 					<slot />

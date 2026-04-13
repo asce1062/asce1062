@@ -75,7 +75,25 @@ export function setupAsciiWidget(widgetId: string, opts: AsciiWidgetOptions = {}
 	render(pick(), false);
 
 	// Render wired before setupAsciiReveal so it fires first on dice click.
-	btn?.addEventListener("click", () => render(pick(), true));
+	btn?.addEventListener("click", () => {
+		const icon = btn.querySelector(".icon-dice") as HTMLElement | null;
+
+		if (icon) {
+			icon.classList.remove("spin");
+			void icon.offsetWidth;
+			icon.classList.add("spin");
+
+			icon.addEventListener(
+				"animationend",
+				() => {
+					icon.classList.remove("spin");
+				},
+				{ once: true }
+			);
+		}
+
+		render(pick(), true);
+	});
 
 	return setupAsciiReveal(artEl, container, { diceBtn: btn, replayOnDice: opts.replayOnDice });
 }

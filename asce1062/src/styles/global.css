@@ -84,15 +84,15 @@
 	html {
 		background-color: var(--color-base-100);
 		transition:
-			background-color 0.3s ease,
-			color 0.3s ease;
+			background-color var(--duration-base) var(--ease-in-out),
+			color var(--duration-base) var(--ease-in-out);
 	}
 
 	* {
 		transition:
-			background-color 0.2s ease,
-			border-color 0.2s ease,
-			color 0.2s ease;
+			background-color var(--duration-base) var(--ease-in-out),
+			border-color var(--duration-base) var(--ease-in-out),
+			color var(--duration-base) var(--ease-in-out);
 	}
 
 	/* Disable transitions for elements that shouldn't animate */
@@ -118,9 +118,17 @@
 		/* View transition fade. visibility starts visible after astro:page-load */
 		visibility: visible;
 		opacity: 1;
+		/*
+		 * body selector (0,0,1) wins over * (0,0,0), so body must explicitly declare
+		 * color/bg transitions or they won't fire (creating stagger vs. child elements
+		 * that DO get the * transition rule).
+		 */
 		transition:
-			visibility 0.2s linear,
-			opacity 0.2s linear;
+			visibility var(--duration-base) linear,
+			opacity var(--duration-base) linear,
+			background-color var(--duration-base) var(--ease-in-out),
+			border-color var(--duration-base) var(--ease-in-out),
+			color var(--duration-base) var(--ease-in-out);
 	}
 
 	/* Skip to main content. accessible keyboard shortcut */
@@ -132,7 +140,7 @@
 		color: var(--color-base-content);
 		padding: 8px 16px;
 		text-decoration: none;
-		border-radius: 0 0 4px 0;
+		border-radius: 0;
 		z-index: 100;
 	}
 
@@ -177,7 +185,6 @@
 	}
 
 	b {
-		color: var(--color-warning);
 		font-weight: 700;
 	}
 
@@ -233,6 +240,41 @@
 			font-size: 15px;
 		}
 	}
+
+	/*
+	Suppress global color transitions during Astro's page swap.
+	Astro's ClientRouter stamps data-astro-transition on <html> for the duration
+	of the transition. This prevents the global * transition rule from firing when CSS
+	tokens settle after the swap, producing a "stagger wave" where elements
+	fade their colors in at different visual moments.
+	*/
+	html[data-astro-transition] *,
+	html[data-astro-transition] *::before,
+	html[data-astro-transition] *::after {
+		transition: none !important;
+	}
+
+	/*
+	Atomic theme/flavor switch: freeze ALL transitions/animations during the
+	repaint so every element updates in the same frame.
+	data-theme-switching is stamped by atomicSwitch() in themeTransition.ts
+	and removed after 2 rAFs (one repaint cycle).
+
+	html itself is listed explicitly ("html[data-theme-switching] *" matches
+	descendants only, NOT html itself). Without the explicit html rule, html's
+	own background-color transition (200ms) would still run while all descendants
+	change instantly, causing the topography pattern and background to desync.
+
+	#theme-transition-overlay is excluded via :not() so animations
+	can run freely over the frozen repaint.
+	*/
+	html[data-theme-switching],
+	html[data-theme-switching] *:not(#theme-transition-overlay),
+	html[data-theme-switching] *:not(#theme-transition-overlay)::before,
+	html[data-theme-switching] *:not(#theme-transition-overlay)::after {
+		transition: none !important;
+		animation: none !important;
+	}
 }
 
 @layer components {
@@ -243,25 +285,31 @@
   */
 
 	h1 {
-		@apply text-2xl transition-all duration-100 md:text-3xl;
+		@apply text-2xl md:text-3xl;
+		transition: font-size var(--duration-instant);
 		color: var(--color-base-content);
 	}
 
 	/* Greeting in Header */
 	.site-greeting {
-		@apply text-2xl transition-all duration-100 md:text-3xl;
+		@apply text-2xl md:text-3xl;
+		display: inline-block; /* Constrain hover zone to text width, not full paragraph block */
+		transition: font-size var(--duration-instant);
 		color: var(--color-base-content);
 		font-weight: 700;
 		margin-top: 0;
 		margin-bottom: 0;
+		text-shadow: var(--glow-identity);
 	}
 
 	h2 {
-		@apply text-xl transition-all duration-100 md:text-2xl;
+		@apply text-xl md:text-2xl;
+		transition: font-size var(--duration-instant);
 	}
 
 	h3 {
-		@apply text-base transition-all duration-100 md:text-lg;
+		@apply text-base md:text-lg;
+		transition: font-size var(--duration-instant);
 	}
 
 	p:not(blockquote p),
@@ -271,14 +319,12 @@
 		color: var(--color-base-content);
 	}
 
-	h2,
-	h4,
-	a {
-		color: var(--color-warning);
+	h2 {
+		color: var(--color-heading);
 	}
 
-	b {
-		color: var(--color-warning);
+	a {
+		color: var(--color-link);
 	}
 
 	/*
@@ -400,10 +446,10 @@ Share Notification (Global)
 	padding: 1rem 1.5rem;
 	background-color: var(--color-success);
 	border-radius: 0;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	box-shadow: var(--elevation-3);
 	font-weight: 600;
 	z-index: 1000;
-	animation: slideInFromRight 0.3s ease-out;
+	animation: slideInFromRight var(--duration-slow) var(--ease-out);
 }
 
 .share-notification span {
@@ -415,7 +461,7 @@ Share Notification (Global)
 }
 
 .share-notification.fadeOut {
-	animation: slideOutToRight 0.3s ease-out forwards;
+	animation: slideOutToRight var(--duration-slow) var(--ease-out) forwards;
 }
 
 .close-btn {
@@ -427,7 +473,7 @@ Share Notification (Global)
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: opacity 0.2s;
+	transition: opacity var(--duration-base);
 }
 
 .close-btn:hover {
@@ -511,19 +557,12 @@ marquee {
 }
 
 .faded-text {
-	background: linear-gradient(
-		90deg,
-		var(--color-primary),
-		var(--color-secondary),
-		var(--color-accent),
-		var(--color-neutral),
-		var(--color-warning)
-	);
+	background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
-	animation: gradient-shift 5s ease-in-out infinite;
+	animation: gradient-shift var(--duration-ambient, 5s) var(--ease-in-out, ease-in-out) infinite;
 }
 
 @keyframes gradient-shift {
@@ -541,19 +580,26 @@ Topography texture
 body::before renders the tiling SVG between the html canvas
 and body content. body has isolation:isolate (stacking context) so z-index:-1
 stays within body rather than escaping to the viewport. html provides the
-background-color canvas. SVG uses fill-opacity="0.4" internally.
+background-color canvas.
+
+Approach (mask-image): the SVG's path alpha (fill-opacity="0.4") reveals
+var(--color-base-300) at 40% opacity in path areas, adapting to all flavors automatically.
+Fallback: SVG displayed directly at low opacity.
 */
 body::before {
 	content: "";
 	position: fixed;
 	inset: 0;
-	background-image: url("/images/topographylight.svg");
 	z-index: -1;
 	pointer-events: none;
+	transition: background-color var(--duration-base) var(--ease-in-out);
 }
 
-html[data-theme="dark"] body::before {
-	background-image: url("/images/topography.svg");
+@supports (mask-image: none) {
+	body::before {
+		background-color: var(--color-base-300);
+		mask-image: var(--bg-topography);
+	}
 }
 
 /* Stars replace topography. Hide ::before when starfield is active */
@@ -590,4 +636,217 @@ html[data-matrix-bg] body::before {
 
 html[data-matrix-bg] body {
 	background-image: none;
+}
+
+/*
+============================================
+Theme/Flavor Switch Overlay
+============================================
+Base element: always present, pointer-events none, opacity 0 at rest.
+Each transition style adds its own activation class.
+Background is pinned inline by JS before the switch to hold the OLD theme color.
+*/
+#theme-transition-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	pointer-events: none;
+	opacity: 0;
+	/* background-color pinned inline by handler before each switch */
+}
+
+/*
+────────────────────────────────────────────
+scanline (CRT raster bands + halo beam)
+────────────────────────────────────────────
+Repeating 4px dark-band pattern is always on the overlay background.
+::before is the wide luminous halo (~20px) that precedes the beam.
+::after is the 2px bright leading edge with layered glow.
+*/
+#theme-transition-overlay.transition-scanline {
+	background-image: repeating-linear-gradient(
+		180deg,
+		transparent 0px,
+		transparent 2px,
+		oklch(6% 0.01 280 / 0.65) 2px,
+		oklch(6% 0.01 280 / 0.65) 4px
+	);
+	animation: scanline-curtain 420ms ease-out forwards;
+}
+
+#theme-transition-overlay.transition-scanline::before {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	top: -20px;
+	height: 20px;
+	background: linear-gradient(
+		180deg,
+		transparent 0%,
+		oklch(72% 0.22 145 / 0.06) 30%,
+		oklch(72% 0.22 145 / 0.28) 65%,
+		oklch(72% 0.22 145 / 0.5) 100%
+	);
+	animation: scanline-halo 420ms linear forwards;
+}
+
+#theme-transition-overlay.transition-scanline::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	top: 0;
+	height: 2px;
+	background: oklch(88% 0.18 145);
+	box-shadow:
+		0 0 3px 1px oklch(82% 0.22 145),
+		0 0 10px 3px oklch(72% 0.22 145 / 0.55),
+		0 0 22px 6px oklch(72% 0.22 145 / 0.2);
+	animation: scanline-beam 420ms linear forwards;
+}
+
+@keyframes scanline-curtain {
+	0%,
+	12% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes scanline-beam {
+	from {
+		top: -4px;
+	}
+	to {
+		top: 100vh;
+	}
+}
+@keyframes scanline-halo {
+	from {
+		top: -20px;
+	}
+	to {
+		top: calc(100vh - 16px);
+	}
+}
+
+/*
+────────────────────────────────────────────
+phosphor (radial bloom decay)
+────────────────────────────────────────────
+*/
+#theme-transition-overlay.transition-phosphor {
+	animation: phosphor-bloom 580ms cubic-bezier(0.2, 0, 0.6, 1) forwards;
+}
+@keyframes phosphor-bloom {
+	0% {
+		opacity: 0;
+		background: radial-gradient(ellipse 100% 70% at 50% 40%, oklch(90% 0.06 70 / 0) 0%, transparent 70%);
+	}
+	15% {
+		opacity: 1;
+		background: radial-gradient(
+			ellipse 120% 80% at 50% 40%,
+			oklch(92% 0.08 70 / 0.88) 0%,
+			oklch(80% 0.16 70 / 0.4) 40%,
+			transparent 70%
+		);
+	}
+	35% {
+		opacity: 1;
+		background: radial-gradient(
+			ellipse 150% 100% at 50% 42%,
+			oklch(94% 0.06 70 / 0.72) 0%,
+			oklch(82% 0.12 70 / 0.25) 45%,
+			transparent 75%
+		);
+	}
+	100% {
+		opacity: 0;
+		background: radial-gradient(ellipse 150% 100% at 50% 42%, oklch(90% 0.05 70 / 0) 0%, transparent 70%);
+	}
+}
+
+/*
+────────────────────────────────────────────
+ripple (clip-path circle reveal)
+rx/ry are set as inline CSS custom properties by the handler.
+────────────────────────────────────────────
+*/
+#theme-transition-overlay.transition-ripple {
+	animation: ripple-reveal 460ms cubic-bezier(0.2, 0, 0.4, 1) forwards;
+}
+@keyframes ripple-reveal {
+	from {
+		clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+		opacity: 1;
+	}
+	to {
+		clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+		opacity: 1;
+	}
+}
+
+/* Ring that expands from click point and dies before reveal completes */
+@keyframes ripple-ring {
+	0% {
+		width: 0;
+		height: 0;
+		opacity: 0.9;
+	}
+	35% {
+		opacity: 0.6;
+	}
+	65% {
+		width: 400px;
+		height: 400px;
+		opacity: 0.1;
+	}
+	100% {
+		width: 600px;
+		height: 600px;
+		opacity: 0;
+	}
+}
+
+/*
+────────────────────────────────────────────
+static / noise (analog veil)
+────────────────────────────────────────────
+*/
+#theme-transition-overlay.transition-static {
+	animation: static-veil 400ms ease-in-out forwards;
+}
+@keyframes static-veil {
+	0% {
+		opacity: 0;
+		filter: contrast(1);
+	}
+	15% {
+		opacity: 0.65;
+		filter: contrast(1.35) brightness(0.65);
+	}
+	30% {
+		opacity: 0.95;
+		filter: contrast(1.55) brightness(0.52);
+	}
+	55% {
+		opacity: 0.7;
+		filter: contrast(1.2) brightness(0.72);
+	}
+	100% {
+		opacity: 0;
+		filter: contrast(1);
+	}
+}
+
+/* Reduced motion: skip all overlay animations */
+@media (prefers-reduced-motion: reduce) {
+	#theme-transition-overlay {
+		animation: none !important;
+	}
+	#theme-transition-overlay::before,
+	#theme-transition-overlay::after {
+		animation: none !important;
+	}
 }

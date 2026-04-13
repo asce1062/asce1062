@@ -126,6 +126,7 @@ import "@/styles/components/avatar.css";
 				if (prevGender !== gender) {
 					this.layerTabs.forEach((tab, index) => {
 						tab.classList.toggle("active", index === 0);
+						(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
 					});
 					this.renderer.preloadImages(gender).then(() => {
 						this.renderLayerItems();
@@ -163,6 +164,7 @@ import "@/styles/components/avatar.css";
 			// Reset to first tab
 			this.layerTabs.forEach((tab, index) => {
 				tab.classList.toggle("active", index === 0);
+				(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
 			});
 		}
 
@@ -172,12 +174,11 @@ import "@/styles/components/avatar.css";
 		private switchLayer(layerName: string): void {
 			this.stateManager.setCurrentLayer(layerName);
 
-			// Update active state on tabs
+			// Update active state and aria-selected on tabs
 			this.layerTabs.forEach((tab) => {
-				tab.classList.remove("active");
-				if ((tab as HTMLElement).dataset.layer === layerName) {
-					tab.classList.add("active");
-				}
+				const isActive = (tab as HTMLElement).dataset.layer === layerName;
+				tab.classList.toggle("active", isActive);
+				(tab as HTMLElement).setAttribute("aria-selected", String(isActive));
 			});
 
 			this.renderLayerItems();
@@ -201,7 +202,7 @@ import "@/styles/components/avatar.css";
 				const item = document.createElement("div");
 				item.className = "layer-item";
 				item.style.cssText =
-					"aspect-ratio: 1; border: 1px solid transparent; border-radius: 0.15rem; cursor: pointer; transition: all 0.2s;";
+					"aspect-ratio: 1; border: 1px solid transparent; cursor: pointer; transition: border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);";
 				item.dataset.index = i.toString();
 
 				// Highlight selected item

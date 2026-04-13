@@ -28,7 +28,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">whoami</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-patch-check"></i> Verify</h2>
 			<p class="text-sm">
@@ -41,7 +41,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">finger {SOCIAL.email}</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-person-add"></i> Contact & Follow</h2>
 			<p class="text-sm text-neutral-content mb-4">The best places to reach or follow me:</p>
@@ -79,7 +79,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">dig {domainTree.map((d) => d.root).join(", ")} +short</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-globe"></i> Controlled Domains</h2>
 			<p class="text-sm text-neutral-content mb-4">These domains and subdomains are under my control:</p>
@@ -107,7 +107,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/.accounts</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-id-badge"></i> All Controlled Accounts</h2>
 			<p class="text-sm text-neutral-content mb-4">Every account across the web that belongs to me:</p>
@@ -120,7 +120,7 @@ const domainTree = DOMAINS;
 								<a href={url} target="_blank" rel="noopener noreferrer">
 									{handle ?? url}
 								</a>
-								{comment && <span class="text-secondary-content text-xs"> // {comment}</span>}
+								{comment && <span class="text-muted text-xs"> // {comment}</span>}
 							</li>
 						)
 					)
@@ -132,7 +132,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">gpg --fingerprint {SOCIAL.email}</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-key"></i> PGP Key</h2>
 			<p class="text-sm mb-3">
@@ -158,7 +158,7 @@ const domainTree = DOMAINS;
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p class="text-sm"
 				>If there's an account claiming to be me that's not on this list, it's probably an impersonator.</p

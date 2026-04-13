@@ -29,7 +29,7 @@ const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => 
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">whoami</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-person"></i> Alex Mbugua</h2>
 			<p>
@@ -68,7 +68,7 @@ const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => 
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">neofetch</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-gear"></i> System Profile</h2>
 
@@ -122,18 +122,18 @@ const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => 
 			document.addEventListener("astro:page-load", initNeofetch);
 		</script>
 
-		<section class="mb-6">
+		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p>
 				Check out some of my other <a href="/interests">interests</a>, what I'm up to <a href="/now">now</a>, or
 				generate your own <a href="/8biticon">8-bit avatar</a>.
 			</p>
 			<p>
-				I have a digital version of my <a href="/resume">resume</a> available here.
+				My <a href="/resume">resume</a> is available here.
 			</p>
 			<p>
 				Wanna <a href={`mailto:${SOCIAL.email}`}>contact me</a> or just <a href="/hello">say hello</a>?

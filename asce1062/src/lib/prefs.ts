@@ -22,6 +22,10 @@ export const PREF_KEYS = {
 	starsBackground: "stars-bg",
 	/** Set to "1" when Matrix rain canvas background is enabled; absent otherwise. */
 	matrixBackground: "matrix-bg",
+	/** Active flavor name (e.g. "crt-green", "amber"). Absent = default warm void. */
+	flavor: "theme-flavor",
+	/** Active transition style name, e.g. "scanline". Absent or null = no explicit preference. */
+	transition: "theme-transition",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */

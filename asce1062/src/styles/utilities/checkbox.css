@@ -25,7 +25,7 @@ Size:    checkbox-xs | checkbox-sm | (default, inherits) | checkbox-lg
 	background: none;
 	cursor: pointer;
 	color: color-mix(in oklch, var(--checkbox-color, var(--color-base-content)) 45%, transparent);
-	transition: color 0.15s ease;
+	transition: color var(--duration-fast) var(--ease-out);
 
 	/* Unchecked: icon-square */
 	&::before {

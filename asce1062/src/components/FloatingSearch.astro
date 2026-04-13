@@ -20,7 +20,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			/>
 			<div
 				id="floating-search-modal"
-				class="fixed left-0 right-0 mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-all duration-300"
+				class="fixed left-0 right-0 lg:left-[var(--sidebar-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="floating-search-title">
@@ -43,7 +43,19 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 <script>
 	import { initSearchShortcut } from "@/scripts/keyboardShortcuts";
 
+	// AbortController prevents event listeners from accumulating across
+	// Astro soft navigations. document/window persist across navigations
+	// so without cleanup each astro:page-load adds another set of listeners.
+	let _ac: AbortController | null = null;
+	let _ro: ResizeObserver | null = null;
+
 	function initFloatingSearch() {
+		// Tear down previous listeners and observer before re-init
+		_ac?.abort();
+		_ro?.disconnect();
+		_ac = new AbortController();
+		const { signal } = _ac;
+
 		const overlay = document.getElementById("floating-search-overlay");
 		const modal = document.getElementById("floating-search-modal");
 		const closeBtn = document.getElementById("close-floating-search");
@@ -51,15 +63,18 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 		if (!overlay || !modal || !closeBtn) return;
 
+		// Track the element that triggered open so we can restore focus on close
+		let _opener: HTMLElement | null = null;
+
 		// Position and size modal responsively
 		function positionModal() {
+			if (!modal) return;
 			const firstHr = document.querySelector("header hr");
 
 			if (firstHr) {
 				const hrRect = firstHr.getBoundingClientRect();
 				const scrollTop = window.scrollY || document.documentElement.scrollTop;
 				const topPosition = hrRect.top + scrollTop;
-				if (!modal) return;
 				modal.style.top = `${topPosition}px`;
 
 				// Calculate max-height to ensure modal doesn't overflow viewport
@@ -74,82 +89,85 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		let resizeTimeout: ReturnType<typeof setTimeout>;
 		function handleResize() {
 			clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(() => {
-				positionModal();
-			}, 10); // Short delay for smooth updates
+			resizeTimeout = setTimeout(positionModal, 10);
 		}
 
 		// Set initial position with a slight delay to ensure layout is ready
-		requestAnimationFrame(() => {
-			positionModal();
-		});
+		requestAnimationFrame(positionModal);
 
 		// Update position on various events for responsive behavior
-		window.addEventListener("resize", handleResize);
-		window.addEventListener("scroll", positionModal);
-		window.addEventListener("orientationchange", positionModal);
+		window.addEventListener("resize", handleResize, { signal });
+		window.addEventListener("scroll", positionModal, { signal });
+		window.addEventListener("orientationchange", positionModal, { signal });
 
 		// Use ResizeObserver for more responsive updates
 		if (typeof ResizeObserver !== "undefined") {
-			const resizeObserver = new ResizeObserver(() => {
-				requestAnimationFrame(positionModal);
-			});
+			_ro = new ResizeObserver(() => requestAnimationFrame(positionModal));
 			const header = document.querySelector("header");
-			if (header) {
-				resizeObserver.observe(header);
-			}
+			if (header) _ro.observe(header);
 		}
 
 		// Open floating search
-		function openSearch() {
+		function openSearch(trigger?: HTMLElement) {
 			if (!overlay || !modal) return;
+			_opener = trigger ?? (document.activeElement as HTMLElement | null);
 			overlay.classList.remove("opacity-0", "pointer-events-none");
 			modal.classList.remove("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "hidden";
 
-			// Focus on search input
-			setTimeout(() => {
-				const searchInput = modal.querySelector('input[type="text"]') as HTMLInputElement;
+			// Focus on search input after opacity transition starts
+			requestAnimationFrame(() => {
+				const searchInput = modal?.querySelector('input[type="text"]') as HTMLInputElement | null;
 				searchInput?.focus();
-			}, 100);
+			});
 		}
 
-		// Close floating search
+		// Close floating search (restore focus to the element that opened it)
 		function closeSearch() {
 			if (!overlay || !modal) return;
 			overlay.classList.add("opacity-0", "pointer-events-none");
 			modal.classList.add("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "";
+			_opener?.focus();
+			_opener = null;
 		}
 
-		// Event listeners
+		// Event listeners (all tied to signal for automatic cleanup)
 		if (openBtn) {
-			openBtn.addEventListener("click", openSearch);
+			openBtn.addEventListener("click", () => openSearch(openBtn), { signal });
 		}
-		closeBtn.addEventListener("click", closeSearch);
-		overlay.addEventListener("click", closeSearch);
+		closeBtn.addEventListener("click", closeSearch, { signal });
+		overlay.addEventListener("click", closeSearch, { signal });
 
 		// Close on Escape key
-		document.addEventListener("keydown", (e) => {
-			if (!e.key) return;
-			if (e.key === "Escape" && !modal.classList.contains("pointer-events-none")) {
-				closeSearch();
-			}
-		});
+		document.addEventListener(
+			"keydown",
+			(e) => {
+				if (!e.key) return;
+				if (e.key === "Escape" && !modal.classList.contains("pointer-events-none")) {
+					closeSearch();
+				}
+			},
+			{ signal }
+		);
 
 		// Register Ctrl+K / Cmd+K shortcut to open the floating search
 		// Only register if we're NOT on the search page (since openBtn won't exist on search page)
 		if (openBtn) {
 			initSearchShortcut('#floating-searchbox input[type="text"]');
 			// Also open modal when shortcut is pressed (if modal is closed)
-			document.addEventListener("keydown", (e) => {
-				if (!e.key) return;
-				const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-				if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
-					e.preventDefault();
-					openSearch();
-				}
-			});
+			document.addEventListener(
+				"keydown",
+				(e) => {
+					if (!e.key) return;
+					const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+					if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
+						e.preventDefault();
+						openSearch();
+					}
+				},
+				{ signal }
+			);
 		}
 	}
 

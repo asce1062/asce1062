@@ -243,7 +243,7 @@ new MutationObserver(() => {
 	if (_ctx && _canvas) {
 		_ctx.clearRect(0, 0, _canvas.width, _canvas.height);
 	}
-}).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+}).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavor"] });
 
 // Re-stamp attribute and rebuild canvas before new page's content becomes
 // visible on soft navigation (body is replaced by ClientRouter).

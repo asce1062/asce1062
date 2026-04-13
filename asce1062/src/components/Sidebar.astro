@@ -11,16 +11,23 @@
  */
 import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
+import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
 
 const currentPath = Astro.url.pathname;
 
+// Most-specific match: find the longest nav href that matches the current path.
+// This prevents /blog from staying active when navigating to /blog/some-post,
+// if both /blog and /blog/some-post exist as nav items.
+const activeHref = mainNavigation
+	.map((l) => l.href)
+	.filter((href) => (href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(href + "/")))
+	.reduce((best, href) => (href.length > best.length ? href : best), "");
+
 function isActive(linkHref: string): boolean {
-	if (linkHref === "/" && currentPath === "/") return true;
-	if (linkHref !== "/" && currentPath.startsWith(linkHref)) return true;
-	return false;
+	return linkHref === activeHref;
 }
 
 const grouped = navSections.map((s) => ({
@@ -39,10 +46,10 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 <aside
 	role="navigation"
 	aria-label="Main navigation"
-	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100 bg-[url('/images/topographylight.svg')] dark:bg-[url('/images/topography.svg')]">
+	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100">
 	<div class="nav-brand">
 		<!-- prettier-ignore -->
-		<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$</span></span>
+		<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$<span class="blink text-accent-content" aria-hidden="true">_</span></span></span>
 	</div>
 
 	<nav class="nav-body" aria-label="Main navigation">
@@ -52,7 +59,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<div class="nav-section">
 						<div class="nav-section-label">
 							<span class="badge badge-secondary badge-sm">&#x276F;</span>
-							<span class="badge badge-success badge-sm">{label}</span>
+							<span class="nav-section-name">{label}</span>
 						</div>
 						<ul class="nav-list" role="list">
 							{items.map((link) => {
@@ -93,7 +100,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 				<div class="nav-section">
 					<div class="nav-section-label">
 						<span class="badge badge-secondary badge-sm">&#x276F;</span>
-						<span class="badge badge-success badge-sm">Options</span>
+						<span class="nav-section-name">options</span>
 					</div>
 					<div class="nav-options-list">
 						{sidebarOptions.map((option) => (
@@ -128,6 +135,29 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			)
 		}
 
+		<!-- Flavor picker: optional color overlays on dark mode -->
+		<div class="nav-section">
+			<div class="nav-section-label">
+				<span class="badge badge-secondary badge-sm">&#x276F;</span>
+				<span class="nav-section-name">theme</span>
+			</div>
+			<div class="nav-flavor-picker" role="group" aria-label="Color flavor">
+				{
+					FLAVORS.map((flavor) => (
+						<button
+							type="button"
+							class="nav-flavor-swatch"
+							data-flavor-btn={flavor}
+							aria-label={FLAVOR_LABELS[flavor]}
+							aria-pressed="false"
+							title={FLAVOR_LABELS[flavor]}
+							style={FLAVOR_SWATCHES[flavor] ? `--swatch: ${FLAVOR_SWATCHES[flavor]}` : undefined}
+						/>
+					))
+				}
+			</div>
+		</div>
+
 		<!-- ASCII easter egg. visible on overscroll -->
 		<div class="nav-easter-egg" aria-hidden="true">
 			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
@@ -157,4 +187,5 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	import "@/scripts/matchDeviceTheme";
 	import "@/scripts/starsBackground";
 	import "@/scripts/matrixBackground";
+	import "@/scripts/flavorPicker";
 </script>

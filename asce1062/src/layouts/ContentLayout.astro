@@ -64,7 +64,7 @@ const editDate =
 	readingTime={readingTime}>
 	<article data-pagefind-body data-pagefind-sort="date">
 		<h2 data-pagefind-meta="title">{title}</h2>
-		<span data-pagefind-meta="date" data-pagefind-sort="date:{date}">
+		<span class="block mt-1 mb-3 text-sm" data-pagefind-meta="date" data-pagefind-sort="date:{date}">
 			<i
 				><b>{date}</b>{
 					readingTime && (
@@ -79,18 +79,9 @@ const editDate =
 
 		{isBlog && image && <PreviewImage src={image} altText={alt || ""} />}
 
-		{
-			!isBlog && (
-				<>
-					<>
-						<br />
-						<br />
-					</>
-				</>
-			)
-		}
+		{!isBlog && <div class="mt-4" aria-hidden="true" />}
 
-		<span>
+		<span class="block mt-1 mb-1">
 			tags: {
 				tags.map((tag) => (
 					<a class="mr-2 italic" href={`/tags/${tag}`} data-pagefind-meta="tag">

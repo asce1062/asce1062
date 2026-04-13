@@ -7,30 +7,27 @@ import Layout from "@/layouts/Layout.astro";
 	ogImage="images/social-preview.png"
 	description="Building secure, performant, scalable solutions in the cloud">
 	<article class="-mt-2">
-		<section class="mb-3 md:mb-6">
+		<section class="mb-8 md:mb-12">
 			<p class="text-xs text-neutral-content">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">whoami</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p>
-				Alex is a results-driven, articulate, and analytical Full-Stack Engineer with more than 8 years of experience in
-				technical architecture and development. Since 2017, Alex has focused on building secure, scalable cloud
-				architectures for high-impact platforms. Alex is able to bridge the gap between technology and business and
-				excels at guiding engineering teams towards delivering platform-wide tools and infrastructure that drive
-				business and engineering success.
+				Full-stack engineer. 8+ years building secure, scalable cloud systems. I work across the full stack, from
+				distributed architecture to the interface, and spend a lot of energy on the gap between what engineering can
+				build and what actually ships.
 			</p>
 			<p>
 				Outside of work Alex hones his love for programming on unsuspecting Open Source projects, spends an exorbitant
 				amount of time reverse engineering, and moonlights as a
 				<a
-					href="https://asce1062.github.io/"
+					href="https://music.alexmbugua.me/"
 					aria-label="visit my music site"
 					target="_blank"
 					rel="noopener noreferrer">
 					chip musician
-				</a>
-				with a soft spot for 8-bit nostalgia reminiscent of the Atari and C64 gaming eras.
+				</a>.
 			</p>
 		</section>
 
@@ -38,14 +35,23 @@ import Layout from "@/layouts/Layout.astro";
 			<p class="text-xs text-neutral-content">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p>
-				Thanks for stopping by. Check out my <a href="/blog" aria-label="Visit the blog page">blog</a>, see what I'm up
-				to <a href="/now" aria-label="Now page">now</a>, sign the
-				<a href="/guestbook" aria-label="Sign guestbook">guestbook</a>, or
-				<a href="/8biticon">create your own 8-bit pixel art avatar</a>.
+				Thanks for stopping by. Read the <a href="/blog" aria-label="Visit the blog page">blog</a>, see what I'm up to
+				<a href="/now" aria-label="Now page">now</a>, or sign the
+				<a href="/guestbook" aria-label="Sign guestbook">guestbook</a>.
 			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/about" class="link-action link-action--primary no-underline" aria-label="About Alex">
+					<i class="icon-person" aria-hidden="true"></i>
+					About
+				</a>
+				<a href="/hello" class="link-action link-action--accent no-underline" aria-label="How to reach Alex">
+					<i class="icon-chat-square-heart" aria-hidden="true"></i>
+					Hello
+				</a>
+			</div>
 		</section>
 	</article>
 </Layout>

@@ -81,7 +81,7 @@ Match our site theme
 	font-size: 0.8rem;
 	font-weight: 600;
 	opacity: 0.6;
-	transition: opacity 0.2s ease;
+	transition: opacity var(--duration-base) var(--ease-out);
 }
 
 .pagefind-ui__search-clear:hover {
@@ -112,7 +112,7 @@ Match our site theme
 	gap: 0.5rem;
 	padding: 1.5rem 0;
 	border-top: 1px solid var(--pagefind-ui-border);
-	transition: background-color 0.15s ease;
+	transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 /* Target pagefind-search context */
@@ -144,8 +144,8 @@ Match our site theme
 	@apply underline decoration-dashed underline-offset-8 hover:no-underline inline-block;
 	color: var(--color-warning);
 	transition:
-		background-color 0.2s ease,
-		color 0.2s ease;
+		background-color var(--duration-base) var(--ease-out),
+		color var(--duration-base) var(--ease-out);
 }
 
 #pagefind-search .pagefind-ui__result a:hover,

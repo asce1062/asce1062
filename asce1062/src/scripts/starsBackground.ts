@@ -86,6 +86,12 @@ init();
 // Re-stamp attribute before the new page's content becomes visible on soft nav.
 document.addEventListener("astro:after-swap", applyPref);
 
+// Re-stamp on flavor change so html background-color and CSS flavor tokens repaint correctly.
+new MutationObserver(applyPref).observe(document.documentElement, {
+	attributes: true,
+	attributeFilter: ["data-flavor"],
+});
+
 // Re-sync toggle checkbox and re-attach listener after each navigation.
 document.addEventListener("astro:page-load", init);
 

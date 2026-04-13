@@ -18,8 +18,8 @@ Size:    btn-xs | btn-sm | (default) | btn-lg
 	font-style: italic;
 	cursor: pointer;
 	transition:
-		background-color 0.2s,
-		translate 0.1s;
+		background-color var(--duration-base),
+		translate var(--duration-instant);
 	background-color: var(--btn-bg, var(--color-base-200));
 	color: var(--color-base-content);
 

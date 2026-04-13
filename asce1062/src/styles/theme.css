@@ -22,20 +22,20 @@
 	============================================
 	*/
 
-	/* Semantic Colors - Light Theme (Default) */
+	/* Light Theme (Default) */
 	--color-base-100: oklch(91.637% 0.034 90.515);
 	--color-base-200: oklch(88.272% 0.049 91.774);
 	--color-base-300: oklch(84.133% 0.065 90.856);
 	--color-base-content: oklch(41% 0.112 45.904);
 
-	--color-primary: oklch(80% 0.114 19.571);
-	--color-primary-content: oklch(39% 0.141 25.723);
+	--color-primary: oklch(71% 0.185 19.571);
+	--color-primary-content: oklch(96% 0.012 19.571);
 
-	--color-secondary: oklch(87% 0.15 154.449);
-	--color-secondary-content: oklch(44% 0.119 151.328);
+	--color-secondary: oklch(85% 0.15 154.449);
+	--color-secondary-content: oklch(30% 0.09 151.328);
 
-	--color-accent: oklch(68% 0.162 75.834);
-	--color-accent-content: oklch(41% 0.112 45.904);
+	--color-accent: oklch(60% 0.195 76);
+	--color-accent-content: oklch(97% 0.012 76);
 
 	--color-neutral: oklch(84.1% 0.081 73.639);
 	--color-neutral-content: oklch(44% 0.011 73.639);
@@ -51,6 +51,24 @@
 
 	--color-error: oklch(70% 0.191 22.216);
 	--color-error-content: oklch(40% 0.123 38.172);
+
+	/*
+	============================================
+	SEMANTIC TYPOGRAPHY COLORS
+	============================================
+	Decouple color from raw status tokens.
+	Updated per-theme override block to change dark-mode mapping.
+	============================================
+	*/
+
+	/* Heading h2 */
+	--color-heading: var(--color-accent);
+	/* Interactive links */
+	--color-link: var(--color-warning);
+	/* Subdued / muted text */
+	--color-muted: oklch(58% 0.05 75);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(86.272% 0.027 91.774);
 
 	/*
 	============================================
@@ -117,19 +135,37 @@
 
 	/*
 	============================================
-	BOX SHADOWS - Retro flat design
+	BOX SHADOWS
 	============================================
 	*/
 
-	--shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
-	--shadow-default: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
-	--shadow-md: 0px 4px 16px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -1px rgba(0, 0, 0, 0.08);
-	--shadow-lg: 0px 12px 32px -4px rgba(0, 0, 0, 0.08), 0px 4px 8px -2px rgba(0, 0, 0, 0.08);
-	--shadow-overlay: 0px 12px 32px -4px rgba(0, 0, 0, 0.08), 0px 4px 8px -2px rgba(0, 0, 0, 0.08);
+	--shadow-sm: 0px 1px 2px 0px oklch(0% 0 0 / 0.05);
+	--shadow-default: 0px 1px 2px 0px oklch(0% 0 0 / 0.05);
+	--shadow-md: 0px 4px 16px -2px oklch(0% 0 0 / 0.08), 0px 2px 4px -1px oklch(0% 0 0 / 0.08);
+	--shadow-lg: 0px 12px 32px -4px oklch(0% 0 0 / 0.08), 0px 4px 8px -2px oklch(0% 0 0 / 0.08);
+	--shadow-overlay: 0px 12px 32px -4px oklch(0% 0 0 / 0.08), 0px 4px 8px -2px oklch(0% 0 0 / 0.08);
 
 	/*
 	============================================
-	ELEVATION - Glow-based system (Warm Void Terminal)
+	MOTION TOKENS
+	============================================
+	*/
+
+	--duration-instant: 100ms; /* heading responsive transitions */
+	--duration-fast: 150ms; /* icon micro-interactions, nav-link */
+	--duration-base: 200ms; /* global theme transitions, overlays */
+	--duration-slow: 300ms; /* sidebar drawer, toast entrances */
+	--duration-crawl: 800ms; /* easter egg flicker reveal */
+	--duration-ambient: 5000ms; /* gradient-shift, passive loops */
+
+	--ease-terminal: steps(2, start); /* blink cursor (digital, not smooth) */
+	--ease-out: ease-out; /* entrances (decelerate to rest) */
+	--ease-in-out: ease-in-out; /* ambient loops */
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* general-purpose, material-style */
+
+	/*
+	============================================
+	ELEVATION
 	============================================
 	*/
 
@@ -141,12 +177,25 @@
 	--elevation-2: 0 2px 8px oklch(0% 0 0 / 0.12);
 	/* Floating toasts, modals, dropdowns */
 	--elevation-3: 0 8px 24px oklch(0% 0 0 / 0.2);
-	/* Focus accent outline (no glow token) */
+	/* Focus accent outline */
 	--elevation-focus: 0 0 0 2px var(--color-accent);
 
 	/*
 	============================================
-	BORDER RADIUS - Retro squared design
+	GLOW TOKENS
+	============================================
+	*/
+
+	/* Ambient active state (nav link, current page indicator) */
+	--glow-active: inset 0 0 14px color-mix(in oklab, var(--color-primary), transparent 72%);
+	/* Soft accent pulse (focus rings, highlighted elements) */
+	--glow-accent: 0 0 16px color-mix(in oklab, var(--color-accent), transparent 60%);
+	/* Greeting / headline presence (site identity moments) */
+	--glow-identity: 0 0 20px color-mix(in oklab, var(--color-primary), transparent 65%);
+
+	/*
+	============================================
+	BORDER RADIUS
 	============================================
 	*/
 
@@ -180,8 +229,19 @@
 	============================================
 	*/
 
-	--sidebar-width: 13rem;
+	--sidebar-width: 14rem;
 	--content-width: 55rem;
+
+	/*
+	============================================
+	BACKGROUND ASSETS
+	Single source of truth for SVG pattern URLs.
+	Flavors use mask-image with var(--color-base-300) so only
+	one SVG is needed (the fill color adapts via CSS).
+	============================================
+	*/
+
+	--bg-topography: url("/images/topography.svg");
 
 	/*
 	============================================
@@ -198,16 +258,53 @@
 
 /*
 ============================================
+KEYFRAME ANIMATIONS
+============================================
+*/
+
+/* Phosphor glow pulse.
+   Uses box-shadow so it doesn't affect layout.
+   Respects prefers-reduced-motion (only applied where motion is safe). */
+@keyframes glow-pulse {
+	0% {
+		box-shadow:
+			0 0 6px color-mix(in oklab, var(--color-primary), transparent 70%),
+			0 0 12px color-mix(in oklab, var(--color-primary), transparent 80%);
+	}
+	100% {
+		box-shadow:
+			0 0 12px color-mix(in oklab, var(--color-primary), transparent 55%),
+			0 0 24px color-mix(in oklab, var(--color-primary), transparent 70%);
+	}
+}
+
+/* Accent glow pulse */
+@keyframes glow-pulse-accent {
+	0% {
+		box-shadow:
+			0 0 6px color-mix(in oklab, var(--color-accent), transparent 65%),
+			0 0 12px color-mix(in oklab, var(--color-accent), transparent 78%);
+	}
+	100% {
+		box-shadow:
+			0 0 14px color-mix(in oklab, var(--color-accent), transparent 50%),
+			0 0 28px color-mix(in oklab, var(--color-accent), transparent 65%);
+	}
+}
+
+/*
+============================================
 DARK MODE OVERRIDES
 ============================================
 Dark mode activates when data-theme="dark" is set on html element
 ============================================
 */
 html[data-theme="dark"] {
-	--color-base-100: oklch(12% 0.012 270);
-	--color-base-200: oklch(20.219% 0.004 308.229);
-	--color-base-300: oklch(23.219% 0.004 308.229);
-	--color-base-content: oklch(96% 0.059 95.617);
+	/* Light Theme (Default) */
+	--color-base-100: oklch(13% 0.018 270);
+	--color-base-200: oklch(20% 0.013 270);
+	--color-base-300: oklch(23% 0.015 270);
+	--color-base-content: oklch(90% 0.07 95);
 
 	--color-primary: oklch(70% 0.191 22.216);
 	--color-primary-content: oklch(25% 0.092 26.042);
@@ -232,6 +329,550 @@ html[data-theme="dark"] {
 
 	--color-error: oklch(63% 0.237 25.331);
 	--color-error-content: oklch(26% 0.079 36.259);
+
+	/*
+	============================================
+	SEMANTIC TYPOGRAPHY COLORS
+	============================================
+	Decouple color from raw status tokens.
+	Updated per-theme override block to change dark-mode mapping.
+	============================================
+	*/
+	/* Heading h2 */
+	--color-heading: var(--color-accent);
+	/* Interactive links */
+	--color-link: var(--color-primary);
+	/* Subdued / muted text */
+	--color-muted: oklch(68% 0.025 90);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(16% 0.012 270);
+
+	/* Glow token intensity (dark mode. stronger phosphor emission) */
+	--glow-active: inset 0 0 18px color-mix(in oklab, var(--color-primary), transparent 65%);
+	--glow-accent: 0 0 20px color-mix(in oklab, var(--color-accent), transparent 55%);
+	--glow-identity: 0 0 28px color-mix(in oklab, var(--color-primary), transparent 58%);
+}
+
+/*
+============================================
+FLAVOR THEMES
+============================================
+Flavors layer on top of both dark and light base themes.
+Dark: html[data-theme="dark"][data-flavor="X"]
+Light: html[data-theme="light"][data-flavor="X"]
+
+Each light flavor tints the parchment base toward the flavor's personality.
+
+Flavors: crt-green | amber | synthwave | dos | void | ice | redline
+============================================
+*/
+
+/* ─── DARK FLAVORS ──────────────────────────────────────────────────────── */
+
+/* 1. CRT Green dark */
+html[data-theme="dark"][data-flavor="crt-green"] {
+	--color-base-100: oklch(8% 0.025 145);
+	--color-base-200: oklch(12% 0.03 145);
+	--color-base-300: oklch(16% 0.035 145);
+	--color-base-content: oklch(80% 0.16 148);
+
+	--color-primary: oklch(88% 0.26 145);
+	--color-primary-content: oklch(10% 0.022 145);
+
+	--color-secondary: oklch(62% 0.14 148);
+	--color-secondary-content: oklch(10% 0.022 145);
+
+	--color-accent: oklch(76% 0.22 140);
+	--color-accent-content: oklch(10% 0.022 145);
+
+	--color-neutral: oklch(14% 0.022 145);
+	--color-neutral-content: oklch(55% 0.1 148);
+
+	--color-warning: oklch(72% 0.2 105);
+	--color-success: oklch(80% 0.24 145);
+
+	--color-error: oklch(58% 0.22 25);
+	--color-info: oklch(65% 0.14 185);
+
+	/* Heading h2 */
+	--color-heading: oklch(92% 0.25 143);
+	/* Interactive links */
+	--color-link: oklch(88% 0.24 105);
+	/* Subdued / muted text */
+	--color-muted: oklch(52% 0.09 148);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(10% 0.025 145);
+
+	/* Strong phosphor glow (earned) */
+	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 58%);
+	--glow-accent: 0 0 24px color-mix(in oklab, var(--color-accent), transparent 48%);
+	--glow-identity: 0 0 32px color-mix(in oklab, var(--color-primary), transparent 50%);
+}
+
+/* 2. Amber Terminal dark */
+html[data-theme="dark"][data-flavor="amber"] {
+	--color-base-100: oklch(11% 0.028 50);
+	--color-base-200: oklch(16% 0.032 52);
+	--color-base-300: oklch(20% 0.036 55);
+	--color-base-content: oklch(78% 0.14 78);
+
+	--color-primary: oklch(80% 0.2 72);
+	--color-primary-content: oklch(14% 0.025 52);
+
+	--color-secondary: oklch(65% 0.15 65);
+	--color-secondary-content: oklch(14% 0.025 52);
+
+	--color-accent: oklch(86% 0.21 88);
+	--color-accent-content: oklch(16% 0.03 55);
+	--color-neutral: oklch(16% 0.022 52);
+	--color-neutral-content: oklch(58% 0.1 75);
+
+	--color-warning: oklch(82% 0.2 85);
+	--color-success: oklch(55% 0.12 148);
+
+	--color-error: oklch(58% 0.2 25);
+	--color-info: oklch(60% 0.13 220);
+
+	/* Heading h2 */
+	--color-heading: oklch(88% 0.22 80);
+	/* Interactive links */
+	--color-link: oklch(70% 0.24 40);
+	/* Subdued / muted text */
+	--color-muted: oklch(52% 0.08 75);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(13% 0.028 50);
+
+	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 60%);
+	--glow-accent: 0 0 22px color-mix(in oklab, var(--color-accent), transparent 50%);
+	--glow-identity: 0 0 30px color-mix(in oklab, var(--color-primary), transparent 52%);
+}
+
+/* 3. Synthwave dark */
+html[data-theme="dark"][data-flavor="synthwave"] {
+	--color-base-100: oklch(14% 0.09 281);
+	--color-base-200: oklch(19% 0.09 281);
+	--color-base-300: oklch(24% 0.09 281);
+	--color-base-content: oklch(82% 0.1 275);
+
+	--color-primary: oklch(72% 0.22 350);
+	--color-primary-content: oklch(18% 0.06 350);
+
+	--color-secondary: oklch(82% 0.12 230);
+	--color-secondary-content: oklch(20% 0.04 230);
+
+	--color-accent: oklch(78% 0.19 58);
+	--color-accent-content: oklch(20% 0.05 56);
+
+	--color-neutral: oklch(22% 0.08 280);
+	--color-neutral-content: oklch(72% 0.08 275);
+
+	--color-warning: oklch(88% 0.19 95);
+	--color-success: oklch(76% 0.16 162);
+
+	--color-error: oklch(72% 0.22 22);
+	--color-info: oklch(76% 0.16 232);
+
+	/* Heading h2*/
+	--color-heading: oklch(82% 0.25 335);
+	/* Interactive links */
+	--color-link: oklch(80% 0.18 195);
+	/* Subdued / muted text */
+	--color-muted: oklch(62% 0.05 280);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(17% 0.09 281);
+
+	/* Vivid synthwave glows (neon emission at full power) */
+	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 58%);
+	--glow-accent: 0 0 26px color-mix(in oklab, var(--color-accent), transparent 48%);
+	--glow-identity: 0 0 36px color-mix(in oklab, var(--color-primary), transparent 50%);
+}
+
+/* 4. DOS Blue dark */
+html[data-theme="dark"][data-flavor="dos"] {
+	--color-base-100: oklch(20% 0.04 265);
+	--color-base-200: oklch(24% 0.042 265);
+	--color-base-300: oklch(28% 0.044 265);
+	--color-base-content: oklch(96% 0.008 265);
+
+	--color-primary: oklch(82% 0.15 195);
+	--color-primary-content: oklch(20% 0.04 265);
+
+	--color-secondary: oklch(88% 0.1 240);
+	--color-secondary-content: oklch(20% 0.04 265);
+
+	--color-accent: oklch(86% 0.16 182);
+	--color-accent-content: oklch(20% 0.04 265);
+
+	--color-neutral: oklch(26% 0.038 265);
+	--color-neutral-content: oklch(78% 0.012 265);
+
+	--color-warning: oklch(88% 0.19 88);
+	--color-success: oklch(78% 0.19 148);
+
+	--color-error: oklch(72% 0.22 22);
+	--color-info: oklch(84% 0.14 200);
+
+	/* Heading h2 */
+	--color-heading: oklch(90% 0.14 185);
+	/* Interactive links */
+	--color-link: oklch(76% 0.18 225);
+	/* Subdued / muted text */
+	--color-muted: oklch(68% 0.01 265);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(18% 0.038 265);
+
+	/* No glow (DOS was sharp, physical CRT, but no ambient flourishes) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 5. Void dark */
+html[data-theme="dark"][data-flavor="void"] {
+	--color-base-100: oklch(5% 0 0);
+	--color-base-200: oklch(10% 0 0);
+	--color-base-300: oklch(14% 0 0);
+	--color-base-content: oklch(88% 0 0);
+
+	--color-primary: oklch(52% 0 0);
+	--color-primary-content: oklch(96% 0 0);
+
+	--color-secondary: oklch(38% 0 0);
+	--color-secondary-content: oklch(96% 0 0);
+
+	--color-accent: oklch(60% 0 0);
+	--color-accent-content: oklch(96% 0 0);
+
+	--color-neutral: oklch(18% 0 0);
+	--color-neutral-content: oklch(70% 0 0);
+
+	--color-warning: oklch(72% 0.14 85);
+	--color-success: oklch(62% 0.14 155);
+
+	--color-error: oklch(60% 0.18 22);
+	--color-info: oklch(62% 0.14 230);
+
+	/* Heading h2 */
+	--color-heading: oklch(92% 0 0);
+	/* Interactive links */
+	--color-link: oklch(65% 0 0);
+	/* Subdued / muted text */
+	--color-muted: oklch(42% 0 0);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(8% 0 0);
+
+	/* Absolute silence (no glow in the void) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 6. Ice dark */
+html[data-theme="dark"][data-flavor="ice"] {
+	--color-base-100: oklch(9% 0.022 212);
+	--color-base-200: oklch(14% 0.026 210);
+	--color-base-300: oklch(18% 0.03 210);
+	--color-base-content: oklch(94% 0.016 202);
+
+	--color-primary: oklch(76% 0.19 197);
+	--color-primary-content: oklch(12% 0.018 212);
+
+	--color-secondary: oklch(68% 0.16 205);
+	--color-secondary-content: oklch(12% 0.018 212);
+
+	--color-accent: oklch(84% 0.18 190);
+	--color-accent-content: oklch(12% 0.018 212);
+
+	--color-neutral: oklch(15% 0.018 212);
+	--color-neutral-content: oklch(65% 0.012 205);
+
+	--color-warning: oklch(74% 0.15 198);
+	--color-success: oklch(66% 0.16 178);
+
+	--color-error: oklch(65% 0.22 22);
+	--color-info: oklch(78% 0.18 200);
+
+	/* Heading h2 */
+	--color-heading: oklch(90% 0.18 195);
+	/* Interactive links */
+	--color-link: oklch(72% 0.2 210);
+	/* Subdued / muted text */
+	--color-muted: oklch(58% 0.01 205);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(11% 0.02 212);
+
+	/* Cold glow (tight, clinical, not warm) */
+	--glow-active: inset 0 0 16px color-mix(in oklab, var(--color-primary), transparent 62%);
+	--glow-accent: 0 0 20px color-mix(in oklab, var(--color-accent), transparent 52%);
+	--glow-identity: 0 0 26px color-mix(in oklab, var(--color-primary), transparent 55%);
+}
+
+/* 7. Redline dark */
+html[data-theme="dark"][data-flavor="redline"] {
+	--color-base-100: oklch(8% 0.024 20);
+	--color-base-200: oklch(12% 0.03 20);
+	--color-base-300: oklch(16% 0.036 22);
+	--color-base-content: oklch(90% 0.012 22);
+
+	--color-primary: oklch(60% 0.26 22);
+	--color-primary-content: oklch(95% 0.008 22);
+
+	--color-secondary: oklch(48% 0.2 18);
+	--color-secondary-content: oklch(92% 0.01 22);
+
+	--color-accent: oklch(68% 0.28 16);
+	--color-accent-content: oklch(95% 0.008 22);
+
+	--color-neutral: oklch(14% 0.02 20);
+	--color-neutral-content: oklch(62% 0.01 22);
+
+	--color-warning: oklch(72% 0.2 55);
+	--color-success: oklch(52% 0.12 155);
+
+	--color-error: oklch(68% 0.28 16);
+	--color-info: oklch(58% 0.14 230);
+
+	/* Heading h2 */
+	--color-heading: oklch(72% 0.28 18);
+	/* Interactive links */
+	--color-link: oklch(72% 0.22 35);
+	/* Subdued / muted text */
+	--color-muted: oklch(52% 0.008 22);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(10% 0.024 20);
+
+	/* Maximum tension glow (the loudest flavor)*/
+	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 55%);
+	--glow-accent: 0 0 28px color-mix(in oklab, var(--color-accent), transparent 46%);
+	--glow-identity: 0 0 36px color-mix(in oklab, var(--color-primary), transparent 48%);
+}
+
+/*
+============================================
+LIGHT MODE FLAVOR OVERRIDES
+============================================
+Selectors: html[data-theme="light"][data-flavor="X"]
+Light mode suppresses glows (they read poorly on bright surfaces)
+============================================
+*/
+
+/* ─── LIGHT FLAVORS ─────────────────────────────────────────────────────── */
+
+/* 1. CRT Green light */
+html[data-theme="light"][data-flavor="crt-green"] {
+	--color-base-100: oklch(96% 0.012 140);
+	--color-base-200: oklch(92% 0.018 140);
+	--color-base-300: oklch(87% 0.024 138);
+	--color-base-content: oklch(28% 0.09 148);
+
+	--color-primary: oklch(42% 0.17 150);
+	--color-primary-content: oklch(96% 0.012 140);
+
+	--color-secondary: oklch(52% 0.13 148);
+	--color-secondary-content: oklch(96% 0.012 140);
+
+	--color-accent: oklch(36% 0.14 145);
+	--color-accent-content: oklch(96% 0.012 140);
+
+	/* Heading h2 */
+	--color-heading: oklch(30% 0.14 150);
+	/* Interactive links */
+	--color-link: oklch(36% 0.2 110);
+	/* Subdued / muted text */
+	--color-muted: oklch(55% 0.06 142);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(90% 0.022 138);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 2. Amber light */
+html[data-theme="light"][data-flavor="amber"] {
+	--color-base-100: oklch(91.637% 0.034 90.515);
+	--color-base-200: oklch(88.272% 0.049 91.774);
+	--color-base-300: oklch(84.133% 0.065 90.856);
+	--color-base-content: oklch(41% 0.112 45.904);
+
+	--color-primary: oklch(85% 0.199 91.936);
+	--color-primary-content: oklch(22% 0.06 88);
+
+	--color-secondary: oklch(75% 0.183 55.934);
+	--color-secondary-content: oklch(22% 0.07 50);
+
+	--color-accent: oklch(62% 0.195 76);
+	--color-accent-content: oklch(97% 0.012 76);
+
+	/* Heading h2 */
+	--color-heading: oklch(48% 0.18 68);
+	/* Interactive links */
+	--color-link: oklch(50% 0.24 38);
+	/* Subdued / muted text */
+	--color-muted: oklch(55% 0.06 75);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(82% 0.072 88);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 3. Synthwave light */
+html[data-theme="light"][data-flavor="synthwave"] {
+	--color-base-100: oklch(97% 0.014 300);
+	--color-base-200: oklch(94% 0.028 298);
+	--color-base-300: oklch(89% 0.052 295);
+	--color-base-content: oklch(36% 0.12 295);
+
+	--color-primary: oklch(58% 0.24 300);
+	--color-primary-content: oklch(97% 0.008 300);
+
+	--color-secondary: oklch(55% 0.18 192);
+	--color-secondary-content: oklch(97% 0.006 192);
+
+	--color-accent: oklch(68% 0.19 58);
+	--color-accent-content: oklch(18% 0.04 56);
+
+	/* Heading h2 */
+	--color-heading: oklch(50% 0.26 296);
+	/* Interactive links */
+	--color-link: oklch(42% 0.22 192);
+	/* Subdued / muted text */
+	--color-muted: oklch(58% 0.03 295);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(91% 0.028 298);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 4. DOS light */
+html[data-theme="light"][data-flavor="dos"] {
+	--color-base-100: oklch(100% 0 0);
+	--color-base-200: oklch(93% 0 0);
+	--color-base-300: oklch(86% 0 0);
+	--color-base-content: oklch(22% 0.031 278);
+
+	--color-primary: oklch(58% 0.158 241.966);
+	--color-primary-content: oklch(100% 0 0);
+
+	--color-secondary: oklch(55% 0.046 257);
+	--color-secondary-content: oklch(100% 0 0);
+
+	--color-accent: oklch(60% 0.118 184);
+	--color-accent-content: oklch(100% 0 0);
+
+	/* Heading h2 */
+	--color-heading: oklch(28% 0.12 248);
+	/* Interactive links */
+	--color-link: oklch(44% 0.2 255);
+	/* Subdued / muted text */
+	--color-muted: oklch(55% 0.015 260);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(90% 0 0);
+
+	/* No glow (DOS was sharp, systematic UI) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 5. Void light */
+html[data-theme="light"][data-flavor="void"] {
+	--color-base-100: oklch(100% 0 0);
+	--color-base-200: oklch(97% 0 0);
+	--color-base-300: oklch(94% 0 0);
+	--color-base-content: oklch(8% 0 0);
+
+	--color-primary: oklch(16% 0 0);
+	--color-primary-content: oklch(100% 0 0);
+
+	--color-secondary: oklch(22% 0 0);
+	--color-secondary-content: oklch(100% 0 0);
+
+	--color-accent: oklch(27% 0 0);
+	--color-accent-content: oklch(100% 0 0);
+
+	/* Heading h2 */
+	--color-heading: oklch(12% 0 0);
+	/* Interactive links */
+	--color-link: oklch(32% 0 0);
+	/* Subdued / muted text */
+	--color-muted: oklch(55% 0 0);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(92% 0 0);
+
+	/* Absolute silence (no glow in the void) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 6. Ice light */
+html[data-theme="light"][data-flavor="ice"] {
+	--color-base-100: oklch(99% 0.006 210);
+	--color-base-200: oklch(95% 0.01 210);
+	--color-base-300: oklch(88% 0.014 210);
+	--color-base-content: oklch(22% 0.04 218);
+
+	--color-primary: oklch(46% 0.17 200);
+	--color-primary-content: oklch(98% 0.006 200);
+
+	--color-secondary: oklch(54% 0.12 205);
+	--color-secondary-content: oklch(98% 0.004 205);
+
+	--color-accent: oklch(58% 0.16 195);
+	--color-accent-content: oklch(98% 0.004 195);
+
+	/* Heading h2 */
+	--color-heading: oklch(28% 0.14 210);
+	/* Interactive links */
+	--color-link: oklch(42% 0.2 198);
+	/* Subdued / muted text */
+	--color-muted: oklch(58% 0.012 210);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(92% 0.012 210);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
+
+/* 7. Redline light */
+html[data-theme="light"][data-flavor="redline"] {
+	--color-base-100: oklch(99% 0.006 22);
+	--color-base-200: oklch(96% 0.016 22);
+	--color-base-300: oklch(90% 0.04 22);
+	--color-base-content: oklch(30% 0.1 22);
+
+	--color-primary: oklch(55% 0.26 22);
+	--color-primary-content: oklch(98% 0.006 22);
+
+	--color-secondary: oklch(48% 0.22 18);
+	--color-secondary-content: oklch(97% 0.01 22);
+
+	--color-accent: oklch(62% 0.28 28);
+	--color-accent-content: oklch(98% 0.006 22);
+
+	/* Heading h2 */
+	--color-heading: oklch(48% 0.28 20);
+	/* Interactive links */
+	--color-link: oklch(52% 0.26 35);
+	/* Subdued / muted text */
+	--color-muted: oklch(58% 0.015 22);
+	/* Inline code surface (slightly elevated from base) */
+	--color-code-bg: oklch(93% 0.02 22);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
 }
 
 /*

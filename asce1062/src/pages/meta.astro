@@ -29,7 +29,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 <Layout title="Meta" description="Site diagnostics and metadata" noIndex={true} ogImage="images/social-preview.png">
 	<h2 class="mb-6"><i class="icon-gear"></i> Meta</h2>
 	<!-- Security Notice -->
-	<div class="bg-base-200 border border-base-300 p-3 mb-6 rounded-md">
+	<div class="bg-base-200 border border-base-300 p-3 mb-6 rounded-none">
 		<p class="text-sm text-neutral-content">
 			<i class="icon-shield-check"></i>
 			This page intentionally exposes limited site diagnostics and build metadata information.
@@ -39,7 +39,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 	<!-- Canonical Mismatch Warning -->
 	{
 		canonicalMismatch && (
-			<div class="bg-error/20 border border-error text-error-content p-3 mb-6 rounded-md">
+			<div class="bg-error/20 border border-error text-error-content p-3 mb-6 rounded-none">
 				<p class="text-sm">
 					<i class="icon-exclamation-octagon" />
 					<strong>Configuration mismatch:</strong> Astro.site (<code class="bg-base-300 px-1">{siteUrl}</code>) and
@@ -57,7 +57,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 		<h2>
 			<i class="icon-box-seam"></i> Build Information
 		</h2>
-		<div class="overflow-hidden rounded-md border border-base-300">
+		<div class="overflow-hidden rounded-none border border-base-300">
 			<table class="w-full text-sm">
 				<tbody>
 					<tr class="bg-base-200/50">
@@ -90,7 +90,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 		<h2>
 			<i class="icon-stack"></i> Package Versions
 		</h2>
-		<div class="overflow-hidden rounded-md border border-base-300">
+		<div class="overflow-hidden rounded-none border border-base-300">
 			<table class="w-full text-sm">
 				<tbody>
 					<tr class="bg-base-200/50">
@@ -123,7 +123,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 		<h2>
 			<i class="icon-search"></i> SEO Defaults
 		</h2>
-		<div class="overflow-hidden rounded-md border border-base-300">
+		<div class="overflow-hidden rounded-none border border-base-300">
 			<table class="w-full text-sm">
 				<tbody>
 					<tr class="bg-base-200/50">
@@ -193,7 +193,7 @@ const ogImageAbsoluteUrl = getOgImageUrl();
 		<h2>
 			<i class="icon-diagram-3"></i> Pages & Feeds
 		</h2>
-		<div class="overflow-hidden rounded-md border border-base-300">
+		<div class="overflow-hidden rounded-none border border-base-300">
 			<table class="w-full text-sm">
 				<tbody>
 					<tr class="bg-base-200/50">

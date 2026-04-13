@@ -24,8 +24,9 @@ Size:    input-sm | (default) | input-lg
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--input-ring, var(--color-base-300));
+		outline: 2px solid var(--input-ring, var(--color-accent));
 		outline-offset: 2px;
+		box-shadow: var(--glow-accent);
 	}
 
 	&:disabled {
@@ -89,7 +90,7 @@ Size:    input-sm | (default) | input-lg
 }
 
 .input-honeypot:focus {
-	animation: shake 0.3s linear;
+	animation: shake var(--duration-slow) linear;
 }
 
 /* Size variants */

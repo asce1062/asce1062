@@ -23,8 +23,8 @@ Size:    toggle-xs | toggle-sm | (default) | toggle-lg
 	cursor: pointer;
 	vertical-align: middle;
 	transition:
-		background-color 0.15s ease,
-		border-color 0.15s ease;
+		background-color var(--duration-fast) var(--ease-out),
+		border-color var(--duration-fast) var(--ease-out);
 
 	/* Thumb */
 	&::after {
@@ -37,9 +37,9 @@ Size:    toggle-xs | toggle-sm | (default) | toggle-lg
 		background-color: var(--color-base-content);
 		opacity: 0.35;
 		transition:
-			left 0.15s ease,
-			opacity 0.15s ease,
-			background-color 0.15s ease;
+			left var(--duration-fast) var(--ease-out),
+			opacity var(--duration-fast) var(--ease-out),
+			background-color var(--duration-fast) var(--ease-out);
 	}
 
 	&:checked {

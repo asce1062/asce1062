@@ -27,6 +27,7 @@
  */
 
 import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
+import { atomicSwitch } from "@/scripts/themeTransition";
 
 export type Theme = "light" | "dark";
 
@@ -166,11 +167,19 @@ export function initThemeSwitcher(): void {
 /**
  * Handle a theme toggle button click.
  * A manual toggle always cancels match-device-theme mode first so the manual
- * choice becomes the new persisted preference.
+ * choice becomes the new persisted preference. The DOM change is applied
+ * atomically (freezing per-element transitions) to prevent the stagger wave.
  */
 export function handleThemeToggle(): void {
+	const prevTheme = getCurrentTheme();
+	const newTheme: Theme = prevTheme === "light" ? "dark" : "light";
 	disableMatchDeviceTheme();
-	toggleTheme();
+	atomicSwitch(() => setTheme(newTheme), {
+		source: "theme-toggle",
+		reason: "user",
+		prevTheme,
+		nextTheme: newTheme,
+	});
 	updateThemeIcon();
 }
 

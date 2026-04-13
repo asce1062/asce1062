@@ -13,11 +13,12 @@ const variantsJson = JSON.stringify(variants404);
 
 <Layout title="404" description="This page doesn't exist." ogImage="images/social-preview.png">
 	<article>
+		<h1 class="sr-only">404. Page Not Found</h1>
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cd /page-not-found</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p class="text-error text-sm font-bold mb-0"> bash: cd: /page-not-found: No such file or directory </p>
 		</section>
@@ -26,7 +27,7 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat /dev/404</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 
 			<div class="text-center">
@@ -43,7 +44,7 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/what-happened.txt</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-question-circle"></i> Looks like you're lost.</h2>
 			<p>
@@ -84,7 +85,7 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls ~/find-your-way/</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-signpost-split"></i> Find your way back.</h2>
 			<div class="flex flex-wrap gap-3 mt-4">
@@ -113,7 +114,7 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit 1</span>
-				<span class="blink">_</span>
+				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<p>
 				If you think something is genuinely broken, feel free to <a href="/hello">let me know</a>.

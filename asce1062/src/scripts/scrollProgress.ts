@@ -2,6 +2,10 @@
  * Global Scroll Progress Utilities
  */
 
+// AbortController prevents scroll listeners from accumulating across
+// Astro soft navigations (initScrollProgress is called on every astro:page-load).
+let _scrollAc: AbortController | null = null;
+
 /**
  * Creates and appends a progress bar to track scroll position
  * The progress bar uses a gradient matching the site's color palette
@@ -17,7 +21,7 @@ export function createProgressBar(): void {
 	progressContainer.style.backgroundColor = "transparent";
 
 	const progressBar = document.createElement("div");
-	progressBar.className = "progress-bar h-1 w-0 transition-all duration-150";
+	progressBar.className = "progress-bar h-1 w-0 transition-[width] duration-150";
 	progressBar.id = "scroll-progress-bar";
 	progressBar.style.background =
 		"linear-gradient(to right, var(--color-primary), var(--color-accent), var(--color-secondary), var(--color-warning))";
@@ -47,8 +51,10 @@ function updateProgress(): void {
  * Attaches scroll event listener and performs initial update
  */
 export function initScrollProgress(): void {
+	_scrollAc?.abort();
+	_scrollAc = new AbortController();
 	createProgressBar();
-	document.addEventListener("scroll", updateProgress);
+	document.addEventListener("scroll", updateProgress, { signal: _scrollAc.signal });
 	updateProgress(); // Initial update
 }
 

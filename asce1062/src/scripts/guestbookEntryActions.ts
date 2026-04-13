@@ -7,6 +7,10 @@ import { copyToClipboard } from "@/scripts/feedbackManager";
 
 const NOTIFICATION_ID = "entry-action-notification";
 
+// AbortController prevents document-level listeners from accumulating across
+// Astro soft navigations (initEntryActions is called on every astro:page-load).
+let _ac: AbortController | null = null;
+
 /** Close all open action menus */
 function closeAllMenus(): void {
 	document.querySelectorAll<HTMLButtonElement>(".entry-actions-trigger[aria-expanded='true']").forEach((trigger) => {
@@ -23,7 +27,12 @@ function toggleMenu(trigger: HTMLButtonElement): void {
 	if (!isOpen) {
 		trigger.setAttribute("aria-expanded", "true");
 		const menu = trigger.nextElementSibling as HTMLElement | null;
-		if (menu) menu.hidden = false;
+		if (menu) {
+			menu.hidden = false;
+			// Auto-focus first menu item for keyboard accessibility (ARIA menu pattern)
+			const firstItem = menu.querySelector<HTMLElement>('[role="menuitem"]');
+			firstItem?.focus();
+		}
 	}
 }
 
@@ -37,7 +46,7 @@ async function handleCopyStyle(button: HTMLElement): Promise<void> {
 		borderColor: "base-300",
 		borderWidth: "1px",
 		borderStyle: "solid",
-		borderRadius: "0.25rem",
+		borderRadius: "0rem",
 	};
 
 	try {
@@ -127,9 +136,31 @@ function handleAnchorHighlight(): void {
 	);
 }
 
+/** Navigate between menu items with ArrowUp/ArrowDown (ARIA menu keyboard pattern) */
+function handleMenuKeyNav(e: KeyboardEvent, menu: HTMLElement): void {
+	const items = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+	if (items.length === 0) return;
+
+	const focused = document.activeElement as HTMLElement | null;
+	const idx = focused ? items.indexOf(focused) : -1;
+
+	if (e.key === "ArrowDown") {
+		e.preventDefault();
+		items[(idx + 1) % items.length]?.focus();
+	} else if (e.key === "ArrowUp") {
+		e.preventDefault();
+		items[(idx - 1 + items.length) % items.length]?.focus();
+	}
+}
+
 /** Initialize all entry action menus */
 export function initEntryActions(): void {
-	// Menu triggers
+	// Tear down previous document-level listeners before re-init
+	_ac?.abort();
+	_ac = new AbortController();
+	const { signal } = _ac;
+
+	// Menu triggers — per-element listeners, no AbortController needed (elements are replaced on nav)
 	document.querySelectorAll<HTMLButtonElement>(".entry-actions-trigger").forEach((trigger) => {
 		trigger.addEventListener("click", (e) => {
 			e.stopPropagation();
@@ -146,14 +177,30 @@ export function initEntryActions(): void {
 	});
 
 	// Close on outside click
-	document.addEventListener("click", () => {
-		closeAllMenus();
-	});
+	document.addEventListener(
+		"click",
+		() => {
+			closeAllMenus();
+		},
+		{ signal }
+	);
 
-	// Close on Escape
-	document.addEventListener("keydown", (e) => {
-		if (e.key === "Escape") closeAllMenus();
-	});
+	// Keyboard: Escape closes menus; ArrowUp/ArrowDown navigate open menus
+	document.addEventListener(
+		"keydown",
+		(e) => {
+			if (e.key === "Escape") {
+				closeAllMenus();
+				return;
+			}
+
+			if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+				const openMenu = document.querySelector<HTMLElement>(".entry-actions-menu:not([hidden])");
+				if (openMenu) handleMenuKeyNav(e, openMenu);
+			}
+		},
+		{ signal }
+	);
 
 	// Anchor highlight
 	handleAnchorHighlight();
