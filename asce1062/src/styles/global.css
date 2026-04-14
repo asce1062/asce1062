@@ -88,6 +88,12 @@
 			color var(--duration-base) var(--ease-in-out);
 	}
 
+	/* Sidebar collapsed: update the layout variable so content margin narrows.
+	   Pure CSS ensures this applies before any module scripts run. */
+	html[data-sidebar-collapsed] {
+		--sidebar-current-width: var(--sidebar-collapsed-width);
+	}
+
 	* {
 		transition:
 			background-color var(--duration-base) var(--ease-in-out),

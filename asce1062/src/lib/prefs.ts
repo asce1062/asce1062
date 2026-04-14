@@ -26,6 +26,8 @@ export const PREF_KEYS = {
 	flavor: "theme-flavor",
 	/** Active transition style name, e.g. "scanline". Absent or null = no explicit preference. */
 	transition: "theme-transition",
+	/** Set to "1" when the desktop sidebar is in collapsed (icon-only) mode; absent otherwise. */
+	sidebarCollapsed: "sidebar-collapsed",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */

@@ -80,7 +80,7 @@ const pageTitle = getPageTitle(title);
 		<link rel="preload" href="/fonts/0xProto/0xProto-Regular.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/0xProto/0xProto-Bold.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/0xProto/0xProto-Italic.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preload" href="/fonts/icomoon/fonts/icomoon.woff" as="font" type="font/woff" crossorigin />
+		<link rel="preload" href="/fonts/icomoon/fonts/icomoon.woff?4weq0r" as="font" type="font/woff" crossorigin />
 
 		<link href="/fonts/icomoon/style.css" rel="stylesheet" />
 		<Themes defaultTheme="dark" />
@@ -166,6 +166,27 @@ const pageTitle = getPageTitle(title);
 			})();
 		</script>
 
+		<!-- Early-apply sidebar collapsed preference before paint.
+		     Stamps data-sidebar-collapsed on <html> if the pref is "1" in localStorage.
+		     Prevents a layout shift where content briefly renders at full-width margin
+		     before the sidebarCollapse.ts module script fires. -->
+		<script is:inline define:vars={{ sidebarCollapsedKey: PREF_KEYS.sidebarCollapsed }}>
+			(function () {
+				try {
+					const collapsed = localStorage.getItem(sidebarCollapsedKey) === "1";
+					if (collapsed) {
+						document.documentElement.setAttribute("data-sidebar-collapsed", "");
+					}
+					document.documentElement.style.setProperty(
+						"--sidebar-current-width",
+						collapsed ? "var(--sidebar-collapsed-width)" : "var(--sidebar-width)"
+					);
+				} catch (_) {
+					/* storage unavailable */
+				}
+			})();
+		</script>
+
 		<!-- PWA Manifest -->
 		{pwaInfo && <link rel="manifest" href={pwaInfo.webManifest.href} />}
 
@@ -186,7 +207,7 @@ const pageTitle = getPageTitle(title);
 
 		<Sidebar />
 
-		<div class="lg:ml-[var(--sidebar-width)] flex flex-col min-h-dvh">
+		<div class="sidebar-content-offset lg:ml-[var(--sidebar-current-width)] flex flex-col min-h-dvh">
 			<div class="w-full content-prose mx-auto px-4 pt-4 md:px-8 md:pt-8">
 				<Header />
 			</div>

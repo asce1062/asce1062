@@ -48,15 +48,22 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	aria-label="Main navigation"
 	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100">
 	<div class="nav-brand">
-		<!-- prettier-ignore -->
-		<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$<span class="blink text-accent-content" aria-hidden="true">_</span></span></span>
+		<!-- Expanded: terminal prompt -->
+		<div class="nav-brand-expanded-content">
+			<!-- prettier-ignore -->
+			<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$<span class="blink text-accent-content" aria-hidden="true">_</span></span></span>
+		</div>
+		<!-- Collapsed: avatar only (tab button outside handles expand) -->
+		<div class="nav-brand-collapsed-content" aria-hidden="true">
+			<AvatarMiniWidget instanceId="sidebar-header" canvasClass="nav-collapsed-header-avatar avatar-frame" />
+		</div>
 	</div>
 
 	<nav class="nav-body" aria-label="Main navigation">
 		{
 			grouped.map(({ label, items }) =>
 				items.length > 0 ? (
-					<div class="nav-section">
+					<div class="nav-section" data-collapsed-hidden={items[0]?.section !== "main" ? "" : undefined}>
 						<div class="nav-section-label">
 							<span class="badge badge-secondary badge-sm">&#x276F;</span>
 							<span class="nav-section-name">{label}</span>
@@ -72,6 +79,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 												href={link.href}
 												aria-label={link.ariaLabel}
 												aria-current={active ? "page" : undefined}
+												data-tooltip={link.name}
 												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
 												{link.multiPathIcon && link.pathCount ? (
 													<span class={`${link.icon} nav-icon`} aria-hidden="true">
@@ -94,10 +102,10 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			)
 		}
 
-		<!-- Options section: user-controlled site preferences -->
+		<!-- Options section: user-controlled site preferences. Hidden in collapsed mode. -->
 		{
 			sidebarOptions.length > 0 && (
-				<div class="nav-section">
+				<div class="nav-section" data-collapsed-hidden>
 					<div class="nav-section-label">
 						<span class="badge badge-secondary badge-sm">&#x276F;</span>
 						<span class="nav-section-name">options</span>
@@ -135,8 +143,8 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			)
 		}
 
-		<!-- Flavor picker: optional color overlays on dark mode -->
-		<div class="nav-section">
+		<!-- Flavor picker: optional color overlays on dark mode. Hidden in collapsed mode. -->
+		<div class="nav-section" data-collapsed-hidden>
 			<div class="nav-section-label">
 				<span class="badge badge-secondary badge-sm">&#x276F;</span>
 				<span class="nav-section-name">theme</span>
@@ -158,13 +166,13 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			</div>
 		</div>
 
-		<!-- ASCII easter egg. visible on overscroll -->
-		<div class="nav-easter-egg" aria-hidden="true">
+		<!-- ASCII easter egg. visible on overscroll. Hidden in collapsed mode. -->
+		<div class="nav-easter-egg" aria-hidden="true" data-collapsed-hidden>
 			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
 		</div>
 	</nav>
 
-	<!-- Avatar footer -->
+	<!-- Avatar footer: visible when expanded, hidden when collapsed -->
 	<div class="nav-status">
 		<AvatarMiniWidget instanceId="sidebar" canvasClass="nav-status-avatar avatar-frame" />
 	</div>
@@ -173,8 +181,22 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 <!-- Overlay transparent click trap. closes nav -->
 <label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>
 
+<!-- Bookmark tab: fixed to the right edge of the sidebar. Desktop only. -->
+<button
+	id="sidebar-collapse-tab"
+	type="button"
+	class="nav-collapse-tab"
+	aria-label="Collapse sidebar"
+	aria-expanded="true">
+	<i class="icon-sidebar-collapse nav-tab-icon nav-tab-icon--collapse" aria-hidden="true"></i>
+	<i class="icon-sidebar-expand nav-tab-icon nav-tab-icon--expand" aria-hidden="true"></i>
+</button>
+
 <script>
 	import "@/scripts/sidebarNav";
+</script>
+<script>
+	import "@/scripts/sidebarCollapse";
 </script>
 <script>
 	import "@/scripts/sidebarEgg";

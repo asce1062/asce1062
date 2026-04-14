@@ -230,6 +230,9 @@
 	*/
 
 	--sidebar-width: 14rem;
+	--sidebar-collapsed-width: 3.5rem;
+	/* Current effective sidebar width (changes when sidebar is collapsed) */
+	--sidebar-current-width: 14rem;
 	--content-width: 55rem;
 
 	/*
