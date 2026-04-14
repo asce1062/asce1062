@@ -6,6 +6,8 @@ import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
 import AstroPWA from "@vite-pwa/astro";
+import { readdir, copyFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 const isProduction = process.env.NODE_ENV === "production" || process.env.NETLIFY === "true";
 
@@ -194,6 +196,12 @@ export default defineConfig({
 				],
 
 				// Precaching configuration
+				// Explicitly set globDirectory to dist/ so Workbox scans the correct
+				// directory on Netlify SSR builds. @astrojs/netlify v7 sets
+				// config.build.client to .netlify/build/ (the SSR function dir), which
+				// @vite-pwa/astro would otherwise use — producing "no files matched"
+				// warnings and an empty precache manifest.
+				globDirectory: fileURLToPath(new URL("dist/", import.meta.url)),
 				globPatterns: [
 					"**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg}",
 					"**/fonts/**/*.{woff2,ttf,eot,woff}", // Include fonts in precache
@@ -309,6 +317,36 @@ export default defineConfig({
 				directoryAndTrailingSlashHandler: true,
 			},
 		}),
+		// @astrojs/netlify sets config.build.client to .netlify/build/ (its SSR build
+		// directory) rather than dist/. @vite-pwa/astro picks that up as both the glob
+		// source and the output directory, so sw.js ends up in .netlify/build/ and not in
+		// dist/ where Netlify serves static files.
+		//
+		// This integration runs AFTER @vite-pwa/astro in astro:build:done and copies
+		// sw.js + workbox-*.js from .netlify/build/ to dist/. If the source doesn't
+		// exist (e.g. local static builds where @vite-pwa/astro writes directly to
+		// dist/) it exits silently.
+		{
+			name: "pwa-sw-copy-to-dist",
+			hooks: {
+				"astro:build:done": async ({ dir, logger }) => {
+					// dir = file:///…/dist/  →  ../.netlify/build/ is the PWA output
+					const buildDir = new URL("../.netlify/build/", dir);
+					try {
+						const files = await readdir(fileURLToPath(buildDir));
+						const swFiles = files.filter((f) => f === "sw.js" || /^workbox-.+\.js$/.test(f));
+						if (swFiles.length === 0) return;
+						await Promise.all(
+							swFiles.map((f) => copyFile(fileURLToPath(new URL(f, buildDir)), fileURLToPath(new URL(f, dir))))
+						);
+						logger.info(`Copied ${swFiles.join(", ")} from .netlify/build/ to dist/`);
+					} catch {
+						// .netlify/build/ absent on local static builds — public/sw.js
+						// placeholder already covers dist/sw.js in that case.
+					}
+				},
+			},
+		},
 	],
 	markdown: markdownConfig,
 	vite: {

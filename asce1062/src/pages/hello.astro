@@ -72,17 +72,17 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 				<li>
 					<span class="font-bold">This site</span>:
 					<a href={SITE.url} target="_blank" rel="noopener noreferrer">alexmbugua.me</a>
-					<span class="text-secondary-content text-xs"> // my home on the internet</span>
+					<span class="text-muted text-xs"> // my home on the internet</span>
 				</li>
 				<li>
 					<span class="font-bold">Now</span>:
 					<a href="/now">/now</a>
-					<span class="text-secondary-content text-xs"> // what I'm currently focused on</span>
+					<span class="text-muted text-xs"> // what I'm currently focused on</span>
 				</li>
 				<li>
 					<span class="font-bold">GitHub</span>:
 					<a href={getGithubProfileUrl()} target="_blank" rel="noopener noreferrer">@{SOCIAL.github}</a>
-					<span class="text-secondary-content text-xs"> // where my code lives</span>
+					<span class="text-muted text-xs"> // where my code lives</span>
 				</li>
 				{
 					tiktok && (
@@ -91,7 +91,7 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 							<a href={tiktok.url} target="_blank" rel="noopener noreferrer">
 								{tiktok.handle}
 							</a>
-							<span class="text-secondary-content text-xs"> // most active social presence</span>
+							<span class="text-muted text-xs"> // most active social presence</span>
 						</li>
 					)
 				}
@@ -102,7 +102,7 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 							<a href={youtube.url} target="_blank" rel="noopener noreferrer">
 								{youtube.handle}
 							</a>
-							<span class="text-secondary-content text-xs"> // Gaming and occasional music content</span>
+							<span class="text-muted text-xs"> // Gaming and occasional music content</span>
 						</li>
 					)
 				}
@@ -113,7 +113,7 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 							<a href={discord.url} target="_blank" rel="noopener noreferrer">
 								{discord.handle}
 							</a>
-							<span class="text-secondary-content text-xs"> // Communities and chatting</span>
+							<span class="text-muted text-xs"> // Communities and chatting</span>
 						</li>
 					)
 				}
