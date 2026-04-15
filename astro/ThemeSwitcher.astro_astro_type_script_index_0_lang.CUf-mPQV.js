@@ -1,0 +1,1 @@
+import{c as o,h as l,f as a}from"./themeManager.ZKdIGC2s.js";let e=null;function c(){e?.abort(),e=new AbortController;const{signal:t}=e;o();const n=document.getElementById("theme-toggle-btn");n&&n.addEventListener("click",l,{signal:t}),a(t)}document.addEventListener("astro:page-load",c);

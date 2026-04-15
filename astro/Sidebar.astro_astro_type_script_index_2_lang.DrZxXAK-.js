@@ -1,1 +1,0 @@
-import{s as r}from"./asciiWidget.CQCa9PQZ.js";let t=null;function d(){t?.(),t=null;const e=document.getElementById("nav-brand-name");e&&(e.textContent="alex");const n=document.querySelector(".nav-easter-egg");t=r("nav-egg",{container:n,onRender:(a,o)=>{o&&e&&(e.textContent=a.text.toLowerCase())}})}document.addEventListener("astro:page-load",d);

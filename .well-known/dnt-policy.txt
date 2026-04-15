@@ -45,7 +45,7 @@ This site does not:
 
 LOCAL STORAGE
 
-This site writes four values to your browser's localStorage:
+This site writes nine values to your browser's localStorage:
 
 - "theme": "light" or "dark" - your chosen color scheme.
 - "match-device-theme": "1" when the "Match device" sidebar toggle is
@@ -53,11 +53,22 @@ This site writes four values to your browser's localStorage:
   OS/browser color scheme preference live.
 - "cursor-blink": "paused" when you have disabled the blinking cursor
   effect; absent otherwise.
+- "stars-bg": "1" when the animated stars background is enabled via the
+  "Stars" sidebar toggle; absent otherwise.
+- "matrix-bg": "1" when the Matrix rain canvas background is enabled via
+  the "Matrix" sidebar toggle; absent otherwise. Mutually exclusive with
+  stars-bg (enabling one disables the other).
 - "avatar-state": your 8-bit avatar customisation (e.g.
   "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
   avatar builder at /8biticon; absent until you interact with it.
+- "theme-flavor": your chosen color flavor (e.g. "crt-green", "amber").
+  Absent when using the default warm void palette.
+- "theme-transition": your chosen page transition style (e.g. "scanline").
+  Absent when no transition is explicitly set.
+- "sidebar-collapsed": "1" when you have collapsed the desktop sidebar to
+  icon-only mode; absent otherwise.
 
-All four values persist across browser restarts by design so your
+All nine values persist across browser restarts by design so your
 preferences are remembered between visits. They never leave your device
 and are never transmitted to a server.
 
@@ -68,7 +79,7 @@ email or guestbook forms. Guestbook submissions are stored in a self-hosted
 Turso (https://turso.tech) database (libSQL). Spam is filtered using a
 honeypot field and content pattern detection. No third-party services
 process your data. Should you want a copy or would like anything you sent
-deleted, contact us (see below).
+deleted, contact me (see below).
 
 SERVER LOGS
 
@@ -101,7 +112,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-03-18.
+This policy was last reviewed and reasserted on 2026-04-15.
 
 REFERENCE
 
