@@ -30,8 +30,9 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				third-party scripts load in the background. What you see in the page source is everything that runs.
 			</p>
 			<p>
-				The only things written to your browser are six <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
-				stars-bg, matrix-bg, and your avatar customization. No cookies. No session identifiers. Nothing that follows you around.
+				The only things written to your browser are nine <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
+				stars-bg, matrix-bg, theme-flavor, theme-transition, sidebar-collapsed, and your avatar customization. No cookies.
+				No session identifiers. Nothing that follows you around.
 			</p>
 		</section>
 
@@ -42,7 +43,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
-			<p>Six values are written to your browser's <code>localStorage</code>:</p>
+			<p>Nine values are written to your browser's <code>localStorage</code>:</p>
 			<ol>
 				<li>
 					<u><code>theme</code></u>
@@ -92,6 +93,27 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 						<li>Your 8-bit avatar customisation, e.g. <code>"gender=male&amp;avatar=3-54-12-14-15-21"</code>.</li>
 						<li>Only written if you use the avatar builder on the <a href="/8biticon">/8biticon</a> page.</li>
 						<li>Absent until you interact with the builder.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>theme-flavor</code></u>
+					<ul>
+						<li>Your chosen color flavor, e.g. <code>"crt-green"</code> or <code>"amber"</code>.</li>
+						<li>Absent when using the default warm void palette.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>theme-transition</code></u>
+					<ul>
+						<li>Your chosen page transition style, e.g. <code>"scanline"</code>.</li>
+						<li>Absent when no transition is explicitly set.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>sidebar-collapsed</code></u>
+					<ul>
+						<li><code>"1"</code> when you've collapsed the desktop sidebar to icon-only mode.</li>
+						<li>Absent by default (sidebar expanded).</li>
 					</ul>
 				</li>
 			</ol>
