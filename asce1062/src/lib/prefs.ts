@@ -28,6 +28,10 @@ export const PREF_KEYS = {
 	transition: "theme-transition",
 	/** Set to "1" when the desktop sidebar is in collapsed (icon-only) mode; absent otherwise. */
 	sidebarCollapsed: "sidebar-collapsed",
+	/** Visit count integer (as string) for navbrand milestone greeting. */
+	navBrandVisits: "nav-brand-visits",
+	/** Unix ms timestamp (as string) of the last page visit for navbrand sub-line. */
+	navBrandLastVisit: "nav-brand-last-visit",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */
