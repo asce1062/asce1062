@@ -15,6 +15,8 @@
  *   sessionStorage nav-brand-visited   — ephemeral session marker
  */
 
+import { PREF_KEYS, getPref, setPref } from "@/lib/prefs";
+
 // ── Pure functions (exported for testing) ───────────────────────────────────
 
 export function getMilestoneGreeting(visits: number): string {
@@ -40,4 +42,74 @@ export function getFeltDuration(lastVisitTs: number, now: number): string {
 	const days = Math.floor(elapsed / 86_400_000);
 	if (days < 7) return `been ${days} day${days > 1 ? "s" : ""}`;
 	return "been a while";
+}
+
+// ── Storage helpers ──────────────────────────────────────────────────────────
+
+const SESSION_KEY = "nav-brand-visited";
+
+function getVisitCount(): number {
+	return parseInt(getPref(PREF_KEYS.navBrandVisits) ?? "0", 10);
+}
+
+function getLastVisitTs(): number {
+	return parseInt(getPref(PREF_KEYS.navBrandLastVisit) ?? "0", 10);
+}
+
+// ── DOM rendering ─────────────────────────────────────────────────────────────
+
+function renderBrand(mode: "arrival" | "tod"): void {
+	const greetEl = document.getElementById("nav-brand-greeting");
+	const subRow = document.getElementById("nav-brand-sub-row");
+	const subEl = document.getElementById("nav-brand-sub");
+	if (!greetEl) return;
+
+	const visits = getVisitCount();
+
+	if (mode === "tod") {
+		greetEl.textContent = getTimeOfDayGreeting(new Date().getHours());
+		greetEl.dataset.mode = "tod";
+	} else {
+		greetEl.textContent = getMilestoneGreeting(visits);
+		delete greetEl.dataset.mode;
+	}
+
+	if (visits >= 2 && subRow && subEl) {
+		subEl.textContent = `visit ${visits} · ${getFeltDuration(getLastVisitTs(), Date.now())}`;
+		subRow.style.opacity = "1";
+	} else if (subRow) {
+		subRow.style.opacity = "0";
+	}
+}
+
+// ── Visit handlers ────────────────────────────────────────────────────────────
+
+function onNewVisit(): void {
+	const newCount = getVisitCount() + 1;
+	setPref(PREF_KEYS.navBrandVisits, String(newCount));
+	setPref(PREF_KEYS.navBrandLastVisit, String(Date.now()));
+	sessionStorage.setItem(SESSION_KEY, "1");
+	renderBrand("arrival");
+}
+
+function onSoftNav(): void {
+	renderBrand("tod");
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+if (typeof document !== "undefined") {
+	document.addEventListener("astro:page-load", () => {
+		if (!sessionStorage.getItem(SESSION_KEY)) {
+			onNewVisit();
+		} else {
+			onSoftNav();
+		}
+	});
+
+	document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "visible") {
+			renderBrand("tod");
+		}
+	});
 }
