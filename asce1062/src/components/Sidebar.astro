@@ -48,10 +48,32 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	aria-label="Main navigation"
 	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100">
 	<div class="nav-brand">
-		<!-- Expanded: terminal prompt -->
+		<!-- Expanded: visitor-aware shell prompt -->
 		<div class="nav-brand-expanded-content">
-			<!-- prettier-ignore -->
-			<span class="nav-brand-prompt"><span id="nav-brand-name" class="badge badge-primary badge-sm">alex</span><span class="badge badge-secondary badge-sm">@alexmbugua.me</span><span class="badge badge-accent badge-sm">:~$<span class="blink text-accent-content" aria-hidden="true">_</span></span></span>
+			<div class="nav-brand-prompt">
+				<span class="nav-brand-line">
+					<span class="nav-brand-chrome">┌─[</span><span class="nav-brand-name">alex</span><span
+						class="nav-brand-chrome">@</span
+					><span class="nav-brand-host">alexmbugua.me</span><span class="nav-brand-chrome">]</span>
+				</span>
+				<span class="nav-brand-line">
+					<span class="nav-brand-chrome">│ </span><span
+						id="nav-brand-greeting"
+						class="nav-brand-greeting"
+						aria-live="polite">·</span
+					>
+				</span>
+				<span class="nav-brand-line" id="nav-brand-sub-row" style="opacity:0">
+					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
+					></span>
+				</span>
+				<span class="nav-brand-line">
+					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
+						class="nav-brand-chrome">
+						~
+					</span><span class="blink nav-brand-cursor" aria-hidden="true">_</span>
+				</span>
+			</div>
 		</div>
 		<!-- Collapsed: avatar only (tab button outside handles expand) -->
 		<div class="nav-brand-collapsed-content" aria-hidden="true">
@@ -210,4 +232,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	import "@/scripts/starsBackground";
 	import "@/scripts/matrixBackground";
 	import "@/scripts/flavorPicker";
+</script>
+<script>
+	import "@/scripts/navBrand";
 </script>
