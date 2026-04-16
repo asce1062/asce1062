@@ -1,0 +1,43 @@
+/**
+ * Navbrand — Visitor-Aware Shell Prompt
+ *
+ * Three behavioral layers:
+ *   Layer 1 (arrival)   — milestone greeting on new page visits
+ *   Layer 2 (tod)       — time-of-day greeting on soft nav + tab resume
+ *   Layer 3 (sub-line)  — visit N · felt-duration, shown from visit 2+
+ *
+ * "New visit" detection: sessionStorage marker absent → fresh browser session.
+ * "Soft navigation": astro:page-load when marker is already set.
+ *
+ * Storage:
+ *   localStorage  nav-brand-visits     — visit count (integer string)
+ *   localStorage  nav-brand-last-visit — last visit Unix ms (string)
+ *   sessionStorage nav-brand-visited   — ephemeral session marker
+ */
+
+// ── Pure functions (exported for testing) ───────────────────────────────────
+
+export function getMilestoneGreeting(visits: number): string {
+	if (visits <= 1) return "hello, stranger";
+	if (visits <= 4) return "welcome back";
+	if (visits <= 9) return "back again.";
+	if (visits <= 24) return "you keep coming back.";
+	if (visits <= 49) return "practically a regular";
+	return "asce1062 approves.";
+}
+
+export function getTimeOfDayGreeting(hour: number): string {
+	if (hour >= 5 && hour < 12) return "good morning";
+	if (hour >= 12 && hour < 17) return "good afternoon";
+	if (hour >= 17 && hour < 21) return "good evening";
+	return "still up?";
+}
+
+export function getFeltDuration(lastVisitTs: number, now: number): string {
+	const elapsed = now - lastVisitTs;
+	if (elapsed < 3_600_000) return "just here a moment ago";
+	if (elapsed < 86_400_000) return "back the same day";
+	const days = Math.floor(elapsed / 86_400_000);
+	if (days < 7) return `been ${days} day${days > 1 ? "s" : ""}`;
+	return "been a while";
+}
