@@ -37,6 +37,7 @@ export function getTimeOfDayGreeting(hour: number): string {
 
 export function getFeltDuration(lastVisitTs: number, now: number): string {
 	const elapsed = now - lastVisitTs;
+	if (elapsed <= 0) return "just here a moment ago";
 	if (elapsed < 3_600_000) return "just here a moment ago";
 	if (elapsed < 86_400_000) return "back the same day";
 	const days = Math.floor(elapsed / 86_400_000);
@@ -49,11 +50,13 @@ export function getFeltDuration(lastVisitTs: number, now: number): string {
 const SESSION_KEY = "nav-brand-visited";
 
 function getVisitCount(): number {
-	return parseInt(getPref(PREF_KEYS.navBrandVisits) ?? "0", 10);
+	const n = parseInt(getPref(PREF_KEYS.navBrandVisits) ?? "0", 10);
+	return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
 function getLastVisitTs(): number {
-	return parseInt(getPref(PREF_KEYS.navBrandLastVisit) ?? "0", 10);
+	const n = parseInt(getPref(PREF_KEYS.navBrandLastVisit) ?? "0", 10);
+	return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
 // ── DOM rendering ─────────────────────────────────────────────────────────────
@@ -90,7 +93,7 @@ function onNewVisit(): void {
 	const newCount = getVisitCount() + 1;
 	setPref(PREF_KEYS.navBrandVisits, String(newCount));
 	setPref(PREF_KEYS.navBrandLastVisit, String(Date.now()));
-	sessionStorage.setItem(SESSION_KEY, "1");
+	setSessionFlag();
 	renderBrand("arrival");
 }
 
@@ -100,9 +103,25 @@ function onSoftNav(): void {
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
+function getSessionFlag(): boolean {
+	try {
+		return !!sessionStorage.getItem(SESSION_KEY);
+	} catch {
+		return false;
+	}
+}
+
+function setSessionFlag(): void {
+	try {
+		sessionStorage.setItem(SESSION_KEY, "1");
+	} catch {
+		// sessionStorage unavailable (private mode, iframe restrictions). silently no-op
+	}
+}
+
 if (typeof document !== "undefined") {
 	document.addEventListener("astro:page-load", () => {
-		if (!sessionStorage.getItem(SESSION_KEY)) {
+		if (!getSessionFlag()) {
 			onNewVisit();
 		} else {
 			onSoftNav();
