@@ -16,9 +16,9 @@ const Guestbook = defineTable({
 		moderationReason: column.text({ optional: true }),
 		/** Numeric score. Higher means more suspicious */
 		moderationScore: column.number({ optional: true }),
-		/** SHA-256 hash of IP + salt (never store raw IP) */
+		/** SHA-256 hash of IP + shared pepper (never store raw IP) */
 		ipHash: column.text({ optional: true }),
-		/** SHA-256 hash of User-Agent + salt */
+		/** SHA-256 hash of User-Agent + shared pepper */
 		userAgentHash: column.text({ optional: true }),
 		/** SHA-256 hash of trimmed message content. Enables efficient duplicate detection */
 		messageHash: column.text({ optional: true }),

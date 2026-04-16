@@ -61,28 +61,35 @@ describe("hashValue", () => {
 		expect(a).not.toBe(b);
 	});
 
-	it("uses a default salt when GUESTBOOK_HASH_SALT is not set", async () => {
-		// No env stub → falls back to 'guestbook-default-salt'
+	it("uses a default pepper when GUESTBOOK_HASH_PEPPER is not set outside production", async () => {
+		vi.stubEnv("PROD", false);
+		// No env stub → falls back to 'guestbook-default-pepper'
 		const result = await hashValue("input");
 		expect(result).toHaveLength(64);
 		expect(result).toMatch(/^[0-9a-f]{64}$/);
 	});
 
-	it("uses a custom salt from GUESTBOOK_HASH_SALT when set", async () => {
-		vi.stubEnv("GUESTBOOK_HASH_SALT", "custom-salt-123");
-		const withCustomSalt = await hashValue("input");
-		// Without stub: uses default salt
+	it("uses a custom pepper from GUESTBOOK_HASH_PEPPER when set", async () => {
+		vi.stubEnv("GUESTBOOK_HASH_PEPPER", "custom-pepper-123");
+		const withCustomPepper = await hashValue("input");
+		// Without stub: uses default pepper
 		vi.unstubAllEnvs();
-		const withDefaultSalt = await hashValue("input");
-		// Different salts → different hashes for the same input
-		expect(withCustomSalt).not.toBe(withDefaultSalt);
+		vi.stubEnv("PROD", false);
+		const withDefaultPepper = await hashValue("input");
+		// Different peppers → different hashes for the same input
+		expect(withCustomPepper).not.toBe(withDefaultPepper);
 	});
 
-	it("custom salt hashes are still 64-char hex", async () => {
-		vi.stubEnv("GUESTBOOK_HASH_SALT", "my-salt");
+	it("custom pepper hashes are still 64-char hex", async () => {
+		vi.stubEnv("GUESTBOOK_HASH_PEPPER", "my-pepper");
 		const result = await hashValue("hello");
 		expect(result).toHaveLength(64);
 		expect(result).toMatch(/^[0-9a-f]{64}$/);
+	});
+
+	it("throws in production when GUESTBOOK_HASH_PEPPER is missing", async () => {
+		vi.stubEnv("PROD", true);
+		await expect(hashValue("input")).rejects.toThrow("GUESTBOOK_HASH_PEPPER is required in production");
 	});
 
 	it("hashes an empty string without throwing", async () => {

@@ -17,7 +17,7 @@ interface ImportMetaEnv {
 	readonly ADMIN_TOKEN: string | undefined;
 
 	// Guestbook moderation
-	readonly GUESTBOOK_HASH_SALT: string | undefined;
+	readonly GUESTBOOK_HASH_PEPPER: string | undefined;
 
 	// Email notifications (Resend)
 	readonly RESEND_API_KEY: string | undefined;

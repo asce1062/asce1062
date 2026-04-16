@@ -187,19 +187,28 @@ function normalizeForHash(s: string): string {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function getSalt(): string {
-	return import.meta.env.GUESTBOOK_HASH_SALT || "guestbook-default-salt";
+// Secret pepper used to pseudonymize visitor data.
+// Unlike a salt, this is a shared secret stored outside the database.
+function getPepper(): string {
+	const pepper = import.meta.env.GUESTBOOK_HASH_PEPPER;
+
+	if (!pepper) {
+		if (!import.meta.env.PROD) return "guestbook-default-pepper";
+		throw new Error("GUESTBOOK_HASH_PEPPER is required in production");
+	}
+
+	return pepper;
 }
 
 export async function hashValue(value: string): Promise<string> {
-	const data = new TextEncoder().encode(value + getSalt());
+	const data = new TextEncoder().encode(value + getPepper());
 	const buf = await crypto.subtle.digest("SHA-256", data);
 	const hex = Array.from(new Uint8Array(buf))
 		.map((b) => b.toString(16).padStart(2, "0"))
 		.join("");
 	if (import.meta.env.DEV && hex.length !== 64) {
 		console.warn(
-			`[guestbook] hashValue produced unexpected length ${hex.length} (expected 64). Check GUESTBOOK_HASH_SALT`
+			`[guestbook] hashValue produced unexpected length ${hex.length} (expected 64). Check GUESTBOOK_HASH_PEPPER`
 		);
 	}
 	return hex;
