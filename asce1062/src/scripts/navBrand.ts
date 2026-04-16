@@ -76,8 +76,10 @@ function renderBrand(mode: "arrival" | "tod"): void {
 
 	if (visits >= 2 && subRow && subEl) {
 		subEl.textContent = `visit ${visits} · ${getFeltDuration(getLastVisitTs(), Date.now())}`;
+		subRow.style.maxHeight = "2em";
 		subRow.style.opacity = "1";
 	} else if (subRow) {
+		subRow.style.maxHeight = "0";
 		subRow.style.opacity = "0";
 	}
 }
