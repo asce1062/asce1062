@@ -30,9 +30,9 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				third-party scripts load in the background. What you see in the page source is everything that runs.
 			</p>
 			<p>
-				The only things written to your browser are nine <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
-				stars-bg, matrix-bg, theme-flavor, theme-transition, sidebar-collapsed, and your avatar customization. No cookies.
-				No session identifiers. Nothing that follows you around.
+				The only things written to your browser are eleven <code>localStorage</code> values: theme, match-device-theme, cursor-blink,
+				stars-bg, matrix-bg, theme-flavor, theme-transition, sidebar-collapsed, nav-brand-visits, nav-brand-last-visit, and
+				your avatar customization. No cookies. No session identifiers. Nothing that follows you around.
 			</p>
 		</section>
 
@@ -43,7 +43,7 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-sliders-vertical"></i> Browser preferences (localStorage)</h2>
-			<p>Nine values are written to your browser's <code>localStorage</code>:</p>
+			<p>Eleven values are written to your browser's <code>localStorage</code>:</p>
 			<ol>
 				<li>
 					<u><code>theme</code></u>
@@ -114,6 +114,27 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 					<ul>
 						<li><code>"1"</code> when you've collapsed the desktop sidebar to icon-only mode.</li>
 						<li>Absent by default (sidebar expanded).</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>nav-brand-visits</code></u>
+					<ul>
+						<li>The number of times you've visited the site, stored as an integer string.</li>
+						<li
+							>Used to personalise the sidebar greeting (e.g. "hello, stranger" on first visit, "welcome back"
+							thereafter).</li
+						>
+						<li>Absent until your first visit. Never transmitted anywhere.</li>
+					</ul>
+				</li>
+				<li>
+					<u><code>nav-brand-last-visit</code></u>
+					<ul>
+						<li>A Unix millisecond timestamp of your most recent visit.</li>
+						<li
+							>Used to show a felt-duration phrase in the sidebar sub-line (e.g. "been a while", "back the same day").</li
+						>
+						<li>Absent until your first visit. Never transmitted anywhere.</li>
 					</ul>
 				</li>
 			</ol>

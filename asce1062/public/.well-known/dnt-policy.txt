@@ -45,7 +45,7 @@ This site does not:
 
 LOCAL STORAGE
 
-This site writes nine values to your browser's localStorage:
+This site writes eleven values to your browser's localStorage:
 
 - "theme": "light" or "dark" - your chosen color scheme.
 - "match-device-theme": "1" when the "Match device" sidebar toggle is
@@ -67,8 +67,14 @@ This site writes nine values to your browser's localStorage:
   Absent when no transition is explicitly set.
 - "sidebar-collapsed": "1" when you have collapsed the desktop sidebar to
   icon-only mode; absent otherwise.
+- "nav-brand-visits": an integer string counting how many times you have
+  visited the site. Used to personalise the sidebar greeting. Absent until
+  your first visit; never transmitted anywhere.
+- "nav-brand-last-visit": a Unix millisecond timestamp of your most recent
+  visit. Used to show how long it has been since your last visit in the
+  sidebar sub-line. Absent until your first visit; never transmitted anywhere.
 
-All nine values persist across browser restarts by design so your
+All eleven values persist across browser restarts by design so your
 preferences are remembered between visits. They never leave your device
 and are never transmitted to a server.
 
@@ -112,7 +118,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-04-15.
+This policy was last reviewed and reasserted on 2026-04-16.
 
 REFERENCE
 
