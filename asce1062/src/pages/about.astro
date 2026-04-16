@@ -109,17 +109,7 @@ const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => 
 		</section>
 
 		<script>
-			import { setupAsciiWidget } from "@/scripts/asciiWidget";
-			import type { AsciiRevealTeardown } from "@/scripts/asciiWidget";
-
-			let _teardown: AsciiRevealTeardown | null = null;
-
-			function initNeofetch(): void {
-				_teardown?.();
-				_teardown = setupAsciiWidget("neofetch");
-			}
-
-			document.addEventListener("astro:page-load", initNeofetch);
+			import "@/scripts/neofetch";
 		</script>
 
 		<section class="mb-10">

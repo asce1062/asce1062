@@ -1,41 +1,27 @@
 /**
  * Neofetch Widget
  *
- * Reads ASCII art variants from the #neofetch-data element,
- * picks a random variant on each page load,
- * and wires the dice button to re-roll without repeating the previous variant.
+ * Thin wrapper around setupAsciiWidget for the neofetch widget.
+ * Updates the sidebar brand name badge on dice click when present.
  */
 
+import { setupAsciiWidget } from "@/scripts/asciiWidget";
+import type { AsciiRevealTeardown } from "@/scripts/asciiWidget";
+
+let _teardown: AsciiRevealTeardown | null = null;
+
 function initNeofetch(): void {
-	const dataEl = document.getElementById("neofetch-data");
-	const artEl = document.getElementById("neofetch-art");
-	const fontEl = document.getElementById("neofetch-font-label");
-	const btn = document.getElementById("neofetch-randomize");
-	if (!dataEl || !artEl || !fontEl) return;
+	_teardown?.();
+	_teardown = null;
 
-	type Variant = { font: string; art: string };
-	const variants: Variant[] = JSON.parse((dataEl as HTMLElement).dataset.variants ?? "[]");
-	if (!variants.length) return;
+	const brandName = document.getElementById("nav-brand-name");
+	if (brandName) brandName.textContent = "alex";
 
-	let current = -1;
-
-	function pick(): Variant {
-		// avoid repeating the same variant twice in a row
-		let idx: number;
-		do {
-			idx = Math.floor(Math.random() * variants.length);
-		} while (idx === current && variants.length > 1);
-		current = idx;
-		return variants[idx]!;
-	}
-
-	function render(v: Variant): void {
-		artEl!.textContent = v.art.trimEnd();
-		fontEl!.textContent = `[${v.font}]`;
-	}
-
-	render(pick());
-	btn?.addEventListener("click", () => render(pick()));
+	_teardown = setupAsciiWidget("neofetch", {
+		onRender: (v, isDice) => {
+			if (isDice && brandName) brandName.textContent = v.text.toLowerCase();
+		},
+	});
 }
 
 document.addEventListener("astro:page-load", initNeofetch);
