@@ -16,8 +16,21 @@ import SearchBox from "@/components/SearchBox.astro";
 </Layout>
 
 <script>
-	import { initSearchShortcut } from "@/scripts/keyboardShortcuts";
+	import { initSearchShortcut, initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
 
-	// Initialize Ctrl+K / Cmd+K keyboard shortcut for search
-	initSearchShortcut();
+	type SearchShortcutWindow = Window &
+		typeof globalThis & {
+			__searchPageShortcutCleanup?: () => void;
+			__searchPageSlashShortcutCleanup?: () => void;
+		};
+
+	const searchWindow = window as SearchShortcutWindow;
+	searchWindow.__searchPageShortcutCleanup?.();
+	searchWindow.__searchPageSlashShortcutCleanup?.();
+
+	searchWindow.__searchPageShortcutCleanup = initSearchShortcut();
+	searchWindow.__searchPageSlashShortcutCleanup = initSlashSearchShortcut(() => {
+		const input = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null;
+		input?.focus();
+	});
 </script>

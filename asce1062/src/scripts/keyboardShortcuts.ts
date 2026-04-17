@@ -13,6 +13,14 @@ export interface ShortcutConfig {
 	description?: string;
 }
 
+function isEditableShortcutTarget(target: EventTarget | null): boolean {
+	if (!(target instanceof HTMLElement)) return false;
+	if (target.isContentEditable) return true;
+
+	const tagName = target.tagName.toLowerCase();
+	return tagName === "input" || tagName === "textarea" || tagName === "select";
+}
+
 /**
  * Register a keyboard shortcut
  */
@@ -83,6 +91,30 @@ export function initSearchShortcut(
 			}
 		},
 	});
+}
+
+/**
+ * Open or focus search when `/` is pressed outside editable controls.
+ *
+ * The navbrand interaction layer advertises slash-search hints, so this helper
+ * keeps the affordance truthful on pages with either the floating Pagefind modal
+ * or the dedicated `/search` page.
+ */
+export function initSlashSearchShortcut(callback: () => void): () => void {
+	const handler = (e: KeyboardEvent) => {
+		if (!e.key || e.key !== "/") return;
+		if (e.ctrlKey || e.metaKey || e.altKey) return;
+		if (isEditableShortcutTarget(e.target)) return;
+
+		e.preventDefault();
+		callback();
+	};
+
+	document.addEventListener("keydown", handler);
+
+	return () => {
+		document.removeEventListener("keydown", handler);
+	};
 }
 
 /**
