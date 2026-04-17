@@ -20,8 +20,8 @@ import {
 } from "@/lib/navBrand/cursor";
 import {
 	NAVBRAND_COMMAND_PROMPT_HINT,
-	NAVBRAND_HELP_MESSAGE,
 	NAVBRAND_UNKNOWN_COMMAND_HINT,
+	buildNavBrandCommandIntent,
 	getNavBrandCommand,
 	resolveNavBrandCommandInput,
 	type NavBrandCommandDefinition,
@@ -49,6 +49,7 @@ import {
 	type NavBrandState,
 } from "@/lib/navBrand/state";
 import { playNavBrandEffect, resetNavBrandEffect } from "@/lib/navBrand/effects";
+import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 const SESSION_KEY = "nav-brand-visited";
 
@@ -467,6 +468,37 @@ function openSearchSurface(query?: string): void {
 	}
 }
 
+function applyToggleIntent(target: string, value: string | boolean): void {
+	if (target === "theme") {
+		if (value === "toggle") {
+			handleThemeToggle();
+			return;
+		}
+
+		disableMatchDeviceTheme();
+		setTheme(value as Theme);
+		return;
+	}
+
+	if (target === "sidebar-collapse") {
+		const collapseTab = document.getElementById("sidebar-collapse-tab") as HTMLButtonElement | null;
+		if (!collapseTab) return;
+
+		const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
+		const shouldCollapse = value === "collapse";
+		if (isCollapsed !== shouldCollapse) {
+			collapseTab.click();
+		}
+		return;
+	}
+
+	const toggle = document.getElementById(target) as HTMLInputElement | null;
+	if (!toggle) return;
+	if (toggle.checked !== value) {
+		toggle.click();
+	}
+}
+
 /**
  * The terminal layer never performs content retrieval itself.
  * `search` and `/` always route into the dedicated Pagefind surfaces instead:
@@ -484,23 +516,42 @@ function handleResolvedCommand(resolvedCommand: ReturnType<typeof resolveNavBran
 		return;
 	}
 
-	const { command, query } = resolvedCommand;
+	const { command } = resolvedCommand;
+	const intent = buildNavBrandCommandIntent(resolvedCommand);
+	if (!intent) {
+		renderHint(NAVBRAND_UNKNOWN_COMMAND_HINT, null);
+		setCommandInputValue("");
+		return;
+	}
 
-	if (command.action === "search-handoff") {
+	if (intent.type === "search-handoff") {
 		showCommandHint(command);
-		openSearchSurface(query ?? undefined);
+		openSearchSurface(intent.query ?? undefined);
 		setCommandInputValue("");
 		return;
 	}
 
-	if (command.action === "hint") {
-		renderHint(NAVBRAND_HELP_MESSAGE, command.id);
+	if (intent.type === "message") {
+		renderHint(intent.message, command.id);
 		setCommandInputValue("");
 		return;
 	}
 
-	if (command.action === "navigate" && command.href) {
-		window.location.assign(command.href);
+	if (intent.type === "navigate") {
+		window.location.assign(intent.href);
+		return;
+	}
+
+	if (intent.type === "external-link") {
+		window.location.assign(intent.href);
+		setCommandInputValue("");
+		return;
+	}
+
+	if (intent.type === "toggle-pref") {
+		applyToggleIntent(intent.target, intent.value);
+		renderHint(command.hint, command.id);
+		setCommandInputValue("");
 	}
 }
 

@@ -1,3 +1,5 @@
+import { SOCIAL } from "@/config/site-config";
+
 /**
  * Navbrand interaction-layer command catalog.
  *
@@ -13,8 +15,26 @@
  * typed/fuzzy command slices can share one registry instead of drifting into
  * duplicated labels, routes, or search behavior.
  */
-export type NavBrandCommandAction = "search-handoff" | "navigate" | "hint";
-export type NavBrandCommandId = "search" | "blog" | "projects" | "guestbook" | "help";
+export type NavBrandCommandAction =
+	| "search-handoff"
+	| "navigate"
+	| "hint"
+	| "toggle-pref"
+	| "external-link"
+	| "message";
+export type NavBrandCommandId =
+	| "search"
+	| "blog"
+	| "projects"
+	| "guestbook"
+	| "help"
+	| "email"
+	| "github"
+	| "theme"
+	| "stars"
+	| "matrix"
+	| "sidebar"
+	| "status";
 
 export type NavBrandCommandDefinition = {
 	id: NavBrandCommandId;
@@ -32,6 +52,13 @@ export type ResolvedNavBrandCommand = {
 	command: NavBrandCommandDefinition;
 	query: string | null;
 };
+
+export type NavBrandCommandIntent =
+	| { type: "navigate"; href: string }
+	| { type: "search-handoff"; query: string | null }
+	| { type: "external-link"; href: string }
+	| { type: "toggle-pref"; target: string; value: string | boolean }
+	| { type: "message"; message: string };
 
 export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 	{
@@ -87,15 +114,91 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		aliases: ["?", "commands", "explore"],
 		keywords: ["help", "discover"],
 	},
+	{
+		id: "email",
+		command: "email",
+		label: "Email",
+		description: "Open a mailto link to Alex's primary email address.",
+		hint: "open mail client",
+		action: "external-link",
+		aliases: ["contact", "mail"],
+		keywords: ["reach", "write"],
+		href: `mailto:${SOCIAL.email}`,
+	},
+	{
+		id: "github",
+		command: "github",
+		label: "GitHub",
+		description: "Open Alex's GitHub profile.",
+		hint: "open github profile",
+		action: "external-link",
+		aliases: ["gh", "code profile"],
+		keywords: ["repo", "profile"],
+		href: SOCIAL.profiles.find((profile) => profile.name === "GitHub")?.url,
+	},
+	{
+		id: "theme",
+		command: "theme",
+		label: "Theme",
+		description: "Switch light/dark theme or toggle it.",
+		hint: "try: theme dark",
+		action: "toggle-pref",
+		aliases: ["light", "dark"],
+		keywords: ["mode", "appearance"],
+	},
+	{
+		id: "stars",
+		command: "stars",
+		label: "Stars",
+		description: "Toggle the stars background.",
+		hint: "try: stars on",
+		action: "toggle-pref",
+		aliases: ["stars on", "stars off"],
+		keywords: ["background", "space"],
+	},
+	{
+		id: "matrix",
+		command: "matrix",
+		label: "Matrix",
+		description: "Toggle the matrix background.",
+		hint: "try: matrix on",
+		action: "toggle-pref",
+		aliases: ["matrix on", "matrix off"],
+		keywords: ["rain", "hiragana"],
+	},
+	{
+		id: "sidebar",
+		command: "sidebar",
+		label: "Sidebar",
+		description: "Collapse or expand the desktop sidebar.",
+		hint: "try: collapse sidebar",
+		action: "toggle-pref",
+		aliases: ["collapse sidebar", "expand sidebar"],
+		keywords: ["rail", "panel"],
+	},
+	{
+		id: "status",
+		command: "status",
+		label: "Status",
+		description: "Show a local terminal-style status response.",
+		hint: "presence engine online",
+		action: "message",
+		aliases: ["whoami", "signal"],
+		keywords: ["system", "presence"],
+	},
 ] as const;
 
-export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = NAVBRAND_COMMANDS.map(({ id }) => id);
-export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = NAVBRAND_COMMANDS.filter(
-	({ action }) => action !== "hint"
-).map(({ id }) => id);
+export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = [
+	"search",
+	"blog",
+	"projects",
+	"guestbook",
+	"help",
+];
+export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "blog", "projects", "guestbook"];
 export const NAVBRAND_COMMAND_PROMPT_HINT = "try: blog · find auth0";
 export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
-export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook";
+export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook, theme, status";
 
 type RandomSource = () => number;
 
@@ -140,6 +243,23 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 		};
 	}
 
+	const togglePrefixPatterns: Array<[NavBrandCommandId, RegExp]> = [
+		["theme", /^theme\s+(dark|light|toggle)$/],
+		["stars", /^stars\s+(on|off)$/],
+		["matrix", /^matrix\s+(on|off)$/],
+		["sidebar", /^(collapse|expand)\s+sidebar$/],
+	];
+
+	for (const [commandId, pattern] of togglePrefixPatterns) {
+		const match = normalizedInput.match(pattern);
+		if (match) {
+			return {
+				command: getNavBrandCommand(commandId),
+				query: match[1].trim(),
+			};
+		}
+	}
+
 	let bestMatch: { command: NavBrandCommandDefinition; score: number } | null = null;
 
 	for (const command of NAVBRAND_COMMANDS) {
@@ -169,6 +289,56 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 		command: bestMatch.command,
 		query: null,
 	};
+}
+
+/**
+ * Convert a resolved command into a concrete runtime intent.
+ *
+ * The coordinator executes these intents; parsing and argument normalization
+ * stay in this pure module so later Phase 3 slices can reuse the same contract.
+ */
+export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): NavBrandCommandIntent | null {
+	const { command, query } = resolved;
+
+	if (command.action === "navigate" && command.href) {
+		return { type: "navigate", href: command.href };
+	}
+
+	if (command.action === "search-handoff") {
+		return { type: "search-handoff", query };
+	}
+
+	if (command.action === "external-link" && command.href) {
+		return { type: "external-link", href: command.href };
+	}
+
+	if (command.id === "theme") {
+		const value = query === "light" || query === "dark" ? query : "toggle";
+		return { type: "toggle-pref", target: "theme", value };
+	}
+
+	if (command.id === "stars") {
+		return { type: "toggle-pref", target: "stars-background-toggle", value: query !== "off" };
+	}
+
+	if (command.id === "matrix") {
+		return { type: "toggle-pref", target: "matrix-background-toggle", value: query !== "off" };
+	}
+
+	if (command.id === "sidebar") {
+		const value = query === "expand" ? "expand" : "collapse";
+		return { type: "toggle-pref", target: "sidebar-collapse", value };
+	}
+
+	if (command.id === "status") {
+		return { type: "message", message: "presence engine online" };
+	}
+
+	if (command.action === "hint") {
+		return { type: "message", message: NAVBRAND_HELP_MESSAGE };
+	}
+
+	return null;
 }
 
 /**

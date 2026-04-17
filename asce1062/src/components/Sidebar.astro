@@ -12,7 +12,7 @@
 import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager";
-import { NAVBRAND_COMMANDS } from "@/lib/navBrand/commands";
+import { NAVBRAND_COMMANDS, NAVBRAND_VISIBLE_COMMAND_IDS } from "@/lib/navBrand/commands";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
@@ -74,7 +74,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 				</span>
 				<div class="nav-brand-command-row" id="nav-brand-command-row" role="group" aria-label="Quick navbrand commands">
 					{
-						NAVBRAND_COMMANDS.map((command) =>
+						NAVBRAND_COMMANDS.filter((command) => NAVBRAND_VISIBLE_COMMAND_IDS.includes(command.id)).map((command) =>
 							command.action === "navigate" && command.href ? (
 								<a
 									class="nav-brand-command"
