@@ -1,3 +1,14 @@
+/**
+ * Navbrand message catalog + pure message selection helpers.
+ *
+ * This file intentionally contains no DOM logic. It is the source of truth for:
+ * - phase/state-specific message pools
+ * - milestone and felt-duration phrasing
+ * - same-category repetition guards
+ *
+ * The coordinator in `src/scripts/navBrand.ts` decides *when* a state should
+ * render; this module decides *what text* is eligible for that state.
+ */
 export type ActiveTimeBucket = "activeMorning" | "activeAfternoon" | "activeEvening" | "activeLate";
 
 export type MessagePoolKey =
@@ -44,6 +55,7 @@ export const NAVBRAND_MESSAGE_POOLS: MessagePool = {
 	hints: ["type / to search", "try: blog", "try: projects", "try: guestbook"],
 };
 
+/** visitor-memory greeting ladder. */
 export function getMilestoneGreeting(visits: number): string {
 	if (visits <= 1) return "hello, stranger";
 	if (visits <= 4) return "welcome back";
@@ -53,6 +65,7 @@ export function getMilestoneGreeting(visits: number): string {
 	return "asce1062 approves.";
 }
 
+/** Converts elapsed time into the intentionally fuzzy "felt duration" subline. */
 export function getFeltDuration(lastVisitTs: number, now: number): string {
 	const elapsed = now - lastVisitTs;
 	if (elapsed <= 0) return "just here a moment ago";
@@ -63,6 +76,7 @@ export function getFeltDuration(lastVisitTs: number, now: number): string {
 	return "been a while";
 }
 
+/** Maps local time to the active greeting bucket used for soft-nav/return states. */
 export function getActiveTimeBucket(hour: number): ActiveTimeBucket {
 	if (hour >= 5 && hour < 12) return "activeMorning";
 	if (hour >= 12 && hour < 17) return "activeAfternoon";
@@ -82,12 +96,15 @@ export function pickMessage(
 	if (pool.length === 0) return "";
 
 	const { lastMessage = null, random = Math.random } = options;
+	// When possible, drop the immediate previous message so a state/category
+	// does not feel stuck on one line across quick re-renders.
 	const candidates = pool.filter((message) => message !== lastMessage);
 	const effectivePool = candidates.length > 0 ? candidates : [...pool];
 	const index = Math.min(effectivePool.length - 1, Math.floor(random() * effectivePool.length));
 	return effectivePool[index];
 }
 
+/** Convenience selector for the default active greeting path. */
 export function selectActiveGreeting(options: {
 	hour: number;
 	lastMessage?: string | null;

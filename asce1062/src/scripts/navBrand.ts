@@ -1,3 +1,16 @@
+/**
+ * Navbrand coordinator.
+ *
+ * Responsibilities:
+ * - listen to browser/session activity
+ * - manage navbrand timers and state transitions
+ * - coordinate storage reads/writes for visit memory
+ * - render greeting/subline updates
+ * - delegate pure policy decisions to `src/lib/navBrand/*`
+ *
+ * This file should stay as the browser-facing orchestrator, not the place where
+ * message selection or state/effect rules are invented.
+ */
 import { PREF_KEYS, getPref, setPref } from "@/lib/prefs";
 import {
 	applyCursorMode,
@@ -88,6 +101,7 @@ function getLastVisitTs(): number {
 	return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+/** Query on each render so Astro soft navigations always get fresh nodes. */
 function getElements(): NavBrandElements {
 	return {
 		root: document.querySelector(".nav-brand-prompt"),
@@ -123,6 +137,7 @@ function clearTimer(timer: number | null): null {
 	return null;
 }
 
+/** Subline visibility remains CSS-driven; JS only updates content and collapsed height. */
 function setSubline(subline: string | null): void {
 	if (!elements.subRow || !elements.subline) return;
 
@@ -139,6 +154,12 @@ function setSubline(subline: string | null): void {
 	}
 }
 
+/**
+ * Single render entrypoint.
+ *
+ * State/effect/cursor choices are delegated outward; this function applies the
+ * resulting presentation in one place so the DOM contract stays compact.
+ */
 function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: RenderState): void {
 	elements = getElements();
 	if (!elements.greeting) return;
@@ -181,6 +202,7 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 	memory.lastGreetingText = greeting;
 }
 
+/** Preserve the original visit-count/felt-duration subline behavior from Phase 1. */
 function getSubline(lastVisitTsOverride?: number): string | null {
 	const visits = getVisitCount();
 	if (visits < 2) return null;
@@ -229,6 +251,7 @@ function chooseSystemOverride(): { message: string; tone: NavBrandTone } | null 
 	return null;
 }
 
+/** System/rare messages temporarily override active or return copy, then settle back. */
 function maybeRenderSystem(origin: "active" | "return", subline: string | null): boolean {
 	const override = chooseSystemOverride();
 	if (!override) return false;
@@ -330,6 +353,7 @@ function renderReturn(): void {
 	scheduleIdleTimer();
 }
 
+/** Reset idle after meaningful activity while respecting hidden-tab pauses. */
 function scheduleIdleTimer(): void {
 	idleTimer = clearTimer(idleTimer);
 	if (document.visibilityState === "hidden") return;
@@ -386,6 +410,7 @@ function bindListeners(): void {
 		if (document.visibilityState === "visible") {
 			renderReturn();
 		} else {
+			// Hidden tabs should not accumulate idle/system timers in the background.
 			idleTimer = clearTimer(idleTimer);
 			settleTimer = clearTimer(settleTimer);
 		}

@@ -35,14 +35,18 @@ describe("shouldHandleTerminalTextEffectTrigger", () => {
 });
 
 describe("resolveTerminalTextEffectKind", () => {
-	it("returns the explicit effect when not using random-effect", () => {
-		expect(resolveTerminalTextEffectKind("decrypt", false, 0.9)).toBe("decrypt");
-		expect(resolveTerminalTextEffectKind("typing", false, 0.1)).toBe("typing");
+	it("returns the first declared effect when not using random-effect", () => {
+		expect(resolveTerminalTextEffectKind(["decrypt"], false, 0.9)).toBe("decrypt");
+		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], false, 0.1)).toBe("typing");
 	});
 
-	it("randomizes between typing and decrypt when random-effect is enabled", () => {
-		expect(resolveTerminalTextEffectKind("typing", true, 0.1)).toBe("typing");
-		expect(resolveTerminalTextEffectKind("typing", true, 0.9)).toBe("decrypt");
+	it("randomizes across the declared effect list when random-effect is enabled", () => {
+		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], true, 0.1)).toBe("typing");
+		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], true, 0.9)).toBe("decrypt");
+	});
+
+	it("falls back to the first effect when random-effect has only one candidate", () => {
+		expect(resolveTerminalTextEffectKind(["decrypt"], true, 0.9)).toBe("decrypt");
 	});
 });
 
@@ -50,14 +54,14 @@ describe("readTerminalTextEffectConfig", () => {
 	it("parses effect config from dataset attributes", () => {
 		const el = {
 			dataset: {
-				textEffect: "decrypt",
+				textEffect: "typing, decrypt",
 				textEffectTriggers: "load, hover, click, random-effect, random-time",
 				textEffectIntervalMs: "18000",
 			},
 		} as unknown as HTMLElement;
 
 		expect(readTerminalTextEffectConfig(el)).toEqual({
-			effect: "decrypt",
+			effects: ["typing", "decrypt"],
 			triggers: ["load", "hover", "click", "random-effect", "random-time"],
 			randomIntervalMs: 18_000,
 		});
