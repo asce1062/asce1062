@@ -1,9 +1,10 @@
 import type { NavBrandEffect } from "@/lib/navBrand/state";
 
 export type TerminalTextEffectKind = Exclude<NavBrandEffect, "none">;
-export type TerminalTextEffectTrigger = "load" | "hover" | "tap" | "manual";
+export type TerminalTextEffectTrigger = "load" | "hover" | "tap" | "click" | "manual" | "random-effect" | "random-time";
 
-export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap"];
+export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap", "click"];
+export const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
 
 const DECRYPT_CHARS = "░▒▓█▐▌▄▀■□▪▫◆◇○●◌◍◎◉▶▷◀◁▸▹◂◃⬛⬜▬▭▮▯◥◤◣◢◿█▄▌▐▀▘▝▀▖▍▞▛▗▚▐▜▃▙▟▉";
 const DEFAULT_TYPING_STEP_MS = 26;
@@ -28,8 +29,10 @@ const triggerHandlers = new WeakMap<
 	{
 		mouseenter: EventListener;
 		touchstart: EventListener;
+		click: EventListener;
 	}
 >();
+const randomTimers = new WeakMap<HTMLElement, number>();
 
 function clearActiveEffect(el: HTMLElement): void {
 	activeEffects.get(el)?.cancel();
@@ -56,6 +59,15 @@ export function shouldHandleTerminalTextEffectTrigger(
 	trigger: TerminalTextEffectTrigger
 ): boolean {
 	return triggers.includes(trigger);
+}
+
+export function resolveTerminalTextEffectKind(
+	effect: TerminalTextEffectKind,
+	useRandomEffect: boolean,
+	randomValue: number
+): TerminalTextEffectKind {
+	if (!useRandomEffect) return effect;
+	return randomValue < 0.5 ? "typing" : "decrypt";
 }
 
 export function resetTerminalTextEffect(
@@ -157,19 +169,29 @@ export function bindTerminalTextEffectTriggers(options: {
 	getText?: (el: HTMLElement) => string;
 	durationMs?: number;
 	typingStepMs?: number;
+	randomIntervalMs?: number;
 }): void {
-	const { el, effect, triggers, getText, durationMs, typingStepMs } = options;
+	const {
+		el,
+		effect,
+		triggers,
+		getText,
+		durationMs,
+		typingStepMs,
+		randomIntervalMs = DEFAULT_RANDOM_INTERVAL_MS,
+	} = options;
 	if (!el) return;
 
 	const normalizedTriggers = normalizeTerminalTextEffectTriggers(triggers);
 	const textReader = getText ?? ((node: HTMLElement) => node.dataset.greetingTarget ?? node.textContent?.trim() ?? "");
+	const useRandomEffect = shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "random-effect");
 
 	const play = () => {
 		const text = textReader(el);
 		if (!text) return;
 		playTerminalTextEffect({
 			el,
-			effect,
+			effect: resolveTerminalTextEffectKind(effect, useRandomEffect, Math.random()),
 			text,
 			durationMs,
 			typingStepMs,
@@ -179,6 +201,7 @@ export function bindTerminalTextEffectTriggers(options: {
 	const handlers = triggerHandlers.get(el) ?? {
 		mouseenter: () => play(),
 		touchstart: () => play(),
+		click: () => play(),
 	};
 	triggerHandlers.set(el, handlers);
 
@@ -188,6 +211,13 @@ export function bindTerminalTextEffectTriggers(options: {
 
 	el.removeEventListener("mouseenter", handlers.mouseenter);
 	el.removeEventListener("touchstart", handlers.touchstart);
+	el.removeEventListener("click", handlers.click);
+
+	const existingRandomTimer = randomTimers.get(el);
+	if (existingRandomTimer !== undefined) {
+		window.clearInterval(existingRandomTimer);
+		randomTimers.delete(el);
+	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "hover")) {
 		el.addEventListener("mouseenter", handlers.mouseenter);
@@ -195,5 +225,16 @@ export function bindTerminalTextEffectTriggers(options: {
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "tap")) {
 		el.addEventListener("touchstart", handlers.touchstart, { passive: true });
+	}
+
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "click")) {
+		el.addEventListener("click", handlers.click);
+	}
+
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "random-time")) {
+		const intervalId = window.setInterval(() => {
+			play();
+		}, randomIntervalMs);
+		randomTimers.set(el, intervalId);
 	}
 }

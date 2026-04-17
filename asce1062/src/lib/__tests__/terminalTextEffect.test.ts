@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS,
 	normalizeTerminalTextEffectTriggers,
+	resolveTerminalTextEffectKind,
 	shouldHandleTerminalTextEffectTrigger,
 } from "@/lib/textEffects/terminalTextEffect";
 
@@ -17,11 +18,29 @@ describe("normalizeTerminalTextEffectTriggers", () => {
 			"manual",
 		]);
 	});
+
+	it("supports the expanded trigger vocabulary", () => {
+		expect(
+			normalizeTerminalTextEffectTriggers(["load", "click", "tap", "random-effect", "random-time", "click"])
+		).toEqual(["load", "click", "tap", "random-effect", "random-time"]);
+	});
 });
 
 describe("shouldHandleTerminalTextEffectTrigger", () => {
 	it("matches configured triggers", () => {
 		expect(shouldHandleTerminalTextEffectTrigger(["load", "hover"], "hover")).toBe(true);
 		expect(shouldHandleTerminalTextEffectTrigger(["load", "hover"], "tap")).toBe(false);
+	});
+});
+
+describe("resolveTerminalTextEffectKind", () => {
+	it("returns the explicit effect when not using random-effect", () => {
+		expect(resolveTerminalTextEffectKind("decrypt", false, 0.9)).toBe("decrypt");
+		expect(resolveTerminalTextEffectKind("typing", false, 0.1)).toBe("typing");
+	});
+
+	it("randomizes between typing and decrypt when random-effect is enabled", () => {
+		expect(resolveTerminalTextEffectKind("typing", true, 0.1)).toBe("typing");
+		expect(resolveTerminalTextEffectKind("typing", true, 0.9)).toBe("decrypt");
 	});
 });
