@@ -19,8 +19,11 @@ import {
 	type NavBrandTone,
 } from "@/lib/navBrand/cursor";
 import {
+	NAVBRAND_COMMAND_PROMPT_HINT,
+	NAVBRAND_HELP_MESSAGE,
+	NAVBRAND_UNKNOWN_COMMAND_HINT,
 	getNavBrandCommand,
-	pickNavBrandHintCommand,
+	resolveNavBrandCommandInput,
 	type NavBrandCommandDefinition,
 	type NavBrandCommandId,
 } from "@/lib/navBrand/commands";
@@ -58,6 +61,8 @@ type NavBrandElements = {
 	subline: HTMLElement | null;
 	cursor: HTMLElement | null;
 	commandRow: HTMLElement | null;
+	commandForm: HTMLFormElement | null;
+	commandInput: HTMLInputElement | null;
 };
 
 type RenderState = {
@@ -121,6 +126,8 @@ function getElements(): NavBrandElements {
 		subline: document.getElementById("nav-brand-sub"),
 		cursor: document.querySelector(".nav-brand-cursor"),
 		commandRow: document.getElementById("nav-brand-command-row"),
+		commandForm: document.getElementById("nav-brand-command-form") as HTMLFormElement | null,
+		commandInput: document.getElementById("nav-brand-command-input") as HTMLInputElement | null,
 	};
 }
 
@@ -174,6 +181,12 @@ function setActiveCommand(commandId: NavBrandCommandId | null): void {
 	for (const command of commands) {
 		command.dataset.navbrandCommandActive = command.dataset.navbrandCommand === commandId ? "true" : "false";
 	}
+}
+
+function setCommandInputValue(value: string): void {
+	elements = getElements();
+	if (!elements.commandInput) return;
+	elements.commandInput.value = value;
 }
 
 /**
@@ -414,7 +427,25 @@ function focusSearchInput(): boolean {
 	return false;
 }
 
-function openSearchSurface(): void {
+function openSearchSurface(query?: string): void {
+	if (query && query.trim()) {
+		const encodedQuery = encodeURIComponent(query.trim());
+		const searchPath = `/search?q=${encodedQuery}`;
+		if (window.location.pathname === "/search") {
+			const searchInput = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null;
+			if (searchInput) {
+				searchInput.value = query.trim();
+				searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+				searchInput.focus();
+				window.history.replaceState({}, "", searchPath);
+				return;
+			}
+		}
+
+		window.location.assign(searchPath);
+		return;
+	}
+
 	const floatingModal = document.getElementById("floating-search-modal");
 	if (floatingModal && !floatingModal.classList.contains("pointer-events-none")) {
 		focusSearchInput();
@@ -446,20 +477,30 @@ function showCommandHint(command: NavBrandCommandDefinition): void {
 	renderHint(command.hint, command.id);
 }
 
-function handleCommandAction(commandId: NavBrandCommandId): void {
-	const command = getNavBrandCommand(commandId);
+function handleResolvedCommand(resolvedCommand: ReturnType<typeof resolveNavBrandCommandInput>): void {
+	if (!resolvedCommand) {
+		renderHint(NAVBRAND_UNKNOWN_COMMAND_HINT, null);
+		setCommandInputValue("");
+		return;
+	}
+
+	const { command, query } = resolvedCommand;
 
 	if (command.action === "search-handoff") {
 		showCommandHint(command);
-		openSearchSurface();
+		openSearchSurface(query ?? undefined);
+		setCommandInputValue("");
 		return;
 	}
 
 	if (command.action === "hint") {
-		const hintedCommand = pickNavBrandHintCommand({
-			lastCommandId: memory.lastHintCommandId,
-		});
-		showCommandHint(hintedCommand);
+		renderHint(NAVBRAND_HELP_MESSAGE, command.id);
+		setCommandInputValue("");
+		return;
+	}
+
+	if (command.action === "navigate" && command.href) {
+		window.location.assign(command.href);
 	}
 }
 
@@ -477,6 +518,11 @@ function restoreAfterCommandHint(): void {
 	if (memory.lastState === "hint") {
 		renderActive({ allowSystem: false });
 	}
+}
+
+function getCommandFormTarget(target: EventTarget | null): HTMLFormElement | null {
+	if (!(target instanceof Element)) return null;
+	return target.closest<HTMLFormElement>("#nav-brand-command-form");
 }
 
 /** Reset idle after meaningful activity while respecting hidden-tab pauses. */
@@ -539,7 +585,12 @@ function bindListeners(): void {
 
 	document.addEventListener("focusin", (event) => {
 		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget) return;
+		if (!commandTarget) {
+			if (getCommandFormTarget(event.target)) {
+				renderHint(NAVBRAND_COMMAND_PROMPT_HINT, null);
+			}
+			return;
+		}
 
 		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
 		if (!commandId) return;
@@ -555,8 +606,15 @@ function bindListeners(): void {
 
 	document.addEventListener("focusout", (event) => {
 		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget || shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
-		restoreAfterCommandHint();
+		if (commandTarget) {
+			if (shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
+			restoreAfterCommandHint();
+			return;
+		}
+
+		if (getCommandFormTarget(event.target) && !getCommandFormTarget(event.relatedTarget)) {
+			restoreAfterCommandHint();
+		}
 	});
 
 	document.addEventListener("click", (event) => {
@@ -570,7 +628,32 @@ function bindListeners(): void {
 		if (command.action === "navigate") return;
 
 		event.preventDefault();
-		handleCommandAction(commandId);
+		handleResolvedCommand({
+			command,
+			query: null,
+		});
+	});
+
+	document.addEventListener("submit", (event) => {
+		const commandForm = getCommandFormTarget(event.target);
+		if (!commandForm) return;
+
+		event.preventDefault();
+		const formData = new FormData(commandForm);
+		const input = String(formData.get("command") ?? "");
+		handleResolvedCommand(resolveNavBrandCommandInput(input));
+	});
+
+	document.addEventListener("keydown", (event) => {
+		const commandInput =
+			event.target instanceof HTMLInputElement && event.target.id === "nav-brand-command-input" ? event.target : null;
+		if (!commandInput) return;
+
+		if (event.key === "Escape") {
+			commandInput.blur();
+			commandInput.value = "";
+			restoreAfterCommandHint();
+		}
 	});
 
 	window.addEventListener("focus", onActivity);

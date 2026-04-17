@@ -23,7 +23,14 @@ export type NavBrandCommandDefinition = {
 	description: string;
 	hint: string;
 	action: NavBrandCommandAction;
+	aliases?: readonly string[];
+	keywords?: readonly string[];
 	href?: string;
+};
+
+export type ResolvedNavBrandCommand = {
+	command: NavBrandCommandDefinition;
+	query: string | null;
 };
 
 export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
@@ -34,6 +41,8 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		description: "Hand off to the real Pagefind search surface: floating search when available, otherwise /search.",
 		hint: "type / to search",
 		action: "search-handoff",
+		aliases: ["find", "lookup", "open search"],
+		keywords: ["pagefind", "search"],
 	},
 	{
 		id: "blog",
@@ -42,6 +51,8 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		description: "Jump into the main writing archive.",
 		hint: "try: blog",
 		action: "navigate",
+		aliases: ["posts", "writing"],
+		keywords: ["notes", "articles"],
 		href: "/blog",
 	},
 	{
@@ -51,6 +62,8 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		description: "Open the projects index.",
 		hint: "try: projects",
 		action: "navigate",
+		aliases: ["project", "code"],
+		keywords: ["work", "builds"],
 		href: "/projects",
 	},
 	{
@@ -60,6 +73,8 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		description: "Visit the guestbook and leave a note.",
 		hint: "try: guestbook",
 		action: "navigate",
+		aliases: ["guest book", "signbook"],
+		keywords: ["hello", "leave a note"],
 		href: "/guestbook",
 	},
 	{
@@ -69,6 +84,8 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		description: "Reveal lightweight navbrand hints without opening a full command parser.",
 		hint: "show commands",
 		action: "hint",
+		aliases: ["?", "commands", "explore"],
+		keywords: ["help", "discover"],
 	},
 ] as const;
 
@@ -76,6 +93,9 @@ export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = NAVBRA
 export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = NAVBRAND_COMMANDS.filter(
 	({ action }) => action !== "hint"
 ).map(({ id }) => id);
+export const NAVBRAND_COMMAND_PROMPT_HINT = "try: blog · find auth0";
+export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
+export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook";
 
 type RandomSource = () => number;
 
@@ -85,6 +105,70 @@ export function getNavBrandCommand(commandId: NavBrandCommandId): NavBrandComman
 		throw new Error(`Unknown navbrand command: ${commandId}`);
 	}
 	return command;
+}
+
+function normalizeCommandInput(input: string): string {
+	return input.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function getCommandTerms(command: NavBrandCommandDefinition): string[] {
+	return [command.command, ...(command.aliases ?? []), ...(command.keywords ?? [])];
+}
+
+/**
+ * Resolve terminal input against the launcher registry.
+ *
+ * This stays intentionally small and deterministic for the first typed-command
+ * slice. It supports:
+ * - exact command/alias matches
+ * - prefix matches for short launcher input
+ * - `find/search/lookup <query>` search-handoff parsing
+ *
+ * It does not perform content retrieval itself; query-bearing results still
+ * hand off to the dedicated Search surfaces.
+ */
+export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandCommand | null {
+	const normalizedInput = normalizeCommandInput(input);
+	if (!normalizedInput) return null;
+
+	const searchCommand = getNavBrandCommand("search");
+	const searchPrefixMatch = normalizedInput.match(/^(find|search|lookup)\s+(.+)$/);
+	if (searchPrefixMatch) {
+		return {
+			command: searchCommand,
+			query: searchPrefixMatch[2].trim(),
+		};
+	}
+
+	let bestMatch: { command: NavBrandCommandDefinition; score: number } | null = null;
+
+	for (const command of NAVBRAND_COMMANDS) {
+		for (const term of getCommandTerms(command)) {
+			const normalizedTerm = normalizeCommandInput(term);
+			let score = -1;
+
+			if (normalizedInput === normalizedTerm) {
+				score = 100;
+			} else if (normalizedTerm.startsWith(normalizedInput)) {
+				score = 80;
+			} else if (normalizedInput.startsWith(normalizedTerm)) {
+				score = 70;
+			} else if (normalizedTerm.includes(normalizedInput)) {
+				score = 55;
+			}
+
+			if (score > -1 && (!bestMatch || score > bestMatch.score)) {
+				bestMatch = { command, score };
+			}
+		}
+	}
+
+	if (!bestMatch) return null;
+
+	return {
+		command: bestMatch.command,
+		query: null,
+	};
 }
 
 /**

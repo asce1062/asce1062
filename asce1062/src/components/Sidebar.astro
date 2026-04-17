@@ -12,6 +12,7 @@
 import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager";
+import { NAVBRAND_COMMANDS } from "@/lib/navBrand/commands";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
@@ -71,6 +72,52 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
 					></span>
 				</span>
+				<div class="nav-brand-command-row" id="nav-brand-command-row" role="group" aria-label="Quick navbrand commands">
+					{
+						NAVBRAND_COMMANDS.map((command) =>
+							command.action === "navigate" && command.href ? (
+								<a
+									class="nav-brand-command"
+									href={command.href}
+									data-navbrand-command={command.id}
+									data-navbrand-command-action={command.action}
+									data-navbrand-command-hint={command.hint}
+									aria-label={command.description}>
+									<span class="nav-brand-command-chrome">:</span>
+									<span class="nav-brand-command-text">{command.command}</span>
+								</a>
+							) : (
+								<button
+									type="button"
+									class="nav-brand-command"
+									data-navbrand-command={command.id}
+									data-navbrand-command-action={command.action}
+									data-navbrand-command-hint={command.hint}
+									aria-label={command.description}>
+									<span class="nav-brand-command-chrome">:</span>
+									<span class="nav-brand-command-text">{command.command}</span>
+								</button>
+							)
+						)
+					}
+				</div>
+				<form class="nav-brand-command-form" id="nav-brand-command-form" novalidate>
+					<label class="nav-brand-line nav-brand-command-input-row" for="nav-brand-command-input">
+						<span class="nav-brand-chrome">│ </span><span class="nav-brand-command-chrome">:</span><input
+							id="nav-brand-command-input"
+							class="nav-brand-command-input"
+							type="text"
+							name="command"
+							autocomplete="off"
+							autocapitalize="none"
+							autocorrect="off"
+							spellcheck="false"
+							enterkeyhint="go"
+							placeholder="run a command"
+							aria-label="Run a navbrand command"
+						/>
+					</label>
+				</form>
 				<span class="nav-brand-line">
 					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
 						class="nav-brand-chrome">

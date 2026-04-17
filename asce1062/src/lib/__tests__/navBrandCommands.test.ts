@@ -3,6 +3,7 @@ import {
 	NAVBRAND_COMMANDS,
 	NAVBRAND_HINT_COMMAND_IDS,
 	getNavBrandCommand,
+	resolveNavBrandCommandInput,
 	pickNavBrandHintCommand,
 } from "@/lib/navBrand/commands";
 
@@ -38,5 +39,33 @@ describe("pickNavBrandHintCommand", () => {
 				random: () => 0.99,
 			}).id
 		).toBe("guestbook");
+	});
+});
+
+describe("resolveNavBrandCommandInput", () => {
+	it("matches direct commands", () => {
+		expect(resolveNavBrandCommandInput("blog")?.command.id).toBe("blog");
+		expect(resolveNavBrandCommandInput("projects")?.command.id).toBe("projects");
+	});
+
+	it("matches aliases and prefix-style launcher input", () => {
+		expect(resolveNavBrandCommandInput("posts")?.command.id).toBe("blog");
+		expect(resolveNavBrandCommandInput("proj")?.command.id).toBe("projects");
+	});
+
+	it("resolves search handoff commands with query payloads", () => {
+		const resolved = resolveNavBrandCommandInput("find auth0");
+		expect(resolved?.command.id).toBe("search");
+		expect(resolved?.query).toBe("auth0");
+	});
+
+	it("supports search handoff aliases without requiring terminal-local content search", () => {
+		expect(resolveNavBrandCommandInput("lookup astro")?.query).toBe("astro");
+		expect(resolveNavBrandCommandInput("open search")?.command.action).toBe("search-handoff");
+	});
+
+	it("returns null for empty or unknown commands", () => {
+		expect(resolveNavBrandCommandInput("")).toBeNull();
+		expect(resolveNavBrandCommandInput("definitely-not-a-command")).toBeNull();
 	});
 });

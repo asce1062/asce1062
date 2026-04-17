@@ -153,10 +153,10 @@ const pageTitle = getPageTitle(title);
 		     Stamps data-flavor on <html> if a flavor is stored in localStorage.
 		     Flavors are dark-mode-native; light mode is unaffected by the attribute.
 		     flavorManager.ts handles full lifecycle; this script only prevents FOUC. -->
-		<script is:inline define:vars={{ flavorKey: PREF_KEYS.flavor }}>
+		<script is:inline define:vars={{ flavorStorageKey: PREF_KEYS.flavor }}>
 			(function () {
 				try {
-					const flavor = localStorage.getItem(flavorKey);
+					const flavor = localStorage.getItem(flavorStorageKey);
 					if (flavor) {
 						document.documentElement.setAttribute("data-flavor", flavor);
 					}

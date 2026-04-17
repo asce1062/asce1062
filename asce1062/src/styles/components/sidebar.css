@@ -166,6 +166,87 @@ body:has(#nav-toggle:checked) {
 		opacity 0.6s ease;
 }
 
+.nav-brand-command-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	padding: 0.3rem 0 0.15rem 1.15rem;
+}
+
+.nav-brand-command-form {
+	margin: 0;
+}
+
+.nav-brand-command-input-row {
+	display: flex;
+	align-items: center;
+	gap: 0.2rem;
+	padding-left: 0;
+}
+
+.nav-brand-command-input {
+	min-width: 0;
+	flex: 1;
+	border: 0;
+	background: transparent;
+	color: color-mix(in oklab, var(--color-base-content) 84%, transparent);
+	font: inherit;
+	font-size: 0.63rem;
+	line-height: 1.4;
+	padding: 0.12rem 0;
+	outline: none;
+}
+
+.nav-brand-command-input::placeholder {
+	color: color-mix(in oklab, var(--color-base-content) 38%, transparent);
+	opacity: 1;
+}
+
+.nav-brand-command-input:focus {
+	color: var(--color-base-content);
+}
+
+.nav-brand-command {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	padding: 0.05rem 0.28rem;
+	border: 0;
+	background: transparent;
+	color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+	font: inherit;
+	font-size: 0.61rem;
+	line-height: 1.2;
+	text-decoration: none;
+	opacity: 0.68;
+	cursor: pointer;
+	transition:
+		color 0.3s ease,
+		opacity 0.3s ease,
+		background-color 0.3s ease,
+		transform 0.3s ease;
+}
+
+.nav-brand-command:hover,
+.nav-brand-command:focus-visible,
+.nav-brand-command[data-navbrand-command-active="true"] {
+	color: var(--color-warning);
+	opacity: 1;
+	background: color-mix(in oklab, var(--color-warning) 12%, transparent);
+	transform: translateX(0.08rem);
+	outline: none;
+}
+
+.nav-brand-command-chrome {
+	color: var(--color-accent);
+	opacity: 0.7;
+}
+
+.nav-brand-command-text {
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
 .nav-brand-prompt-char {
 	color: var(--color-accent);
 }
@@ -203,6 +284,19 @@ body:has(#nav-toggle:checked) {
 	text-shadow: 0 0 0.5rem color-mix(in oklab, var(--color-accent) 20%, transparent);
 }
 
+.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-greeting {
+	color: color-mix(in oklab, var(--color-warning) 60%, var(--color-base-content));
+	opacity: 0.92;
+}
+
+.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-command {
+	opacity: 0.92;
+}
+
+.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-command-input::placeholder {
+	color: color-mix(in oklab, var(--color-warning) 38%, transparent);
+}
+
 .nav-brand-prompt[data-navbrand-tone="rare"] .nav-brand-greeting {
 	color: color-mix(in oklab, var(--color-secondary) 68%, var(--color-base-content));
 }
@@ -234,7 +328,8 @@ body:has(#nav-toggle:checked) {
 	.nav-brand-greeting,
 	.nav-brand-sub,
 	.nav-brand-sub-row,
-	.nav-brand-cursor {
+	.nav-brand-cursor,
+	.nav-brand-command {
 		transition: none;
 	}
 
