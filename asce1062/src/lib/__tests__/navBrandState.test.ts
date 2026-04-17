@@ -3,8 +3,8 @@ import {
 	IDLE_DELAY_MS,
 	SYSTEM_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_COOLDOWN_MS,
-	shouldEnterIdle,
 	resolveStatePriority,
+	shouldEnterIdle,
 	shouldShowSystemMessage,
 	type NavBrandState,
 } from "@/lib/navBrand/state";

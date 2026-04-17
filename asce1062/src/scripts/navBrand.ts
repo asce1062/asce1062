@@ -20,10 +20,12 @@ import {
 	SYSTEM_STATE_DURATION_MS,
 	RARE_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_CHANCE,
+	chooseTransitionEffect,
 	shouldShowRareMessage,
 	shouldShowSystemMessage,
 	type NavBrandState,
 } from "@/lib/navBrand/state";
+import { playNavBrandEffect, resetNavBrandEffect } from "@/lib/navBrand/effects";
 
 const SESSION_KEY = "nav-brand-visited";
 
@@ -51,6 +53,7 @@ type NavBrandMemory = {
 	lastGreetingText: string | null;
 	lastSystemTs: number;
 	lastRareTs: number;
+	lastEffectTs: number;
 	lastIdleTs: number;
 	lastReturnTs: number;
 	idleCount: number;
@@ -69,6 +72,7 @@ const memory: NavBrandMemory = {
 	lastGreetingText: null,
 	lastSystemTs: 0,
 	lastRareTs: 0,
+	lastEffectTs: 0,
 	lastIdleTs: 0,
 	lastReturnTs: 0,
 	idleCount: 0,
@@ -139,16 +143,39 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 	elements = getElements();
 	if (!elements.greeting) return;
 
-	elements.greeting.textContent = greeting;
+	const previousState = memory.lastState;
+	const now = Date.now();
+	const effect = chooseTransitionEffect({
+		fromState: previousState,
+		toState: state,
+		tone,
+		reducedMotion: isReducedMotion(),
+		lastEffectTs: memory.lastEffectTs,
+		now,
+		randomValue: Math.random(),
+		decryptRandomValue: Math.random(),
+	});
+
 	elements.greeting.dataset.mode = mode;
 	setSubline(subline);
 
 	applyNavBrandPresentation(elements.root, {
 		state,
-		effect: "none",
+		effect,
 		tone,
 	});
 	applyCursorMode(elements.cursor, getCursorModeForState(state, isReducedMotion()));
+	resetNavBrandEffect(elements.greeting, elements.root);
+	playNavBrandEffect({
+		el: elements.greeting,
+		rootEl: elements.root,
+		effect,
+		text: greeting,
+	});
+
+	if (effect !== "none") {
+		memory.lastEffectTs = now;
+	}
 
 	memory.lastState = state;
 	memory.lastGreetingText = greeting;
