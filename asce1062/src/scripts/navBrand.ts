@@ -19,6 +19,12 @@ import {
 	type NavBrandTone,
 } from "@/lib/navBrand/cursor";
 import {
+	getNavBrandCommand,
+	pickNavBrandHintCommand,
+	type NavBrandCommandDefinition,
+	type NavBrandCommandId,
+} from "@/lib/navBrand/commands";
+import {
 	NAVBRAND_MESSAGE_POOLS,
 	getFeltDuration,
 	getMilestoneGreeting,
@@ -26,6 +32,7 @@ import {
 	selectActiveGreeting,
 } from "@/lib/navBrand/messages";
 import {
+	HINT_STATE_DURATION_MS,
 	IDLE_DELAY_MS,
 	RARE_MESSAGE_COOLDOWN_MS,
 	RETURN_SETTLE_MS,
@@ -50,6 +57,7 @@ type NavBrandElements = {
 	subRow: HTMLElement | null;
 	subline: HTMLElement | null;
 	cursor: HTMLElement | null;
+	commandRow: HTMLElement | null;
 };
 
 type RenderState = {
@@ -69,12 +77,14 @@ type NavBrandMemory = {
 	lastEffectTs: number;
 	lastIdleTs: number;
 	lastReturnTs: number;
+	lastHintCommandId: NavBrandCommandId | null;
 	idleCount: number;
 };
 
 let elements: NavBrandElements = getElements();
 let idleTimer: number | null = null;
 let settleTimer: number | null = null;
+let hintTimer: number | null = null;
 let listenersBound = false;
 let motionMedia: MediaQueryList | null = null;
 let lastActivityTs = Date.now();
@@ -88,6 +98,7 @@ const memory: NavBrandMemory = {
 	lastEffectTs: 0,
 	lastIdleTs: 0,
 	lastReturnTs: 0,
+	lastHintCommandId: null,
 	idleCount: 0,
 };
 
@@ -109,6 +120,7 @@ function getElements(): NavBrandElements {
 		subRow: document.getElementById("nav-brand-sub-row"),
 		subline: document.getElementById("nav-brand-sub"),
 		cursor: document.querySelector(".nav-brand-cursor"),
+		commandRow: document.getElementById("nav-brand-command-row"),
 	};
 }
 
@@ -154,6 +166,16 @@ function setSubline(subline: string | null): void {
 	}
 }
 
+function setActiveCommand(commandId: NavBrandCommandId | null): void {
+	elements = getElements();
+	if (!elements.commandRow) return;
+
+	const commands = elements.commandRow.querySelectorAll<HTMLElement>("[data-navbrand-command]");
+	for (const command of commands) {
+		command.dataset.navbrandCommandActive = command.dataset.navbrandCommand === commandId ? "true" : "false";
+	}
+}
+
 /**
  * Single render entrypoint.
  *
@@ -194,6 +216,11 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 		text: greeting,
 	});
 
+	if (state !== "hint") {
+		hintTimer = clearTimer(hintTimer);
+		setActiveCommand(null);
+	}
+
 	if (effect !== "none") {
 		memory.lastEffectTs = now;
 	}
@@ -215,6 +242,23 @@ function choosePoolMessage(category: MessageCategory): string {
 	});
 	memory.lastGreetingByCategory[category] = greeting;
 	return greeting;
+}
+
+function renderHint(greeting: string, commandId: NavBrandCommandId | null): void {
+	renderNavBrand({
+		state: "hint",
+		greeting,
+		subline: getSubline(),
+		mode: "tod",
+	});
+	setActiveCommand(commandId);
+
+	hintTimer = clearTimer(hintTimer);
+	hintTimer = window.setTimeout(() => {
+		if (memory.lastState === "hint") {
+			renderActive({ allowSystem: false });
+		}
+	}, HINT_STATE_DURATION_MS);
 }
 
 function chooseSystemOverride(): { message: string; tone: NavBrandTone } | null {
@@ -353,6 +397,88 @@ function renderReturn(): void {
 	scheduleIdleTimer();
 }
 
+function focusSearchInput(): boolean {
+	const selectors = [
+		'#floating-searchbox input[type="text"]',
+		"#page-searchbox input[type='text']",
+		".pagefind-ui__search-input",
+	];
+	for (const selector of selectors) {
+		const input = document.querySelector(selector) as HTMLInputElement | null;
+		if (input) {
+			input.focus();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function openSearchSurface(): void {
+	const floatingModal = document.getElementById("floating-search-modal");
+	if (floatingModal && !floatingModal.classList.contains("pointer-events-none")) {
+		focusSearchInput();
+		return;
+	}
+
+	const floatingSearchButton = document.getElementById("open-floating-search") as HTMLButtonElement | null;
+	if (floatingSearchButton) {
+		floatingSearchButton.click();
+		window.setTimeout(() => {
+			focusSearchInput();
+		}, 60);
+		return;
+	}
+
+	if (focusSearchInput()) return;
+	if (window.location.pathname !== "/search") {
+		window.location.assign("/search");
+	}
+}
+
+/**
+ * The terminal layer never performs content retrieval itself.
+ * `search` and `/` always route into the dedicated Pagefind surfaces instead:
+ * the floating modal when present, otherwise the real `/search` page.
+ */
+function showCommandHint(command: NavBrandCommandDefinition): void {
+	memory.lastHintCommandId = command.id;
+	renderHint(command.hint, command.id);
+}
+
+function handleCommandAction(commandId: NavBrandCommandId): void {
+	const command = getNavBrandCommand(commandId);
+
+	if (command.action === "search-handoff") {
+		showCommandHint(command);
+		openSearchSurface();
+		return;
+	}
+
+	if (command.action === "hint") {
+		const hintedCommand = pickNavBrandHintCommand({
+			lastCommandId: memory.lastHintCommandId,
+		});
+		showCommandHint(hintedCommand);
+	}
+}
+
+function getCommandTarget(target: EventTarget | null): HTMLElement | null {
+	if (!(target instanceof Element)) return null;
+	return target.closest<HTMLElement>("[data-navbrand-command]");
+}
+
+function shouldKeepHintForRelatedTarget(relatedTarget: EventTarget | null): boolean {
+	const nextTarget = getCommandTarget(relatedTarget);
+	return nextTarget !== null;
+}
+
+function restoreAfterCommandHint(): void {
+	if (memory.lastState === "hint") {
+		renderActive({ allowSystem: false });
+	}
+}
+
 /** Reset idle after meaningful activity while respecting hidden-tab pauses. */
 function scheduleIdleTimer(): void {
 	idleTimer = clearTimer(idleTimer);
@@ -401,6 +527,52 @@ function bindListeners(): void {
 		document.addEventListener(eventName, onActivity, { passive: true });
 	}
 
+	document.addEventListener("pointerover", (event) => {
+		const commandTarget = getCommandTarget(event.target);
+		if (!commandTarget) return;
+
+		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
+		if (!commandId) return;
+
+		showCommandHint(getNavBrandCommand(commandId));
+	});
+
+	document.addEventListener("focusin", (event) => {
+		const commandTarget = getCommandTarget(event.target);
+		if (!commandTarget) return;
+
+		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
+		if (!commandId) return;
+
+		showCommandHint(getNavBrandCommand(commandId));
+	});
+
+	document.addEventListener("pointerout", (event) => {
+		const commandTarget = getCommandTarget(event.target);
+		if (!commandTarget || shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
+		restoreAfterCommandHint();
+	});
+
+	document.addEventListener("focusout", (event) => {
+		const commandTarget = getCommandTarget(event.target);
+		if (!commandTarget || shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
+		restoreAfterCommandHint();
+	});
+
+	document.addEventListener("click", (event) => {
+		const commandTarget = getCommandTarget(event.target);
+		if (!commandTarget) return;
+
+		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
+		if (!commandId) return;
+
+		const command = getNavBrandCommand(commandId);
+		if (command.action === "navigate") return;
+
+		event.preventDefault();
+		handleCommandAction(commandId);
+	});
+
 	window.addEventListener("focus", onActivity);
 	window.addEventListener("blur", () => {
 		idleTimer = clearTimer(idleTimer);
@@ -413,6 +585,7 @@ function bindListeners(): void {
 			// Hidden tabs should not accumulate idle/system timers in the background.
 			idleTimer = clearTimer(idleTimer);
 			settleTimer = clearTimer(settleTimer);
+			hintTimer = clearTimer(hintTimer);
 		}
 	});
 }
