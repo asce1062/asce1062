@@ -72,10 +72,15 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			</span>
 		</b>
 	</div>
-	<p class="site-greeting">{siteMetadata.greeting}</p>
+	<p
+		class="site-greeting"
+		data-text-effect="decrypt"
+		data-text-effect-triggers="load, hover, tap, click, random-effect, random-time"
+		data-text-effect-interval-ms="18000">{siteMetadata.greeting}</p
+	>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
 
 	<script>
-		import "@/scripts/siteGreetingEffect";
+		import "@/scripts/textEffectRegistry";
 	</script>
 </header>

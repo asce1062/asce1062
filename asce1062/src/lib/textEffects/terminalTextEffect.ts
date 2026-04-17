@@ -3,6 +3,12 @@ import type { NavBrandEffect } from "@/lib/navBrand/state";
 export type TerminalTextEffectKind = Exclude<NavBrandEffect, "none">;
 export type TerminalTextEffectTrigger = "load" | "hover" | "tap" | "click" | "manual" | "random-effect" | "random-time";
 
+export type TerminalTextEffectConfig = {
+	effect: TerminalTextEffectKind;
+	triggers: TerminalTextEffectTrigger[];
+	randomIntervalMs?: number;
+};
+
 export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap", "click"];
 export const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
 
@@ -68,6 +74,28 @@ export function resolveTerminalTextEffectKind(
 ): TerminalTextEffectKind {
 	if (!useRandomEffect) return effect;
 	return randomValue < 0.5 ? "typing" : "decrypt";
+}
+
+export function readTerminalTextEffectConfig(el: HTMLElement): TerminalTextEffectConfig | null {
+	const effect = el.dataset.textEffect;
+	if (effect !== "typing" && effect !== "decrypt") {
+		return null;
+	}
+
+	const rawTriggers = el.dataset.textEffectTriggers
+		?.split(",")
+		.map((value) => value.trim())
+		.filter(Boolean) as TerminalTextEffectTrigger[] | undefined;
+
+	const intervalValue = el.dataset.textEffectIntervalMs
+		? Number.parseInt(el.dataset.textEffectIntervalMs, 10)
+		: undefined;
+
+	return {
+		effect,
+		triggers: normalizeTerminalTextEffectTriggers(rawTriggers),
+		randomIntervalMs: Number.isFinite(intervalValue) ? intervalValue : undefined,
+	};
 }
 
 export function resetTerminalTextEffect(

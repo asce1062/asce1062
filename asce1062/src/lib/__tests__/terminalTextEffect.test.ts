@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS,
 	normalizeTerminalTextEffectTriggers,
+	readTerminalTextEffectConfig,
 	resolveTerminalTextEffectKind,
 	shouldHandleTerminalTextEffectTrigger,
 } from "@/lib/textEffects/terminalTextEffect";
@@ -42,5 +43,31 @@ describe("resolveTerminalTextEffectKind", () => {
 	it("randomizes between typing and decrypt when random-effect is enabled", () => {
 		expect(resolveTerminalTextEffectKind("typing", true, 0.1)).toBe("typing");
 		expect(resolveTerminalTextEffectKind("typing", true, 0.9)).toBe("decrypt");
+	});
+});
+
+describe("readTerminalTextEffectConfig", () => {
+	it("parses effect config from dataset attributes", () => {
+		const el = {
+			dataset: {
+				textEffect: "decrypt",
+				textEffectTriggers: "load, hover, click, random-effect, random-time",
+				textEffectIntervalMs: "18000",
+			},
+		} as unknown as HTMLElement;
+
+		expect(readTerminalTextEffectConfig(el)).toEqual({
+			effect: "decrypt",
+			triggers: ["load", "hover", "click", "random-effect", "random-time"],
+			randomIntervalMs: 18_000,
+		});
+	});
+
+	it("returns null when the dataset does not define an effect", () => {
+		const el = {
+			dataset: {},
+		} as unknown as HTMLElement;
+
+		expect(readTerminalTextEffectConfig(el)).toBeNull();
 	});
 });
