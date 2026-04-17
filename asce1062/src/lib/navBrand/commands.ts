@@ -21,7 +21,8 @@ export type NavBrandCommandAction =
 	| "hint"
 	| "toggle-pref"
 	| "external-link"
-	| "message";
+	| "message"
+	| "terminal";
 export type NavBrandCommandId =
 	| "search"
 	| "blog"
@@ -34,7 +35,9 @@ export type NavBrandCommandId =
 	| "stars"
 	| "matrix"
 	| "sidebar"
-	| "status";
+	| "status"
+	| "clear"
+	| "history";
 
 export type NavBrandCommandDefinition = {
 	id: NavBrandCommandId;
@@ -58,7 +61,9 @@ export type NavBrandCommandIntent =
 	| { type: "search-handoff"; query: string | null }
 	| { type: "external-link"; href: string }
 	| { type: "toggle-pref"; target: string; value: string | boolean }
-	| { type: "message"; message: string };
+	| { type: "message"; message: string }
+	| { type: "clear-history" }
+	| { type: "show-history" };
 
 export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 	{
@@ -186,6 +191,26 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		aliases: ["whoami", "signal"],
 		keywords: ["system", "presence"],
 	},
+	{
+		id: "clear",
+		command: "clear",
+		label: "Clear",
+		description: "Push visible terminal history out of sight while keeping the session alive.",
+		hint: "clear visible history",
+		action: "terminal",
+		aliases: ["cls", "cmd+k"],
+		keywords: ["wipe", "reset view"],
+	},
+	{
+		id: "history",
+		command: "history",
+		label: "History",
+		description: "Show commands used during the current terminal session.",
+		hint: "show session history",
+		action: "terminal",
+		aliases: ["recent", "log"],
+		keywords: ["commands", "session"],
+	},
 ] as const;
 
 export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = [
@@ -198,7 +223,7 @@ export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = [
 export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "blog", "projects", "guestbook"];
 export const NAVBRAND_COMMAND_PROMPT_HINT = "try: blog · find auth0";
 export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
-export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook, theme, status";
+export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook, theme, status, clear, history";
 
 type RandomSource = () => number;
 
@@ -332,6 +357,14 @@ export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): N
 
 	if (command.id === "status") {
 		return { type: "message", message: "presence engine online" };
+	}
+
+	if (command.id === "clear") {
+		return { type: "clear-history" };
+	}
+
+	if (command.id === "history") {
+		return { type: "show-history" };
 	}
 
 	if (command.action === "hint") {

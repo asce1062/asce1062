@@ -65,11 +65,26 @@ import "@/styles/components/terminal-modal.css";
 	</div>
 
 	<div class="terminal-window__body">
-		<div id="terminal-modal-prelude" class="terminal-window__prelude" aria-live="polite"></div>
-		<div class="terminal-window__prompt">
-			<span class="terminal-window__prompt-text">alex@alexmbugua.me // presence engine online</span>
-			<span class="blink terminal-window__cursor" aria-hidden="true">_</span>
-		</div>
+		<div id="terminal-modal-log" class="terminal-window__log" aria-live="polite"></div>
+		<form id="terminal-modal-form" class="terminal-window__prompt-form" novalidate>
+			<label class="terminal-window__prompt" for="terminal-modal-input">
+				<span class="terminal-window__prompt-text">alex@alexmbugua.me //</span>
+				<input
+					id="terminal-modal-input"
+					class="terminal-window__input"
+					type="text"
+					name="command"
+					autocomplete="off"
+					autocapitalize="none"
+					autocorrect="off"
+					spellcheck="false"
+					enterkeyhint="go"
+					placeholder="search, explore, tune the signal"
+					aria-label="Run a terminal command"
+				/>
+				<span class="blink terminal-window__cursor" aria-hidden="true">_</span>
+			</label>
+		</form>
 	</div>
 
 	<button

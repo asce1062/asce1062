@@ -4,14 +4,22 @@
  * Responsibilities:
  * - listen for the shared `navbrand:open-terminal` event
  * - own the terminal shell lifecycle (open, close, minimize, maximize, restore)
- * - keep geometry and history in memory for the current session only
- * - render the curated prelude on open using the pure navbrand helpers
+ * - keep geometry and command history in memory for the current session only
+ * - render curated boot lines plus terminal command output
  *
- * Non-responsibilities:
- * - teaser policy and prompt hints remain in `src/scripts/navBrand.ts`
- * - command parsing/execution/history expansion belongs to the later Phase 3 task
+ * Boundary:
+ * - teaser policy and prompt nudges stay in `src/scripts/navBrand.ts`
+ * - command parsing stays pure in `src/lib/navBrand/commands.ts`
+ * - this file only executes intents and renders terminal-local history
  */
 import { PREF_KEYS, getPref } from "@/lib/prefs";
+import {
+	buildNavBrandCommandIntent,
+	resolveNavBrandCommandInput,
+	type NavBrandCommandId,
+	type NavBrandCommandIntent,
+	type ResolvedNavBrandCommand,
+} from "@/lib/navBrand/commands";
 import { getFeltDuration } from "@/lib/navBrand/messages";
 import { buildTerminalPrelude } from "@/lib/navBrand/terminalPrelude";
 import {
@@ -25,22 +33,32 @@ import {
 } from "@/lib/navBrand/terminalWindow";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 import { playTerminalTextEffect, resetTerminalTextEffect } from "@/lib/textEffects/terminalTextEffect";
+import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 type TerminalModalElements = {
 	overlay: HTMLElement | null;
 	windowEl: HTMLElement | null;
 	dockChip: HTMLButtonElement | null;
-	prelude: HTMLElement | null;
+	log: HTMLElement | null;
 	status: HTMLElement | null;
 	geometry: HTMLElement | null;
 	dragHandle: HTMLElement | null;
 	closeButton: HTMLButtonElement | null;
 	minimizeButton: HTMLButtonElement | null;
 	maximizeButton: HTMLButtonElement | null;
+	form: HTMLFormElement | null;
+	input: HTMLInputElement | null;
 	resizeHandles: HTMLElement[];
 };
 
 type WindowAction = "close" | "minimize" | "maximize" | "restore";
+type TerminalEntryKind = "prelude" | "system" | "command" | "output";
+type TerminalEntry = {
+	id: string;
+	kind: TerminalEntryKind;
+	text: string;
+	effect?: "typing" | "decrypt";
+};
 type InteractionSession =
 	| {
 			kind: "drag";
@@ -62,6 +80,7 @@ const MOBILE_QUERY = "(max-width: 768px)";
 const WINDOW_MARGIN = 24;
 const MIN_WIDTH = 420;
 const MIN_HEIGHT = 320;
+const CLOSE_DISPATCH_DELAY_MS = 140;
 
 let _abortController: AbortController | null = null;
 let _open = false;
@@ -69,25 +88,39 @@ let _windowState: TerminalWindowState = createTerminalWindowState();
 let _opener: HTMLElement | null = null;
 let _interaction: InteractionSession | null = null;
 let _lastOpenSource = "sidebar-expanded";
+let _entries: TerminalEntry[] = [];
+const _commandHistory: string[] = [];
+let _nextEntryId = 0;
 
 function getElements(): TerminalModalElements {
 	return {
 		overlay: document.getElementById("terminal-modal-overlay"),
 		windowEl: document.getElementById("terminal-modal"),
 		dockChip: document.getElementById("terminal-dock-chip") as HTMLButtonElement | null,
-		prelude: document.getElementById("terminal-modal-prelude"),
+		log: document.getElementById("terminal-modal-log"),
 		status: document.getElementById("terminal-modal-status"),
 		geometry: document.getElementById("terminal-modal-geometry"),
 		dragHandle: document.getElementById("terminal-modal-drag-handle"),
 		closeButton: document.getElementById("terminal-close") as HTMLButtonElement | null,
 		minimizeButton: document.getElementById("terminal-minimize") as HTMLButtonElement | null,
 		maximizeButton: document.getElementById("terminal-maximize") as HTMLButtonElement | null,
+		form: document.getElementById("terminal-modal-form") as HTMLFormElement | null,
+		input: document.getElementById("terminal-modal-input") as HTMLInputElement | null,
 		resizeHandles: Array.from(document.querySelectorAll<HTMLElement>("[data-terminal-resize]")),
 	};
 }
 
+function nextEntryId(): string {
+	_nextEntryId += 1;
+	return `terminal-entry-${_nextEntryId}`;
+}
+
 function isMobile(): boolean {
 	return window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function isReducedMotion(): boolean {
+	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function getViewportRect(): TerminalWindowRect {
@@ -171,63 +204,107 @@ function getLastVisitLabel(): string | null {
 	return getFeltDuration(raw, Date.now());
 }
 
-function clearPreludeEffects(prelude: HTMLElement): void {
-	for (const el of prelude.querySelectorAll<HTMLElement>("[data-terminal-prelude-text]")) {
-		resetTerminalTextEffect(el);
+function appendEntries(...entries: TerminalEntry[]): void {
+	_entries.push(...entries);
+}
+
+function clearVisibleHistory(elements: TerminalModalElements, statusText = "history cleared"): void {
+	_entries = [];
+	if (elements.log) {
+		elements.log.innerHTML = "";
+	}
+	if (elements.status) {
+		elements.status.textContent = statusText;
 	}
 }
 
-function renderPrelude(elements: TerminalModalElements): void {
-	if (!elements.prelude || !elements.status) return;
+function createEntryElement(entry: TerminalEntry): HTMLElement {
+	const row = document.createElement("p");
+	const className =
+		entry.kind === "command"
+			? "terminal-window__entry terminal-window__entry--command"
+			: entry.kind === "system"
+				? "terminal-window__entry terminal-window__entry--system"
+				: entry.kind === "prelude"
+					? "terminal-window__prelude-line"
+					: "terminal-window__entry terminal-window__entry--output";
+	row.className = className;
+	row.dataset.entryId = entry.id;
+
+	const text = document.createElement("span");
+	text.className = "terminal-window__entry-text terminal-window__prelude-text";
+	text.dataset.terminalEntryText = "";
+	text.textContent = entry.text;
+	row.append(text);
+
+	return row;
+}
+
+function renderLog(elements: TerminalModalElements, animateFromId?: string): void {
+	if (!elements.log) return;
+
+	for (const el of elements.log.querySelectorAll<HTMLElement>("[data-terminal-entry-text]")) {
+		resetTerminalTextEffect(el);
+	}
+
+	elements.log.innerHTML = "";
+	for (const entry of _entries) {
+		elements.log.append(createEntryElement(entry));
+	}
+
+	if (!isReducedMotion()) {
+		const startIndex = animateFromId ? _entries.findIndex((entry) => entry.id === animateFromId) : -1;
+		if (startIndex > -1) {
+			const targets = Array.from(elements.log.querySelectorAll<HTMLElement>("[data-terminal-entry-text]")).slice(
+				startIndex
+			);
+			targets.forEach((target, index) => {
+				const entry = _entries[startIndex + index];
+				const effect = entry?.effect ?? null;
+				if (!effect) return;
+
+				window.setTimeout(() => {
+					playTerminalTextEffect({
+						el: target,
+						effect,
+						text: target.textContent ?? "",
+					});
+				}, index * 85);
+			});
+		}
+	}
+
+	elements.log.scrollTop = elements.log.scrollHeight;
+}
+
+function ensurePrelude(elements: TerminalModalElements): void {
+	if (_entries.length > 0) return;
 
 	const prelude = buildTerminalPrelude({
 		visits: Math.max(getVisitCount(), 1),
 		lastVisitLabel: getLastVisitLabel(),
 	});
 
-	elements.status.textContent =
-		_lastOpenSource === "sidebar-expanded" ? "restoring context" : `signal received · ${_lastOpenSource}`;
-	clearPreludeEffects(elements.prelude);
-	elements.prelude.innerHTML = "";
+	const newEntries: TerminalEntry[] = prelude.lines.map((line, index) => ({
+		id: nextEntryId(),
+		kind: "prelude",
+		text: line,
+		effect: index % 2 === 0 ? "decrypt" : "typing",
+	}));
 
-	for (const line of prelude.lines) {
-		const row = document.createElement("p");
-		row.className = "terminal-window__prelude-line";
-		const text = document.createElement("span");
-		text.className = "terminal-window__prelude-text";
-		text.dataset.terminalPreludeText = "";
-		text.textContent = line;
-		row.append(text);
-		elements.prelude.append(row);
-	}
+	newEntries.push({
+		id: nextEntryId(),
+		kind: "system",
+		text: prelude.statusLine,
+		effect: "typing",
+	});
 
-	const statusRow = document.createElement("p");
-	statusRow.className = "terminal-window__prelude-status";
-	const statusText = document.createElement("span");
-	statusText.className = "terminal-window__prelude-text";
-	statusText.dataset.terminalPreludeText = "";
-	statusText.textContent = prelude.statusLine;
-	statusRow.append(statusText);
-	elements.prelude.append(statusRow);
-
-	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-		return;
-	}
-
-	const lines = Array.from(elements.prelude.querySelectorAll<HTMLElement>("[data-terminal-prelude-text]"));
-	for (const [index, line] of lines.entries()) {
-		window.setTimeout(() => {
-			playTerminalTextEffect({
-				el: line,
-				effect: Math.random() > 0.5 ? "decrypt" : "typing",
-				text: line.textContent ?? "",
-			});
-		}, index * 110);
-	}
+	appendEntries(...newEntries);
+	renderLog(elements, newEntries[0]?.id);
 }
 
-function focusWindow(elements: TerminalModalElements): void {
-	elements.windowEl?.focus();
+function focusInput(elements: TerminalModalElements): void {
+	elements.input?.focus();
 }
 
 function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
@@ -246,8 +323,12 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 
 	_open = true;
 	setWindowVisibility(elements);
-	renderPrelude(elements);
-	focusWindow(elements);
+	ensurePrelude(elements);
+	if (elements.status) {
+		elements.status.textContent =
+			_lastOpenSource === "sidebar-expanded" ? "restoring context" : `signal received · ${_lastOpenSource}`;
+	}
+	focusInput(elements);
 }
 
 function closeTerminal(): void {
@@ -286,6 +367,7 @@ function beginDrag(event: PointerEvent, elements: TerminalModalElements): void {
 	if (!elements.windowEl || _windowState.mode !== "windowed" || isMobile()) return;
 	if (!(event.target instanceof HTMLElement)) return;
 	if (event.target.closest("[data-terminal-control]")) return;
+	if (event.target.closest("#terminal-modal-form")) return;
 
 	_interaction = {
 		kind: "drag",
@@ -364,6 +446,214 @@ function endInteraction(): void {
 	_interaction = null;
 }
 
+function focusSearchInput(): boolean {
+	const selectors = [
+		'#floating-searchbox input[type="text"]',
+		"#page-searchbox input[type='text']",
+		".pagefind-ui__search-input",
+	];
+	for (const selector of selectors) {
+		const input = document.querySelector(selector) as HTMLInputElement | null;
+		if (input) {
+			input.focus();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function openSearchSurface(query?: string): void {
+	if (query && query.trim()) {
+		const encodedQuery = encodeURIComponent(query.trim());
+		const searchPath = `/search?q=${encodedQuery}`;
+		if (window.location.pathname === "/search") {
+			const searchInput = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null;
+			if (searchInput) {
+				searchInput.value = query.trim();
+				searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+				searchInput.focus();
+				window.history.replaceState({}, "", searchPath);
+				return;
+			}
+		}
+
+		window.location.assign(searchPath);
+		return;
+	}
+
+	const floatingModal = document.getElementById("floating-search-modal");
+	if (floatingModal && !floatingModal.classList.contains("pointer-events-none")) {
+		focusSearchInput();
+		return;
+	}
+
+	const floatingSearchButton = document.getElementById("open-floating-search") as HTMLButtonElement | null;
+	if (floatingSearchButton) {
+		floatingSearchButton.click();
+		window.setTimeout(() => {
+			focusSearchInput();
+		}, 60);
+		return;
+	}
+
+	if (focusSearchInput()) return;
+	if (window.location.pathname !== "/search") {
+		window.location.assign("/search");
+	}
+}
+
+function applyToggleIntent(target: string, value: string | boolean): void {
+	if (target === "theme") {
+		if (value === "toggle") {
+			handleThemeToggle();
+			return;
+		}
+
+		disableMatchDeviceTheme();
+		setTheme(value as Theme);
+		return;
+	}
+
+	if (target === "sidebar-collapse") {
+		const collapseTab = document.getElementById("sidebar-collapse-tab") as HTMLButtonElement | null;
+		if (!collapseTab) return;
+
+		const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
+		const shouldCollapse = value === "collapse";
+		if (isCollapsed !== shouldCollapse) {
+			collapseTab.click();
+		}
+		return;
+	}
+
+	const toggle = document.getElementById(target) as HTMLInputElement | null;
+	if (!toggle) return;
+	if (toggle.checked !== value) {
+		toggle.click();
+	}
+}
+
+function buildMessageOutput(
+	commandId: NavBrandCommandId,
+	intent: Extract<NavBrandCommandIntent, { type: "message" }>
+): string {
+	if (commandId === "help") {
+		return "try: search astro · blog · projects · theme dark · clear · history";
+	}
+
+	if (commandId === "status") {
+		return "presence engine online · local horizon stable";
+	}
+
+	return intent.message;
+}
+
+function appendCommandAndOutput(
+	elements: TerminalModalElements,
+	commandText: string,
+	output: string,
+	kind: Extract<TerminalEntryKind, "output" | "system"> = "output"
+): void {
+	const commandEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind: "command",
+		text: commandText,
+	};
+	const outputEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind,
+		text: output,
+		effect: kind === "system" ? "typing" : undefined,
+	};
+
+	appendEntries(commandEntry, outputEntry);
+	renderLog(elements, commandEntry.id);
+}
+
+function closeAfterDispatch(callback: () => void, statusText: string): void {
+	const elements = getElements();
+	if (elements.status) {
+		elements.status.textContent = statusText;
+	}
+	window.setTimeout(() => {
+		closeTerminal();
+		callback();
+	}, CLOSE_DISPATCH_DELAY_MS);
+}
+
+function executeResolvedCommand(
+	elements: TerminalModalElements,
+	rawInput: string,
+	resolved: ResolvedNavBrandCommand
+): void {
+	const intent = buildNavBrandCommandIntent(resolved);
+	if (!intent) {
+		appendCommandAndOutput(elements, rawInput, "unknown command · try: help", "system");
+		return;
+	}
+
+	if (intent.type === "clear-history") {
+		clearVisibleHistory(elements);
+		return;
+	}
+
+	if (intent.type === "show-history") {
+		const historyText =
+			_commandHistory.length > 0
+				? _commandHistory.map((command, index) => `${index + 1}. ${command}`).join("\n")
+				: "no commands in session memory yet";
+		appendCommandAndOutput(elements, rawInput, historyText, "system");
+		return;
+	}
+
+	if (intent.type === "message") {
+		appendCommandAndOutput(elements, rawInput, buildMessageOutput(resolved.command.id, intent), "system");
+		return;
+	}
+
+	if (intent.type === "toggle-pref") {
+		applyToggleIntent(intent.target, intent.value);
+		appendCommandAndOutput(elements, rawInput, `applied ${rawInput}`, "system");
+		return;
+	}
+
+	if (intent.type === "external-link") {
+		appendCommandAndOutput(elements, rawInput, `opening ${intent.href}`, "system");
+		closeAfterDispatch(() => window.location.assign(intent.href), "dispatching external link");
+		return;
+	}
+
+	if (intent.type === "navigate") {
+		appendCommandAndOutput(elements, rawInput, `navigating to ${intent.href}`, "system");
+		closeAfterDispatch(() => window.location.assign(intent.href), "routing to destination");
+		return;
+	}
+
+	appendCommandAndOutput(
+		elements,
+		rawInput,
+		intent.query ? `searching for ${intent.query}` : "opening search surface",
+		"system"
+	);
+	closeAfterDispatch(() => openSearchSurface(intent.query ?? undefined), "handing off to search");
+}
+
+function submitCommand(rawInput: string): void {
+	const elements = getElements();
+	const normalizedInput = rawInput.trim();
+	if (!normalizedInput) return;
+
+	_commandHistory.push(normalizedInput);
+	const resolved = resolveNavBrandCommandInput(normalizedInput);
+	if (!resolved) {
+		appendCommandAndOutput(elements, normalizedInput, "unknown command · try: help", "system");
+		return;
+	}
+
+	executeResolvedCommand(elements, normalizedInput, resolved);
+}
+
 function onWindowAction(action: WindowAction): void {
 	if (action === "close") {
 		closeTerminal();
@@ -389,9 +679,18 @@ function initTerminalModal(): void {
 	const { signal } = _abortController;
 
 	const elements = getElements();
-	if (!elements.windowEl || !elements.overlay || !elements.dockChip || !elements.dragHandle) return;
+	if (
+		!elements.windowEl ||
+		!elements.overlay ||
+		!elements.dockChip ||
+		!elements.dragHandle ||
+		!elements.form ||
+		!elements.input
+	)
+		return;
 
 	setWindowVisibility(elements);
+	renderLog(elements);
 
 	document.addEventListener(
 		NAVBRAND_OPEN_TERMINAL_EVENT,
@@ -407,6 +706,37 @@ function initTerminalModal(): void {
 	elements.minimizeButton?.addEventListener("click", () => onWindowAction("minimize"), { signal });
 	elements.maximizeButton?.addEventListener("click", () => onWindowAction("maximize"), { signal });
 	elements.dockChip.addEventListener("click", () => onWindowAction("restore"), { signal });
+
+	elements.form.addEventListener(
+		"submit",
+		(event) => {
+			event.preventDefault();
+			submitCommand(elements.input?.value ?? "");
+			if (elements.input) {
+				elements.input.value = "";
+				elements.input.focus();
+			}
+		},
+		{ signal }
+	);
+
+	elements.input.addEventListener(
+		"keydown",
+		(event) => {
+			const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+			if (isCtrlOrCmd && event.key.toLowerCase() === "k") {
+				event.preventDefault();
+				event.stopPropagation();
+				clearVisibleHistory(getElements());
+			}
+
+			if (event.key === "Escape") {
+				event.preventDefault();
+				closeTerminal();
+			}
+		},
+		{ signal }
+	);
 
 	elements.dragHandle.addEventListener("pointerdown", (event) => beginDrag(event, elements), { signal });
 	for (const handle of elements.resizeHandles) {

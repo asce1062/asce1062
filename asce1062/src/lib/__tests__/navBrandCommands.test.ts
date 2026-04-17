@@ -23,6 +23,8 @@ describe("NAVBRAND_COMMANDS", () => {
 			"matrix",
 			"sidebar",
 			"status",
+			"clear",
+			"history",
 		]);
 		expect(getNavBrandCommand("blog").href).toBe("/blog");
 		expect(getNavBrandCommand("search").action).toBe("search-handoff");
@@ -102,6 +104,12 @@ describe("resolveNavBrandCommandInput", () => {
 		expect(resolveNavBrandCommandInput("status")).toMatchObject({
 			command: { id: "status", action: "message" },
 		});
+		expect(resolveNavBrandCommandInput("clear")).toMatchObject({
+			command: { id: "clear", action: "terminal" },
+		});
+		expect(resolveNavBrandCommandInput("history")).toMatchObject({
+			command: { id: "history", action: "terminal" },
+		});
 	});
 
 	it("returns null for empty or unknown commands", () => {
@@ -144,6 +152,15 @@ describe("buildNavBrandCommandIntent", () => {
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("status")!)).toMatchObject({
 			type: "message",
 			message: "presence engine online",
+		});
+	});
+
+	it("builds terminal-local intents for history controls", () => {
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("clear")!)).toEqual({
+			type: "clear-history",
+		});
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("history")!)).toEqual({
+			type: "show-history",
 		});
 	});
 });
