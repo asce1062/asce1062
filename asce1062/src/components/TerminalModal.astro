@@ -1,0 +1,103 @@
+---
+import "@/styles/components/terminal-modal.css";
+---
+
+<div id="terminal-modal-overlay" class="terminal-overlay" hidden aria-hidden="true"></div>
+
+<button
+	id="terminal-dock-chip"
+	type="button"
+	class="terminal-dock-chip"
+	data-terminal-docked="false"
+	hidden
+	aria-label="Restore terminal">
+	<i class="icon-command-palette" aria-hidden="true"></i>
+	<span class="terminal-dock-chip__label">restore signal</span>
+</button>
+
+<section
+	id="terminal-modal"
+	class="terminal-window"
+	role="dialog"
+	aria-labelledby="terminal-modal-title"
+	aria-describedby="terminal-modal-status"
+	tabindex="-1"
+	hidden>
+	<header id="terminal-modal-drag-handle" class="terminal-window__chrome">
+		<div class="terminal-window__identity">
+			<p class="terminal-window__eyebrow">Alex Workstation</p>
+			<h2 id="terminal-modal-title" class="terminal-window__title">stellar console</h2>
+		</div>
+		<div class="terminal-window__controls" aria-label="Terminal window controls">
+			<button
+				id="terminal-minimize"
+				type="button"
+				class="terminal-window__control"
+				data-terminal-control="minimize"
+				aria-label="Minimize terminal">
+				<span aria-hidden="true">_</span>
+			</button>
+			<button
+				id="terminal-maximize"
+				type="button"
+				class="terminal-window__control"
+				data-terminal-control="maximize"
+				aria-label="Maximize terminal">
+				<i class="icon-square" aria-hidden="true"></i>
+			</button>
+			<button
+				id="terminal-close"
+				type="button"
+				class="terminal-window__control terminal-window__control--close"
+				data-terminal-control="close"
+				aria-label="Close terminal">
+				<i class="icon-x-lg" aria-hidden="true"></i>
+			</button>
+		</div>
+	</header>
+
+	<div class="terminal-window__statusbar">
+		<span class="terminal-window__status terminal-window__status--signal">
+			<i class="icon-command-palette" aria-hidden="true"></i>
+			<span id="terminal-modal-status">incoming transmission</span>
+		</span>
+		<span id="terminal-modal-geometry" class="terminal-window__status terminal-window__status--geometry">860×580</span>
+	</div>
+
+	<div class="terminal-window__body">
+		<div id="terminal-modal-prelude" class="terminal-window__prelude" aria-live="polite"></div>
+		<div class="terminal-window__prompt">
+			<span class="terminal-window__prompt-text">alex@alexmbugua.me // presence engine online</span>
+			<span class="blink terminal-window__cursor" aria-hidden="true">_</span>
+		</div>
+	</div>
+
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--e"
+		data-terminal-resize="e"
+		aria-label="Resize terminal from right edge"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--s"
+		data-terminal-resize="s"
+		aria-label="Resize terminal from bottom edge"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--se"
+		data-terminal-resize="se"
+		aria-label="Resize terminal from bottom right corner"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--w"
+		data-terminal-resize="w"
+		aria-label="Resize terminal from left edge"
+		tabindex="-1"></button>
+</section>
+
+<script>
+	import "@/scripts/terminalModal";
+</script>

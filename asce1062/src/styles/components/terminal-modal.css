@@ -1,0 +1,360 @@
+/**
+ * Shared terminal window shell.
+ *
+ * This is intentionally not a generic modal skin. The styling aims for a
+ * personal workstation feel: restrained chrome, warm/cosmic accents, and just
+ * enough BBS structure to signal "tooling surface" rather than page card.
+ */
+.terminal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 108;
+	background:
+		radial-gradient(circle at top right, color-mix(in oklab, var(--color-secondary) 18%, transparent), transparent 42%),
+		radial-gradient(circle at bottom left, color-mix(in oklab, var(--color-warning) 12%, transparent), transparent 36%),
+		color-mix(in oklab, var(--color-base-100) 68%, transparent);
+	backdrop-filter: blur(0.5rem);
+}
+
+.terminal-window {
+	position: fixed;
+	z-index: 109;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid color-mix(in oklab, var(--color-secondary) 18%, var(--color-base-300));
+	border-radius: 1rem;
+	background:
+		linear-gradient(180deg, color-mix(in oklab, var(--color-base-200) 66%, transparent), transparent 28%),
+		color-mix(in oklab, var(--color-base-100) 96%, black);
+	box-shadow:
+		0 1.6rem 4rem color-mix(in oklab, black 58%, transparent),
+		0 0 0 1px color-mix(in oklab, var(--color-secondary) 10%, transparent),
+		0 0 2.25rem color-mix(in oklab, var(--color-secondary) 10%, transparent);
+	color: var(--color-base-content);
+}
+
+.terminal-window::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		180deg,
+		color-mix(in oklab, var(--color-secondary) 8%, transparent),
+		transparent 10%,
+		transparent 90%,
+		color-mix(in oklab, var(--color-warning) 7%, transparent)
+	);
+	opacity: 0.82;
+}
+
+.terminal-window__chrome,
+.terminal-window__statusbar,
+.terminal-window__body {
+	position: relative;
+	z-index: 1;
+}
+
+.terminal-window__chrome {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.8rem 0.9rem 0.72rem;
+	border-bottom: 1px solid color-mix(in oklab, var(--color-base-300) 84%, transparent);
+	background: linear-gradient(
+		180deg,
+		color-mix(in oklab, var(--color-base-300) 52%, transparent),
+		color-mix(in oklab, var(--color-base-200) 26%, transparent)
+	);
+	cursor: grab;
+	user-select: none;
+}
+
+.terminal-window[data-terminal-mode="maximized"] .terminal-window__chrome {
+	cursor: default;
+}
+
+.terminal-window__identity {
+	min-width: 0;
+}
+
+.terminal-window__eyebrow,
+.terminal-window__title {
+	margin: 0;
+}
+
+.terminal-window__eyebrow {
+	font-size: 0.62rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+}
+
+.terminal-window__title {
+	font-size: 0.98rem;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: lowercase;
+}
+
+.terminal-window__controls {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.terminal-window__control {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border: 1px solid color-mix(in oklab, var(--color-base-300) 88%, transparent);
+	border-radius: 999px;
+	background: color-mix(in oklab, var(--color-base-100) 82%, transparent);
+	color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+	font: inherit;
+	cursor: pointer;
+	transition:
+		transform 0.2s ease,
+		border-color 0.2s ease,
+		color 0.2s ease,
+		background-color 0.2s ease;
+}
+
+.terminal-window__control:hover,
+.terminal-window__control:focus-visible {
+	transform: translateY(-1px);
+	border-color: color-mix(in oklab, var(--color-secondary) 35%, var(--color-base-300));
+	color: var(--color-base-content);
+	background: color-mix(in oklab, var(--color-base-100) 96%, var(--color-secondary));
+	outline: none;
+}
+
+.terminal-window__control--close:hover,
+.terminal-window__control--close:focus-visible {
+	border-color: color-mix(in oklab, var(--color-warning) 36%, var(--color-base-300));
+	color: var(--color-warning);
+}
+
+.terminal-window__statusbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.45rem 0.9rem;
+	border-bottom: 1px solid color-mix(in oklab, var(--color-base-300) 72%, transparent);
+	background: color-mix(in oklab, var(--color-base-100) 82%, transparent);
+	font-size: 0.67rem;
+	letter-spacing: 0.03em;
+	text-transform: lowercase;
+}
+
+.terminal-window__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	min-width: 0;
+	color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+}
+
+.terminal-window__status--signal {
+	color: color-mix(in oklab, var(--color-warning) 76%, var(--color-base-content));
+}
+
+.terminal-window__status--geometry {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.7;
+}
+
+.terminal-window__body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1rem 1rem 1.15rem;
+	min-height: 15rem;
+	background:
+		linear-gradient(180deg, color-mix(in oklab, var(--color-secondary) 4%, transparent), transparent 32%),
+		repeating-linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-base-content) 2%, transparent) 0,
+			color-mix(in oklab, var(--color-base-content) 2%, transparent) 1px,
+			transparent 1px,
+			transparent 3px
+		);
+}
+
+.terminal-window__prelude {
+	display: grid;
+	gap: 0.42rem;
+	align-content: start;
+	font-size: 0.75rem;
+	line-height: 1.55;
+}
+
+.terminal-window__prelude-line,
+.terminal-window__prelude-status {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	min-width: 0;
+}
+
+.terminal-window__prelude-line::before,
+.terminal-window__prelude-status::before {
+	content: ">";
+	color: color-mix(in oklab, var(--color-secondary) 72%, transparent);
+	flex-shrink: 0;
+}
+
+.terminal-window__prelude-status {
+	margin-top: 0.3rem;
+	padding-top: 0.65rem;
+	border-top: 1px dashed color-mix(in oklab, var(--color-base-300) 88%, transparent);
+	color: color-mix(in oklab, var(--color-warning) 78%, var(--color-base-content));
+	font-size: 0.69rem;
+}
+
+.terminal-window__prelude-text {
+	color: color-mix(in oklab, var(--color-base-content) 86%, transparent);
+}
+
+.terminal-window__prompt {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.38rem;
+	margin-top: auto;
+	padding-top: 0.6rem;
+	border-top: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+	font-size: 0.75rem;
+}
+
+.terminal-window__prompt-text {
+	color: color-mix(in oklab, var(--color-base-content) 76%, transparent);
+}
+
+.terminal-window__cursor {
+	color: var(--color-secondary);
+}
+
+.terminal-window__resize-handle {
+	position: absolute;
+	z-index: 2;
+	border: 0;
+	padding: 0;
+	background: transparent;
+}
+
+.terminal-window__resize-handle--e,
+.terminal-window__resize-handle--w {
+	top: 2.8rem;
+	bottom: 0.9rem;
+	width: 0.8rem;
+	cursor: ew-resize;
+}
+
+.terminal-window__resize-handle--e {
+	right: -0.4rem;
+}
+
+.terminal-window__resize-handle--w {
+	left: -0.4rem;
+}
+
+.terminal-window__resize-handle--s {
+	right: 0.9rem;
+	left: 0.9rem;
+	bottom: -0.4rem;
+	height: 0.8rem;
+	cursor: ns-resize;
+}
+
+.terminal-window__resize-handle--se {
+	right: -0.35rem;
+	bottom: -0.35rem;
+	width: 1.2rem;
+	height: 1.2rem;
+	cursor: nwse-resize;
+}
+
+.terminal-dock-chip {
+	position: fixed;
+	z-index: 107;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	top: clamp(9rem, 22vh, 13rem);
+	left: calc(var(--sidebar-current-width) + 0.55rem);
+	padding: 0.5rem 0.75rem;
+	border: 1px solid color-mix(in oklab, var(--color-secondary) 38%, var(--color-base-300));
+	border-radius: 999px;
+	background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+	box-shadow:
+		0 0 1rem color-mix(in oklab, var(--color-secondary) 16%, transparent),
+		0 0 0 1px color-mix(in oklab, var(--color-secondary) 10%, transparent);
+	color: color-mix(in oklab, var(--color-secondary) 78%, var(--color-base-content));
+	font: inherit;
+	font-size: 0.7rem;
+	letter-spacing: 0.03em;
+	text-transform: lowercase;
+	cursor: e-resize;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.terminal-dock-chip:hover,
+.terminal-dock-chip:focus-visible {
+	transform: translateX(0.18rem);
+	border-color: color-mix(in oklab, var(--color-secondary) 56%, var(--color-base-300));
+	box-shadow:
+		0 0 1.4rem color-mix(in oklab, var(--color-secondary) 22%, transparent),
+		0 0 0 1px color-mix(in oklab, var(--color-secondary) 16%, transparent);
+	outline: none;
+}
+
+.terminal-dock-chip__label {
+	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.terminal-overlay {
+		backdrop-filter: blur(0.35rem);
+	}
+
+	.terminal-window {
+		inset: 0.8rem;
+		width: auto !important;
+		height: auto !important;
+		border-radius: 1.15rem;
+	}
+
+	.terminal-window__chrome {
+		cursor: default;
+	}
+
+	.terminal-window__resize-handle {
+		display: none;
+	}
+
+	.terminal-dock-chip {
+		top: auto;
+		right: 1rem;
+		bottom: 1rem;
+		left: auto;
+		cursor: pointer;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.terminal-overlay,
+	.terminal-window,
+	.terminal-window__control,
+	.terminal-dock-chip {
+		transition: none;
+	}
+}

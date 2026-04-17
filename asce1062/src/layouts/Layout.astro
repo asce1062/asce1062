@@ -4,6 +4,7 @@ import Footer from "@/components/Footer.astro";
 import Sidebar from "@/components/Sidebar.astro";
 import BackToTop from "@/components/BackToTop.astro";
 import FloatingSearch from "@/components/FloatingSearch.astro";
+import TerminalModal from "@/components/TerminalModal.astro";
 import MetaTags from "@/components/seo/MetaTags.astro";
 import OpenGraphTags from "@/components/seo/OpenGraphTags.astro";
 import Themes from "astro-themes";
@@ -223,6 +224,8 @@ const pageTitle = getPageTitle(title);
 
 		<!-- Global floating back to top button -->
 		<BackToTop />
+		<!-- Shared terminal window -->
+		<TerminalModal />
 		<!-- Global floating search modal -->
 		<FloatingSearch />
 	</body><!-- Global scroll progress initialization -->
