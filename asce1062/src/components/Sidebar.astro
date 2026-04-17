@@ -50,7 +50,11 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	<div class="nav-brand">
 		<!-- Expanded: visitor-aware shell prompt -->
 		<div class="nav-brand-expanded-content">
-			<div class="nav-brand-prompt">
+			<div
+				class="nav-brand-prompt"
+				data-navbrand-state="arrival"
+				data-navbrand-effect="none"
+				data-navbrand-tone="normal">
 				<span class="nav-brand-line">
 					<span class="nav-brand-chrome">┌─[</span><span id="nav-brand-name" class="nav-brand-name">alex</span><span
 						class="nav-brand-chrome">@</span
@@ -71,7 +75,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
 						class="nav-brand-chrome">
 						~
-					</span><span class="blink nav-brand-cursor" aria-hidden="true">_</span>
+					</span><span class="blink nav-brand-cursor" data-cursor-mode="active" aria-hidden="true">_</span>
 				</span>
 			</div>
 		</div>
