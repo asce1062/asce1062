@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getMilestoneGreeting, getTimeOfDayGreeting, getFeltDuration } from "@/scripts/navBrand";
+import { getMilestoneGreeting, getFeltDuration } from "@/lib/navBrand/messages";
 
 describe("getMilestoneGreeting", () => {
 	it("returns 'hello, stranger' for visit 1", () => {
@@ -32,31 +32,8 @@ describe("getMilestoneGreeting", () => {
 	});
 });
 
-describe("getTimeOfDayGreeting", () => {
-	it("returns 'good morning' for 05:00–11:59", () => {
-		expect(getTimeOfDayGreeting(5)).toBe("good morning");
-		expect(getTimeOfDayGreeting(11)).toBe("good morning");
-	});
-
-	it("returns 'good afternoon' for 12:00–16:59", () => {
-		expect(getTimeOfDayGreeting(12)).toBe("good afternoon");
-		expect(getTimeOfDayGreeting(16)).toBe("good afternoon");
-	});
-
-	it("returns 'good evening' for 17:00–20:59", () => {
-		expect(getTimeOfDayGreeting(17)).toBe("good evening");
-		expect(getTimeOfDayGreeting(20)).toBe("good evening");
-	});
-
-	it("returns 'still up?' for 21:00–04:59", () => {
-		expect(getTimeOfDayGreeting(21)).toBe("still up?");
-		expect(getTimeOfDayGreeting(0)).toBe("still up?");
-		expect(getTimeOfDayGreeting(4)).toBe("still up?");
-	});
-});
-
 describe("getFeltDuration", () => {
-	const NOW = 1_000_000_000_000; // fixed reference point
+	const NOW = 1_000_000_000_000;
 
 	it("returns 'just here a moment ago' for < 1 hour", () => {
 		expect(getFeltDuration(NOW - 1_000, NOW)).toBe("just here a moment ago");
