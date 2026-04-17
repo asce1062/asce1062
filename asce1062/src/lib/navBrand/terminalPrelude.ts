@@ -11,7 +11,8 @@ const PRELUDE_POOL = [
 function shufflePreludeLines(random: PreludeRandom): string[] {
 	const lines = [...PRELUDE_POOL];
 	for (let i = lines.length - 1; i > 0; i -= 1) {
-		const j = Math.floor(random() * (i + 1));
+		const sample = Math.min(Math.max(random(), 0), 0.9999999999999999);
+		const j = Math.floor(sample * (i + 1));
 		[lines[i], lines[j]] = [lines[j], lines[i]];
 	}
 	return lines;
