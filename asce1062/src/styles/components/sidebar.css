@@ -105,6 +105,11 @@ body:has(#nav-toggle:checked) {
 }
 
 .nav-brand-prompt {
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	text-align: left;
 	font-size: 0.7rem;
 	display: flex;
 	flex-direction: column;
@@ -112,9 +117,21 @@ body:has(#nav-toggle:checked) {
 	letter-spacing: 0;
 	line-height: 1.65;
 	white-space: nowrap;
+	cursor: pointer;
 	transition:
 		opacity 0.35s ease,
-		filter 0.35s ease;
+		filter 0.35s ease,
+		transform 0.35s ease;
+}
+
+.nav-brand-prompt:hover,
+.nav-brand-prompt:focus-visible {
+	transform: translateX(0.08rem);
+	outline: none;
+}
+
+.nav-brand-prompt:focus-visible {
+	filter: drop-shadow(0 0 0.35rem color-mix(in oklab, var(--color-accent) 18%, transparent));
 }
 
 .nav-brand-line {
@@ -166,85 +183,38 @@ body:has(#nav-toggle:checked) {
 		opacity 0.6s ease;
 }
 
-.nav-brand-command-row {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.35rem;
-	padding: 0.3rem 0 0.15rem 1.15rem;
+.nav-brand-teaser-line {
+	padding-left: 1.15rem;
 }
 
-.nav-brand-command-form {
-	margin: 0;
-}
-
-.nav-brand-command-input-row {
-	display: flex;
-	align-items: center;
-	gap: 0.2rem;
-	padding-left: 0;
-}
-
-.nav-brand-command-input {
-	min-width: 0;
-	flex: 1;
-	border: 0;
-	background: transparent;
-	color: color-mix(in oklab, var(--color-base-content) 84%, transparent);
-	font: inherit;
-	font-size: 0.63rem;
-	line-height: 1.4;
-	padding: 0.12rem 0;
-	outline: none;
-}
-
-.nav-brand-command-input::placeholder {
-	color: color-mix(in oklab, var(--color-base-content) 38%, transparent);
-	opacity: 1;
-}
-
-.nav-brand-command-input:focus {
-	color: var(--color-base-content);
-}
-
-.nav-brand-command {
+.nav-brand-teaser-text {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.15rem;
-	padding: 0.05rem 0.28rem;
-	border: 0;
-	background: transparent;
-	color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
-	font: inherit;
+	gap: 0.28rem;
+	color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
 	font-size: 0.61rem;
-	line-height: 1.2;
-	text-decoration: none;
-	opacity: 0.68;
-	cursor: pointer;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: lowercase;
+	opacity: 0.72;
 	transition:
 		color 0.3s ease,
 		opacity 0.3s ease,
-		background-color 0.3s ease,
-		transform 0.3s ease;
+		text-shadow 0.3s ease;
 }
 
-.nav-brand-command:hover,
-.nav-brand-command:focus-visible,
-.nav-brand-command[data-navbrand-command-active="true"] {
+.nav-brand-teaser-text::before {
+	content: ":";
+	color: color-mix(in oklab, var(--color-accent) 78%, transparent);
+	opacity: 0.85;
+}
+
+.nav-brand-prompt:hover .nav-brand-teaser-text,
+.nav-brand-prompt:focus-visible .nav-brand-teaser-text,
+.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-teaser-text {
 	color: var(--color-warning);
 	opacity: 1;
-	background: color-mix(in oklab, var(--color-warning) 12%, transparent);
-	transform: translateX(0.08rem);
-	outline: none;
-}
-
-.nav-brand-command-chrome {
-	color: var(--color-accent);
-	opacity: 0.7;
-}
-
-.nav-brand-command-text {
-	font-weight: 600;
-	letter-spacing: 0.01em;
+	text-shadow: 0 0 0.35rem color-mix(in oklab, var(--color-warning) 14%, transparent);
 }
 
 .nav-brand-prompt-char {
@@ -289,14 +259,6 @@ body:has(#nav-toggle:checked) {
 	opacity: 0.92;
 }
 
-.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-command {
-	opacity: 0.92;
-}
-
-.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-command-input::placeholder {
-	color: color-mix(in oklab, var(--color-warning) 38%, transparent);
-}
-
 .nav-brand-prompt[data-navbrand-tone="rare"] .nav-brand-greeting {
 	color: color-mix(in oklab, var(--color-secondary) 68%, var(--color-base-content));
 }
@@ -329,7 +291,7 @@ body:has(#nav-toggle:checked) {
 	.nav-brand-sub,
 	.nav-brand-sub-row,
 	.nav-brand-cursor,
-	.nav-brand-command {
+	.nav-brand-teaser-text {
 		transition: none;
 	}
 

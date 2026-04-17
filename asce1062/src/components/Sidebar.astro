@@ -12,7 +12,6 @@
 import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager";
-import { NAVBRAND_COMMANDS, NAVBRAND_VISIBLE_COMMAND_IDS } from "@/lib/navBrand/commands";
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
@@ -51,11 +50,16 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 	<div class="nav-brand">
 		<!-- Expanded: visitor-aware shell prompt -->
 		<div class="nav-brand-expanded-content">
-			<div
+			<button
+				type="button"
 				class="nav-brand-prompt"
+				id="nav-brand-terminal-trigger"
+				data-navbrand-terminal-trigger
+				data-navbrand-terminal-source="sidebar-expanded"
 				data-navbrand-state="arrival"
 				data-navbrand-effect="none"
-				data-navbrand-tone="normal">
+				data-navbrand-tone="normal"
+				aria-label="Open terminal">
 				<span class="nav-brand-line">
 					<span class="nav-brand-chrome">┌─[</span><span id="nav-brand-name" class="nav-brand-name">alex</span><span
 						class="nav-brand-chrome">@</span
@@ -72,59 +76,22 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
 					></span>
 				</span>
-				<div class="nav-brand-command-row" id="nav-brand-command-row" role="group" aria-label="Quick navbrand commands">
-					{
-						NAVBRAND_COMMANDS.filter((command) => NAVBRAND_VISIBLE_COMMAND_IDS.includes(command.id)).map((command) =>
-							command.action === "navigate" && command.href ? (
-								<a
-									class="nav-brand-command"
-									href={command.href}
-									data-navbrand-command={command.id}
-									data-navbrand-command-action={command.action}
-									data-navbrand-command-hint={command.hint}
-									aria-label={command.description}>
-									<span class="nav-brand-command-chrome">:</span>
-									<span class="nav-brand-command-text">{command.command}</span>
-								</a>
-							) : (
-								<button
-									type="button"
-									class="nav-brand-command"
-									data-navbrand-command={command.id}
-									data-navbrand-command-action={command.action}
-									data-navbrand-command-hint={command.hint}
-									aria-label={command.description}>
-									<span class="nav-brand-command-chrome">:</span>
-									<span class="nav-brand-command-text">{command.command}</span>
-								</button>
-							)
-						)
-					}
-				</div>
-				<form class="nav-brand-command-form" id="nav-brand-command-form" novalidate>
-					<label class="nav-brand-line nav-brand-command-input-row" for="nav-brand-command-input">
-						<span class="nav-brand-chrome">│ </span><span class="nav-brand-command-chrome">:</span><input
-							id="nav-brand-command-input"
-							class="nav-brand-command-input"
-							type="text"
-							name="command"
-							autocomplete="off"
-							autocapitalize="none"
-							autocorrect="off"
-							spellcheck="false"
-							enterkeyhint="go"
-							placeholder="run a command"
-							aria-label="Run a navbrand command"
-						/>
-					</label>
-				</form>
+				<!-- Phase 3 teaser contract: this stays lightweight and only advertises
+				terminal intent. `src/scripts/navBrand.ts` listens for interaction here
+				and dispatches the shared `navbrand:open-terminal` event; the modal task
+				owns the actual terminal window lifecycle. -->
+				<span class="nav-brand-line nav-brand-teaser-line">
+					<span class="nav-brand-chrome">│ </span><span id="nav-brand-teaser" class="nav-brand-teaser-text"
+						>open terminal</span
+					>
+				</span>
 				<span class="nav-brand-line">
 					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
 						class="nav-brand-chrome">
 						~
 					</span><span class="blink nav-brand-cursor" data-cursor-mode="active" aria-hidden="true">_</span>
 				</span>
-			</div>
+			</button>
 		</div>
 		<!-- Collapsed: avatar only (tab button outside handles expand) -->
 		<div class="nav-brand-collapsed-content" aria-hidden="true">

@@ -19,15 +19,6 @@ import {
 	type NavBrandTone,
 } from "@/lib/navBrand/cursor";
 import {
-	NAVBRAND_COMMAND_PROMPT_HINT,
-	NAVBRAND_UNKNOWN_COMMAND_HINT,
-	buildNavBrandCommandIntent,
-	getNavBrandCommand,
-	resolveNavBrandCommandInput,
-	type NavBrandCommandDefinition,
-	type NavBrandCommandId,
-} from "@/lib/navBrand/commands";
-import {
 	NAVBRAND_MESSAGE_POOLS,
 	getFeltDuration,
 	getMilestoneGreeting,
@@ -48,10 +39,12 @@ import {
 	shouldShowSystemMessage,
 	type NavBrandState,
 } from "@/lib/navBrand/state";
+import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 import { playNavBrandEffect, resetNavBrandEffect } from "@/lib/navBrand/effects";
-import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 const SESSION_KEY = "nav-brand-visited";
+const NAVBRAND_TERMINAL_TEASER_HINT = "open terminal";
+const NAVBRAND_TERMINAL_TEASER_SUBLINE = "search, explore, tune the signal";
 
 type MessageCategory = keyof typeof NAVBRAND_MESSAGE_POOLS;
 
@@ -61,9 +54,8 @@ type NavBrandElements = {
 	subRow: HTMLElement | null;
 	subline: HTMLElement | null;
 	cursor: HTMLElement | null;
-	commandRow: HTMLElement | null;
-	commandForm: HTMLFormElement | null;
-	commandInput: HTMLInputElement | null;
+	teaserTrigger: HTMLElement | null;
+	teaserText: HTMLElement | null;
 };
 
 type RenderState = {
@@ -83,9 +75,14 @@ type NavBrandMemory = {
 	lastEffectTs: number;
 	lastIdleTs: number;
 	lastReturnTs: number;
-	lastHintCommandId: NavBrandCommandId | null;
 	idleCount: number;
 };
+
+declare global {
+	interface DocumentEventMap {
+		[NAVBRAND_OPEN_TERMINAL_EVENT]: CustomEvent<NavBrandTerminalOpenDetail>;
+	}
+}
 
 let elements: NavBrandElements = getElements();
 let idleTimer: number | null = null;
@@ -104,7 +101,6 @@ const memory: NavBrandMemory = {
 	lastEffectTs: 0,
 	lastIdleTs: 0,
 	lastReturnTs: 0,
-	lastHintCommandId: null,
 	idleCount: 0,
 };
 
@@ -126,9 +122,8 @@ function getElements(): NavBrandElements {
 		subRow: document.getElementById("nav-brand-sub-row"),
 		subline: document.getElementById("nav-brand-sub"),
 		cursor: document.querySelector(".nav-brand-cursor"),
-		commandRow: document.getElementById("nav-brand-command-row"),
-		commandForm: document.getElementById("nav-brand-command-form") as HTMLFormElement | null,
-		commandInput: document.getElementById("nav-brand-command-input") as HTMLInputElement | null,
+		teaserTrigger: document.querySelector("[data-navbrand-terminal-trigger]"),
+		teaserText: document.getElementById("nav-brand-teaser"),
 	};
 }
 
@@ -174,20 +169,10 @@ function setSubline(subline: string | null): void {
 	}
 }
 
-function setActiveCommand(commandId: NavBrandCommandId | null): void {
+function setTeaserText(text: string): void {
 	elements = getElements();
-	if (!elements.commandRow) return;
-
-	const commands = elements.commandRow.querySelectorAll<HTMLElement>("[data-navbrand-command]");
-	for (const command of commands) {
-		command.dataset.navbrandCommandActive = command.dataset.navbrandCommand === commandId ? "true" : "false";
-	}
-}
-
-function setCommandInputValue(value: string): void {
-	elements = getElements();
-	if (!elements.commandInput) return;
-	elements.commandInput.value = value;
+	if (!elements.teaserText) return;
+	elements.teaserText.textContent = text;
 }
 
 /**
@@ -232,7 +217,7 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 
 	if (state !== "hint") {
 		hintTimer = clearTimer(hintTimer);
-		setActiveCommand(null);
+		setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 	}
 
 	if (effect !== "none") {
@@ -258,14 +243,13 @@ function choosePoolMessage(category: MessageCategory): string {
 	return greeting;
 }
 
-function renderHint(greeting: string, commandId: NavBrandCommandId | null): void {
+function renderHint(greeting: string, subline = getSubline()): void {
 	renderNavBrand({
 		state: "hint",
 		greeting,
-		subline: getSubline(),
+		subline,
 		mode: "tod",
 	});
-	setActiveCommand(commandId);
 
 	hintTimer = clearTimer(hintTimer);
 	hintTimer = window.setTimeout(() => {
@@ -411,169 +395,37 @@ function renderReturn(): void {
 	scheduleIdleTimer();
 }
 
-function focusSearchInput(): boolean {
-	const selectors = [
-		'#floating-searchbox input[type="text"]',
-		"#page-searchbox input[type='text']",
-		".pagefind-ui__search-input",
-	];
-	for (const selector of selectors) {
-		const input = document.querySelector(selector) as HTMLInputElement | null;
-		if (input) {
-			input.focus();
-			return true;
-		}
-	}
-
-	return false;
-}
-
-function openSearchSurface(query?: string): void {
-	if (query && query.trim()) {
-		const encodedQuery = encodeURIComponent(query.trim());
-		const searchPath = `/search?q=${encodedQuery}`;
-		if (window.location.pathname === "/search") {
-			const searchInput = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null;
-			if (searchInput) {
-				searchInput.value = query.trim();
-				searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-				searchInput.focus();
-				window.history.replaceState({}, "", searchPath);
-				return;
-			}
-		}
-
-		window.location.assign(searchPath);
-		return;
-	}
-
-	const floatingModal = document.getElementById("floating-search-modal");
-	if (floatingModal && !floatingModal.classList.contains("pointer-events-none")) {
-		focusSearchInput();
-		return;
-	}
-
-	const floatingSearchButton = document.getElementById("open-floating-search") as HTMLButtonElement | null;
-	if (floatingSearchButton) {
-		floatingSearchButton.click();
-		window.setTimeout(() => {
-			focusSearchInput();
-		}, 60);
-		return;
-	}
-
-	if (focusSearchInput()) return;
-	if (window.location.pathname !== "/search") {
-		window.location.assign("/search");
-	}
-}
-
-function applyToggleIntent(target: string, value: string | boolean): void {
-	if (target === "theme") {
-		if (value === "toggle") {
-			handleThemeToggle();
-			return;
-		}
-
-		disableMatchDeviceTheme();
-		setTheme(value as Theme);
-		return;
-	}
-
-	if (target === "sidebar-collapse") {
-		const collapseTab = document.getElementById("sidebar-collapse-tab") as HTMLButtonElement | null;
-		if (!collapseTab) return;
-
-		const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
-		const shouldCollapse = value === "collapse";
-		if (isCollapsed !== shouldCollapse) {
-			collapseTab.click();
-		}
-		return;
-	}
-
-	const toggle = document.getElementById(target) as HTMLInputElement | null;
-	if (!toggle) return;
-	if (toggle.checked !== value) {
-		toggle.click();
-	}
-}
-
-/**
- * The terminal layer never performs content retrieval itself.
- * `search` and `/` always route into the dedicated Pagefind surfaces instead:
- * the floating modal when present, otherwise the real `/search` page.
- */
-function showCommandHint(command: NavBrandCommandDefinition): void {
-	memory.lastHintCommandId = command.id;
-	renderHint(command.hint, command.id);
-}
-
-function handleResolvedCommand(resolvedCommand: ReturnType<typeof resolveNavBrandCommandInput>): void {
-	if (!resolvedCommand) {
-		renderHint(NAVBRAND_UNKNOWN_COMMAND_HINT, null);
-		setCommandInputValue("");
-		return;
-	}
-
-	const { command } = resolvedCommand;
-	const intent = buildNavBrandCommandIntent(resolvedCommand);
-	if (!intent) {
-		renderHint(NAVBRAND_UNKNOWN_COMMAND_HINT, null);
-		setCommandInputValue("");
-		return;
-	}
-
-	if (intent.type === "search-handoff") {
-		showCommandHint(command);
-		openSearchSurface(intent.query ?? undefined);
-		setCommandInputValue("");
-		return;
-	}
-
-	if (intent.type === "message") {
-		renderHint(intent.message, command.id);
-		setCommandInputValue("");
-		return;
-	}
-
-	if (intent.type === "navigate") {
-		window.location.assign(intent.href);
-		return;
-	}
-
-	if (intent.type === "external-link") {
-		window.location.assign(intent.href);
-		setCommandInputValue("");
-		return;
-	}
-
-	if (intent.type === "toggle-pref") {
-		applyToggleIntent(intent.target, intent.value);
-		renderHint(command.hint, command.id);
-		setCommandInputValue("");
-	}
-}
-
-function getCommandTarget(target: EventTarget | null): HTMLElement | null {
+function getTeaserTrigger(target: EventTarget | null): HTMLElement | null {
 	if (!(target instanceof Element)) return null;
-	return target.closest<HTMLElement>("[data-navbrand-command]");
+	return target.closest<HTMLElement>("[data-navbrand-terminal-trigger]");
 }
 
-function shouldKeepHintForRelatedTarget(relatedTarget: EventTarget | null): boolean {
-	const nextTarget = getCommandTarget(relatedTarget);
-	return nextTarget !== null;
+function isWithinTeaser(relatedTarget: EventTarget | null): boolean {
+	return getTeaserTrigger(relatedTarget) !== null;
 }
 
-function restoreAfterCommandHint(): void {
+function restoreAfterTeaserHint(): void {
 	if (memory.lastState === "hint") {
 		renderActive({ allowSystem: false });
 	}
 }
 
-function getCommandFormTarget(target: EventTarget | null): HTMLFormElement | null {
-	if (!(target instanceof Element)) return null;
-	return target.closest<HTMLFormElement>("#nav-brand-command-form");
+/**
+ * Task 2 boundary:
+ * the sidebar no longer owns terminal execution. It only advertises intent by
+ * dispatching a single custom event. Task 3's modal coordinator should listen
+ * for `navbrand:open-terminal` and decide how to open the shared terminal
+ * window for the reported source/trigger combination.
+ */
+function dispatchOpenTerminal(trigger: NavBrandTerminalOpenDetail["trigger"], target: HTMLElement): void {
+	document.dispatchEvent(
+		new CustomEvent<NavBrandTerminalOpenDetail>(NAVBRAND_OPEN_TERMINAL_EVENT, {
+			detail: {
+				source: target.dataset.navbrandTerminalSource ?? "sidebar-expanded",
+				trigger,
+			},
+		})
+	);
 }
 
 /** Reset idle after meaningful activity while respecting hidden-tab pauses. */
@@ -625,86 +477,42 @@ function bindListeners(): void {
 	}
 
 	document.addEventListener("pointerover", (event) => {
-		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget) return;
-
-		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
-		if (!commandId) return;
-
-		showCommandHint(getNavBrandCommand(commandId));
+		if (!getTeaserTrigger(event.target)) return;
+		setTeaserText("launch terminal");
+		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("focusin", (event) => {
-		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget) {
-			if (getCommandFormTarget(event.target)) {
-				renderHint(NAVBRAND_COMMAND_PROMPT_HINT, null);
-			}
-			return;
-		}
-
-		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
-		if (!commandId) return;
-
-		showCommandHint(getNavBrandCommand(commandId));
+		if (!getTeaserTrigger(event.target)) return;
+		setTeaserText("press enter");
+		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("pointerout", (event) => {
-		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget || shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
-		restoreAfterCommandHint();
+		if (!getTeaserTrigger(event.target) || isWithinTeaser(event.relatedTarget)) return;
+		restoreAfterTeaserHint();
 	});
 
 	document.addEventListener("focusout", (event) => {
-		const commandTarget = getCommandTarget(event.target);
-		if (commandTarget) {
-			if (shouldKeepHintForRelatedTarget(event.relatedTarget)) return;
-			restoreAfterCommandHint();
-			return;
-		}
-
-		if (getCommandFormTarget(event.target) && !getCommandFormTarget(event.relatedTarget)) {
-			restoreAfterCommandHint();
-		}
+		if (!getTeaserTrigger(event.target) || isWithinTeaser(event.relatedTarget)) return;
+		restoreAfterTeaserHint();
 	});
 
 	document.addEventListener("click", (event) => {
-		const commandTarget = getCommandTarget(event.target);
-		if (!commandTarget) return;
-
-		const commandId = commandTarget.dataset.navbrandCommand as NavBrandCommandId | undefined;
-		if (!commandId) return;
-
-		const command = getNavBrandCommand(commandId);
-		if (command.action === "navigate") return;
-
+		const teaserTrigger = getTeaserTrigger(event.target);
+		if (!teaserTrigger) return;
+		if (event.detail === 0) return;
 		event.preventDefault();
-		handleResolvedCommand({
-			command,
-			query: null,
-		});
-	});
-
-	document.addEventListener("submit", (event) => {
-		const commandForm = getCommandFormTarget(event.target);
-		if (!commandForm) return;
-
-		event.preventDefault();
-		const formData = new FormData(commandForm);
-		const input = String(formData.get("command") ?? "");
-		handleResolvedCommand(resolveNavBrandCommandInput(input));
+		dispatchOpenTerminal("pointer", teaserTrigger);
 	});
 
 	document.addEventListener("keydown", (event) => {
-		const commandInput =
-			event.target instanceof HTMLInputElement && event.target.id === "nav-brand-command-input" ? event.target : null;
-		if (!commandInput) return;
+		const teaserTrigger = getTeaserTrigger(event.target);
+		if (!teaserTrigger) return;
+		if (event.key !== "Enter" && event.key !== " ") return;
 
-		if (event.key === "Escape") {
-			commandInput.blur();
-			commandInput.value = "";
-			restoreAfterCommandHint();
-		}
+		event.preventDefault();
+		dispatchOpenTerminal("keyboard", teaserTrigger);
 	});
 
 	window.addEventListener("focus", onActivity);
@@ -720,6 +528,7 @@ function bindListeners(): void {
 			idleTimer = clearTimer(idleTimer);
 			settleTimer = clearTimer(settleTimer);
 			hintTimer = clearTimer(hintTimer);
+			setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		}
 	});
 }
