@@ -36,7 +36,15 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 		<b>
 			<span class="italic">
-				<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12" aria-hidden="true"></i>
+				<button
+					type="button"
+					class="terminal-header-trigger group inline-flex items-center gap-2 rounded-full border border-transparent bg-transparent px-1 py-0.5 text-inherit transition-[color,transform,border-color] duration-150 hover:-translate-y-px hover:text-secondary focus-visible:border-secondary focus-visible:text-secondary focus-visible:outline-none"
+					data-navbrand-terminal-trigger
+					data-navbrand-terminal-source="header-command-palette"
+					aria-label="Open terminal">
+					<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12" aria-hidden="true"></i>
+					<span class="terminal-header-trigger__nudge md:hidden" aria-hidden="true">&gt;_</span>
+				</button>
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
 						&#x24;HOME
@@ -83,4 +91,36 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 	<script>
 		import "@/scripts/textEffectRegistry";
 	</script>
+
+	<style>
+		/* Shared terminal entry in the header. Mobile keeps a visible `>_` nudge;
+		desktop uses hover/focus to reveal the same prompt without adding another
+		permanent chip beside the breadcrumb line. */
+		.terminal-header-trigger__nudge {
+			border: 1px solid color-mix(in oklab, var(--color-secondary) 32%, transparent);
+			border-radius: 999px;
+			padding: 0.08rem 0.32rem;
+			font-size: 0.62rem;
+			letter-spacing: 0.04em;
+			color: color-mix(in oklab, var(--color-secondary) 78%, var(--color-base-content));
+			background: color-mix(in oklab, var(--color-base-100) 90%, transparent);
+			box-shadow: 0 0 0.8rem color-mix(in oklab, var(--color-secondary) 12%, transparent);
+		}
+
+		@media (min-width: 768px) {
+			.terminal-header-trigger__nudge {
+				opacity: 0;
+				transform: translateX(-0.18rem);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease;
+			}
+
+			.terminal-header-trigger:hover .terminal-header-trigger__nudge,
+			.terminal-header-trigger:focus-visible .terminal-header-trigger__nudge {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+	</style>
 </header>

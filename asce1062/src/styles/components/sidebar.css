@@ -718,6 +718,43 @@ Nav Brand: Expanded / Collapsed header swap
 	pointer-events: none;
 }
 
+.nav-brand-collapsed-trigger {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 0;
+	padding: 0;
+	background: transparent;
+	cursor: e-resize;
+}
+
+.nav-brand-collapsed-trigger::after {
+	content: ">_";
+	position: absolute;
+	left: calc(100% + 0.55rem);
+	top: 50%;
+	transform: translateY(-50%);
+	padding: 0.12rem 0.34rem;
+	border: 1px solid color-mix(in oklab, var(--color-secondary) 34%, transparent);
+	border-radius: 999px;
+	background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+	color: color-mix(in oklab, var(--color-secondary) 82%, var(--color-base-content));
+	font-size: 0.62rem;
+	letter-spacing: 0.04em;
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		opacity 0.22s ease,
+		transform 0.22s ease;
+}
+
+.nav-brand-collapsed-trigger:hover::after,
+.nav-brand-collapsed-trigger:focus-visible::after {
+	opacity: 1;
+	transform: translate(0.12rem, -50%);
+}
+
 /*
 ============================================
 Collapsed header avatar widget

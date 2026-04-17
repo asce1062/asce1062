@@ -45,6 +45,9 @@ import { playNavBrandEffect, resetNavBrandEffect } from "@/lib/navBrand/effects"
 const SESSION_KEY = "nav-brand-visited";
 const NAVBRAND_TERMINAL_TEASER_HINT = "open terminal";
 const NAVBRAND_TERMINAL_TEASER_SUBLINE = "search, explore, tune the signal";
+const NAVBRAND_TERMINAL_NUDGE_MS = 24_000;
+const NAVBRAND_TERMINAL_NUDGE_RESET_MS = 5_500;
+const NAVBRAND_TERMINAL_NUDGES = ["try: whoami", "search the signal", "try: history", "tune the console"] as const;
 
 type MessageCategory = keyof typeof NAVBRAND_MESSAGE_POOLS;
 
@@ -76,6 +79,7 @@ type NavBrandMemory = {
 	lastIdleTs: number;
 	lastReturnTs: number;
 	idleCount: number;
+	lastTeaserNudge: string | null;
 };
 
 declare global {
@@ -88,6 +92,8 @@ let elements: NavBrandElements = getElements();
 let idleTimer: number | null = null;
 let settleTimer: number | null = null;
 let hintTimer: number | null = null;
+let teaserNudgeTimer: number | null = null;
+let teaserResetTimer: number | null = null;
 let listenersBound = false;
 let motionMedia: MediaQueryList | null = null;
 let lastActivityTs = Date.now();
@@ -102,6 +108,7 @@ const memory: NavBrandMemory = {
 	lastIdleTs: 0,
 	lastReturnTs: 0,
 	idleCount: 0,
+	lastTeaserNudge: null,
 };
 
 function getVisitCount(): number {
@@ -175,6 +182,46 @@ function setTeaserText(text: string): void {
 	elements.teaserText.textContent = text;
 }
 
+function getTriggerSource(target: HTMLElement | null): string | null {
+	return target?.dataset.navbrandTerminalSource ?? null;
+}
+
+function isExpandedSidebarTrigger(target: HTMLElement | null): boolean {
+	return getTriggerSource(target) === "sidebar-expanded";
+}
+
+function pickTeaserNudge(): string {
+	const candidates = NAVBRAND_TERMINAL_NUDGES.filter((copy) => copy !== memory.lastTeaserNudge);
+	const pool = candidates.length > 0 ? candidates : [...NAVBRAND_TERMINAL_NUDGES];
+	const choice = pool[Math.floor(Math.random() * pool.length)] ?? NAVBRAND_TERMINAL_TEASER_HINT;
+	memory.lastTeaserNudge = choice;
+	return choice;
+}
+
+function scheduleTeaserNudge(): void {
+	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
+	teaserResetTimer = clearTimer(teaserResetTimer);
+
+	teaserNudgeTimer = window.setTimeout(() => {
+		elements = getElements();
+		if (!elements.teaserTrigger || !elements.teaserText) return;
+		if (document.visibilityState !== "visible") return;
+		if (memory.lastState === "hint" || memory.lastState === "idle" || memory.lastState === "return") return;
+		if (elements.teaserTrigger.matches(":hover, :focus-visible, :focus-within")) {
+			scheduleTeaserNudge();
+			return;
+		}
+
+		setTeaserText(pickTeaserNudge());
+		teaserResetTimer = window.setTimeout(() => {
+			if (memory.lastState !== "hint") {
+				setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
+			}
+		}, NAVBRAND_TERMINAL_NUDGE_RESET_MS);
+		scheduleTeaserNudge();
+	}, NAVBRAND_TERMINAL_NUDGE_MS);
+}
+
 /**
  * Single render entrypoint.
  *
@@ -218,6 +265,7 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 	if (state !== "hint") {
 		hintTimer = clearTimer(hintTimer);
 		setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
+		scheduleTeaserNudge();
 	}
 
 	if (effect !== "none") {
@@ -358,6 +406,8 @@ function getActiveCategory(): MessageCategory {
 
 function renderIdle(): void {
 	settleTimer = clearTimer(settleTimer);
+	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
+	teaserResetTimer = clearTimer(teaserResetTimer);
 	const now = Date.now();
 	const category: MessageCategory = memory.idleCount > 0 ? "idleEscalation" : "idle";
 	const greeting = choosePoolMessage(category);
@@ -477,24 +527,28 @@ function bindListeners(): void {
 	}
 
 	document.addEventListener("pointerover", (event) => {
-		if (!getTeaserTrigger(event.target)) return;
+		const trigger = getTeaserTrigger(event.target);
+		if (!trigger || !isExpandedSidebarTrigger(trigger)) return;
 		setTeaserText("launch terminal");
 		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("focusin", (event) => {
-		if (!getTeaserTrigger(event.target)) return;
+		const trigger = getTeaserTrigger(event.target);
+		if (!trigger || !isExpandedSidebarTrigger(trigger)) return;
 		setTeaserText("press enter");
 		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("pointerout", (event) => {
-		if (!getTeaserTrigger(event.target) || isWithinTeaser(event.relatedTarget)) return;
+		const trigger = getTeaserTrigger(event.target);
+		if (!trigger || !isExpandedSidebarTrigger(trigger) || isWithinTeaser(event.relatedTarget)) return;
 		restoreAfterTeaserHint();
 	});
 
 	document.addEventListener("focusout", (event) => {
-		if (!getTeaserTrigger(event.target) || isWithinTeaser(event.relatedTarget)) return;
+		const trigger = getTeaserTrigger(event.target);
+		if (!trigger || !isExpandedSidebarTrigger(trigger) || isWithinTeaser(event.relatedTarget)) return;
 		restoreAfterTeaserHint();
 	});
 
@@ -528,6 +582,8 @@ function bindListeners(): void {
 			idleTimer = clearTimer(idleTimer);
 			settleTimer = clearTimer(settleTimer);
 			hintTimer = clearTimer(hintTimer);
+			teaserNudgeTimer = clearTimer(teaserNudgeTimer);
+			teaserResetTimer = clearTimer(teaserResetTimer);
 			setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		}
 	});
