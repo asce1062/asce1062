@@ -32,9 +32,13 @@ import {
 	RETURN_SETTLE_MS,
 	SYSTEM_MESSAGE_COOLDOWN_MS,
 	SYSTEM_STATE_DURATION_MS,
+	COLLAPSED_NUDGE_VISIBLE_DURATION_MS,
 	RARE_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_CHANCE,
 	chooseTransitionEffect,
+	getScheduledCuriosityDelay,
+	shouldShowCollapsedEventCuriosityNudge,
+	shouldShowScheduledCollapsedCuriosityNudge,
 	shouldShowRareMessage,
 	shouldShowSystemMessage,
 	type NavBrandState,
@@ -48,6 +52,9 @@ const NAVBRAND_TERMINAL_TEASER_SUBLINE = "search, explore, tune the signal";
 const NAVBRAND_TERMINAL_NUDGE_MS = 24_000;
 const NAVBRAND_TERMINAL_NUDGE_RESET_MS = 5_500;
 const NAVBRAND_TERMINAL_NUDGES = ["try: whoami", "search the signal", "try: history", "tune the console"] as const;
+const SIDEBAR_COLLAPSE_EVENT = "sidebar:collapse-change";
+const MOBILE_BREAKPOINT_PX = 768;
+const EARLY_HEADER_NUDGE_PATHS = new Set(["/", "/about", "/hello"]);
 
 type MessageCategory = keyof typeof NAVBRAND_MESSAGE_POOLS;
 
@@ -82,9 +89,17 @@ type NavBrandMemory = {
 	lastTeaserNudge: string | null;
 };
 
+type CuriositySurfaceId = "collapsedSidebar" | "mobileHeader";
+type CuriositySurfaceTimers = {
+	waitTimer: number | null;
+	resetTimer: number | null;
+	scheduledCount: number;
+};
+
 declare global {
 	interface DocumentEventMap {
 		[NAVBRAND_OPEN_TERMINAL_EVENT]: CustomEvent<NavBrandTerminalOpenDetail>;
+		[SIDEBAR_COLLAPSE_EVENT]: CustomEvent<{ collapsed: boolean }>;
 	}
 }
 
@@ -97,6 +112,18 @@ let teaserResetTimer: number | null = null;
 let listenersBound = false;
 let motionMedia: MediaQueryList | null = null;
 let lastActivityTs = Date.now();
+const curiositySurfaces: Record<CuriositySurfaceId, CuriositySurfaceTimers> = {
+	collapsedSidebar: {
+		waitTimer: null,
+		resetTimer: null,
+		scheduledCount: 0,
+	},
+	mobileHeader: {
+		waitTimer: null,
+		resetTimer: null,
+		scheduledCount: 0,
+	},
+};
 
 const memory: NavBrandMemory = {
 	lastState: "arrival",
@@ -190,6 +217,91 @@ function isExpandedSidebarTrigger(target: HTMLElement | null): boolean {
 	return getTriggerSource(target) === "sidebar-expanded";
 }
 
+function getCollapsedSidebarTrigger(): HTMLElement | null {
+	return document.querySelector<HTMLElement>('[data-navbrand-terminal-source="sidebar-collapsed"]');
+}
+
+function getHeaderTerminalTrigger(): HTMLElement | null {
+	return document.querySelector<HTMLElement>('[data-navbrand-terminal-source="header-command-palette"]');
+}
+
+function isDesktopCollapsed(): boolean {
+	return window.innerWidth >= 1024 && document.documentElement.hasAttribute("data-sidebar-collapsed");
+}
+
+function isMobileViewport(): boolean {
+	return window.innerWidth < MOBILE_BREAKPOINT_PX;
+}
+
+function normalizePathname(pathname: string): string {
+	return pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
+function isEarlyHeaderNudgePath(): boolean {
+	return EARLY_HEADER_NUDGE_PATHS.has(normalizePathname(window.location.pathname));
+}
+
+function setCollapsedCuriosity(active: boolean): void {
+	const trigger = getCollapsedSidebarTrigger();
+	if (!trigger) return;
+
+	if (active) {
+		trigger.dataset.navbrandCurious = "true";
+		return;
+	}
+
+	delete trigger.dataset.navbrandCurious;
+}
+
+function setHeaderCuriosity(active: boolean): void {
+	const trigger = getHeaderTerminalTrigger();
+	if (!trigger) return;
+
+	if (active) {
+		trigger.dataset.navbrandCurious = "true";
+		return;
+	}
+
+	delete trigger.dataset.navbrandCurious;
+}
+
+function getCuriositySurfaceTarget(surface: CuriositySurfaceId): HTMLElement | null {
+	return surface === "collapsedSidebar" ? getCollapsedSidebarTrigger() : getHeaderTerminalTrigger();
+}
+
+function setCuriositySurfaceActive(surface: CuriositySurfaceId, active: boolean): void {
+	if (surface === "collapsedSidebar") {
+		setCollapsedCuriosity(active);
+		return;
+	}
+
+	setHeaderCuriosity(active);
+}
+
+function canScheduleCuriositySurface(surface: CuriositySurfaceId): boolean {
+	return surface === "collapsedSidebar" ? isDesktopCollapsed() : isMobileViewport();
+}
+
+function hasEarlyCuriosityNudge(surface: CuriositySurfaceId): boolean {
+	return surface === "collapsedSidebar" ? true : isEarlyHeaderNudgePath();
+}
+
+function getGuaranteedCuriosityCount(surface: CuriositySurfaceId): number {
+	return hasEarlyCuriosityNudge(surface) ? 2 : 1;
+}
+
+function clearCuriositySurfaceTimers(surface: CuriositySurfaceId): void {
+	const timers = curiositySurfaces[surface];
+	timers.waitTimer = clearTimer(timers.waitTimer);
+	timers.resetTimer = clearTimer(timers.resetTimer);
+	setCuriositySurfaceActive(surface, false);
+}
+
+function resetCuriositySurface(surface: CuriositySurfaceId): void {
+	clearCuriositySurfaceTimers(surface);
+	curiositySurfaces[surface].scheduledCount = 0;
+}
+
 function pickTeaserNudge(): string {
 	const candidates = NAVBRAND_TERMINAL_NUDGES.filter((copy) => copy !== memory.lastTeaserNudge);
 	const pool = candidates.length > 0 ? candidates : [...NAVBRAND_TERMINAL_NUDGES];
@@ -220,6 +332,75 @@ function scheduleTeaserNudge(): void {
 		}, NAVBRAND_TERMINAL_NUDGE_RESET_MS);
 		scheduleTeaserNudge();
 	}, NAVBRAND_TERMINAL_NUDGE_MS);
+}
+
+function scheduleCuriositySurface(surface: CuriositySurfaceId): void {
+	const timers = curiositySurfaces[surface];
+	timers.waitTimer = clearTimer(timers.waitTimer);
+	timers.resetTimer = clearTimer(timers.resetTimer);
+	setCuriositySurfaceActive(surface, false);
+
+	const delay = getScheduledCuriosityDelay({
+		scheduledCount: timers.scheduledCount,
+		earlyEligible: hasEarlyCuriosityNudge(surface),
+	});
+
+	timers.waitTimer = window.setTimeout(() => {
+		const trigger = getCuriositySurfaceTarget(surface);
+		if (!trigger) return;
+		if (!canScheduleCuriositySurface(surface)) {
+			scheduleCuriositySurface(surface);
+			return;
+		}
+		if (document.visibilityState !== "visible") {
+			scheduleCuriositySurface(surface);
+			return;
+		}
+		if (trigger.matches(":hover, :focus-visible, :focus-within, :active")) {
+			scheduleCuriositySurface(surface);
+			return;
+		}
+
+		if (
+			!shouldShowScheduledCollapsedCuriosityNudge({
+				scheduledCount: timers.scheduledCount,
+				randomValue: Math.random(),
+				guaranteedCount: getGuaranteedCuriosityCount(surface),
+			})
+		) {
+			scheduleCuriositySurface(surface);
+			return;
+		}
+
+		setCuriositySurfaceActive(surface, true);
+		timers.scheduledCount += 1;
+		timers.resetTimer = window.setTimeout(() => {
+			setCuriositySurfaceActive(surface, false);
+			scheduleCuriositySurface(surface);
+		}, COLLAPSED_NUDGE_VISIBLE_DURATION_MS);
+	}, delay);
+}
+
+function triggerCollapsedCuriosityNudge(immediate = false): void {
+	resetCuriositySurface("collapsedSidebar");
+	scheduleCuriositySurface("collapsedSidebar");
+	if (!immediate) return;
+
+	const timers = curiositySurfaces.collapsedSidebar;
+	timers.waitTimer = clearTimer(timers.waitTimer);
+	timers.waitTimer = window.setTimeout(() => {
+		const trigger = getCollapsedSidebarTrigger();
+		if (!trigger || !isDesktopCollapsed() || document.visibilityState !== "visible") {
+			scheduleCuriositySurface("collapsedSidebar");
+			return;
+		}
+
+		setCollapsedCuriosity(true);
+		timers.resetTimer = window.setTimeout(() => {
+			setCollapsedCuriosity(false);
+			scheduleCuriositySurface("collapsedSidebar");
+		}, COLLAPSED_NUDGE_VISIBLE_DURATION_MS);
+	}, 1200);
 }
 
 /**
@@ -266,6 +447,8 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 		hintTimer = clearTimer(hintTimer);
 		setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		scheduleTeaserNudge();
+		scheduleCuriositySurface("collapsedSidebar");
+		scheduleCuriositySurface("mobileHeader");
 	}
 
 	if (effect !== "none") {
@@ -408,6 +591,8 @@ function renderIdle(): void {
 	settleTimer = clearTimer(settleTimer);
 	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
 	teaserResetTimer = clearTimer(teaserResetTimer);
+	clearCuriositySurfaceTimers("collapsedSidebar");
+	clearCuriositySurfaceTimers("mobileHeader");
 	const now = Date.now();
 	const category: MessageCategory = memory.idleCount > 0 ? "idleEscalation" : "idle";
 	const greeting = choosePoolMessage(category);
@@ -507,12 +692,14 @@ function onNewVisit(): void {
 	setPref(PREF_KEYS.navBrandLastVisit, String(now));
 	setSessionFlag();
 	lastActivityTs = now;
+	resetCuriositySurface("mobileHeader");
 	renderArrival(previousLastVisitTs);
 	scheduleIdleTimer();
 }
 
 function onSoftNav(): void {
 	lastActivityTs = Date.now();
+	resetCuriositySurface("mobileHeader");
 	renderActive();
 	scheduleIdleTimer();
 }
@@ -584,8 +771,24 @@ function bindListeners(): void {
 			hintTimer = clearTimer(hintTimer);
 			teaserNudgeTimer = clearTimer(teaserNudgeTimer);
 			teaserResetTimer = clearTimer(teaserResetTimer);
+			clearCuriositySurfaceTimers("collapsedSidebar");
+			clearCuriositySurfaceTimers("mobileHeader");
 			setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		}
+	});
+
+	document.addEventListener(SIDEBAR_COLLAPSE_EVENT, (event) => {
+		if (event.detail.collapsed) {
+			if (shouldShowCollapsedEventCuriosityNudge({ randomValue: Math.random() })) {
+				triggerCollapsedCuriosityNudge(true);
+			} else {
+				resetCuriositySurface("collapsedSidebar");
+				scheduleCuriositySurface("collapsedSidebar");
+			}
+			return;
+		}
+
+		resetCuriositySurface("collapsedSidebar");
 	});
 }
 

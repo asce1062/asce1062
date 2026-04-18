@@ -29,8 +29,14 @@
  * Trigger vocabulary:
  *   - `load`          : play immediately when bound
  *   - `hover`         : play on mouseenter
+ *   - `focus`         : play when the element receives focus
+ *   - `activate`      : semantic alias for tap + click activation
  *   - `tap`           : play on touchstart
  *   - `click`         : play on click (desktop-friendly activation)
+ *   - `resume`        : play when the tab becomes visible again
+ *   - `route-enter`   : play after Astro soft-navigation swaps in the route
+ *   - `intersection`  : play when the element scrolls into view
+ *   - `idle-return`   : play when the user returns after inactivity
  *   - `manual`        : reserved for explicit external triggering
  *   - `random-effect` : randomize across the element's declared effect list
  *   - `random-time`   : replay on an interval
@@ -38,7 +44,7 @@
  * Declarative markup contract:
  *   data-text-effect="typing"
  *   data-text-effect="typing, decrypt"
- *   data-text-effect-triggers="load, hover, tap, click, random-effect, random-time"
+ *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"
  *
  * Design constraints:
@@ -53,7 +59,20 @@
 import type { NavBrandEffect } from "@/lib/navBrand/state";
 
 export type TerminalTextEffectKind = Exclude<NavBrandEffect, "none">;
-export type TerminalTextEffectTrigger = "load" | "hover" | "tap" | "click" | "manual" | "random-effect" | "random-time";
+export type TerminalTextEffectTrigger =
+	| "load"
+	| "hover"
+	| "focus"
+	| "activate"
+	| "tap"
+	| "click"
+	| "resume"
+	| "route-enter"
+	| "intersection"
+	| "idle-return"
+	| "manual"
+	| "random-effect"
+	| "random-time";
 
 export type TerminalTextEffectConfig = {
 	effects: TerminalTextEffectKind[];
@@ -69,15 +88,29 @@ export type TerminalTextEffectConfig = {
  */
 export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap", "click"];
 export const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
+export const DEFAULT_IDLE_RETURN_DELAY_MS = 45_000;
 
 const DECRYPT_CHARS = "░▒▓█▐▌▄▀■□▪▫◆◇○●◌◍◎◉▶▷◀◁▸▹◂◃⬛⬜▬▭▮▯◥◤◣◢◿█▄▌▐▀▘▝▀▖▍▞▛▗▚▐▜▃▙▟▉";
 const DEFAULT_TYPING_STEP_MS = 26;
+const DEFAULT_TYPING_STEP_VARIANCE_MS = 42;
+const DEFAULT_TYPING_MIN_DURATION_MS = 780;
+const DEFAULT_TYPING_MAX_DURATION_MS = 2_400;
+const DEFAULT_TYPING_BASE_MULTIPLIER = 2.4;
+const DEFAULT_TYPING_SHORT_TEXT_THRESHOLD = 8;
+const DEFAULT_TYPING_SHORT_TEXT_BONUS_MULTIPLIER = 1.4;
+const DEFAULT_TYPING_LEAD_IN_MS = 120;
+const DEFAULT_TYPING_END_BLINK_INTERVAL_MS = 110;
+const DEFAULT_TYPING_END_BLINK_COUNT = 2;
 const DEFAULT_DECRYPT_DURATION_MS = 700;
 const DEFAULT_DECRYPT_TOTAL_FRAMES = 40;
+const TERMINAL_BLOCK_CURSOR = "█";
 
 type ActiveEffectHandle = {
 	cancel: () => void;
 };
+
+type TimeoutHandle = ReturnType<typeof globalThis.setTimeout>;
+type IntervalHandle = ReturnType<typeof globalThis.setInterval>;
 
 type TerminalTextEffectOptions = {
 	durationMs?: number;
@@ -92,15 +125,21 @@ const triggerHandlers = new WeakMap<
 	HTMLElement,
 	{
 		mouseenter: EventListener;
+		focusin: EventListener;
 		touchstart: EventListener;
 		click: EventListener;
 	}
 >();
-const randomTimers = new WeakMap<HTMLElement, number>();
+const randomTimers = new WeakMap<HTMLElement, IntervalHandle>();
+const triggerCleanups = new WeakMap<HTMLElement, Array<() => void>>();
 
 function clearActiveEffect(el: HTMLElement): void {
 	activeEffects.get(el)?.cancel();
 	activeEffects.delete(el);
+}
+
+function hasActiveEffect(el: HTMLElement): boolean {
+	return activeEffects.has(el);
 }
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
@@ -130,6 +169,45 @@ function normalizeTerminalTextEffectKinds(effects: TerminalTextEffectKind[]): Te
 	return [...new Set(effects)];
 }
 
+function clearTriggerBindings(el: HTMLElement): void {
+	const cleanups = triggerCleanups.get(el) ?? [];
+	for (const cleanup of cleanups) cleanup();
+	triggerCleanups.delete(el);
+}
+
+function registerTriggerCleanup(el: HTMLElement, cleanup: () => void): void {
+	const cleanups = triggerCleanups.get(el) ?? [];
+	cleanups.push(cleanup);
+	triggerCleanups.set(el, cleanups);
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Resolve a bounded total typing duration for the provided text.
+ *
+ * Short labels such as "Alex" or ">_" need extra dwell time so they still read
+ * as a deliberate typewriter flourish. Longer strings naturally earn more time,
+ * but stay capped so decorative copy does not drag.
+ */
+export function resolveTypingDurationMs(text: string, typingStepMs = DEFAULT_TYPING_STEP_MS): number {
+	const length = Math.max(text.trim().length, 1);
+	const shortTextBonus = Math.max(0, DEFAULT_TYPING_SHORT_TEXT_THRESHOLD - length);
+	const duration =
+		DEFAULT_TYPING_LEAD_IN_MS +
+		length * typingStepMs * DEFAULT_TYPING_BASE_MULTIPLIER +
+		shortTextBonus * typingStepMs * DEFAULT_TYPING_SHORT_TEXT_BONUS_MULTIPLIER;
+
+	return clamp(duration, DEFAULT_TYPING_MIN_DURATION_MS, DEFAULT_TYPING_MAX_DURATION_MS);
+}
+
+function renderTypingFrame(text: string, visibleLength: number, showCursor: boolean): string {
+	const resolvedText = text.slice(0, visibleLength);
+	return showCursor ? `${resolvedText}${TERMINAL_BLOCK_CURSOR}` : resolvedText;
+}
+
 export function resolveTerminalTextEffectKind(
 	effects: TerminalTextEffectKind[],
 	useRandomEffect: boolean,
@@ -149,7 +227,7 @@ export function resolveTerminalTextEffectKind(
  *
  * Supported attributes:
  * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt"`
- * - `data-text-effect-triggers="load, hover, click, random-effect, random-time"`
+ * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"`
  * - `data-text-effect-interval-ms="18000"`
  *
  * Parsing is intentionally strict:
@@ -237,23 +315,55 @@ export function playTerminalTextEffect(options: {
 	setRootEffect(rootEl, effect, rootEffectDataset);
 
 	if (effect === "typing") {
-		const stepMs = typingStepMs ?? DEFAULT_TYPING_STEP_MS;
-		el.textContent = "";
+		const resolvedDurationMs = resolveTypingDurationMs(text, typingStepMs ?? DEFAULT_TYPING_STEP_MS);
+		const averageStepMs = Math.max((resolvedDurationMs - DEFAULT_TYPING_LEAD_IN_MS) / Math.max(text.length, 1), 1);
+		el.textContent = renderTypingFrame("", 0, true);
 		let index = 0;
-		const timeoutId = window.setInterval(() => {
+		let timeoutId: TimeoutHandle;
+		let trailingBlinkCount = 0;
+		const finish = () => {
+			activeEffects.delete(el);
+			el.textContent = text;
+			setRootEffect(rootEl, "none", rootEffectDataset);
+			onComplete?.();
+		};
+		const scheduleTrailingBlink = () => {
+			timeoutId = globalThis.setTimeout(() => {
+				trailingBlinkCount += 1;
+				const showCursor = trailingBlinkCount % 2 === 1;
+				el.textContent = renderTypingFrame(text, text.length, showCursor);
+
+				if (trailingBlinkCount >= DEFAULT_TYPING_END_BLINK_COUNT * 2) {
+					finish();
+					return;
+				}
+
+				scheduleTrailingBlink();
+			}, DEFAULT_TYPING_END_BLINK_INTERVAL_MS);
+		};
+		const scheduleNext = () => {
+			const variance = Math.random() * Math.min(DEFAULT_TYPING_STEP_VARIANCE_MS, averageStepMs * 0.45);
+			const punctuationPause = /[.,;:!?]/.test(text[index] ?? "") ? averageStepMs * 0.9 : 0;
+			const baseDelay = averageStepMs * (0.72 + Math.random() * 0.42);
+			const leadIn = index === 0 ? DEFAULT_TYPING_LEAD_IN_MS : 0;
+			timeoutId = globalThis.setTimeout(tick, baseDelay + variance + punctuationPause + leadIn);
+		};
+		const tick = () => {
 			index += 1;
-			el.textContent = text.slice(0, index);
+			el.textContent = renderTypingFrame(text, index, true);
 
 			if (index >= text.length) {
-				window.clearInterval(timeoutId);
-				activeEffects.delete(el);
-				setRootEffect(rootEl, "none", rootEffectDataset);
-				onComplete?.();
+				scheduleTrailingBlink();
+				return;
 			}
-		}, stepMs);
+
+			scheduleNext();
+		};
+
+		scheduleNext();
 
 		activeEffects.set(el, {
-			cancel: () => window.clearInterval(timeoutId),
+			cancel: () => globalThis.clearTimeout(timeoutId),
 		});
 		return true;
 	}
@@ -262,7 +372,7 @@ export function playTerminalTextEffect(options: {
 	const totalDuration = durationMs ?? DEFAULT_DECRYPT_DURATION_MS;
 	let frame = 0;
 	const frameInterval = totalDuration / totalFrames;
-	const intervalId = window.setInterval(() => {
+	const intervalId = globalThis.setInterval(() => {
 		const resolved = Math.floor((frame / totalFrames) * text.length);
 
 		el.textContent = text
@@ -277,7 +387,7 @@ export function playTerminalTextEffect(options: {
 		frame += 1;
 
 		if (frame >= totalFrames) {
-			window.clearInterval(intervalId);
+			globalThis.clearInterval(intervalId);
 			activeEffects.delete(el);
 			el.textContent = text;
 			setRootEffect(rootEl, "none", rootEffectDataset);
@@ -286,7 +396,7 @@ export function playTerminalTextEffect(options: {
 	}, frameInterval);
 
 	activeEffects.set(el, {
-		cancel: () => window.clearInterval(intervalId),
+		cancel: () => globalThis.clearInterval(intervalId),
 	});
 	return true;
 }
@@ -337,8 +447,15 @@ export function bindTerminalTextEffectTriggers(options: {
 	const candidateEffects = normalizeTerminalTextEffectKinds(effects ?? (effect ? [effect] : ["typing"]));
 	const textReader = getText ?? ((node: HTMLElement) => node.dataset.greetingTarget ?? node.textContent?.trim() ?? "");
 	const useRandomEffect = shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "random-effect");
+	const shouldBindTap =
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "tap") ||
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "activate");
+	const shouldBindClick =
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "click") ||
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "activate");
 
 	const play = () => {
+		if (hasActiveEffect(el)) return;
 		const text = textReader(el);
 		if (!text) return;
 		playTerminalTextEffect({
@@ -350,8 +467,11 @@ export function bindTerminalTextEffectTriggers(options: {
 		});
 	};
 
+	clearTriggerBindings(el);
+
 	const handlers = triggerHandlers.get(el) ?? {
 		mouseenter: () => play(),
+		focusin: () => play(),
 		touchstart: () => play(),
 		click: () => play(),
 	};
@@ -362,12 +482,13 @@ export function bindTerminalTextEffectTriggers(options: {
 	}
 
 	el.removeEventListener("mouseenter", handlers.mouseenter);
+	el.removeEventListener("focusin", handlers.focusin);
 	el.removeEventListener("touchstart", handlers.touchstart);
 	el.removeEventListener("click", handlers.click);
 
 	const existingRandomTimer = randomTimers.get(el);
 	if (existingRandomTimer !== undefined) {
-		window.clearInterval(existingRandomTimer);
+		globalThis.clearInterval(existingRandomTimer);
 		randomTimers.delete(el);
 	}
 
@@ -375,18 +496,67 @@ export function bindTerminalTextEffectTriggers(options: {
 		el.addEventListener("mouseenter", handlers.mouseenter);
 	}
 
-	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "tap")) {
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "focus")) {
+		el.addEventListener("focusin", handlers.focusin);
+	}
+
+	if (shouldBindTap) {
 		el.addEventListener("touchstart", handlers.touchstart, { passive: true });
 	}
 
-	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "click")) {
+	if (shouldBindClick) {
 		el.addEventListener("click", handlers.click);
+	}
+
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "resume") && typeof document !== "undefined") {
+		const resumeHandler = () => {
+			if (document.visibilityState === "visible") play();
+		};
+		document.addEventListener("visibilitychange", resumeHandler);
+		registerTriggerCleanup(el, () => document.removeEventListener("visibilitychange", resumeHandler));
+	}
+
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "route-enter") && typeof document !== "undefined") {
+		const routeEnterHandler = () => play();
+		document.addEventListener("astro:after-swap", routeEnterHandler);
+		registerTriggerCleanup(el, () => document.removeEventListener("astro:after-swap", routeEnterHandler));
+	}
+
+	if (
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "intersection") &&
+		typeof IntersectionObserver !== "undefined"
+	) {
+		const observer = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.target === el && entry.isIntersecting) {
+					play();
+				}
+			}
+		});
+		observer.observe(el);
+		registerTriggerCleanup(el, () => observer.disconnect());
+	}
+
+	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "idle-return") && typeof document !== "undefined") {
+		let lastActivityTs = Date.now();
+		const idleReturnHandler = () => {
+			const now = Date.now();
+			const wasIdle = now - lastActivityTs >= DEFAULT_IDLE_RETURN_DELAY_MS;
+			lastActivityTs = now;
+			if (wasIdle && document.visibilityState === "visible") {
+				play();
+			}
+		};
+		for (const eventName of ["mousemove", "keydown", "pointerdown", "touchstart", "focusin"]) {
+			document.addEventListener(eventName, idleReturnHandler);
+			registerTriggerCleanup(el, () => document.removeEventListener(eventName, idleReturnHandler));
+		}
 	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "random-time")) {
 		// Random-time intentionally means "replay on a timer" rather than "random delay once".
 		// The effect kind may also randomize independently via the `random-effect` trigger.
-		const intervalId = window.setInterval(() => {
+		const intervalId = globalThis.setInterval(() => {
 			play();
 		}, randomIntervalMs);
 		randomTimers.set(el, intervalId);

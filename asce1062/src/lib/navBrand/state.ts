@@ -17,6 +17,11 @@ export const RETURN_SETTLE_MS = 4_000;
 export const HINT_STATE_DURATION_MS = 4_500;
 export const SYSTEM_MESSAGE_CHANCE = 0.05;
 export const RARE_MESSAGE_CHANCE = 0.0125;
+export const COLLAPSED_EVENT_NUDGE_CHANCE = 0.14;
+export const COLLAPSED_NUDGE_INITIAL_DELAY_MS = 7_000;
+export const COLLAPSED_NUDGE_REPEAT_DELAY_MS = 22_000;
+export const COLLAPSED_NUDGE_VISIBLE_DURATION_MS = 4_000;
+export const COLLAPSED_SCHEDULED_NUDGE_CHANCE = 0.15;
 export const TRANSITION_EFFECT_CHANCE = 0.18;
 export const DECRYPT_EFFECT_CHANCE = 0.08;
 export const EFFECT_COOLDOWN_MS = 20_000;
@@ -75,6 +80,62 @@ export function shouldShowRareMessage(options: {
 		return false;
 	}
 
+	return randomValue < chance;
+}
+
+/**
+ * Collapsed-sidebar curiosity nudges should stay occasional.
+ *
+ * The coordinator in `src/scripts/navBrand.ts` already runs scheduled nudges.
+ * This helper only decides whether a collapse event has earned an extra prompt
+ * pulse, so the sidebar does not wink at the user every single time it closes.
+ */
+export function shouldShowCollapsedEventCuriosityNudge(options: { randomValue: number; chance?: number }): boolean {
+	const { randomValue, chance = COLLAPSED_EVENT_NUDGE_CHANCE } = options;
+	return randomValue < chance;
+}
+
+/**
+ * Curiosity surfaces can optionally "earn" an earlier first pulse.
+ *
+ * Examples:
+ * - collapsed desktop sidebar gets the early first pulse after collapse
+ * - mobile header only gets the early first pulse on specific routes
+ */
+export function getScheduledCuriosityDelay(options: {
+	scheduledCount: number;
+	earlyEligible: boolean;
+	initialDelayMs?: number;
+	repeatDelayMs?: number;
+}): number {
+	const {
+		scheduledCount,
+		earlyEligible,
+		initialDelayMs = COLLAPSED_NUDGE_INITIAL_DELAY_MS,
+		repeatDelayMs = COLLAPSED_NUDGE_REPEAT_DELAY_MS,
+	} = options;
+
+	if (scheduledCount === 0) {
+		return earlyEligible ? initialDelayMs : repeatDelayMs;
+	}
+
+	return repeatDelayMs;
+}
+
+/**
+ * Scheduled collapsed nudges are front-loaded:
+ * - pulse 1 is guaranteed after the initial wait
+ * - pulse 2 is guaranteed after the first repeat wait
+ * - later pulses must "earn" their appearance via chance
+ */
+export function shouldShowScheduledCollapsedCuriosityNudge(options: {
+	scheduledCount: number;
+	randomValue: number;
+	chance?: number;
+	guaranteedCount?: number;
+}): boolean {
+	const { scheduledCount, randomValue, chance = COLLAPSED_SCHEDULED_NUDGE_CHANCE, guaranteedCount = 2 } = options;
+	if (scheduledCount < guaranteedCount) return true;
 	return randomValue < chance;
 }
 

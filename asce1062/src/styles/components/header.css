@@ -1,0 +1,105 @@
+/**
+ * Header-specific component styles.
+ *
+ * The terminal trigger styling lives here instead of inline in `Header.astro`
+ * so the header markup stays focused on structure while the shared visual
+ * behavior remains easy to audit and maintain.
+ */
+
+.terminal-header-trigger {
+	position: relative;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.terminal-header-trigger__icon-wrap {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.6rem;
+	height: 1.6rem;
+	line-height: 1;
+}
+
+.terminal-header-trigger__icon {
+	opacity: 1;
+	transform: skewX(-12deg) scale(1);
+	transition:
+		opacity 0.18s ease,
+		transform 0.22s ease,
+		filter 0.22s ease;
+}
+
+.terminal-header-trigger__prompt {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.04rem;
+	font-size: 0.62rem;
+	line-height: 1;
+	letter-spacing: 0.04em;
+	opacity: 0;
+	pointer-events: none;
+	box-shadow: 0 0 0.95rem color-mix(in oklab, var(--color-secondary) 10%, transparent);
+	transform: scale(0.96);
+	transition:
+		opacity 0.22s ease,
+		transform 0.22s ease,
+		box-shadow 0.22s ease;
+}
+
+.terminal-header-trigger__prompt-glyph {
+	color: color-mix(in oklab, var(--color-secondary) 82%, var(--color-base-content));
+	transform: translateX(-0.12rem);
+	opacity: 0;
+	transition:
+		opacity 0.16s ease,
+		transform 0.2s ease,
+		filter 0.2s ease;
+}
+
+.terminal-header-trigger__prompt-cursor {
+	color: color-mix(in oklab, var(--color-secondary) 90%, var(--color-base-content));
+	opacity: 0;
+	transition:
+		opacity 0.12s ease 0.06s,
+		filter 0.2s ease 0.06s;
+}
+
+.terminal-header-trigger:hover .terminal-header-trigger__prompt,
+.terminal-header-trigger:focus-visible .terminal-header-trigger__prompt,
+.terminal-header-trigger:active .terminal-header-trigger__prompt,
+.terminal-header-trigger[data-navbrand-curious="true"] .terminal-header-trigger__prompt {
+	opacity: 1;
+	transform: scale(1);
+	box-shadow: 0 0 1.2rem color-mix(in oklab, var(--color-secondary) 18%, transparent);
+}
+
+.terminal-header-trigger:hover .terminal-header-trigger__prompt-glyph,
+.terminal-header-trigger:focus-visible .terminal-header-trigger__prompt-glyph,
+.terminal-header-trigger:active .terminal-header-trigger__prompt-glyph,
+.terminal-header-trigger[data-navbrand-curious="true"] .terminal-header-trigger__prompt-glyph {
+	opacity: 1;
+	transform: translateX(0);
+	filter: drop-shadow(0 0 0.2rem color-mix(in oklab, var(--color-secondary) 28%, transparent));
+}
+
+.terminal-header-trigger:hover .terminal-header-trigger__prompt-cursor,
+.terminal-header-trigger:focus-visible .terminal-header-trigger__prompt-cursor,
+.terminal-header-trigger:active .terminal-header-trigger__prompt-cursor,
+.terminal-header-trigger[data-navbrand-curious="true"] .terminal-header-trigger__prompt-cursor {
+	opacity: 1;
+	filter: drop-shadow(0 0 0.25rem color-mix(in oklab, var(--color-secondary) 24%, transparent));
+}
+
+.terminal-header-trigger:hover .terminal-header-trigger__icon,
+.terminal-header-trigger:focus-visible .terminal-header-trigger__icon,
+.terminal-header-trigger:active .terminal-header-trigger__icon,
+.terminal-header-trigger[data-navbrand-curious="true"] .terminal-header-trigger__icon {
+	opacity: 0;
+	transform: skewX(-12deg) scale(0.94);
+	filter: blur(0.02rem);
+}

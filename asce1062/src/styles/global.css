@@ -300,6 +300,9 @@
 	.site-greeting {
 		@apply text-2xl md:text-3xl;
 		display: inline-block; /* Constrain hover zone to text width, not full paragraph block */
+		min-height: 1.25em; /* Reserve the line box so typing effects do not shift the hr below */
+		line-height: 1.25;
+		vertical-align: top;
 		transition: font-size var(--duration-instant);
 		color: var(--color-base-content);
 		font-weight: 700;

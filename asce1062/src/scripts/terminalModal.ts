@@ -23,11 +23,18 @@ import {
 import { getFeltDuration } from "@/lib/navBrand/messages";
 import { buildTerminalPrelude } from "@/lib/navBrand/terminalPrelude";
 import {
+	centerTerminalWindowRect,
 	createTerminalWindowState,
-	maximizeTerminalWindow,
+	getNextTerminalWindowMode,
+	getNextTerminalWindowModeForViewport,
+	getTerminalWindowPresetRect,
 	minimizeTerminalWindow,
+	resizeTerminalWindowRectFromEdge,
 	restoreTerminalWindow,
+	setTerminalWindowMode,
+	shouldTreatTerminalHandleTapAsDoubleTap,
 	updateTerminalWindowRect,
+	type RestorableTerminalWindowMode,
 	type TerminalWindowRect,
 	type TerminalWindowState,
 } from "@/lib/navBrand/terminalWindow";
@@ -46,8 +53,11 @@ type TerminalModalElements = {
 	closeButton: HTMLButtonElement | null;
 	minimizeButton: HTMLButtonElement | null;
 	maximizeButton: HTMLButtonElement | null;
+	maximizeIcon: HTMLElement | null;
 	form: HTMLFormElement | null;
 	input: HTMLInputElement | null;
+	mirror: HTMLElement | null;
+	mirrorText: HTMLElement | null;
 	resizeHandles: HTMLElement[];
 };
 
@@ -78,6 +88,7 @@ type InteractionSession =
 
 const MOBILE_QUERY = "(max-width: 768px)";
 const WINDOW_MARGIN = 24;
+const MOBILE_WINDOW_MARGIN = 12;
 const MIN_WIDTH = 420;
 const MIN_HEIGHT = 320;
 const CLOSE_DISPATCH_DELAY_MS = 140;
@@ -88,6 +99,7 @@ let _windowState: TerminalWindowState = createTerminalWindowState();
 let _opener: HTMLElement | null = null;
 let _interaction: InteractionSession | null = null;
 let _lastOpenSource = "sidebar-expanded";
+let _lastDragHandleTapTs: number | null = null;
 let _entries: TerminalEntry[] = [];
 const _commandHistory: string[] = [];
 let _nextEntryId = 0;
@@ -104,8 +116,11 @@ function getElements(): TerminalModalElements {
 		closeButton: document.getElementById("terminal-close") as HTMLButtonElement | null,
 		minimizeButton: document.getElementById("terminal-minimize") as HTMLButtonElement | null,
 		maximizeButton: document.getElementById("terminal-maximize") as HTMLButtonElement | null,
+		maximizeIcon: document.getElementById("terminal-maximize-icon"),
 		form: document.getElementById("terminal-modal-form") as HTMLFormElement | null,
 		input: document.getElementById("terminal-modal-input") as HTMLInputElement | null,
+		mirror: document.getElementById("terminal-modal-mirror"),
+		mirrorText: document.getElementById("terminal-modal-mirror-text"),
 		resizeHandles: Array.from(document.querySelectorAll<HTMLElement>("[data-terminal-resize]")),
 	};
 }
@@ -123,44 +138,111 @@ function isReducedMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function getWindowMargin(): number {
+	return isMobile() ? MOBILE_WINDOW_MARGIN : WINDOW_MARGIN;
+}
+
 function getViewportRect(): TerminalWindowRect {
 	if (isMobile()) {
 		return {
-			x: 12,
-			y: 12,
-			width: Math.max(320, window.innerWidth - 24),
-			height: Math.max(420, window.innerHeight - 24),
+			x: MOBILE_WINDOW_MARGIN,
+			y: MOBILE_WINDOW_MARGIN,
+			width: Math.max(320, window.innerWidth - MOBILE_WINDOW_MARGIN * 2),
+			height: Math.max(420, window.innerHeight - MOBILE_WINDOW_MARGIN * 2),
 		};
 	}
 
 	const width = Math.min(window.innerWidth - WINDOW_MARGIN * 2, 940);
 	const height = Math.min(window.innerHeight - WINDOW_MARGIN * 2, 640);
-	const x = Math.max(WINDOW_MARGIN, window.innerWidth - width - 48);
-	const y = Math.max(WINDOW_MARGIN, 72);
+	return centerTerminalWindowRect(
+		{ x: 0, y: 0, width, height },
+		{ width: window.innerWidth, height: window.innerHeight },
+		WINDOW_MARGIN
+	);
+}
+
+function getFullscreenRect(): TerminalWindowRect {
+	return {
+		x: 0,
+		y: 0,
+		width: window.innerWidth,
+		height: window.innerHeight,
+	};
+}
+
+function clampRect(rect: TerminalWindowRect): TerminalWindowRect {
+	const margin = getWindowMargin();
+	const minWidth = Math.min(MIN_WIDTH, Math.max(320, window.innerWidth - margin * 2));
+	const minHeight = Math.min(MIN_HEIGHT, Math.max(280, window.innerHeight - margin * 2));
+	const width = Math.min(Math.max(rect.width, minWidth), window.innerWidth - margin * 2);
+	const height = Math.min(Math.max(rect.height, minHeight), window.innerHeight - margin * 2);
+	const x = Math.min(Math.max(rect.x, margin), Math.max(margin, window.innerWidth - width - margin));
+	const y = Math.min(Math.max(rect.y, margin), Math.max(margin, window.innerHeight - height - margin));
 
 	return { x, y, width, height };
 }
 
-function clampRect(rect: TerminalWindowRect): TerminalWindowRect {
-	const minWidth = Math.min(MIN_WIDTH, Math.max(320, window.innerWidth - WINDOW_MARGIN * 2));
-	const minHeight = Math.min(MIN_HEIGHT, Math.max(280, window.innerHeight - WINDOW_MARGIN * 2));
-	const width = Math.min(Math.max(rect.width, minWidth), window.innerWidth - WINDOW_MARGIN * 2);
-	const height = Math.min(Math.max(rect.height, minHeight), window.innerHeight - WINDOW_MARGIN * 2);
-	const x = Math.min(
-		Math.max(rect.x, WINDOW_MARGIN),
-		Math.max(WINDOW_MARGIN, window.innerWidth - width - WINDOW_MARGIN)
+function getCenteredPresetRect(
+	mode: Extract<RestorableTerminalWindowMode, "windowed" | "expanded">
+): TerminalWindowRect {
+	return centerTerminalWindowRect(
+		clampRect(getTerminalWindowPresetRect(mode)),
+		{ width: window.innerWidth, height: window.innerHeight },
+		WINDOW_MARGIN
 	);
-	const y = Math.min(
-		Math.max(rect.y, WINDOW_MARGIN),
-		Math.max(WINDOW_MARGIN, window.innerHeight - height - WINDOW_MARGIN)
-	);
+}
 
-	return { x, y, width, height };
+function getMaximizeControlMeta(mode: TerminalWindowState["mode"]): {
+	label: string;
+	title: string;
+	iconClass: string;
+} {
+	if (isMobile()) {
+		if (mode === "fullscreen") {
+			return {
+				label: "Exit fullscreen",
+				title: "Exit fullscreen",
+				iconClass: "icon-fullscreen-exit",
+			};
+		}
+
+		return {
+			label: "Enter fullscreen",
+			title: "Enter fullscreen",
+			iconClass: "icon-arrows-fullscreen",
+		};
+	}
+
+	if (mode === "expanded") {
+		return {
+			label: "Enter fullscreen",
+			title: "Enter fullscreen",
+			iconClass: "icon-arrows-fullscreen",
+		};
+	}
+
+	if (mode === "fullscreen") {
+		return {
+			label: "Exit fullscreen",
+			title: "Exit fullscreen",
+			iconClass: "icon-fullscreen-exit",
+		};
+	}
+
+	return {
+		label: "Expand terminal",
+		title: "Expand terminal",
+		iconClass: "icon-square",
+	};
 }
 
 function setHidden(el: HTMLElement | null, hidden: boolean): void {
 	if (!el) return;
 	el.hidden = hidden;
+}
+
+function setDocumentScrollLock(locked: boolean): void {
+	document.body.style.overflow = locked ? "hidden" : "";
 }
 
 function updateWindowFrame(elements: TerminalModalElements): void {
@@ -176,6 +258,16 @@ function updateWindowFrame(elements: TerminalModalElements): void {
 	if (elements.geometry) {
 		elements.geometry.textContent = `${Math.round(rect.width)}×${Math.round(rect.height)}`;
 	}
+
+	if (elements.maximizeButton) {
+		const { label, title } = getMaximizeControlMeta(_windowState.mode);
+		elements.maximizeButton.setAttribute("aria-label", label);
+		elements.maximizeButton.setAttribute("title", title);
+	}
+
+	if (elements.maximizeIcon) {
+		elements.maximizeIcon.className = getMaximizeControlMeta(_windowState.mode).iconClass;
+	}
 }
 
 function setDockState(elements: TerminalModalElements): void {
@@ -189,8 +281,18 @@ function setDockState(elements: TerminalModalElements): void {
 function setWindowVisibility(elements: TerminalModalElements): void {
 	setHidden(elements.overlay, !_open);
 	setHidden(elements.windowEl, !_open);
+	setDocumentScrollLock(_open);
 	setDockState(elements);
 	updateWindowFrame(elements);
+}
+
+function syncPromptMirror(elements: TerminalModalElements): void {
+	if (!elements.input || !elements.mirror || !elements.mirrorText) return;
+
+	const value = elements.input.value;
+	const placeholder = elements.input.getAttribute("placeholder") ?? "";
+	elements.mirror.dataset.empty = value.length > 0 ? "false" : "true";
+	elements.mirrorText.textContent = value.length > 0 ? value : placeholder;
 }
 
 function getVisitCount(): number {
@@ -304,6 +406,7 @@ function ensurePrelude(elements: TerminalModalElements): void {
 }
 
 function focusInput(elements: TerminalModalElements): void {
+	syncPromptMirror(elements);
 	elements.input?.focus();
 }
 
@@ -318,7 +421,12 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 	} else if (!_open && isMobile()) {
 		_windowState = updateTerminalWindowRect(_windowState, getViewportRect());
 	} else if (!_open) {
-		_windowState = updateTerminalWindowRect(_windowState, clampRect(_windowState.rect));
+		const clampedRect = _windowState.mode === "fullscreen" ? getViewportRect() : clampRect(_windowState.rect);
+		const centeredRect =
+			_entries.length === 0
+				? centerTerminalWindowRect(clampedRect, { width: window.innerWidth, height: window.innerHeight }, WINDOW_MARGIN)
+				: clampedRect;
+		_windowState = updateTerminalWindowRect(_windowState, centeredRect);
 	}
 
 	_open = true;
@@ -334,7 +442,6 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 function closeTerminal(): void {
 	const elements = getElements();
 	_open = false;
-	_windowState = restoreTerminalWindow({ ..._windowState, mode: "windowed", restoreRect: _windowState.restoreRect });
 	setWindowVisibility(elements);
 	_opener?.focus();
 	_opener = null;
@@ -349,13 +456,40 @@ function minimizeTerminal(): void {
 
 function maximizeOrRestoreTerminal(): void {
 	const elements = getElements();
-	if (_windowState.mode === "maximized") {
-		_windowState = restoreTerminalWindow(_windowState);
-	} else {
-		_windowState = maximizeTerminalWindow(_windowState);
-		_windowState = updateTerminalWindowRect(_windowState, getViewportRect());
-	}
+	const mobile = isMobile();
+	const currentMode: RestorableTerminalWindowMode =
+		_windowState.mode === "minimized" ? (_windowState.restoreMode ?? "windowed") : _windowState.mode;
+	const nextMode = mobile
+		? getNextTerminalWindowModeForViewport(currentMode, true)
+		: getNextTerminalWindowMode(currentMode);
+	const nextRect =
+		nextMode === "fullscreen" ? getFullscreenRect() : mobile ? getViewportRect() : getCenteredPresetRect(nextMode);
 
+	_windowState = updateTerminalWindowRect(setTerminalWindowMode(_windowState, nextMode), nextRect);
+	_windowState.restoreRect = null;
+	_windowState.restoreMode = null;
+
+	setWindowVisibility(elements);
+}
+
+function exitFullscreenToWindowed(): void {
+	if (_windowState.mode !== "fullscreen") return;
+	const elements = getElements();
+	_windowState = updateTerminalWindowRect(
+		setTerminalWindowMode(_windowState, "windowed"),
+		isMobile() ? getViewportRect() : getCenteredPresetRect("windowed")
+	);
+	_windowState.restoreRect = null;
+	_windowState.restoreMode = null;
+	setWindowVisibility(elements);
+}
+
+function resetMobileTerminalToViewport(): void {
+	if (!isMobile()) return;
+	const elements = getElements();
+	_windowState = updateTerminalWindowRect(setTerminalWindowMode(_windowState, "windowed"), getViewportRect());
+	_windowState.restoreRect = null;
+	_windowState.restoreMode = null;
 	setWindowVisibility(elements);
 }
 
@@ -364,7 +498,8 @@ function restoreFromDock(): void {
 }
 
 function beginDrag(event: PointerEvent, elements: TerminalModalElements): void {
-	if (!elements.windowEl || _windowState.mode !== "windowed" || isMobile()) return;
+	if (!elements.windowEl || _windowState.mode === "minimized" || _windowState.mode === "fullscreen" || isMobile())
+		return;
 	if (!(event.target instanceof HTMLElement)) return;
 	if (event.target.closest("[data-terminal-control]")) return;
 	if (event.target.closest("#terminal-modal-form")) return;
@@ -380,7 +515,8 @@ function beginDrag(event: PointerEvent, elements: TerminalModalElements): void {
 }
 
 function beginResize(event: PointerEvent, edge: string): void {
-	if (_windowState.mode !== "windowed" || isMobile()) return;
+	if (_windowState.mode === "minimized" || _windowState.mode === "fullscreen") return;
+	if (isMobile() && edge !== "n") return;
 
 	_interaction = {
 		kind: "resize",
@@ -408,36 +544,13 @@ function updateDrag(event: PointerEvent): void {
 	updateWindowFrame(getElements());
 }
 
-function resizeFromEdge(
-	edge: string,
-	startRect: TerminalWindowRect,
-	deltaX: number,
-	deltaY: number
-): TerminalWindowRect {
-	let { x, y, width, height } = startRect;
-
-	if (edge.includes("e")) width += deltaX;
-	if (edge.includes("s")) height += deltaY;
-	if (edge.includes("w")) {
-		x += deltaX;
-		width -= deltaX;
-	}
-
-	if (edge.includes("n")) {
-		y += deltaY;
-		height -= deltaY;
-	}
-
-	return clampRect({ x, y, width, height });
-}
-
 function updateResize(event: PointerEvent): void {
 	if (!_interaction || _interaction.kind !== "resize") return;
 	const deltaX = event.clientX - _interaction.startX;
 	const deltaY = event.clientY - _interaction.startY;
 	_windowState = updateTerminalWindowRect(
 		_windowState,
-		resizeFromEdge(_interaction.edge, _interaction.startRect, deltaX, deltaY)
+		clampRect(resizeTerminalWindowRectFromEdge(_interaction.edge, _interaction.startRect, deltaX, deltaY))
 	);
 	updateWindowFrame(getElements());
 }
@@ -690,6 +803,7 @@ function initTerminalModal(): void {
 		return;
 
 	setWindowVisibility(elements);
+	syncPromptMirror(elements);
 	renderLog(elements);
 
 	document.addEventListener(
@@ -706,6 +820,34 @@ function initTerminalModal(): void {
 	elements.minimizeButton?.addEventListener("click", () => onWindowAction("minimize"), { signal });
 	elements.maximizeButton?.addEventListener("click", () => onWindowAction("maximize"), { signal });
 	elements.dockChip.addEventListener("click", () => onWindowAction("restore"), { signal });
+	elements.dragHandle.addEventListener(
+		"dblclick",
+		() => {
+			if (_windowState.mode === "fullscreen") {
+				exitFullscreenToWindowed();
+			}
+		},
+		{ signal }
+	);
+	elements.dragHandle.addEventListener(
+		"pointerup",
+		(event) => {
+			if (!isMobile() || event.pointerType !== "touch") return;
+			if (!(event.target instanceof HTMLElement)) return;
+			if (event.target.closest("[data-terminal-control]")) return;
+			if (_interaction) return;
+
+			const now = Date.now();
+			if (shouldTreatTerminalHandleTapAsDoubleTap(_lastDragHandleTapTs, now)) {
+				_lastDragHandleTapTs = null;
+				resetMobileTerminalToViewport();
+				return;
+			}
+
+			_lastDragHandleTapTs = now;
+		},
+		{ signal }
+	);
 
 	elements.form.addEventListener(
 		"submit",
@@ -714,8 +856,17 @@ function initTerminalModal(): void {
 			submitCommand(elements.input?.value ?? "");
 			if (elements.input) {
 				elements.input.value = "";
+				syncPromptMirror(elements);
 				elements.input.focus();
 			}
+		},
+		{ signal }
+	);
+
+	elements.input.addEventListener(
+		"input",
+		() => {
+			syncPromptMirror(elements);
 		},
 		{ signal }
 	);
@@ -732,7 +883,11 @@ function initTerminalModal(): void {
 
 			if (event.key === "Escape") {
 				event.preventDefault();
-				closeTerminal();
+				if (_windowState.mode === "fullscreen") {
+					exitFullscreenToWindowed();
+					return;
+				}
+				minimizeTerminal();
 			}
 		},
 		{ signal }
@@ -763,7 +918,9 @@ function initTerminalModal(): void {
 	window.addEventListener(
 		"resize",
 		() => {
-			if (_windowState.mode === "maximized" || isMobile()) {
+			if (_windowState.mode === "fullscreen") {
+				_windowState = updateTerminalWindowRect(_windowState, getFullscreenRect());
+			} else if (isMobile()) {
 				_windowState = updateTerminalWindowRect(_windowState, getViewportRect());
 			} else {
 				_windowState = updateTerminalWindowRect(_windowState, clampRect(_windowState.rect));

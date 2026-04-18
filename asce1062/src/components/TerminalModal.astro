@@ -10,7 +10,8 @@ import "@/styles/components/terminal-modal.css";
 	class="terminal-dock-chip"
 	data-terminal-docked="false"
 	hidden
-	aria-label="Restore terminal">
+	aria-label="Restore terminal"
+	title="Restore terminal">
 	<i class="icon-command-palette" aria-hidden="true"></i>
 	<span class="terminal-dock-chip__label">restore signal</span>
 </button>
@@ -32,25 +33,28 @@ import "@/styles/components/terminal-modal.css";
 			<button
 				id="terminal-minimize"
 				type="button"
-				class="terminal-window__control"
+				class="terminal-window__control btn btn-secondary btn-elevation btn-xs"
 				data-terminal-control="minimize"
-				aria-label="Minimize terminal">
+				aria-label="Minimize terminal"
+				title="Minimize terminal">
 				<span aria-hidden="true">_</span>
 			</button>
 			<button
 				id="terminal-maximize"
 				type="button"
-				class="terminal-window__control"
+				class="terminal-window__control btn btn-accent btn-pixel btn-xs"
 				data-terminal-control="maximize"
-				aria-label="Maximize terminal">
-				<i class="icon-square" aria-hidden="true"></i>
+				aria-label="Expand terminal"
+				title="Expand terminal">
+				<i id="terminal-maximize-icon" class="icon-square" aria-hidden="true"></i>
 			</button>
 			<button
 				id="terminal-close"
 				type="button"
-				class="terminal-window__control terminal-window__control--close"
+				class="terminal-window__control btn btn-error btn-frame btn-xs"
 				data-terminal-control="close"
-				aria-label="Close terminal">
+				aria-label="Close terminal"
+				title="Close terminal">
 				<i class="icon-x-lg" aria-hidden="true"></i>
 			</button>
 		</div>
@@ -69,47 +73,86 @@ import "@/styles/components/terminal-modal.css";
 		<form id="terminal-modal-form" class="terminal-window__prompt-form" novalidate>
 			<label class="terminal-window__prompt" for="terminal-modal-input">
 				<span class="terminal-window__prompt-text">alex@alexmbugua.me //</span>
-				<input
-					id="terminal-modal-input"
-					class="terminal-window__input"
-					type="text"
-					name="command"
-					autocomplete="off"
-					autocapitalize="none"
-					autocorrect="off"
-					spellcheck="false"
-					enterkeyhint="go"
-					placeholder="search, explore, tune the signal"
-					aria-label="Run a terminal command"
-				/>
-				<span class="blink terminal-window__cursor" aria-hidden="true">_</span>
+				<span class="terminal-window__input-shell">
+					<span id="terminal-modal-mirror" class="terminal-window__mirror" data-empty="true" aria-hidden="true">
+						<span id="terminal-modal-mirror-text" class="terminal-window__mirror-text"
+							>search, explore, tune the signal</span
+						>
+						<span class="blink terminal-window__block-cursor" aria-hidden="true"></span>
+					</span>
+					<input
+						id="terminal-modal-input"
+						class="terminal-window__input"
+						type="text"
+						name="command"
+						autocomplete="off"
+						autocapitalize="none"
+						autocorrect="off"
+						spellcheck="false"
+						enterkeyhint="go"
+						placeholder="search, explore, tune the signal"
+						aria-label="Run a terminal command"
+					/>
+				</span>
 			</label>
 		</form>
 	</div>
 
 	<button
 		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--n"
+		data-terminal-resize="n"
+		aria-label="Resize terminal from top edge"
+		title="Resize from top edge"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--ne"
+		data-terminal-resize="ne"
+		aria-label="Resize terminal from top right corner"
+		title="Resize from top right corner"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--nw"
+		data-terminal-resize="nw"
+		aria-label="Resize terminal from top left corner"
+		title="Resize from top left corner"
+		tabindex="-1"></button>
+	<button
+		type="button"
 		class="terminal-window__resize-handle terminal-window__resize-handle--e"
 		data-terminal-resize="e"
 		aria-label="Resize terminal from right edge"
+		title="Resize from right edge"
 		tabindex="-1"></button>
 	<button
 		type="button"
 		class="terminal-window__resize-handle terminal-window__resize-handle--s"
 		data-terminal-resize="s"
 		aria-label="Resize terminal from bottom edge"
+		title="Resize from bottom edge"
 		tabindex="-1"></button>
 	<button
 		type="button"
 		class="terminal-window__resize-handle terminal-window__resize-handle--se"
 		data-terminal-resize="se"
 		aria-label="Resize terminal from bottom right corner"
+		title="Resize from bottom right corner"
+		tabindex="-1"></button>
+	<button
+		type="button"
+		class="terminal-window__resize-handle terminal-window__resize-handle--sw"
+		data-terminal-resize="sw"
+		aria-label="Resize terminal from bottom left corner"
+		title="Resize from bottom left corner"
 		tabindex="-1"></button>
 	<button
 		type="button"
 		class="terminal-window__resize-handle terminal-window__resize-handle--w"
 		data-terminal-resize="w"
 		aria-label="Resize terminal from left edge"
+		title="Resize from left edge"
 		tabindex="-1"></button>
 </section>
 

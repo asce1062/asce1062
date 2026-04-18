@@ -5,6 +5,7 @@
  * Top bar with breadcrumb navigation, theme switcher, search button, and site h1.
  * Navigation is now in the Sidebar component.
  */
+import "@/styles/components/header.css";
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
 import { siteMetadata } from "@/data/navigation";
 
@@ -17,7 +18,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 <header>
 	<div id="navigation" class="mb-4">
 		<label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
-			<i class="icon-list hover:-rotate-6" aria-hidden="true"></i>
+			<i class="icon-list hover:-rotate-6 -mt-[0.25rem]" aria-hidden="true"></i>
 		</label>
 		<div class="float-right flex flex-col gap-2 -mt-2">
 			<ThemeSwitcher default="dark" />
@@ -38,12 +39,17 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			<span class="italic">
 				<button
 					type="button"
-					class="terminal-header-trigger group inline-flex items-center gap-2 rounded-full border border-transparent bg-transparent px-1 py-0.5 text-inherit transition-[color,transform,border-color] duration-150 hover:-translate-y-px hover:text-secondary focus-visible:border-secondary focus-visible:text-secondary focus-visible:outline-none"
+					class="terminal-header-trigger group inline-flex items-center bg-transparent text-inherit transition-colors duration-150 hover:text-secondary focus-visible:text-secondary focus-visible:outline-none"
 					data-navbrand-terminal-trigger
 					data-navbrand-terminal-source="header-command-palette"
 					aria-label="Open terminal">
-					<i class="icon-command-palette inline-block translate-y-1 text-xl -skew-x-12" aria-hidden="true"></i>
-					<span class="terminal-header-trigger__nudge md:hidden" aria-hidden="true">&gt;_</span>
+					<span class="terminal-header-trigger__icon-wrap relative" aria-hidden="true">
+						<i class="icon-command-palette terminal-header-trigger__icon inline-block text-xl -skew-x-12"></i>
+						<span class="terminal-header-trigger__prompt" aria-hidden="true">
+							<span class="terminal-header-trigger__prompt-glyph">&#x276F;</span>
+							<span class="blink terminal-header-trigger__prompt-cursor">&#95;</span>
+						</span>
+					</span>
 				</button>
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
@@ -82,8 +88,8 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 	</div>
 	<p
 		class="site-greeting"
-		data-text-effect="decrypt"
-		data-text-effect-triggers="load, hover, tap, click, random-effect, random-time"
+		data-text-effect="decrypt, typing"
+		data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
 		data-text-effect-interval-ms="18000">{siteMetadata.greeting}</p
 	>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
@@ -91,36 +97,4 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 	<script>
 		import "@/scripts/textEffectRegistry";
 	</script>
-
-	<style>
-		/* Shared terminal entry in the header. Mobile keeps a visible `>_` nudge;
-		desktop uses hover/focus to reveal the same prompt without adding another
-		permanent chip beside the breadcrumb line. */
-		.terminal-header-trigger__nudge {
-			border: 1px solid color-mix(in oklab, var(--color-secondary) 32%, transparent);
-			border-radius: 999px;
-			padding: 0.08rem 0.32rem;
-			font-size: 0.62rem;
-			letter-spacing: 0.04em;
-			color: color-mix(in oklab, var(--color-secondary) 78%, var(--color-base-content));
-			background: color-mix(in oklab, var(--color-base-100) 90%, transparent);
-			box-shadow: 0 0 0.8rem color-mix(in oklab, var(--color-secondary) 12%, transparent);
-		}
-
-		@media (min-width: 768px) {
-			.terminal-header-trigger__nudge {
-				opacity: 0;
-				transform: translateX(-0.18rem);
-				transition:
-					opacity 0.2s ease,
-					transform 0.2s ease;
-			}
-
-			.terminal-header-trigger:hover .terminal-header-trigger__nudge,
-			.terminal-header-trigger:focus-visible .terminal-header-trigger__nudge {
-				opacity: 1;
-				transform: translateX(0);
-			}
-		}
-	</style>
 </header>

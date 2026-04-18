@@ -72,6 +72,15 @@ const divProps = {
 
 			// handle query param linking
 			const input = el.querySelector("input[type='text']");
+			if (input instanceof HTMLInputElement) {
+				const inputId = el.id ? `${el.id}-input` : undefined;
+				if (inputId && !input.id) {
+					input.id = inputId;
+				}
+				if (!input.name) {
+					input.name = "q";
+				}
+			}
 			const url = new URL(window.location.href);
 			const params = new URLSearchParams(url.search);
 			const query = params.get("q");
