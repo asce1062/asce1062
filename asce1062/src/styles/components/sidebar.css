@@ -184,7 +184,7 @@ body:has(#nav-toggle:checked) {
 }
 
 .nav-brand-teaser-line {
-	padding-left: 1.15rem;
+	padding-left: 0;
 }
 
 .nav-brand-teaser-text {
@@ -723,36 +723,80 @@ Nav Brand: Expanded / Collapsed header swap
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	width: calc(var(--avatar-frame-size, 2.25rem) + 0.25rem);
+	height: calc(var(--avatar-frame-size, 2.25rem) + 0.25rem);
 	border: 0;
 	padding: 0;
 	background: transparent;
-	cursor: e-resize;
+	cursor: pointer;
 }
 
-.nav-brand-collapsed-trigger::after {
-	content: ">_";
+.nav-brand-collapsed-prompt {
 	position: absolute;
-	left: calc(100% + 0.55rem);
-	top: 50%;
-	transform: translateY(-50%);
-	padding: 0.12rem 0.34rem;
-	border: 1px solid color-mix(in oklab, var(--color-secondary) 34%, transparent);
-	border-radius: 999px;
-	background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
-	color: color-mix(in oklab, var(--color-secondary) 82%, var(--color-base-content));
+	inset: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.04rem;
+	border: none;
+	border-radius: 0;
+	background: linear-gradient(
+		180deg,
+		color-mix(in oklab, var(--color-base-100) 90%, transparent),
+		color-mix(in oklab, var(--color-base-200) 82%, transparent)
+	);
 	font-size: 0.62rem;
 	letter-spacing: 0.04em;
 	opacity: 0;
 	pointer-events: none;
+	box-shadow: 0 0 0.95rem color-mix(in oklab, var(--color-secondary) 10%, transparent);
 	transition:
 		opacity 0.22s ease,
-		transform 0.22s ease;
+		transform 0.22s ease,
+		box-shadow 0.22s ease;
+	transform: scale(0.96);
 }
 
-.nav-brand-collapsed-trigger:hover::after,
-.nav-brand-collapsed-trigger:focus-visible::after {
+.nav-brand-collapsed-prompt-glyph {
+	color: color-mix(in oklab, var(--color-secondary) 82%, var(--color-base-content));
+	transform: translateX(-0.12rem);
+	opacity: 0;
+	transition:
+		opacity 0.16s ease,
+		transform 0.2s ease,
+		filter 0.2s ease;
+}
+
+.nav-brand-collapsed-prompt-cursor {
+	color: color-mix(in oklab, var(--color-secondary) 90%, var(--color-base-content));
+	opacity: 0;
+	transition:
+		opacity 0.12s ease 0.06s,
+		filter 0.2s ease 0.06s;
+}
+
+.nav-brand-collapsed-trigger:hover .nav-brand-collapsed-prompt,
+.nav-brand-collapsed-trigger:focus-visible .nav-brand-collapsed-prompt,
+.nav-brand-collapsed-trigger[data-navbrand-curious="true"] .nav-brand-collapsed-prompt {
 	opacity: 1;
-	transform: translate(0.12rem, -50%);
+	transform: scale(1);
+	box-shadow: 0 0 1.2rem color-mix(in oklab, var(--color-secondary) 18%, transparent);
+}
+
+.nav-brand-collapsed-trigger:hover .nav-brand-collapsed-prompt-glyph,
+.nav-brand-collapsed-trigger:focus-visible .nav-brand-collapsed-prompt-glyph,
+.nav-brand-collapsed-trigger[data-navbrand-curious="true"] .nav-brand-collapsed-prompt-glyph {
+	opacity: 1;
+	transform: translateX(0);
+	filter: drop-shadow(0 0 0.2rem color-mix(in oklab, var(--color-secondary) 28%, transparent));
+}
+
+.nav-brand-collapsed-trigger:hover .nav-brand-collapsed-prompt-cursor,
+.nav-brand-collapsed-trigger:focus-visible .nav-brand-collapsed-prompt-cursor,
+.nav-brand-collapsed-trigger[data-navbrand-curious="true"] .nav-brand-collapsed-prompt-cursor {
+	opacity: 1;
+	filter: drop-shadow(0 0 0.25rem color-mix(in oklab, var(--color-secondary) 24%, transparent));
 }
 
 /*
@@ -767,11 +811,31 @@ Hide controls and actions — canvas only.
 }
 
 .nav-brand-collapsed-content .avatar-mini-widget {
+	position: relative;
+	z-index: 1;
 	justify-content: center;
+	opacity: 1;
+	transform: scale(1);
+	transition:
+		opacity 0.18s ease,
+		transform 0.22s ease,
+		filter 0.22s ease;
+}
+
+.nav-brand-collapsed-trigger:hover .avatar-mini-widget,
+.nav-brand-collapsed-trigger:focus-visible .avatar-mini-widget,
+.nav-brand-collapsed-trigger[data-navbrand-curious="true"] .avatar-mini-widget {
+	opacity: 0;
+	transform: scale(0.94);
+	filter: blur(0.02rem);
 }
 
 .nav-collapsed-header-avatar {
 	--avatar-frame-size: 2.25rem;
+}
+
+.nav-brand-collapsed-trigger[data-avatar-ready="false"] .nav-brand-collapsed-prompt {
+	display: none;
 }
 
 .nav-collapse-tab {
@@ -849,7 +913,8 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		padding: 0;
 
 		background-color: var(--color-base-100);
-		border: 1.875px solid var(--color-base-300);
+		border: 1.875px solid color-mix(in oklab, var(--color-accent) 30%, var(--color-base-300));
+		color: color-mix(in oklab, var(--color-accent) 78%, var(--color-base-content));
 		border-left: none;
 		box-shadow: var(--glow-identity);
 		/* No border-radius */
@@ -1006,30 +1071,29 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		overflow: hidden;
 		max-height: 6rem;
 		opacity: 1;
-		transition: opacity 120ms var(--ease-out);
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 120ms var(--ease-out);
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-expanded-content {
 		max-height: 0;
 		opacity: 0;
 		pointer-events: none;
-		transition:
-			opacity 0s 0s,
-			max-height 0s 0s;
 	}
 
 	/* Header avatar (collapsed state only): fade in */
 	.nav-brand-collapsed-content {
-		transition: opacity 150ms var(--ease-out);
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 150ms var(--ease-out);
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-collapsed-content {
 		max-height: 5rem;
 		opacity: 1;
+		overflow: visible;
 		pointer-events: auto;
-		transition:
-			opacity 0s 0s,
-			max-height 0s 0s;
 	}
 
 	/* Active left-border still renders on the centered icon. */
@@ -1062,7 +1126,7 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		pointer-events: none;
 		opacity: 0;
 		transition: opacity var(--duration-fast) var(--ease-out);
-		z-index: 50;
+		z-index: 110;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-link[data-tooltip]::before {
@@ -1076,7 +1140,7 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		pointer-events: none;
 		opacity: 0;
 		transition: opacity var(--duration-fast) var(--ease-out);
-		z-index: 50;
+		z-index: 110;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-link[data-tooltip]:hover::after,

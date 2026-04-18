@@ -27,7 +27,7 @@
  * Markup contract:
  *   data-text-effect="typing"
  *   data-text-effect="typing, decrypt"
- *   data-text-effect-triggers="load, hover, tap, click, random-effect, random-time"
+ *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"    // optional, used by random-time
  *
  * Lifecycle:

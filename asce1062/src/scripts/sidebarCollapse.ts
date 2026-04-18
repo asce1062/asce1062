@@ -22,6 +22,7 @@ const COLLAPSED_ATTR = "data-sidebar-collapsed";
 const TRANSITION_ATTR = "data-sidebar-transition";
 const COLLAPSED_WIDTH_VAR = "--sidebar-current-width";
 const SIDEBAR_TRANSITION_MS = 200;
+const SIDEBAR_COLLAPSE_EVENT = "sidebar:collapse-change";
 
 let _ac: AbortController | null = null;
 let _headerWidgetAc: AbortController | null = null;
@@ -70,6 +71,12 @@ function setCollapsed(collapsed: boolean): void {
 		tab?.setAttribute("aria-label", "Collapse sidebar");
 		tab?.setAttribute("aria-expanded", "true");
 	}
+
+	document.dispatchEvent(
+		new CustomEvent(SIDEBAR_COLLAPSE_EVENT, {
+			detail: { collapsed },
+		})
+	);
 }
 
 function initCollapse(): void {
@@ -97,6 +104,13 @@ function initCollapse(): void {
 	// Bind the collapsed header avatar widget so it renders the user's avatar
 	_headerWidgetAc?.abort();
 	_headerWidgetAc = bindAvatarMiniWidget("sidebar-header");
+	const collapsedTrigger = document.querySelector<HTMLElement>('[data-navbrand-terminal-source="sidebar-collapsed"]');
+	if (collapsedTrigger) {
+		collapsedTrigger.dataset.avatarReady = "false";
+		requestAnimationFrame(() => {
+			collapsedTrigger.dataset.avatarReady = "true";
+		});
+	}
 
 	tab.addEventListener("click", () => setCollapsed(!isCollapsed()), { signal });
 

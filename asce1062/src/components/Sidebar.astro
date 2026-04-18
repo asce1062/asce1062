@@ -95,14 +95,20 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 		</div>
 		<!-- Collapsed: avatar only (tab button outside handles expand) -->
 		<div class="nav-brand-collapsed-content" aria-hidden="true">
-			<button
-				type="button"
+			<div
 				class="nav-brand-collapsed-trigger"
+				role="button"
+				tabindex="0"
+				data-avatar-ready="false"
 				data-navbrand-terminal-trigger
 				data-navbrand-terminal-source="sidebar-collapsed"
 				aria-label="Open terminal from collapsed sidebar">
 				<AvatarMiniWidget instanceId="sidebar-header" canvasClass="nav-collapsed-header-avatar avatar-frame" />
-			</button>
+				<span class="nav-brand-collapsed-prompt" aria-hidden="true">
+					<span class="nav-brand-collapsed-prompt-glyph">&#x276F;</span>
+					<span class="blink nav-brand-collapsed-prompt-cursor">&#95;</span>
+				</span>
+			</div>
 		</div>
 	</div>
 

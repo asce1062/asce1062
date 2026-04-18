@@ -35,7 +35,7 @@ export const NAVBRAND_MESSAGE_POOLS: MessagePool = {
 	activeMorning: ["good morning", "morning, wanderer", "systems nominal. morning light."],
 	activeAfternoon: ["good afternoon", "afternoon drift detected", "sun still on the terminal"],
 	activeEvening: ["good evening", "evening glow online", "night shift, then"],
-	activeLate: ["still up?", "burning the late hours", "the terminal is still warm"],
+	activeLate: ["still up?", "burning the midnight oil", "the terminal is still warm"],
 	idle: ["still here?", "[ system idle ]", "waiting...", "terminal idle"],
 	idleEscalation: ["you left the terminal open", "signal holding", "still listening"],
 	return: ["welcome back.", "resuming session...", "you were reading...", "there you are."],
