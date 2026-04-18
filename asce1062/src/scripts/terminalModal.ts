@@ -20,8 +20,13 @@ import {
 	type NavBrandCommandIntent,
 	type ResolvedNavBrandCommand,
 } from "@/lib/navBrand/commands";
-import { getFeltDuration } from "@/lib/navBrand/messages";
+import {
+	getTerminalPresenceSummary,
+	selectTerminalAtmosphereMessage,
+	type TerminalAtmosphereReason,
+} from "@/lib/navBrand/messages";
 import { buildTerminalPrelude } from "@/lib/navBrand/terminalPrelude";
+import { buildTerminalSystemProfile, type TerminalSystemProfile } from "@/lib/navBrand/terminalSystemProfile";
 import {
 	centerTerminalWindowRect,
 	createTerminalWindowState,
@@ -38,8 +43,20 @@ import {
 	type TerminalWindowRect,
 	type TerminalWindowState,
 } from "@/lib/navBrand/terminalWindow";
+import {
+	IDLE_DELAY_MS,
+	RARE_MESSAGE_COOLDOWN_MS,
+	SYSTEM_MESSAGE_COOLDOWN_MS,
+	shouldShowRareMessage,
+	shouldShowSystemMessage,
+} from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
-import { playTerminalTextEffect, resetTerminalTextEffect } from "@/lib/textEffects/terminalTextEffect";
+import {
+	bindTerminalTextEffectTriggers,
+	playTerminalTextEffect,
+	readTerminalTextEffectConfig,
+	resetTerminalTextEffect,
+} from "@/lib/textEffects/terminalTextEffect";
 import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 type TerminalModalElements = {
@@ -49,6 +66,10 @@ type TerminalModalElements = {
 	log: HTMLElement | null;
 	status: HTMLElement | null;
 	geometry: HTMLElement | null;
+	presenceBadge: HTMLElement | null;
+	presenceText: HTMLElement | null;
+	presenceVisits: HTMLElement | null;
+	atmosphere: HTMLElement | null;
 	dragHandle: HTMLElement | null;
 	closeButton: HTMLButtonElement | null;
 	minimizeButton: HTMLButtonElement | null;
@@ -63,12 +84,26 @@ type TerminalModalElements = {
 
 type WindowAction = "close" | "minimize" | "maximize" | "restore";
 type TerminalEntryKind = "prelude" | "system" | "command" | "output";
-type TerminalEntry = {
+type TerminalTextEntry = {
 	id: string;
 	kind: TerminalEntryKind;
 	text: string;
 	effect?: "typing" | "decrypt";
 };
+type TerminalSystemArtEntry = {
+	id: string;
+	kind: "system-art";
+	text: string;
+	colorRole: TerminalSystemProfile["asciiLines"][number]["colorRole"];
+};
+type TerminalSystemMetaEntry = {
+	id: string;
+	kind: "system-meta";
+	label: string;
+	value: string;
+	effect?: "typing" | "decrypt";
+};
+type TerminalEntry = TerminalTextEntry | TerminalSystemArtEntry | TerminalSystemMetaEntry;
 type InteractionSession =
 	| {
 			kind: "drag";
@@ -103,6 +138,12 @@ let _lastDragHandleTapTs: number | null = null;
 let _entries: TerminalEntry[] = [];
 const _commandHistory: string[] = [];
 let _nextEntryId = 0;
+let _terminalIdleTimer: number | null = null;
+let _terminalIdleCount = 0;
+let _terminalLastAtmosphere: string | null = null;
+let _terminalLastSystemTs = 0;
+let _terminalLastRareTs = 0;
+const _sequenceTimers: number[] = [];
 
 function getElements(): TerminalModalElements {
 	return {
@@ -112,6 +153,10 @@ function getElements(): TerminalModalElements {
 		log: document.getElementById("terminal-modal-log"),
 		status: document.getElementById("terminal-modal-status"),
 		geometry: document.getElementById("terminal-modal-geometry"),
+		presenceBadge: document.getElementById("terminal-modal-presence-badge"),
+		presenceText: document.getElementById("terminal-modal-presence-text"),
+		presenceVisits: document.getElementById("terminal-modal-presence-visits"),
+		atmosphere: document.getElementById("terminal-modal-atmosphere"),
 		dragHandle: document.getElementById("terminal-modal-drag-handle"),
 		closeButton: document.getElementById("terminal-close") as HTMLButtonElement | null,
 		minimizeButton: document.getElementById("terminal-minimize") as HTMLButtonElement | null,
@@ -300,10 +345,122 @@ function getVisitCount(): number {
 	return Number.isFinite(visits) && visits >= 0 ? visits : 0;
 }
 
-function getLastVisitLabel(): string | null {
+function getLastVisitTimestamp(): number | null {
 	const raw = Number.parseInt(getPref(PREF_KEYS.navBrandLastVisit) ?? "0", 10);
-	if (!Number.isFinite(raw) || raw <= 0) return null;
-	return getFeltDuration(raw, Date.now());
+	return Number.isFinite(raw) && raw > 0 ? raw : null;
+}
+
+function updateTerminalPresence(elements: TerminalModalElements): void {
+	const presence = getTerminalPresenceSummary({
+		visits: getVisitCount(),
+		lastVisitTs: getLastVisitTimestamp(),
+		now: Date.now(),
+	});
+
+	if (elements.presenceBadge) {
+		elements.presenceBadge.textContent = presence.lastSeenBadge;
+	}
+
+	if (elements.presenceText) {
+		elements.presenceText.textContent = presence.lastSeenText;
+	}
+
+	if (elements.presenceVisits) {
+		elements.presenceVisits.textContent = String(presence.visits);
+	}
+}
+
+function clearTerminalIdleTimer(): void {
+	if (_terminalIdleTimer !== null) {
+		window.clearTimeout(_terminalIdleTimer);
+		_terminalIdleTimer = null;
+	}
+}
+
+function clearSequenceTimers(): void {
+	while (_sequenceTimers.length > 0) {
+		const timer = _sequenceTimers.pop();
+		if (timer !== undefined) {
+			window.clearTimeout(timer);
+		}
+	}
+}
+
+function getCurrentAtmosphereText(el: HTMLElement | null): string {
+	if (!el) return "";
+	return el.dataset.greetingTarget ?? el.textContent?.trim() ?? "";
+}
+
+function resolveTerminalAtmosphere(reason: TerminalAtmosphereReason): string {
+	const now = Date.now();
+	const visits = Math.max(getVisitCount(), 1);
+	const rareEligible =
+		reason === "random-time" &&
+		shouldShowRareMessage({
+			now,
+			lastRareTs: _terminalLastRareTs,
+			randomValue: Math.random(),
+			cooldownMs: RARE_MESSAGE_COOLDOWN_MS,
+		});
+	const systemEligible =
+		reason === "random-time" &&
+		!rareEligible &&
+		shouldShowSystemMessage({
+			now,
+			lastSystemTs: _terminalLastSystemTs,
+			randomValue: Math.random(),
+			cooldownMs: SYSTEM_MESSAGE_COOLDOWN_MS,
+		});
+
+	const selection = selectTerminalAtmosphereMessage({
+		reason,
+		hour: new Date(now).getHours(),
+		visits,
+		idleCount: _terminalIdleCount,
+		lastMessage: _terminalLastAtmosphere,
+		systemEligible,
+		rareEligible,
+		random: Math.random,
+	});
+
+	if (selection.category === "system") {
+		_terminalLastSystemTs = now;
+	}
+
+	if (selection.category === "rare") {
+		_terminalLastRareTs = now;
+	}
+
+	_terminalLastAtmosphere = selection.message;
+	return selection.message;
+}
+
+function renderTerminalAtmosphere(reason: TerminalAtmosphereReason): void {
+	const elements = getElements();
+	if (!elements.atmosphere) return;
+
+	const text = resolveTerminalAtmosphere(reason);
+	playTerminalTextEffect({
+		el: elements.atmosphere,
+		effect: Math.random() < 0.32 ? "decrypt" : "typing",
+		text,
+	});
+}
+
+function scheduleTerminalIdleAtmosphere(): void {
+	clearTerminalIdleTimer();
+	if (!_open) return;
+
+	_terminalIdleTimer = window.setTimeout(() => {
+		if (!_open) return;
+		renderTerminalAtmosphere("idle");
+		_terminalIdleCount += 1;
+	}, IDLE_DELAY_MS);
+}
+
+function noteTerminalActivity(): void {
+	if (!_open) return;
+	scheduleTerminalIdleAtmosphere();
 }
 
 function appendEntries(...entries: TerminalEntry[]): void {
@@ -320,7 +477,122 @@ function clearVisibleHistory(elements: TerminalModalElements, statusText = "hist
 	}
 }
 
+function resetTerminalSession(elements: TerminalModalElements): void {
+	_entries = [];
+	_commandHistory.length = 0;
+	_nextEntryId = 0;
+	_windowState = createTerminalWindowState();
+	_lastDragHandleTapTs = null;
+	_interaction = null;
+	clearTerminalIdleTimer();
+	_terminalIdleCount = 0;
+	_terminalLastAtmosphere = null;
+	_terminalLastSystemTs = 0;
+	_terminalLastRareTs = 0;
+
+	if (elements.log) {
+		elements.log.innerHTML = "";
+	}
+
+	if (elements.input) {
+		elements.input.value = "";
+	}
+
+	if (elements.status) {
+		elements.status.textContent = "incoming transmission";
+	}
+
+	if (elements.atmosphere) {
+		resetTerminalTextEffect(elements.atmosphere);
+		elements.atmosphere.textContent = "restoring context";
+		delete elements.atmosphere.dataset.greetingTarget;
+	}
+
+	syncPromptMirror(elements);
+	updateTerminalPresence(elements);
+}
+
+function getTerminalSystemSnapshot() {
+	return {
+		platform:
+			(navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ??
+			(navigator.userAgent.includes("Macintosh")
+				? "macOS"
+				: navigator.userAgent.includes("Windows NT")
+					? "Windows"
+					: navigator.userAgent.includes("Android")
+						? "Android"
+						: navigator.userAgent.includes("iPhone") ||
+							  navigator.userAgent.includes("iPad") ||
+							  navigator.userAgent.includes("iPod")
+							? "iOS"
+							: navigator.userAgent.includes("Linux")
+								? "Linux"
+								: "Unknown"),
+		theme: document.documentElement.getAttribute("data-theme") ?? "unknown",
+		flavor: document.documentElement.getAttribute("data-flavor") ?? "default warm void",
+		language: navigator.language ?? "unknown",
+		network: navigator.onLine ? "online" : "offline",
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "unknown",
+		viewport: `${window.innerWidth}×${window.innerHeight}`,
+		route: window.location.pathname || "/",
+		cpuThreads: navigator.hardwareConcurrency ?? null,
+		deviceMemoryGiB:
+			"deviceMemory" in navigator ? ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null) : null,
+		touchPoints: typeof navigator.maxTouchPoints === "number" ? navigator.maxTouchPoints : null,
+		reducedMotion: isReducedMotion(),
+	};
+}
+
+function createSystemProfileEntries(
+	profile: TerminalSystemProfile,
+	options: { randomizeMetaEffects?: boolean } = {}
+): TerminalEntry[] {
+	const { randomizeMetaEffects = false } = options;
+	const artEntries: TerminalEntry[] = profile.asciiLines.map((line) => ({
+		id: nextEntryId(),
+		kind: "system-art",
+		text: line.text,
+		colorRole: line.colorRole,
+	}));
+	const metaEntries: TerminalEntry[] = profile.rows.map((row) => ({
+		id: nextEntryId(),
+		kind: "system-meta",
+		label: row.label,
+		value: row.value,
+		effect: randomizeMetaEffects ? (Math.random() < 0.5 ? "decrypt" : "typing") : undefined,
+	}));
+
+	return [...artEntries, ...metaEntries];
+}
+
 function createEntryElement(entry: TerminalEntry): HTMLElement {
+	if (entry.kind === "system-art") {
+		const line = document.createElement("pre");
+		line.className = `terminal-window__system-art terminal-window__system-art-line terminal-window__system-art-line--${entry.colorRole}`;
+		line.dataset.entryId = entry.id;
+		line.textContent = entry.text;
+		return line;
+	}
+
+	if (entry.kind === "system-meta") {
+		const line = document.createElement("p");
+		line.className = "terminal-window__system-row";
+		line.dataset.entryId = entry.id;
+
+		const label = document.createElement("span");
+		label.className = "terminal-window__system-label";
+		label.textContent = `${entry.label}:`;
+
+		const value = document.createElement("span");
+		value.className = "terminal-window__system-value";
+		value.dataset.terminalEntryText = "";
+		value.textContent = entry.value;
+
+		line.append(label, value);
+		return line;
+	}
+
 	const row = document.createElement("p");
 	const className =
 		entry.kind === "command"
@@ -362,7 +634,7 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 			);
 			targets.forEach((target, index) => {
 				const entry = _entries[startIndex + index];
-				const effect = entry?.effect ?? null;
+				const effect = entry && "effect" in entry ? (entry.effect ?? null) : null;
 				if (!effect) return;
 
 				window.setTimeout(() => {
@@ -379,13 +651,54 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 	elements.log.scrollTop = elements.log.scrollHeight;
 }
 
+function appendRenderedEntry(elements: TerminalModalElements, entry: TerminalEntry): void {
+	if (!elements.log) return;
+
+	const node = createEntryElement(entry);
+	elements.log.append(node);
+
+	if (!isReducedMotion()) {
+		const target = node.querySelector<HTMLElement>("[data-terminal-entry-text]");
+		const effect = "effect" in entry ? (entry.effect ?? null) : null;
+		if (target && effect) {
+			playTerminalTextEffect({
+				el: target,
+				effect,
+				text: target.textContent ?? "",
+			});
+		}
+	}
+
+	elements.log.scrollTop = elements.log.scrollHeight;
+}
+
+function queueEntrySequence(elements: TerminalModalElements, entries: TerminalEntry[]): void {
+	clearSequenceTimers();
+
+	let delay = 0;
+	for (const entry of entries) {
+		const timer = window.setTimeout(() => {
+			appendRenderedEntry(elements, entry);
+		}, delay);
+		_sequenceTimers.push(timer);
+
+		if (entry.kind === "prelude") {
+			delay += 460;
+		} else if (entry.kind === "system-art") {
+			delay += 90;
+		} else if (entry.kind === "system-meta") {
+			delay += 165;
+		} else {
+			delay += 110;
+		}
+	}
+}
+
 function ensurePrelude(elements: TerminalModalElements): void {
 	if (_entries.length > 0) return;
 
-	const prelude = buildTerminalPrelude({
-		visits: Math.max(getVisitCount(), 1),
-		lastVisitLabel: getLastVisitLabel(),
-	});
+	const prelude = buildTerminalPrelude();
+	const profile = buildTerminalSystemProfile(getTerminalSystemSnapshot());
 
 	const newEntries: TerminalEntry[] = prelude.lines.map((line, index) => ({
 		id: nextEntryId(),
@@ -393,16 +706,13 @@ function ensurePrelude(elements: TerminalModalElements): void {
 		text: line,
 		effect: index % 2 === 0 ? "decrypt" : "typing",
 	}));
-
-	newEntries.push({
-		id: nextEntryId(),
-		kind: "system",
-		text: prelude.statusLine,
-		effect: "typing",
-	});
+	newEntries.push(...createSystemProfileEntries(profile, { randomizeMetaEffects: true }));
 
 	appendEntries(...newEntries);
-	renderLog(elements, newEntries[0]?.id);
+	if (elements.log) {
+		elements.log.innerHTML = "";
+	}
+	queueEntrySequence(elements, newEntries);
 }
 
 function focusInput(elements: TerminalModalElements): void {
@@ -413,6 +723,7 @@ function focusInput(elements: TerminalModalElements): void {
 function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 	const elements = getElements();
 	if (!elements.windowEl) return;
+	const hadTerminalSession = _entries.length > 0;
 
 	_lastOpenSource = detail?.source ?? _lastOpenSource;
 
@@ -431,7 +742,10 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 
 	_open = true;
 	setWindowVisibility(elements);
+	updateTerminalPresence(elements);
 	ensurePrelude(elements);
+	renderTerminalAtmosphere(hadTerminalSession ? "resume" : "load");
+	scheduleTerminalIdleAtmosphere();
 	if (elements.status) {
 		elements.status.textContent =
 			_lastOpenSource === "sidebar-expanded" ? "restoring context" : `signal received · ${_lastOpenSource}`;
@@ -439,8 +753,9 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 	focusInput(elements);
 }
 
-function closeTerminal(): void {
+function destroyTerminal(): void {
 	const elements = getElements();
+	resetTerminalSession(elements);
 	_open = false;
 	setWindowVisibility(elements);
 	_opener?.focus();
@@ -450,6 +765,7 @@ function closeTerminal(): void {
 function minimizeTerminal(): void {
 	const elements = getElements();
 	_open = false;
+	clearTerminalIdleTimer();
 	_windowState = minimizeTerminalWindow(_windowState);
 	setWindowVisibility(elements);
 }
@@ -652,7 +968,7 @@ function buildMessageOutput(
 	intent: Extract<NavBrandCommandIntent, { type: "message" }>
 ): string {
 	if (commandId === "help") {
-		return "try: search astro · blog · projects · theme dark · clear · history";
+		return "try: neofetch · search astro · blog · projects · theme dark · clear · history";
 	}
 
 	if (commandId === "status") {
@@ -684,13 +1000,28 @@ function appendCommandAndOutput(
 	renderLog(elements, commandEntry.id);
 }
 
+function appendCommandAndSystemProfile(elements: TerminalModalElements, commandText: string): void {
+	const commandEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind: "command",
+		text: commandText,
+	};
+	const profileEntries = createSystemProfileEntries(buildTerminalSystemProfile(getTerminalSystemSnapshot()), {
+		randomizeMetaEffects: true,
+	});
+
+	appendEntries(commandEntry, ...profileEntries);
+	appendRenderedEntry(elements, commandEntry);
+	queueEntrySequence(elements, profileEntries);
+}
+
 function closeAfterDispatch(callback: () => void, statusText: string): void {
 	const elements = getElements();
 	if (elements.status) {
 		elements.status.textContent = statusText;
 	}
 	window.setTimeout(() => {
-		closeTerminal();
+		destroyTerminal();
 		callback();
 	}, CLOSE_DISPATCH_DELAY_MS);
 }
@@ -717,6 +1048,11 @@ function executeResolvedCommand(
 				? _commandHistory.map((command, index) => `${index + 1}. ${command}`).join("\n")
 				: "no commands in session memory yet";
 		appendCommandAndOutput(elements, rawInput, historyText, "system");
+		return;
+	}
+
+	if (intent.type === "show-system-profile") {
+		appendCommandAndSystemProfile(elements, rawInput);
 		return;
 	}
 
@@ -769,7 +1105,7 @@ function submitCommand(rawInput: string): void {
 
 function onWindowAction(action: WindowAction): void {
 	if (action === "close") {
-		closeTerminal();
+		destroyTerminal();
 		return;
 	}
 
@@ -784,6 +1120,37 @@ function onWindowAction(action: WindowAction): void {
 	}
 
 	restoreFromDock();
+}
+
+function bindTerminalAtmosphereEffects(elements: TerminalModalElements): void {
+	if (!elements.atmosphere) return;
+
+	const config = readTerminalTextEffectConfig(elements.atmosphere);
+	if (!config) return;
+
+	bindTerminalTextEffectTriggers({
+		el: elements.atmosphere,
+		effects: config.effects,
+		triggers: config.triggers,
+		randomIntervalMs: config.randomIntervalMs,
+		getText: (el, trigger) => {
+			const current = getCurrentAtmosphereText(el);
+			if (!_open && trigger !== "load" && trigger !== "route-enter") {
+				return current;
+			}
+
+			switch (trigger) {
+				case "load":
+				case "route-enter":
+				case "resume":
+				case "idle-return":
+				case "random-time":
+					return resolveTerminalAtmosphere(trigger as TerminalAtmosphereReason);
+				default:
+					return current;
+			}
+		},
+	});
 }
 
 function initTerminalModal(): void {
@@ -805,6 +1172,7 @@ function initTerminalModal(): void {
 	setWindowVisibility(elements);
 	syncPromptMirror(elements);
 	renderLog(elements);
+	bindTerminalAtmosphereEffects(elements);
 
 	document.addEventListener(
 		NAVBRAND_OPEN_TERMINAL_EVENT,
@@ -815,7 +1183,7 @@ function initTerminalModal(): void {
 		{ signal }
 	);
 
-	elements.overlay.addEventListener("click", () => closeTerminal(), { signal });
+	elements.overlay.addEventListener("click", () => minimizeTerminal(), { signal });
 	elements.closeButton?.addEventListener("click", () => onWindowAction("close"), { signal });
 	elements.minimizeButton?.addEventListener("click", () => onWindowAction("minimize"), { signal });
 	elements.maximizeButton?.addEventListener("click", () => onWindowAction("maximize"), { signal });
@@ -854,6 +1222,7 @@ function initTerminalModal(): void {
 		(event) => {
 			event.preventDefault();
 			submitCommand(elements.input?.value ?? "");
+			noteTerminalActivity();
 			if (elements.input) {
 				elements.input.value = "";
 				syncPromptMirror(elements);
@@ -867,6 +1236,7 @@ function initTerminalModal(): void {
 		"input",
 		() => {
 			syncPromptMirror(elements);
+			noteTerminalActivity();
 		},
 		{ signal }
 	);
@@ -874,6 +1244,7 @@ function initTerminalModal(): void {
 	elements.input.addEventListener(
 		"keydown",
 		(event) => {
+			noteTerminalActivity();
 			const isCtrlOrCmd = event.ctrlKey || event.metaKey;
 			if (isCtrlOrCmd && event.key.toLowerCase() === "k") {
 				event.preventDefault();
@@ -894,6 +1265,7 @@ function initTerminalModal(): void {
 	);
 
 	elements.dragHandle.addEventListener("pointerdown", (event) => beginDrag(event, elements), { signal });
+	elements.windowEl.addEventListener("pointerdown", () => noteTerminalActivity(), { signal });
 	for (const handle of elements.resizeHandles) {
 		const edge = handle.dataset.terminalResize;
 		if (!edge) continue;
@@ -936,7 +1308,12 @@ function initTerminalModal(): void {
 		(event) => {
 			if (!_open) return;
 			if (event.key === "Escape") {
-				closeTerminal();
+				event.preventDefault();
+				if (_windowState.mode === "fullscreen") {
+					exitFullscreenToWindowed();
+					return;
+				}
+				minimizeTerminal();
 			}
 		},
 		{ signal }

@@ -344,6 +344,41 @@ describe("bindTerminalTextEffectTriggers", () => {
 		vi.runAllTimers();
 		expect(el.textContent).toBe("signal");
 	});
+
+	it("passes the triggering cause into custom text readers", () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		const mockDocument = createMockDocument("hidden");
+		const seenTriggers: string[] = [];
+		vi.stubGlobal("document", mockDocument);
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["resume", "random-time"],
+			randomIntervalMs: 18_000,
+			getText: (_node, trigger) => {
+				seenTriggers.push(trigger);
+				return `signal-${trigger}`;
+			},
+		});
+
+		Object.defineProperty(mockDocument, "visibilityState", {
+			configurable: true,
+			writable: true,
+			value: "visible",
+		});
+		mockDocument.dispatchEvent(new Event("visibilitychange"));
+		vi.advanceTimersByTime(2_000);
+		expect(seenTriggers).toContain("resume");
+		expect(el.textContent).toBe("signal-resume");
+
+		vi.advanceTimersByTime(18_000);
+		vi.advanceTimersByTime(2_000);
+		expect(seenTriggers).toContain("random-time");
+		expect(el.textContent).toBe("signal-random-time");
+	});
 });
 
 function resetElementText(el: HTMLElement, text: string): void {

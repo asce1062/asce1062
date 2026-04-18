@@ -25,6 +25,7 @@ describe("NAVBRAND_COMMANDS", () => {
 			"status",
 			"clear",
 			"history",
+			"neofetch",
 		]);
 		expect(getNavBrandCommand("blog").href).toBe("/blog");
 		expect(getNavBrandCommand("search").action).toBe("search-handoff");
@@ -110,6 +111,9 @@ describe("resolveNavBrandCommandInput", () => {
 		expect(resolveNavBrandCommandInput("history")).toMatchObject({
 			command: { id: "history", action: "terminal" },
 		});
+		expect(resolveNavBrandCommandInput("neofetch")).toMatchObject({
+			command: { id: "neofetch", action: "terminal" },
+		});
 	});
 
 	it("returns null for empty or unknown commands", () => {
@@ -161,6 +165,9 @@ describe("buildNavBrandCommandIntent", () => {
 		});
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("history")!)).toEqual({
 			type: "show-history",
+		});
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("neofetch")!)).toEqual({
+			type: "show-system-profile",
 		});
 	});
 });

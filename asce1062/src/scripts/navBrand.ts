@@ -20,6 +20,7 @@ import {
 } from "@/lib/navBrand/cursor";
 import {
 	NAVBRAND_MESSAGE_POOLS,
+	getActiveTimeBucket,
 	getFeltDuration,
 	getMilestoneGreeting,
 	pickMessage,
@@ -580,11 +581,7 @@ function renderActive(options: { allowSystem?: boolean } = {}): void {
 }
 
 function getActiveCategory(): MessageCategory {
-	const hour = new Date().getHours();
-	if (hour >= 5 && hour < 12) return "activeMorning";
-	if (hour >= 12 && hour < 17) return "activeAfternoon";
-	if (hour >= 17 && hour < 21) return "activeEvening";
-	return "activeLate";
+	return getActiveTimeBucket(new Date().getHours());
 }
 
 function renderIdle(): void {

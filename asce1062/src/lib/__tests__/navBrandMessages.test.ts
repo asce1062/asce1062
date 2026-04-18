@@ -4,6 +4,7 @@ import {
 	getActiveTimeBucket,
 	pickMessage,
 	selectActiveGreeting,
+	selectTerminalAtmosphereMessage,
 } from "@/lib/navBrand/messages";
 
 describe("getActiveTimeBucket", () => {
@@ -11,6 +12,8 @@ describe("getActiveTimeBucket", () => {
 		expect(getActiveTimeBucket(5)).toBe("activeMorning");
 		expect(getActiveTimeBucket(12)).toBe("activeAfternoon");
 		expect(getActiveTimeBucket(17)).toBe("activeEvening");
+		expect(getActiveTimeBucket(21)).toBe("activeEvening");
+		expect(getActiveTimeBucket(22)).toBe("activeLate");
 		expect(getActiveTimeBucket(2)).toBe("activeLate");
 	});
 });
@@ -46,5 +49,78 @@ describe("selectActiveGreeting", () => {
 		});
 		expect(greeting).not.toBe(previous);
 		expect(NAVBRAND_MESSAGE_POOLS.activeEvening).toContain(greeting);
+	});
+});
+
+describe("selectTerminalAtmosphereMessage", () => {
+	it("uses arrival copy on first-load for a first-time visitor", () => {
+		const selection = selectTerminalAtmosphereMessage({
+			reason: "load",
+			hour: 9,
+			visits: 1,
+			random: () => 0,
+		});
+
+		expect(selection.category).toBe("arrival");
+		expect(NAVBRAND_MESSAGE_POOLS.arrival).toContain(selection.message);
+	});
+
+	it("uses the correct active time bucket on load for returning visitors", () => {
+		const afternoonSelection = selectTerminalAtmosphereMessage({
+			reason: "load",
+			hour: 14,
+			visits: 8,
+			random: () => 0,
+		});
+
+		expect(afternoonSelection.category).toBe("activeAfternoon");
+		expect(NAVBRAND_MESSAGE_POOLS.activeAfternoon).toContain(afternoonSelection.message);
+	});
+
+	it("uses the idle escalation pool after the first idle event", () => {
+		const selection = selectTerminalAtmosphereMessage({
+			reason: "idle",
+			hour: 18,
+			visits: 12,
+			idleCount: 2,
+			random: () => 0,
+		});
+
+		expect(selection.category).toBe("idleEscalation");
+		expect(NAVBRAND_MESSAGE_POOLS.idleEscalation).toContain(selection.message);
+	});
+
+	it("uses the return pool for resume-style triggers", () => {
+		const selection = selectTerminalAtmosphereMessage({
+			reason: "resume",
+			hour: 18,
+			visits: 12,
+			random: () => 0,
+		});
+
+		expect(selection.category).toBe("return");
+		expect(NAVBRAND_MESSAGE_POOLS.return).toContain(selection.message);
+	});
+
+	it("lets random-time escalate into system or rare copy when eligible", () => {
+		const systemSelection = selectTerminalAtmosphereMessage({
+			reason: "random-time",
+			hour: 13,
+			visits: 5,
+			systemEligible: true,
+			random: () => 0,
+		});
+		expect(systemSelection.category).toBe("system");
+		expect(NAVBRAND_MESSAGE_POOLS.system).toContain(systemSelection.message);
+
+		const rareSelection = selectTerminalAtmosphereMessage({
+			reason: "random-time",
+			hour: 13,
+			visits: 5,
+			rareEligible: true,
+			random: () => 0,
+		});
+		expect(rareSelection.category).toBe("rare");
+		expect(NAVBRAND_MESSAGE_POOLS.rare).toContain(rareSelection.message);
 	});
 });

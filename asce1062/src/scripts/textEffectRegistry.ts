@@ -29,6 +29,7 @@
  *   data-text-effect="typing, decrypt"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"    // optional, used by random-time
+ *   data-text-effect-managed="manual"       // optional, skip registry binding
  *
  * Lifecycle:
  *   - Runs on every astro:page-load
@@ -44,7 +45,9 @@
 import { bindTerminalTextEffectTriggers, readTerminalTextEffectConfig } from "@/lib/textEffects/terminalTextEffect";
 
 function initTextEffectRegistry(): void {
-	const elements = document.querySelectorAll<HTMLElement>("[data-text-effect]");
+	const elements = document.querySelectorAll<HTMLElement>(
+		"[data-text-effect]:not([data-text-effect-managed='manual'])"
+	);
 
 	for (const el of elements) {
 		const config = readTerminalTextEffectConfig(el);

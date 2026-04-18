@@ -28,6 +28,27 @@ import "@/styles/components/terminal-modal.css";
 		<div class="terminal-window__identity">
 			<p class="terminal-window__eyebrow">Alex Workstation</p>
 			<h2 id="terminal-modal-title" class="terminal-window__title">stellar console</h2>
+			<div class="terminal-window__presence" aria-live="polite">
+				<p class="terminal-window__presence-line">
+					<span id="terminal-modal-presence-badge" class="badge badge-warning badge-sm">last seen</span>
+					<span id="terminal-modal-presence-text" class="terminal-window__presence-text">back the same day</span>
+				</p>
+				<p class="terminal-window__presence-line">
+					<span class="badge badge-secondary badge-sm">visits</span>
+					<span id="terminal-modal-presence-visits" class="terminal-window__presence-visits">1</span>
+				</p>
+				<p class="terminal-window__presence-line terminal-window__presence-line--atmosphere">
+					<span class="badge badge-accent badge-sm">signal</span>
+					<span
+						id="terminal-modal-atmosphere"
+						class="terminal-window__presence-text terminal-window__presence-text--atmosphere"
+						data-text-effect="decrypt, typing"
+						data-text-effect-managed="manual"
+						data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
+						data-text-effect-interval-ms="18000">restoring context</span
+					>
+				</p>
+			</div>
 		</div>
 		<div class="terminal-window__controls" aria-label="Terminal window controls">
 			<button
@@ -37,7 +58,7 @@ import "@/styles/components/terminal-modal.css";
 				data-terminal-control="minimize"
 				aria-label="Minimize terminal"
 				title="Minimize terminal">
-				<span aria-hidden="true">_</span>
+				<span class="text-secondary-content" aria-hidden="true">_</span>
 			</button>
 			<button
 				id="terminal-maximize"
@@ -46,7 +67,7 @@ import "@/styles/components/terminal-modal.css";
 				data-terminal-control="maximize"
 				aria-label="Expand terminal"
 				title="Expand terminal">
-				<i id="terminal-maximize-icon" class="icon-square" aria-hidden="true"></i>
+				<i id="terminal-maximize-icon" class="icon-square text-accent-content" aria-hidden="true"></i>
 			</button>
 			<button
 				id="terminal-close"
@@ -55,7 +76,7 @@ import "@/styles/components/terminal-modal.css";
 				data-terminal-control="close"
 				aria-label="Close terminal"
 				title="Close terminal">
-				<i class="icon-x-lg" aria-hidden="true"></i>
+				<i class="icon-x-lg text-error-content" aria-hidden="true"></i>
 			</button>
 		</div>
 	</header>

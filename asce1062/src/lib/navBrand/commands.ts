@@ -37,7 +37,8 @@ export type NavBrandCommandId =
 	| "sidebar"
 	| "status"
 	| "clear"
-	| "history";
+	| "history"
+	| "neofetch";
 
 export type NavBrandCommandDefinition = {
 	id: NavBrandCommandId;
@@ -63,7 +64,8 @@ export type NavBrandCommandIntent =
 	| { type: "toggle-pref"; target: string; value: string | boolean }
 	| { type: "message"; message: string }
 	| { type: "clear-history" }
-	| { type: "show-history" };
+	| { type: "show-history" }
+	| { type: "show-system-profile" };
 
 export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 	{
@@ -211,6 +213,16 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		aliases: ["recent", "log"],
 		keywords: ["commands", "session"],
 	},
+	{
+		id: "neofetch",
+		command: "neofetch",
+		label: "Neofetch",
+		description: "Print the terminal's local system profile with ASCII art.",
+		hint: "show local system profile",
+		action: "terminal",
+		aliases: ["fetch", "sysinfo"],
+		keywords: ["system", "profile", "ascii"],
+	},
 ] as const;
 
 export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = [
@@ -223,7 +235,8 @@ export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = [
 export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "blog", "projects", "guestbook"];
 export const NAVBRAND_COMMAND_PROMPT_HINT = "try: blog · find auth0";
 export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
-export const NAVBRAND_HELP_MESSAGE = "commands: search, blog, projects, guestbook, theme, status, clear, history";
+export const NAVBRAND_HELP_MESSAGE =
+	"commands: search, blog, projects, guestbook, theme, status, neofetch, clear, history";
 
 type RandomSource = () => number;
 
@@ -365,6 +378,10 @@ export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): N
 
 	if (command.id === "history") {
 		return { type: "show-history" };
+	}
+
+	if (command.id === "neofetch") {
+		return { type: "show-system-profile" };
 	}
 
 	if (command.action === "hint") {

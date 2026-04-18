@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getMilestoneGreeting, getFeltDuration } from "@/lib/navBrand/messages";
+import { getMilestoneGreeting, getFeltDuration, getTerminalPresenceSummary } from "@/lib/navBrand/messages";
 
 describe("getMilestoneGreeting", () => {
 	it("returns 'hello, stranger' for visit 1", () => {
@@ -57,5 +57,25 @@ describe("getFeltDuration", () => {
 	it("returns 'been a while' for 7+ days", () => {
 		expect(getFeltDuration(NOW - 86_400_000 * 7, NOW)).toBe("been a while");
 		expect(getFeltDuration(NOW - 86_400_000 * 30, NOW)).toBe("been a while");
+	});
+});
+
+describe("getTerminalPresenceSummary", () => {
+	const NOW = 1_000_000_000_000;
+
+	it("uses a first-contact badge when there is no prior visit timestamp", () => {
+		expect(getTerminalPresenceSummary({ visits: 0, lastVisitTs: null, now: NOW })).toEqual({
+			lastSeenBadge: "first contact",
+			lastSeenText: "new to the signal",
+			visits: 1,
+		});
+	});
+
+	it("reuses felt-duration phrasing for returning visitors", () => {
+		expect(getTerminalPresenceSummary({ visits: 17, lastVisitTs: NOW - 86_400_000, now: NOW })).toEqual({
+			lastSeenBadge: "last seen",
+			lastSeenText: "been 1 day",
+			visits: 17,
+		});
 	});
 });

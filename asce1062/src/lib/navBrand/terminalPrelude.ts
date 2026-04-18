@@ -18,21 +18,13 @@ function shufflePreludeLines(random: PreludeRandom): string[] {
 	return lines;
 }
 
-export function buildTerminalPrelude(options: {
-	visits: number;
-	lastVisitLabel: string | null;
-	random?: PreludeRandom;
-}): { lines: string[]; statusLine: string } {
-	const { visits, lastVisitLabel, random = Math.random } = options;
+export function buildTerminalPrelude(options: { random?: PreludeRandom } = {}): { lines: string[] } {
+	const { random = Math.random } = options;
 	const lines = shufflePreludeLines(random).slice(0, 4);
 
 	if (!lines.includes("[ waking signal ]")) {
 		lines[lines.length - 1] = "[ waking signal ]";
 	}
 
-	const statusLine = lastVisitLabel
-		? `last seen: ${lastVisitLabel} · visits: ${visits}`
-		: `first contact sequence · visits: ${visits}`;
-
-	return { lines, statusLine };
+	return { lines };
 }

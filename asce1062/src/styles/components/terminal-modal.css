@@ -57,7 +57,7 @@
 
 .terminal-window__chrome {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: space-between;
 	gap: 1rem;
 	padding: 0.8rem 0.9rem 0.72rem;
@@ -77,6 +77,8 @@
 
 .terminal-window__identity {
 	min-width: 0;
+	display: grid;
+	gap: 0.3rem;
 }
 
 .terminal-window__eyebrow,
@@ -98,9 +100,46 @@
 	text-transform: lowercase;
 }
 
+.terminal-window__presence {
+	display: grid;
+	gap: 0.18rem;
+	min-width: 0;
+}
+
+.terminal-window__presence-line {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0;
+	min-width: 0;
+	font-size: 0.69rem;
+	line-height: 1.25;
+}
+
+.terminal-window__presence-line--atmosphere {
+	align-items: flex-start;
+}
+
+.terminal-window__presence-text,
+.terminal-window__presence-visits {
+	min-width: 0;
+	font-family: var(--font-proto);
+	font-variant-numeric: tabular-nums;
+	color: color-mix(in oklab, var(--color-base-content) 84%, transparent);
+}
+
+.terminal-window__presence-visits {
+	color: color-mix(in oklab, var(--color-secondary) 72%, var(--color-base-content));
+}
+
+.terminal-window__presence-text--atmosphere {
+	color: color-mix(in oklab, var(--color-accent) 28%, var(--color-base-content));
+}
+
 .terminal-window__controls {
 	display: inline-flex;
 	align-items: center;
+	align-self: flex-start;
 	gap: 0.35rem;
 }
 
@@ -233,6 +272,71 @@
 
 .terminal-window__entry--system .terminal-window__entry-text {
 	color: color-mix(in oklab, var(--color-warning) 82%, var(--color-base-content));
+}
+
+.terminal-window__system-art {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	outline: none;
+	font: inherit;
+	line-height: 1.04;
+	white-space: pre;
+	overflow: visible;
+}
+
+.terminal-window__system-art-line {
+	display: block;
+}
+
+.terminal-window__system-art-line--primary {
+	color: var(--color-primary);
+}
+
+.terminal-window__system-art-line--secondary {
+	color: var(--color-secondary);
+}
+
+.terminal-window__system-art-line--accent {
+	color: var(--color-accent);
+}
+
+.terminal-window__system-art-line--warning {
+	color: var(--color-warning);
+}
+
+.terminal-window__system-art-line--info {
+	color: var(--color-info);
+}
+
+.terminal-window__system-art-line--success {
+	color: var(--color-success);
+}
+
+.terminal-window__system-meta {
+	display: grid;
+	gap: 0.08rem;
+}
+
+.terminal-window__system-row {
+	display: flex;
+	align-items: baseline;
+	gap: 0.55rem;
+	margin: 0;
+}
+
+.terminal-window__system-label {
+	min-width: 6.2rem;
+	flex: 0 0 auto;
+	color: color-mix(in oklab, var(--color-warning) 76%, var(--color-base-content));
+}
+
+.terminal-window__system-value {
+	min-width: 0;
+	color: color-mix(in oklab, var(--color-base-content) 88%, transparent);
+	word-break: break-word;
 }
 
 .terminal-window__prompt-form {
@@ -506,6 +610,10 @@
 		font-size: 0.625rem;
 	}
 
+	.terminal-window__presence-line {
+		font-size: 0.625rem;
+	}
+
 	.terminal-window__log {
 		font-size: 0.6875rem;
 	}
@@ -521,6 +629,10 @@
 
 	.terminal-window__prelude-status {
 		font-size: 0.625rem;
+	}
+
+	.terminal-window__system-label {
+		min-width: 5.25rem;
 	}
 
 	.terminal-dock-chip {

@@ -46,6 +46,7 @@
  *   data-text-effect="typing, decrypt"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"
+ *   data-text-effect-managed="manual"         // optional registry skip hint
  *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.
@@ -229,6 +230,7 @@ export function resolveTerminalTextEffectKind(
  * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt"`
  * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"`
  * - `data-text-effect-interval-ms="18000"`
+ * - `data-text-effect-managed="manual"` to opt out of the declarative registry
  *
  * Parsing is intentionally strict:
  * - unknown effects are ignored; if nothing valid remains, the registry skips the element
@@ -426,7 +428,7 @@ export function bindTerminalTextEffectTriggers(options: {
 	effect?: TerminalTextEffectKind;
 	effects?: TerminalTextEffectKind[];
 	triggers?: TerminalTextEffectTrigger[];
-	getText?: (el: HTMLElement) => string;
+	getText?: (el: HTMLElement, trigger: TerminalTextEffectTrigger) => string;
 	durationMs?: number;
 	typingStepMs?: number;
 	randomIntervalMs?: number;
@@ -454,9 +456,9 @@ export function bindTerminalTextEffectTriggers(options: {
 		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "click") ||
 		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "activate");
 
-	const play = () => {
+	const play = (trigger: TerminalTextEffectTrigger) => {
 		if (hasActiveEffect(el)) return;
-		const text = textReader(el);
+		const text = textReader(el, trigger);
 		if (!text) return;
 		playTerminalTextEffect({
 			el,
@@ -470,15 +472,15 @@ export function bindTerminalTextEffectTriggers(options: {
 	clearTriggerBindings(el);
 
 	const handlers = triggerHandlers.get(el) ?? {
-		mouseenter: () => play(),
-		focusin: () => play(),
-		touchstart: () => play(),
-		click: () => play(),
+		mouseenter: () => play("hover"),
+		focusin: () => play("focus"),
+		touchstart: () => play("tap"),
+		click: () => play("click"),
 	};
 	triggerHandlers.set(el, handlers);
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "load")) {
-		play();
+		play("load");
 	}
 
 	el.removeEventListener("mouseenter", handlers.mouseenter);
@@ -510,14 +512,14 @@ export function bindTerminalTextEffectTriggers(options: {
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "resume") && typeof document !== "undefined") {
 		const resumeHandler = () => {
-			if (document.visibilityState === "visible") play();
+			if (document.visibilityState === "visible") play("resume");
 		};
 		document.addEventListener("visibilitychange", resumeHandler);
 		registerTriggerCleanup(el, () => document.removeEventListener("visibilitychange", resumeHandler));
 	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "route-enter") && typeof document !== "undefined") {
-		const routeEnterHandler = () => play();
+		const routeEnterHandler = () => play("route-enter");
 		document.addEventListener("astro:after-swap", routeEnterHandler);
 		registerTriggerCleanup(el, () => document.removeEventListener("astro:after-swap", routeEnterHandler));
 	}
@@ -529,7 +531,7 @@ export function bindTerminalTextEffectTriggers(options: {
 		const observer = new IntersectionObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.target === el && entry.isIntersecting) {
-					play();
+					play("intersection");
 				}
 			}
 		});
@@ -544,7 +546,7 @@ export function bindTerminalTextEffectTriggers(options: {
 			const wasIdle = now - lastActivityTs >= DEFAULT_IDLE_RETURN_DELAY_MS;
 			lastActivityTs = now;
 			if (wasIdle && document.visibilityState === "visible") {
-				play();
+				play("idle-return");
 			}
 		};
 		for (const eventName of ["mousemove", "keydown", "pointerdown", "touchstart", "focusin"]) {
@@ -557,7 +559,7 @@ export function bindTerminalTextEffectTriggers(options: {
 		// Random-time intentionally means "replay on a timer" rather than "random delay once".
 		// The effect kind may also randomize independently via the `random-effect` trigger.
 		const intervalId = globalThis.setInterval(() => {
-			play();
+			play("random-time");
 		}, randomIntervalMs);
 		randomTimers.set(el, intervalId);
 	}

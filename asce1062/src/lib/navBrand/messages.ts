@@ -10,6 +10,7 @@
  * render; this module decides *what text* is eligible for that state.
  */
 export type ActiveTimeBucket = "activeMorning" | "activeAfternoon" | "activeEvening" | "activeLate";
+export type TerminalAtmosphereReason = "load" | "route-enter" | "resume" | "idle" | "idle-return" | "random-time";
 
 export type MessagePoolKey =
 	| "arrival"
@@ -76,11 +77,40 @@ export function getFeltDuration(lastVisitTs: number, now: number): string {
 	return "been a while";
 }
 
+/**
+ * Terminal header presence copy stays intentionally small and durable because it
+ * lives above the scrolling log. The badge label is separated from the fuzzy
+ * time text so future iterations can change the label vocabulary without
+ * rewriting terminal rendering or localStorage handling.
+ */
+export function getTerminalPresenceSummary(options: { visits: number; lastVisitTs?: number | null; now: number }): {
+	lastSeenBadge: string;
+	lastSeenText: string;
+	visits: number;
+} {
+	const visits = Math.max(1, Math.floor(options.visits) || 1);
+	const lastVisitTs = options.lastVisitTs ?? null;
+
+	if (!lastVisitTs || lastVisitTs <= 0) {
+		return {
+			lastSeenBadge: "first contact",
+			lastSeenText: "new to the signal",
+			visits,
+		};
+	}
+
+	return {
+		lastSeenBadge: "last seen",
+		lastSeenText: getFeltDuration(lastVisitTs, options.now),
+		visits,
+	};
+}
+
 /** Maps local time to the active greeting bucket used for soft-nav/return states. */
 export function getActiveTimeBucket(hour: number): ActiveTimeBucket {
 	if (hour >= 5 && hour < 12) return "activeMorning";
 	if (hour >= 12 && hour < 17) return "activeAfternoon";
-	if (hour >= 17 && hour < 21) return "activeEvening";
+	if (hour >= 17 && hour < 22) return "activeEvening";
 	return "activeLate";
 }
 
@@ -112,4 +142,92 @@ export function selectActiveGreeting(options: {
 }): string {
 	const bucket = getActiveTimeBucket(options.hour);
 	return pickMessage(NAVBRAND_MESSAGE_POOLS[bucket], options);
+}
+
+/**
+ * Terminal header atmosphere stays in the same message universe as the
+ * sidebar navbrand, but its selection rules are slightly different because the
+ * terminal needs a persistent, self-contained ambient line while it overlays
+ * the rest of the page.
+ */
+export function selectTerminalAtmosphereMessage(options: {
+	reason: TerminalAtmosphereReason;
+	hour: number;
+	visits: number;
+	idleCount?: number;
+	lastMessage?: string | null;
+	systemEligible?: boolean;
+	rareEligible?: boolean;
+	random?: RandomSource;
+}): {
+	category: MessagePoolKey;
+	message: string;
+} {
+	const {
+		reason,
+		hour,
+		visits,
+		idleCount = 0,
+		lastMessage = null,
+		systemEligible = false,
+		rareEligible = false,
+		random = Math.random,
+	} = options;
+
+	if (reason === "load" || reason === "route-enter") {
+		if (visits <= 1) {
+			return {
+				category: "arrival",
+				message: pickMessage(NAVBRAND_MESSAGE_POOLS.arrival, { lastMessage, random }),
+			};
+		}
+
+		const category = getActiveTimeBucket(hour);
+		return {
+			category,
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+		};
+	}
+
+	if (reason === "resume" || reason === "idle-return") {
+		return {
+			category: "return",
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS.return, { lastMessage, random }),
+		};
+	}
+
+	if (reason === "idle") {
+		const category: MessagePoolKey = idleCount > 0 ? "idleEscalation" : "idle";
+		return {
+			category,
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+		};
+	}
+
+	if (rareEligible) {
+		return {
+			category: "rare",
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS.rare, { lastMessage, random }),
+		};
+	}
+
+	if (systemEligible) {
+		return {
+			category: "system",
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS.system, { lastMessage, random }),
+		};
+	}
+
+	if (random() < 0.28) {
+		return {
+			category: "hints",
+			message: pickMessage(NAVBRAND_MESSAGE_POOLS.hints, { lastMessage, random }),
+		};
+	}
+
+	const category = getActiveTimeBucket(hour);
+	return {
+		category,
+		message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+	};
 }
