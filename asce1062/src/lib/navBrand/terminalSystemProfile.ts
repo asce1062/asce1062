@@ -1,7 +1,7 @@
 import asciiData from "@/data/ascii-art.json";
 import { NAVBRAND_COMMANDS } from "@/lib/navBrand/commands";
 
-export type TerminalSystemColorRole = "primary" | "secondary" | "accent" | "warning" | "info" | "success";
+export type TerminalSystemColorRole = "primary" | "secondary" | "accent" | "info" | "success" | "error";
 
 export type TerminalSystemSnapshot = {
 	platform: string;
@@ -44,14 +44,17 @@ type RandomSource = () => number;
 
 const asciiVariants = (asciiData as AsciiVariant[]).filter((variant) => variant.text !== "404");
 const SITE_GO_LIVE_AT = Date.parse("2025-06-13T00:00:00Z");
-const COLOR_ROLES: readonly TerminalSystemColorRole[] = [
-	"primary",
-	"secondary",
-	"warning",
-	"accent",
-	"info",
-	"success",
-];
+const COLOR_ROLES: readonly TerminalSystemColorRole[] = ["primary", "secondary", "accent", "info", "success", "error"];
+
+function shuffleColorRoles(random: RandomSource): TerminalSystemColorRole[] {
+	const roles = [...COLOR_ROLES];
+	for (let i = roles.length - 1; i > 0; i -= 1) {
+		const sample = Math.min(Math.max(random(), 0), 0.9999999999999999);
+		const j = Math.floor(sample * (i + 1));
+		[roles[i], roles[j]] = [roles[j], roles[i]];
+	}
+	return roles;
+}
 
 export function pickTerminalSystemAsciiVariant(random: RandomSource = Math.random): AsciiVariant {
 	const index = Math.min(asciiVariants.length - 1, Math.floor(random() * asciiVariants.length));
@@ -91,13 +94,14 @@ export function buildTerminalSystemProfile(
 	const { random = Math.random } = options;
 	const now = Date.now();
 	const variant = pickTerminalSystemAsciiVariant(random);
+	const colorRoles = shuffleColorRoles(random);
 	const asciiLines = variant.art
 		.replace(/\n+$/g, "")
 		.split("\n")
 		.filter((line) => line.length > 0)
 		.map((text, index) => ({
 			text,
-			colorRole: COLOR_ROLES[index % COLOR_ROLES.length],
+			colorRole: colorRoles[index % colorRoles.length],
 		}));
 
 	return {

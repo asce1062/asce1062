@@ -287,6 +287,12 @@
 	overflow: visible;
 }
 
+.terminal-window__system-font {
+	margin: 0 0 0.08rem;
+	font-size: 0.625rem;
+	font-style: italic;
+}
+
 .terminal-window__system-art-line {
 	display: block;
 }
@@ -303,16 +309,16 @@
 	color: var(--color-accent);
 }
 
-.terminal-window__system-art-line--warning {
-	color: var(--color-warning);
-}
-
 .terminal-window__system-art-line--info {
 	color: var(--color-info);
 }
 
 .terminal-window__system-art-line--success {
 	color: var(--color-success);
+}
+
+.terminal-window__system-art-line--error {
+	color: var(--color-error);
 }
 
 .terminal-window__system-meta {
@@ -337,6 +343,10 @@
 	min-width: 0;
 	color: color-mix(in oklab, var(--color-base-content) 88%, transparent);
 	word-break: break-word;
+}
+
+.terminal-window__viewport-clear {
+	pointer-events: none;
 }
 
 .terminal-window__prompt-form {

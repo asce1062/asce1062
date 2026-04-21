@@ -96,6 +96,12 @@ type TerminalSystemArtEntry = {
 	text: string;
 	colorRole: TerminalSystemProfile["asciiLines"][number]["colorRole"];
 };
+type TerminalSystemFontEntry = {
+	id: string;
+	kind: "system-font";
+	font: string;
+	colorRole: TerminalSystemProfile["asciiLines"][number]["colorRole"];
+};
 type TerminalSystemMetaEntry = {
 	id: string;
 	kind: "system-meta";
@@ -103,7 +109,17 @@ type TerminalSystemMetaEntry = {
 	value: string;
 	effect?: "typing" | "decrypt";
 };
-type TerminalEntry = TerminalTextEntry | TerminalSystemArtEntry | TerminalSystemMetaEntry;
+type TerminalViewportClearEntry = {
+	id: string;
+	kind: "viewport-clear";
+	height: number;
+};
+type TerminalEntry =
+	| TerminalTextEntry
+	| TerminalSystemFontEntry
+	| TerminalSystemArtEntry
+	| TerminalSystemMetaEntry
+	| TerminalViewportClearEntry;
 type InteractionSession =
 	| {
 			kind: "drag";
@@ -477,6 +493,26 @@ function clearVisibleHistory(elements: TerminalModalElements, statusText = "hist
 	}
 }
 
+function clearTerminalViewport(elements: TerminalModalElements, commandText: string): void {
+	const viewportHeight = Math.max(elements.log?.clientHeight ?? 0, 240);
+	const commandEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind: "command",
+		text: commandText,
+	};
+	const spacerEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind: "viewport-clear",
+		height: viewportHeight,
+	};
+
+	appendEntries(commandEntry, spacerEntry);
+	renderLog(elements, commandEntry.id);
+	if (elements.status) {
+		elements.status.textContent = "viewport cleared";
+	}
+}
+
 function resetTerminalSession(elements: TerminalModalElements): void {
 	_entries = [];
 	_commandHistory.length = 0;
@@ -549,6 +585,12 @@ function createSystemProfileEntries(
 	options: { randomizeMetaEffects?: boolean } = {}
 ): TerminalEntry[] {
 	const { randomizeMetaEffects = false } = options;
+	const fontEntry: TerminalEntry = {
+		id: nextEntryId(),
+		kind: "system-font",
+		font: profile.font,
+		colorRole: profile.asciiLines[0]?.colorRole ?? "secondary",
+	};
 	const artEntries: TerminalEntry[] = profile.asciiLines.map((line) => ({
 		id: nextEntryId(),
 		kind: "system-art",
@@ -563,10 +605,26 @@ function createSystemProfileEntries(
 		effect: randomizeMetaEffects ? (Math.random() < 0.5 ? "decrypt" : "typing") : undefined,
 	}));
 
-	return [...artEntries, ...metaEntries];
+	return [fontEntry, ...artEntries, ...metaEntries];
 }
 
 function createEntryElement(entry: TerminalEntry): HTMLElement {
+	if (entry.kind === "viewport-clear") {
+		const spacer = document.createElement("div");
+		spacer.className = "terminal-window__viewport-clear";
+		spacer.dataset.entryId = entry.id;
+		spacer.style.height = `${entry.height}px`;
+		return spacer;
+	}
+
+	if (entry.kind === "system-font") {
+		const line = document.createElement("p");
+		line.className = `terminal-window__system-font terminal-window__system-art-line--${entry.colorRole}`;
+		line.dataset.entryId = entry.id;
+		line.textContent = `[${entry.font}]`;
+		return line;
+	}
+
 	if (entry.kind === "system-art") {
 		const line = document.createElement("pre");
 		line.className = `terminal-window__system-art terminal-window__system-art-line terminal-window__system-art-line--${entry.colorRole}`;
@@ -684,6 +742,8 @@ function queueEntrySequence(elements: TerminalModalElements, entries: TerminalEn
 
 		if (entry.kind === "prelude") {
 			delay += 460;
+		} else if (entry.kind === "system-font") {
+			delay += 95;
 		} else if (entry.kind === "system-art") {
 			delay += 90;
 		} else if (entry.kind === "system-meta") {
@@ -1037,8 +1097,8 @@ function executeResolvedCommand(
 		return;
 	}
 
-	if (intent.type === "clear-history") {
-		clearVisibleHistory(elements);
+	if (intent.type === "clear-viewport") {
+		clearTerminalViewport(elements, rawInput);
 		return;
 	}
 

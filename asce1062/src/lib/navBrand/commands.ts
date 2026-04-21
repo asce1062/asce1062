@@ -63,7 +63,7 @@ export type NavBrandCommandIntent =
 	| { type: "external-link"; href: string }
 	| { type: "toggle-pref"; target: string; value: string | boolean }
 	| { type: "message"; message: string }
-	| { type: "clear-history" }
+	| { type: "clear-viewport" }
 	| { type: "show-history" }
 	| { type: "show-system-profile" };
 
@@ -373,7 +373,7 @@ export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): N
 	}
 
 	if (command.id === "clear") {
-		return { type: "clear-history" };
+		return { type: "clear-viewport" };
 	}
 
 	if (command.id === "history") {

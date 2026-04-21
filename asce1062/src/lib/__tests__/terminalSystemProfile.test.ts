@@ -27,7 +27,8 @@ describe("buildTerminalSystemProfile", () => {
 
 		expect(profile.font).toBeTruthy();
 		expect(profile.asciiLines.length).toBeGreaterThan(0);
-		expect(profile.asciiLines[0]?.colorRole).toBe("primary");
+		const allowedRoles = ["primary", "secondary", "accent", "info", "success", "error"];
+		expect(profile.asciiLines.every((line) => allowedRoles.includes(line.colorRole))).toBe(true);
 		expect(profile.rows).toEqual(
 			expect.arrayContaining([
 				{ label: "Host", value: "alexmbugua.me" },

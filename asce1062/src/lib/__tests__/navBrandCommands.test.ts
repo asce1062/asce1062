@@ -161,7 +161,7 @@ describe("buildNavBrandCommandIntent", () => {
 
 	it("builds terminal-local intents for history controls", () => {
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("clear")!)).toEqual({
-			type: "clear-history",
+			type: "clear-viewport",
 		});
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("history")!)).toEqual({
 			type: "show-history",
