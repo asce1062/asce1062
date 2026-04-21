@@ -15,11 +15,17 @@
 import { PREF_KEYS, getPref } from "@/lib/prefs";
 import {
 	buildNavBrandCommandIntent,
+	buildNavBrandRouteListMessage,
+	resolveNavBrandCommandCompletions,
+	resolveNavBrandCommandSuggestion,
 	resolveNavBrandCommandInput,
+	type NavBrandCommandCompletion,
 	type NavBrandCommandId,
 	type NavBrandCommandIntent,
 	type ResolvedNavBrandCommand,
 } from "@/lib/navBrand/commands";
+import { buildTerminalPromptMirrorParts } from "@/lib/navBrand/promptMirror";
+import { isFlavor, setFlavor } from "@/scripts/flavorManager";
 import {
 	getTerminalPresenceSummary,
 	selectTerminalAtmosphereMessage,
@@ -79,6 +85,7 @@ type TerminalModalElements = {
 	input: HTMLInputElement | null;
 	mirror: HTMLElement | null;
 	mirrorText: HTMLElement | null;
+	completions: HTMLElement | null;
 	resizeHandles: HTMLElement[];
 };
 
@@ -160,6 +167,9 @@ let _terminalLastAtmosphere: string | null = null;
 let _terminalLastSystemTs = 0;
 let _terminalLastRareTs = 0;
 const _sequenceTimers: number[] = [];
+let _completionInput = "";
+let _completionItems: NavBrandCommandCompletion[] = [];
+let _completionIndex = 0;
 
 function getElements(): TerminalModalElements {
 	return {
@@ -182,6 +192,7 @@ function getElements(): TerminalModalElements {
 		input: document.getElementById("terminal-modal-input") as HTMLInputElement | null,
 		mirror: document.getElementById("terminal-modal-mirror"),
 		mirrorText: document.getElementById("terminal-modal-mirror-text"),
+		completions: document.getElementById("terminal-modal-completions"),
 		resizeHandles: Array.from(document.querySelectorAll<HTMLElement>("[data-terminal-resize]")),
 	};
 }
@@ -347,13 +358,167 @@ function setWindowVisibility(elements: TerminalModalElements): void {
 	updateWindowFrame(elements);
 }
 
+function setCompletionMenuHidden(menu: HTMLElement | null, hidden: boolean): void {
+	if (!menu) return;
+	menu.hidden = hidden;
+	menu.setAttribute("aria-hidden", hidden ? "true" : "false");
+}
+
+function ensureCompletionMenu(elements: TerminalModalElements): HTMLElement | null {
+	if (elements.completions) return elements.completions;
+	const prompt = elements.mirror?.closest(".terminal-window__prompt");
+	if (!prompt) return null;
+
+	const menu = document.createElement("div");
+	menu.id = "terminal-modal-completions";
+	menu.className = "terminal-window__completions";
+	menu.setAttribute("role", "listbox");
+	menu.setAttribute("aria-label", "Command completions");
+	setCompletionMenuHidden(menu, true);
+	prompt.append(menu);
+	elements.completions = menu;
+	return menu;
+}
+
+function closeCompletionMenu(elements: TerminalModalElements): void {
+	_completionInput = "";
+	_completionItems = [];
+	_completionIndex = 0;
+	setCompletionMenuHidden(elements.completions, true);
+	if (elements.completions) {
+		elements.completions.innerHTML = "";
+	}
+}
+
+function renderCompletionMenu(elements: TerminalModalElements): void {
+	const menu = ensureCompletionMenu(elements);
+	if (!menu || _completionItems.length === 0) {
+		closeCompletionMenu(elements);
+		return;
+	}
+
+	menu.innerHTML = "";
+	_completionItems.forEach((item, index) => {
+		const option = document.createElement("button");
+		option.type = "button";
+		option.className = "terminal-window__completion";
+		option.dataset.completionIndex = String(index);
+		option.setAttribute("role", "option");
+		option.setAttribute("aria-selected", index === _completionIndex ? "true" : "false");
+		option.textContent = item.value;
+		option.addEventListener("pointerdown", (event) => {
+			event.preventDefault();
+			acceptCompletion(elements, index);
+		});
+		option.addEventListener("click", (event) => {
+			event.preventDefault();
+			acceptCompletion(elements, index);
+		});
+		menu.append(option);
+	});
+
+	setCompletionMenuHidden(menu, false);
+	menu.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({
+		block: "nearest",
+		inline: "nearest",
+	});
+}
+
+function openOrCycleCompletionMenu(elements: TerminalModalElements): void {
+	if (!elements.input) return;
+	const value = elements.input.value;
+	const result = resolveNavBrandCommandCompletions(value);
+	if (result.items.length === 0) {
+		closeCompletionMenu(elements);
+		return;
+	}
+
+	if (_completionInput === value && _completionItems.length > 0) {
+		_completionIndex = (_completionIndex + 1) % _completionItems.length;
+	} else {
+		_completionInput = value;
+		_completionItems = result.items;
+		_completionIndex = 0;
+	}
+
+	renderCompletionMenu(elements);
+}
+
+function acceptCompletion(elements: TerminalModalElements, index = _completionIndex): boolean {
+	if (!elements.input || _completionItems.length === 0) return false;
+	const item = _completionItems[index] ?? _completionItems[0];
+	if (!item) return false;
+
+	elements.input.value = item.value;
+	closeCompletionMenu(elements);
+	syncPromptMirror(elements);
+	elements.input.focus();
+	return true;
+}
+
+function acceptInlineSuggestion(elements: TerminalModalElements): boolean {
+	if (!elements.input) return false;
+	const suggestion = resolveNavBrandCommandSuggestion(elements.input.value);
+	if (!suggestion.completion) return false;
+
+	elements.input.value = `${elements.input.value}${suggestion.completion}`;
+	elements.input.setSelectionRange(elements.input.value.length, elements.input.value.length);
+	closeCompletionMenu(elements);
+	syncPromptMirror(elements);
+	return true;
+}
+
+function schedulePromptMirrorSync(elements: TerminalModalElements): void {
+	window.requestAnimationFrame(() => syncPromptMirror(elements));
+}
+
 function syncPromptMirror(elements: TerminalModalElements): void {
 	if (!elements.input || !elements.mirror || !elements.mirrorText) return;
 
 	const value = elements.input.value;
 	const placeholder = elements.input.getAttribute("placeholder") ?? "";
 	elements.mirror.dataset.empty = value.length > 0 ? "false" : "true";
-	elements.mirrorText.textContent = value.length > 0 ? value : placeholder;
+	elements.mirror.dataset.hasSuggestion = "false";
+	elements.mirrorText.textContent = "";
+
+	if (value.length === 0) {
+		elements.mirror.dataset.commandState = "empty";
+		elements.mirrorText.textContent = placeholder;
+		return;
+	}
+
+	const suggestion = resolveNavBrandCommandSuggestion(value);
+	elements.mirror.dataset.commandState = suggestion.state;
+
+	const parts = buildTerminalPromptMirrorParts(value, elements.input.selectionStart, suggestion.completion);
+
+	if (parts.beforeCaret) {
+		const beforeCaret = document.createElement("span");
+		beforeCaret.className = "terminal-window__mirror-typed";
+		beforeCaret.textContent = parts.beforeCaret;
+		elements.mirrorText.append(beforeCaret);
+	}
+
+	const cursorChar = document.createElement("span");
+	cursorChar.className = "blink terminal-window__mirror-completion-cursor";
+	cursorChar.textContent = parts.cursorChar;
+	elements.mirrorText.append(cursorChar);
+
+	if (parts.afterCaret) {
+		const afterCaret = document.createElement("span");
+		afterCaret.className = "terminal-window__mirror-typed";
+		afterCaret.textContent = parts.afterCaret;
+		elements.mirrorText.append(afterCaret);
+	}
+
+	if (parts.completionAfterCursor) {
+		elements.mirror.dataset.hasSuggestion = "true";
+
+		const completion = document.createElement("span");
+		completion.className = "terminal-window__mirror-completion";
+		completion.textContent = parts.completionAfterCursor;
+		elements.mirrorText.append(completion);
+	}
 }
 
 function getVisitCount(): number {
@@ -513,6 +678,43 @@ function clearTerminalViewport(elements: TerminalModalElements, commandText: str
 	}
 }
 
+function resetTerminalRuntime(elements: TerminalModalElements): void {
+	clearSequenceTimers();
+	_entries = [];
+	_commandHistory.length = 0;
+	_nextEntryId = 0;
+	_interaction = null;
+	clearTerminalIdleTimer();
+	_terminalIdleCount = 0;
+	_terminalLastAtmosphere = null;
+	_terminalLastSystemTs = 0;
+	_terminalLastRareTs = 0;
+
+	if (elements.log) {
+		elements.log.innerHTML = "";
+	}
+
+	if (elements.input) {
+		elements.input.value = "";
+	}
+
+	if (elements.status) {
+		elements.status.textContent = "terminal reinitialized";
+	}
+
+	if (elements.atmosphere) {
+		resetTerminalTextEffect(elements.atmosphere);
+		elements.atmosphere.textContent = "restoring context";
+		delete elements.atmosphere.dataset.greetingTarget;
+	}
+
+	syncPromptMirror(elements);
+	updateTerminalPresence(elements);
+	ensurePrelude(elements);
+	renderTerminalAtmosphere("load");
+	scheduleTerminalIdleAtmosphere();
+}
+
 function resetTerminalSession(elements: TerminalModalElements): void {
 	_entries = [];
 	_commandHistory.length = 0;
@@ -608,6 +810,31 @@ function createSystemProfileEntries(
 	return [fontEntry, ...artEntries, ...metaEntries];
 }
 
+function appendTerminalEntryText(
+	target: HTMLElement,
+	text: string,
+	options: { highlightSections?: boolean } = {}
+): void {
+	const { highlightSections = false } = options;
+	const lines = text.split("\n");
+
+	lines.forEach((line, index) => {
+		if (index > 0) {
+			target.append(document.createTextNode("\n"));
+		}
+
+		if (highlightSections && /^\[[^\]]+\]$/.test(line.trim())) {
+			const heading = document.createElement("span");
+			heading.className = "terminal-window__entry-section-heading";
+			heading.textContent = line;
+			target.append(heading);
+			return;
+		}
+
+		target.append(document.createTextNode(line));
+	});
+}
+
 function createEntryElement(entry: TerminalEntry): HTMLElement {
 	if (entry.kind === "viewport-clear") {
 		const spacer = document.createElement("div");
@@ -666,7 +893,7 @@ function createEntryElement(entry: TerminalEntry): HTMLElement {
 	const text = document.createElement("span");
 	text.className = "terminal-window__entry-text terminal-window__prelude-text";
 	text.dataset.terminalEntryText = "";
-	text.textContent = entry.text;
+	appendTerminalEntryText(text, entry.text, { highlightSections: entry.kind === "system" });
 	row.append(text);
 
 	return row;
@@ -993,6 +1220,11 @@ function openSearchSurface(query?: string): void {
 }
 
 function applyToggleIntent(target: string, value: string | boolean): void {
+	if (target === "flavor" && typeof value === "string" && isFlavor(value)) {
+		setFlavor(value);
+		return;
+	}
+
 	if (target === "theme") {
 		if (value === "toggle") {
 			handleThemeToggle();
@@ -1008,6 +1240,11 @@ function applyToggleIntent(target: string, value: string | boolean): void {
 		const collapseTab = document.getElementById("sidebar-collapse-tab") as HTMLButtonElement | null;
 		if (!collapseTab) return;
 
+		if (value === "toggle") {
+			collapseTab.click();
+			return;
+		}
+
 		const isCollapsed = document.documentElement.hasAttribute("data-sidebar-collapsed");
 		const shouldCollapse = value === "collapse";
 		if (isCollapsed !== shouldCollapse) {
@@ -1018,6 +1255,10 @@ function applyToggleIntent(target: string, value: string | boolean): void {
 
 	const toggle = document.getElementById(target) as HTMLInputElement | null;
 	if (!toggle) return;
+	if (value === "toggle") {
+		toggle.click();
+		return;
+	}
 	if (toggle.checked !== value) {
 		toggle.click();
 	}
@@ -1027,10 +1268,6 @@ function buildMessageOutput(
 	commandId: NavBrandCommandId,
 	intent: Extract<NavBrandCommandIntent, { type: "message" }>
 ): string {
-	if (commandId === "help") {
-		return "try: neofetch · search astro · blog · projects · theme dark · clear · history";
-	}
-
 	if (commandId === "status") {
 		return "presence engine online · local horizon stable";
 	}
@@ -1053,7 +1290,7 @@ function appendCommandAndOutput(
 		id: nextEntryId(),
 		kind,
 		text: output,
-		effect: kind === "system" ? "typing" : undefined,
+		effect: kind === "system" && !output.includes("\n") ? "typing" : undefined,
 	};
 
 	appendEntries(commandEntry, outputEntry);
@@ -1086,6 +1323,26 @@ function closeAfterDispatch(callback: () => void, statusText: string): void {
 	}, CLOSE_DISPATCH_DELAY_MS);
 }
 
+function minimizeAfterDispatch(callback: () => void, statusText: string): void {
+	const elements = getElements();
+	if (elements.status) {
+		elements.status.textContent = statusText;
+	}
+	window.setTimeout(() => {
+		minimizeTerminal();
+		callback();
+	}, CLOSE_DISPATCH_DELAY_MS);
+}
+
+function navigateSoftly(href: string): void {
+	const anchor = document.createElement("a");
+	anchor.href = href;
+	anchor.style.display = "none";
+	document.body.append(anchor);
+	anchor.click();
+	anchor.remove();
+}
+
 function executeResolvedCommand(
 	elements: TerminalModalElements,
 	rawInput: string,
@@ -1102,12 +1359,44 @@ function executeResolvedCommand(
 		return;
 	}
 
+	if (intent.type === "clear-history") {
+		clearVisibleHistory(elements);
+		return;
+	}
+
+	if (intent.type === "reset-terminal") {
+		resetTerminalRuntime(elements);
+		return;
+	}
+
+	if (intent.type === "minimize-terminal") {
+		appendCommandAndOutput(elements, rawInput, "minimizing terminal", "system");
+		window.setTimeout(() => minimizeTerminal(), CLOSE_DISPATCH_DELAY_MS);
+		return;
+	}
+
+	if (intent.type === "close-terminal") {
+		appendCommandAndOutput(elements, rawInput, "closing terminal session", "system");
+		window.setTimeout(() => destroyTerminal(), CLOSE_DISPATCH_DELAY_MS);
+		return;
+	}
+
 	if (intent.type === "show-history") {
 		const historyText =
 			_commandHistory.length > 0
 				? _commandHistory.map((command, index) => `${index + 1}. ${command}`).join("\n")
 				: "no commands in session memory yet";
 		appendCommandAndOutput(elements, rawInput, historyText, "system");
+		return;
+	}
+
+	if (intent.type === "show-working-route") {
+		appendCommandAndOutput(elements, rawInput, window.location.pathname || "/", "system");
+		return;
+	}
+
+	if (intent.type === "list-routes") {
+		appendCommandAndOutput(elements, rawInput, buildNavBrandRouteListMessage(), "system");
 		return;
 	}
 
@@ -1118,6 +1407,16 @@ function executeResolvedCommand(
 
 	if (intent.type === "message") {
 		appendCommandAndOutput(elements, rawInput, buildMessageOutput(resolved.command.id, intent), "system");
+		return;
+	}
+
+	if (intent.type === "batch") {
+		for (const item of intent.intents) {
+			if (item.type === "toggle-pref") {
+				applyToggleIntent(item.target, item.value);
+			}
+		}
+		appendCommandAndOutput(elements, rawInput, `applied ${rawInput}`, "system");
 		return;
 	}
 
@@ -1135,7 +1434,7 @@ function executeResolvedCommand(
 
 	if (intent.type === "navigate") {
 		appendCommandAndOutput(elements, rawInput, `navigating to ${intent.href}`, "system");
-		closeAfterDispatch(() => window.location.assign(intent.href), "routing to destination");
+		minimizeAfterDispatch(() => navigateSoftly(intent.href), "routing to destination");
 		return;
 	}
 
@@ -1281,6 +1580,10 @@ function initTerminalModal(): void {
 		"submit",
 		(event) => {
 			event.preventDefault();
+			if (acceptCompletion(elements)) {
+				noteTerminalActivity();
+				return;
+			}
 			submitCommand(elements.input?.value ?? "");
 			noteTerminalActivity();
 			if (elements.input) {
@@ -1295,6 +1598,7 @@ function initTerminalModal(): void {
 	elements.input.addEventListener(
 		"input",
 		() => {
+			closeCompletionMenu(elements);
 			syncPromptMirror(elements);
 			noteTerminalActivity();
 		},
@@ -1309,11 +1613,37 @@ function initTerminalModal(): void {
 			if (isCtrlOrCmd && event.key.toLowerCase() === "k") {
 				event.preventDefault();
 				event.stopPropagation();
+				closeCompletionMenu(elements);
 				clearVisibleHistory(getElements());
+			}
+
+			if (event.key === "ArrowRight" && acceptInlineSuggestion(elements)) {
+				event.preventDefault();
+				return;
+			}
+
+			if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+				schedulePromptMirrorSync(elements);
+			}
+
+			if (event.key === "Tab") {
+				event.preventDefault();
+				openOrCycleCompletionMenu(elements);
+				return;
+			}
+
+			if (event.key === "Enter" && _completionItems.length > 0) {
+				event.preventDefault();
+				acceptCompletion(elements);
+				return;
 			}
 
 			if (event.key === "Escape") {
 				event.preventDefault();
+				if (_completionItems.length > 0) {
+					closeCompletionMenu(elements);
+					return;
+				}
 				if (_windowState.mode === "fullscreen") {
 					exitFullscreenToWindowed();
 					return;
@@ -1323,6 +1653,11 @@ function initTerminalModal(): void {
 		},
 		{ signal }
 	);
+
+	elements.input.addEventListener("keyup", () => syncPromptMirror(elements), { signal });
+	elements.input.addEventListener("click", () => syncPromptMirror(elements), { signal });
+	elements.input.addEventListener("pointerup", () => schedulePromptMirrorSync(elements), { signal });
+	elements.input.addEventListener("select", () => syncPromptMirror(elements), { signal });
 
 	elements.dragHandle.addEventListener("pointerdown", (event) => beginDrag(event, elements), { signal });
 	elements.windowEl.addEventListener("pointerdown", () => noteTerminalActivity(), { signal });
