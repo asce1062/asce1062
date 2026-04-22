@@ -88,8 +88,8 @@ export type TerminalTextEffectConfig = {
  * without losing the base load/hover/tap/click behavior.
  */
 export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap", "click"];
-export const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
-export const DEFAULT_IDLE_RETURN_DELAY_MS = 45_000;
+const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
+const DEFAULT_IDLE_RETURN_DELAY_MS = 45_000;
 
 const DECRYPT_CHARS = "░▒▓█▐▌▄▀■□▪▫◆◇○●◌◍◎◉▶▷◀◁▸▹◂◃⬛⬜▬▭▮▯◥◤◣◢◿█▄▌▐▀▘▝▀▖▍▞▛▗▚▐▜▃▙▟▉";
 const DEFAULT_TYPING_STEP_MS = 26;

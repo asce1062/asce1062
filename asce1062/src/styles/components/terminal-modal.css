@@ -87,10 +87,13 @@
 }
 
 .terminal-window__eyebrow {
+	width: fit-content;
+	padding: 0.05rem 0.28rem;
 	font-size: 0.62rem;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+	color: color-mix(in oklab, var(--color-secondary-content) 70%, var(--color-base-content));
+	background-color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
 }
 
 .terminal-window__title {
@@ -215,6 +218,7 @@
 	font-size: 0.75rem;
 	line-height: 1.55;
 	scrollbar-width: thin;
+	user-select: text;
 }
 
 .terminal-window__prelude-line,
@@ -234,13 +238,14 @@
 .terminal-window__entry--command::before,
 .terminal-window__entry--output::before,
 .terminal-window__entry--system::before {
-	content: ">";
-	color: color-mix(in oklab, var(--color-secondary) 72%, transparent);
+	content: "\276F"; /* ❯ */
+	color: var(--color-secondary-content);
+	background-color: var(--color-secondary);
 	flex-shrink: 0;
 }
 
 .terminal-window__entry--command::before {
-	content: "$";
+	content: "\0024"; /* $ */
 }
 
 .terminal-window__entry--system::before {
@@ -264,10 +269,12 @@
 	min-width: 0;
 	white-space: pre-wrap;
 	word-break: break-word;
+	user-select: text;
 }
 
 .terminal-window__entry--command .terminal-window__entry-text {
-	color: color-mix(in oklab, var(--color-secondary) 82%, var(--color-base-content));
+	color: var(--color-secondary-content);
+	background-color: var(--color-secondary);
 }
 
 .terminal-window__entry--system .terminal-window__entry-text {
@@ -275,10 +282,17 @@
 }
 
 .terminal-window__entry-section-heading {
-	color: color-mix(in oklab, var(--color-secondary) 78%, var(--color-accent));
+	color: color-mix(in oklab, var(--color-secondary-content) 78%, var(--color-accent));
+	background-color: color-mix(in oklab, var(--color-secondary) 78%, var(--color-accent));
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: lowercase;
+}
+
+.terminal-window__entry-diagnostic {
+	color: color-mix(in oklab, var(--color-info) 72%, var(--color-base-content));
+	font-style: italic;
+	letter-spacing: 0.02em;
 }
 
 .terminal-window__system-art {
@@ -292,6 +306,7 @@
 	line-height: 1.04;
 	white-space: pre;
 	overflow: visible;
+	user-select: text;
 }
 
 .terminal-window__system-font {
@@ -338,6 +353,7 @@
 	align-items: baseline;
 	gap: 0.55rem;
 	margin: 0;
+	user-select: text;
 }
 
 .terminal-window__system-label {

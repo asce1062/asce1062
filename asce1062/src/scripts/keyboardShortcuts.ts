@@ -2,6 +2,7 @@
  * Keyboard Shortcuts Manager
  * Handles keyboard shortcut functionality across the site
  */
+import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 
 export interface ShortcutConfig {
 	key: string;
@@ -19,6 +20,25 @@ function isEditableShortcutTarget(target: EventTarget | null): boolean {
 
 	const tagName = target.tagName.toLowerCase();
 	return tagName === "input" || tagName === "textarea" || tagName === "select";
+}
+
+type TerminalShortcutEventLike = Pick<KeyboardEvent, "key"> &
+	Partial<Pick<KeyboardEvent, "ctrlKey" | "altKey" | "metaKey" | "shiftKey">>;
+
+/**
+ * Match the global terminal launcher.
+ *
+ * Browsers expose macOS Option as `altKey`, so this covers Ctrl+Alt+T on
+ * Windows/Linux and Ctrl+Option+T on macOS with one exact modifier contract.
+ */
+export function isTerminalShortcutEvent(event: TerminalShortcutEventLike): boolean {
+	return (
+		event.key.toLowerCase() === "t" &&
+		event.ctrlKey === true &&
+		event.altKey === true &&
+		event.metaKey !== true &&
+		event.shiftKey !== true
+	);
 }
 
 /**
@@ -108,6 +128,33 @@ export function initSlashSearchShortcut(callback: () => void): () => void {
 
 		e.preventDefault();
 		callback();
+	};
+
+	document.addEventListener("keydown", handler);
+
+	return () => {
+		document.removeEventListener("keydown", handler);
+	};
+}
+
+/**
+ * Launch the navbrand terminal from anywhere with Ctrl+Alt+T / Ctrl+Option+T.
+ */
+export function initTerminalShortcut(): () => void {
+	const handler = (e: KeyboardEvent) => {
+		if (!e.key || !isTerminalShortcutEvent(e)) return;
+		if (isEditableShortcutTarget(e.target)) return;
+
+		e.preventDefault();
+		document.dispatchEvent(
+			new CustomEvent<NavBrandTerminalOpenDetail>(NAVBRAND_OPEN_TERMINAL_EVENT, {
+				detail: {
+					source: "keyboard-shortcut",
+					trigger: "keyboard",
+				},
+				bubbles: true,
+			})
+		);
 	};
 
 	document.addEventListener("keydown", handler);

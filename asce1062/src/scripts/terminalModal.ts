@@ -15,7 +15,9 @@
 import { PREF_KEYS, getPref } from "@/lib/prefs";
 import {
 	buildNavBrandCommandIntent,
+	buildNavBrandHelpMessage,
 	buildNavBrandHistoryMessage,
+	buildNavBrandIdentityMessage,
 	buildNavBrandRouteListMessage,
 	buildNavBrandStatusMessage,
 	buildNavBrandUnknownCommandMessage,
@@ -41,6 +43,14 @@ import {
 } from "@/lib/navBrand/historyNavigation";
 import { buildTerminalPrelude } from "@/lib/navBrand/terminalPrelude";
 import { buildTerminalSystemProfile, type TerminalSystemProfile } from "@/lib/navBrand/terminalSystemProfile";
+import {
+	shouldFocusTerminalInput,
+	shouldPreserveTerminalOutputSelection,
+	shouldRouteTerminalKeyboardToInput,
+	type TerminalFocusReason,
+	type TerminalFocusTargetRole,
+} from "@/lib/navBrand/terminalFocus";
+import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 import {
 	centerTerminalWindowRect,
 	createTerminalWindowState,
@@ -467,7 +477,7 @@ function acceptCompletion(elements: TerminalModalElements, index = _completionIn
 	resetHistoryNavigation();
 	closeCompletionMenu(elements);
 	syncPromptMirror(elements);
-	elements.input.focus();
+	requestTerminalInputFocus(elements, "completion", "input");
 	return true;
 }
 
@@ -869,6 +879,14 @@ function appendTerminalEntryText(
 			return;
 		}
 
+		if (highlightSections && /^stellar (verbose|info)\b/.test(line.trim())) {
+			const diagnostic = document.createElement("span");
+			diagnostic.className = "terminal-window__entry-diagnostic";
+			diagnostic.textContent = line;
+			target.append(diagnostic);
+			return;
+		}
+
 		target.append(document.createTextNode(line));
 	});
 }
@@ -1040,19 +1058,102 @@ function ensurePrelude(elements: TerminalModalElements): void {
 	queueEntrySequence(elements, newEntries);
 }
 
-function focusInput(elements: TerminalModalElements): void {
+function getTerminalFocusTargetRole(
+	target: EventTarget | null,
+	elements: TerminalModalElements
+): TerminalFocusTargetRole {
+	if (!(target instanceof HTMLElement)) return "content";
+	if (target === elements.input || target.closest("#terminal-modal-input")) return "input";
+	if (target.closest("[data-terminal-control]")) return "control";
+	if (target.closest("[data-terminal-resize]")) return "resize";
+	if (target.closest("#terminal-modal-completions, .terminal-window__completion")) return "completion";
+	if (elements.windowEl && !elements.windowEl.contains(target)) return "external";
+	return "content";
+}
+
+function getSelectionElement(node: Node | null): HTMLElement | null {
+	if (!node) return null;
+	return node instanceof HTMLElement ? node : node.parentElement;
+}
+
+function getTerminalKeyboardTargetRole(
+	target: EventTarget | null,
+	elements: TerminalModalElements
+): TerminalFocusTargetRole {
+	const targetRole = getTerminalFocusTargetRole(target, elements);
+	if (targetRole !== "external") return targetRole;
+
+	const selection = document.getSelection();
+	const anchor = getSelectionElement(selection?.anchorNode ?? null);
+	const focus = getSelectionElement(selection?.focusNode ?? null);
+	if (
+		elements.windowEl &&
+		((anchor && elements.windowEl.contains(anchor)) || (focus && elements.windowEl.contains(focus)))
+	) {
+		return "content";
+	}
+
+	return targetRole;
+}
+
+function writeToTerminalInput(elements: TerminalModalElements, text: string): void {
+	if (!elements.input || !elements.windowEl) return;
+
+	requestTerminalInputFocus(elements, "interaction", "input");
+	const start = elements.input.selectionStart ?? elements.input.value.length;
+	const end = elements.input.selectionEnd ?? elements.input.value.length;
+	elements.input.setRangeText(text, start, end, "end");
+	resetHistoryNavigation();
+	closeCompletionMenu(elements);
 	syncPromptMirror(elements);
-	elements.input?.focus();
+}
+
+function requestTerminalInputFocus(
+	elements: TerminalModalElements,
+	reason: TerminalFocusReason,
+	targetRole: TerminalFocusTargetRole = "content"
+): void {
+	if (
+		!elements.input ||
+		!elements.windowEl ||
+		!shouldFocusTerminalInput({
+			open: _open,
+			windowHidden: Boolean(elements.windowEl.hidden),
+			targetRole,
+			reason,
+		})
+	) {
+		return;
+	}
+
+	syncPromptMirror(elements);
+	requestAnimationFrame(() => {
+		if (
+			!elements.input ||
+			!elements.windowEl ||
+			!shouldFocusTerminalInput({
+				open: _open,
+				windowHidden: Boolean(elements.windowEl.hidden),
+				targetRole,
+				reason,
+			})
+		) {
+			return;
+		}
+
+		elements.input.focus({ preventScroll: true });
+	});
 }
 
 function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 	const elements = getElements();
 	if (!elements.windowEl) return;
 	const hadTerminalSession = _entries.length > 0;
+	const wasMinimized = _windowState.mode === "minimized";
 
 	_lastOpenSource = detail?.source ?? _lastOpenSource;
 
-	if (_windowState.mode === "minimized") {
+	if (wasMinimized) {
 		_windowState = restoreTerminalWindow(_windowState);
 	} else if (!_open && isMobile()) {
 		_windowState = updateTerminalWindowRect(_windowState, getViewportRect());
@@ -1075,7 +1176,7 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 		elements.status.textContent =
 			_lastOpenSource === "sidebar-expanded" ? "restoring context" : `signal received · ${_lastOpenSource}`;
 	}
-	focusInput(elements);
+	requestTerminalInputFocus(elements, wasMinimized ? "restore" : "open");
 }
 
 function destroyTerminal(): void {
@@ -1343,17 +1444,6 @@ function appendCommandAndSystemProfile(elements: TerminalModalElements, commandT
 	queueEntrySequence(elements, profileEntries);
 }
 
-function closeAfterDispatch(callback: () => void, statusText: string): void {
-	const elements = getElements();
-	if (elements.status) {
-		elements.status.textContent = statusText;
-	}
-	window.setTimeout(() => {
-		destroyTerminal();
-		callback();
-	}, CLOSE_DISPATCH_DELAY_MS);
-}
-
 function minimizeAfterDispatch(callback: () => void, statusText: string): void {
 	const elements = getElements();
 	if (elements.status) {
@@ -1374,11 +1464,20 @@ function navigateSoftly(href: string): void {
 	anchor.remove();
 }
 
-function executeResolvedCommand(
+function openExternalPreservingTerminal(href: string): void {
+	if (/^https?:\/\//i.test(href)) {
+		window.open(href, "_blank", "noopener,noreferrer");
+		return;
+	}
+
+	window.location.assign(href);
+}
+
+async function executeResolvedCommand(
 	elements: TerminalModalElements,
 	rawInput: string,
 	resolved: ResolvedNavBrandCommand
-): void {
+): Promise<void> {
 	const intent = buildNavBrandCommandIntent(resolved);
 	if (!intent) {
 		appendCommandAndOutput(elements, rawInput, buildNavBrandUnknownCommandMessage(rawInput), "system");
@@ -1413,7 +1512,12 @@ function executeResolvedCommand(
 	}
 
 	if (intent.type === "show-history") {
-		appendCommandAndOutput(elements, rawInput, buildNavBrandHistoryMessage(_commandHistory), "system");
+		appendCommandAndOutput(
+			elements,
+			rawInput,
+			buildNavBrandHistoryMessage(_commandHistory, { verbose: resolved.verbose, argv: resolved.argv }),
+			"system"
+		);
 		return;
 	}
 
@@ -1422,13 +1526,23 @@ function executeResolvedCommand(
 		appendCommandAndOutput(
 			elements,
 			rawInput,
-			buildNavBrandStatusMessage({
-				route: snapshot.route,
-				theme: snapshot.theme,
-				flavor: snapshot.flavor,
-				network: snapshot.network,
-				reducedMotion: snapshot.reducedMotion,
-			}),
+			buildNavBrandStatusMessage(
+				{
+					route: snapshot.route,
+					theme: snapshot.theme,
+					flavor: snapshot.flavor,
+					network: snapshot.network,
+					reducedMotion: snapshot.reducedMotion,
+					platform: snapshot.platform,
+					timezone: snapshot.timezone,
+					viewport: snapshot.viewport,
+					language: snapshot.language,
+				},
+				{
+					verbose: resolved.verbose,
+					argv: resolved.argv,
+				}
+			),
 			"system"
 		);
 		return;
@@ -1440,7 +1554,12 @@ function executeResolvedCommand(
 	}
 
 	if (intent.type === "list-routes") {
-		appendCommandAndOutput(elements, rawInput, buildNavBrandRouteListMessage(), "system");
+		appendCommandAndOutput(
+			elements,
+			rawInput,
+			buildNavBrandRouteListMessage({ verbose: resolved.verbose, argv: resolved.argv }),
+			"system"
+		);
 		return;
 	}
 
@@ -1450,7 +1569,16 @@ function executeResolvedCommand(
 	}
 
 	if (intent.type === "message") {
-		appendCommandAndOutput(elements, rawInput, buildMessageOutput(intent), "system");
+		appendCommandAndOutput(
+			elements,
+			rawInput,
+			resolved.command.id === "help"
+				? buildNavBrandHelpMessage(resolved.query, { verbose: resolved.verbose, argv: resolved.argv })
+				: resolved.command.id === "identity"
+					? buildNavBrandIdentityMessage({ verbose: resolved.verbose, argv: resolved.argv })
+					: buildMessageOutput(intent),
+			"system"
+		);
 		return;
 	}
 
@@ -1472,7 +1600,18 @@ function executeResolvedCommand(
 
 	if (intent.type === "external-link") {
 		appendCommandAndOutput(elements, rawInput, `opening ${intent.href}`, "system");
-		closeAfterDispatch(() => window.location.assign(intent.href), "dispatching external link");
+		minimizeAfterDispatch(() => openExternalPreservingTerminal(intent.href), "dispatching external link");
+		return;
+	}
+
+	if (intent.type === "copy") {
+		const copied = await writeTextToClipboard(intent.value);
+		appendCommandAndOutput(
+			elements,
+			rawInput,
+			copied ? `copied ${intent.label}\n${intent.value}` : `copy unavailable · ${intent.value}`,
+			"system"
+		);
 		return;
 	}
 
@@ -1488,7 +1627,7 @@ function executeResolvedCommand(
 		intent.query ? `searching for ${intent.query}` : "opening search surface",
 		"system"
 	);
-	closeAfterDispatch(() => openSearchSurface(intent.query ?? undefined), "handing off to search");
+	minimizeAfterDispatch(() => openSearchSurface(intent.query ?? undefined), "handing off to search");
 }
 
 function submitCommand(rawInput: string): void {
@@ -1503,7 +1642,7 @@ function submitCommand(rawInput: string): void {
 		return;
 	}
 
-	executeResolvedCommand(elements, normalizedInput, resolved);
+	void executeResolvedCommand(elements, normalizedInput, resolved);
 }
 
 function onWindowAction(action: WindowAction): void {
@@ -1634,7 +1773,7 @@ function initTerminalModal(): void {
 			if (elements.input) {
 				elements.input.value = "";
 				syncPromptMirror(elements);
-				elements.input.focus();
+				requestTerminalInputFocus(elements, "submit", "input");
 			}
 		},
 		{ signal }
@@ -1717,7 +1856,33 @@ function initTerminalModal(): void {
 	elements.input.addEventListener("select", () => syncPromptMirror(elements), { signal });
 
 	elements.dragHandle.addEventListener("pointerdown", (event) => beginDrag(event, elements), { signal });
-	elements.windowEl.addEventListener("pointerdown", () => noteTerminalActivity(), { signal });
+	elements.windowEl.addEventListener(
+		"pointerdown",
+		(event) => {
+			noteTerminalActivity();
+			const targetRole = getTerminalFocusTargetRole(event.target, elements);
+			if (shouldPreserveTerminalOutputSelection(targetRole)) {
+				return;
+			}
+			if (targetRole !== "input") {
+				requestTerminalInputFocus(elements, "interaction", targetRole);
+			}
+		},
+		{ signal }
+	);
+	elements.windowEl.addEventListener(
+		"focusin",
+		(event) => {
+			const targetRole = getTerminalFocusTargetRole(event.target, elements);
+			if (shouldPreserveTerminalOutputSelection(targetRole)) {
+				return;
+			}
+			if (targetRole !== "input") {
+				requestTerminalInputFocus(elements, "interaction", targetRole);
+			}
+		},
+		{ signal }
+	);
 	for (const handle of elements.resizeHandles) {
 		const edge = handle.dataset.terminalResize;
 		if (!edge) continue;
@@ -1739,6 +1904,72 @@ function initTerminalModal(): void {
 	);
 
 	document.addEventListener("pointerup", endInteraction, { signal });
+	document.addEventListener(
+		"keydown",
+		(event) => {
+			const elements = getElements();
+			const targetRole = getTerminalKeyboardTargetRole(event.target, elements);
+			if (
+				!shouldRouteTerminalKeyboardToInput({
+					open: _open,
+					windowHidden: Boolean(elements.windowEl?.hidden ?? true),
+					targetRole,
+					key: event.key,
+					ctrlKey: event.ctrlKey,
+					metaKey: event.metaKey,
+					altKey: event.altKey,
+				})
+			) {
+				return;
+			}
+
+			event.preventDefault();
+			noteTerminalActivity();
+			if (event.key === "Backspace") {
+				const input = elements.input;
+				if (!input) return;
+				const start = input.selectionStart ?? input.value.length;
+				const end = input.selectionEnd ?? input.value.length;
+				if (start !== end) {
+					writeToTerminalInput(elements, "");
+					return;
+				}
+				if (start > 0) {
+					input.setSelectionRange(start - 1, end);
+					writeToTerminalInput(elements, "");
+				}
+				return;
+			}
+
+			writeToTerminalInput(elements, event.key);
+		},
+		{ signal }
+	);
+	document.addEventListener(
+		"paste",
+		(event) => {
+			const elements = getElements();
+			const targetRole = getTerminalKeyboardTargetRole(event.target, elements);
+			if (
+				!shouldFocusTerminalInput({
+					open: _open,
+					windowHidden: Boolean(elements.windowEl?.hidden ?? true),
+					targetRole,
+					reason: "interaction",
+				}) ||
+				targetRole !== "content"
+			) {
+				return;
+			}
+
+			const text = event.clipboardData?.getData("text/plain") ?? "";
+			if (!text) return;
+			event.preventDefault();
+			noteTerminalActivity();
+			writeToTerminalInput(elements, text);
+		},
+		{ signal }
+	);
 	window.addEventListener(
 		"resize",
 		() => {

@@ -38,7 +38,7 @@ describe("buildTerminalSystemProfile", () => {
 				{ label: "Uptime", value: "310 days, 0 hours, 0 mins" },
 				{ label: "CPU", value: "8 logical threads" },
 				{ label: "Theme Flavor", value: "crt-green" },
-				{ label: "Commands", value: "19 (help)" },
+				{ label: "Commands", value: "20 (help)" },
 				{ label: "Memory", value: "16 GiB hint" },
 				{ label: "Input", value: "mouse / trackpad" },
 				{ label: "Motion", value: "full" },

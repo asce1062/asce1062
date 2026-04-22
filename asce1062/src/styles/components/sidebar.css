@@ -140,8 +140,8 @@ body:has(#nav-toggle:checked) {
 }
 
 .nav-brand-chrome {
-	color: var(--color-base-content);
-	opacity: 0.22;
+	color: var(--color-muted);
+	/* opacity: 0.22; */
 }
 
 .nav-brand-name {
@@ -150,7 +150,8 @@ body:has(#nav-toggle:checked) {
 }
 
 .nav-brand-host {
-	color: var(--color-secondary);
+	color: var(--color-secondary-content);
+	background-color: var(--color-secondary);
 }
 
 .nav-brand-greeting {
@@ -913,8 +914,8 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		padding: 0;
 
 		background-color: var(--color-base-100);
-		border: 1.875px solid color-mix(in oklab, var(--color-accent) 30%, var(--color-base-300));
-		color: color-mix(in oklab, var(--color-accent) 78%, var(--color-base-content));
+		border: 1.875px solid color-mix(in oklab, var(--color-accent) 10%, var(--color-base-300));
+		color: color-mix(in oklab, var(--color-accent) 80%, var(--color-base-content));
 		border-left: none;
 		box-shadow: var(--glow-identity);
 		/* No border-radius */

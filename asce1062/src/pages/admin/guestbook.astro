@@ -42,7 +42,10 @@ const auditLog = filter === "audit" ? await getModerationLog() : [];
 ---
 
 <Layout title="Guestbook Moderation" description="Admin: review guestbook entries">
-	<h2>Guestbook Moderation</h2>
+	<div class="flex items-center justify-between mb-6 gap-4">
+		<h2>Guestbook Moderation</h2>
+		<a href="/admin" class="btn btn-error btn-sm btn-frame">Back to Admin</a>
+	</div>
 
 	{actionMessage && <div class="mb-4 p-3 bg-success/10 border border-success text-sm">{actionMessage}</div>}
 
@@ -182,7 +185,7 @@ const auditLog = filter === "audit" ? await getModerationLog() : [];
 								<form method="POST" class="flex gap-2">
 									<input type="hidden" name="entryId" value={entry.id} />
 									{(entry.status === "pending" || entry.status === "hidden" || entry.isSpam) && (
-										<button type="submit" name="action" value="approve" class="btn btn-secondary btn-sm">
+										<button type="submit" name="action" value="approve" class="btn btn-secondary btn-sm btn-elevation">
 											Approve
 										</button>
 									)}
@@ -192,13 +195,13 @@ const auditLog = filter === "audit" ? await getModerationLog() : [];
 												type="submit"
 												name="action"
 												value="approve-clear"
-												class="btn btn-success btn-sm"
+												class="btn btn-success btn-sm btn-frame"
 												title="Approve and remove moderation flags (use for false positives)">
 												Approve & Clear
 											</button>
 										)}
 									{(entry.status === "pending" || entry.status === "visible") && (
-										<button type="submit" name="action" value="hide" class="btn btn-primary btn-sm">
+										<button type="submit" name="action" value="hide" class="btn btn-primary btn-sm btn-pixel">
 											Hide
 										</button>
 									)}

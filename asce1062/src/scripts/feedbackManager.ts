@@ -3,6 +3,7 @@
  * Centralized utility for user-facing feedback: toast notifications,
  * clipboard operations, and icon state toggling.
  */
+import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 
 const AUTO_HIDE_DELAY = 3000; // ms. time before a notification auto-hides
 const FADE_OUT_DURATION = 300; // ms. matches the fadeOut CSS animation duration
@@ -98,14 +99,15 @@ export async function copyToClipboard(text: string, notificationId: string): Pro
 		console.error("[feedbackManager] Clipboard API not available");
 		return false;
 	}
-	try {
-		await navigator.clipboard.writeText(text);
+
+	const copied = await writeTextToClipboard(text);
+	if (copied) {
 		showNotification(notificationId);
 		return true;
-	} catch (err) {
-		console.error("[feedbackManager] Failed to copy to clipboard:", err);
-		return false;
 	}
+
+	console.error("[feedbackManager] Failed to copy to clipboard");
+	return false;
 }
 
 /**

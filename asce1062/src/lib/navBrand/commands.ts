@@ -23,12 +23,14 @@ export type NavBrandCommandAction =
 	| "hint"
 	| "toggle-pref"
 	| "external-link"
+	| "copy"
 	| "message"
 	| "terminal";
 export type NavBrandCommandIntentGroup =
 	| "search"
 	| "navigation"
 	| "external"
+	| "copy"
 	| "toggle"
 	| "help"
 	| "identity"
@@ -45,6 +47,7 @@ export type NavBrandCommandId =
 	| "help"
 	| "email"
 	| "github"
+	| "copy"
 	| "theme"
 	| "background"
 	| "sidebar"
@@ -77,6 +80,8 @@ export type NavBrandCommandDefinition = {
 export type ResolvedNavBrandCommand = {
 	command: NavBrandCommandDefinition;
 	query: string | null;
+	verbose: boolean;
+	argv: string[];
 };
 
 export type NavBrandCommandSuggestion = {
@@ -96,6 +101,7 @@ export type NavBrandCommandIntent =
 	| { type: "navigate"; href: string }
 	| { type: "search-handoff"; query: string | null }
 	| { type: "external-link"; href: string }
+	| { type: "copy"; label: string; value: string }
 	| { type: "toggle-pref"; target: string; value: string | boolean }
 	| { type: "batch"; intents: readonly NavBrandCommandIntent[] }
 	| { type: "message"; message: string }
@@ -156,6 +162,17 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		aliases: ["gh", "code profile"],
 		keywords: ["repo", "profile"],
 		href: SOCIAL.profiles.find((profile) => profile.name === "GitHub")?.url,
+	},
+	{
+		id: "copy",
+		command: "copy",
+		label: "Copy",
+		description: "Copy stable contact/site values to the clipboard.",
+		hint: "try: copy email",
+		action: "copy",
+		intent: "copy",
+		aliases: ["clip", "clipboard", "pbcopy"],
+		keywords: ["email", "site", "url", "github", "contact"],
 	},
 	{
 		id: "theme",
@@ -323,10 +340,7 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 	},
 ] as const;
 
-export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "open", "help"];
 export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "open", "help"];
-export const NAVBRAND_COMMAND_PROMPT_HINT = "try: cd blog · find auth0";
-export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
 
 export type NavBrandStatusContext = {
 	route?: string;
@@ -334,10 +348,25 @@ export type NavBrandStatusContext = {
 	flavor?: string;
 	network?: "online" | "offline" | string;
 	reducedMotion?: boolean;
+	platform?: string;
+	timezone?: string;
+	viewport?: string;
+	language?: string;
+};
+export type NavBrandVerboseOptions = {
+	verbose?: boolean;
+	argv?: readonly string[];
 };
 
 type RandomSource = () => number;
 type HelpSectionId = "start" | "navigation" | "search" | "preferences" | "terminal" | "identity" | "external";
+type SuggestionPhraseEntry = {
+	phrase: string;
+	priority: number;
+	order: number;
+};
+
+const HELP_COMMAND_WIDTH = 36;
 
 const HELP_SECTION_TITLES: Record<HelpSectionId, string> = {
 	start: "start here",
@@ -357,6 +386,7 @@ const HELP_SECTION_BY_INTENT: Record<NavBrandCommandIntentGroup, HelpSectionId> 
 	navigation: "navigation",
 	search: "search",
 	toggle: "preferences",
+	copy: "external",
 	clear: "terminal",
 	"clear-history": "terminal",
 	reset: "terminal",
@@ -381,6 +411,7 @@ const HELP_COMMAND_PATTERNS: Partial<Record<NavBrandCommandId, string>> = {
 	theme: "theme <dark|light|toggle|flavor>",
 	background: "background <stars|matrix> <on|off>",
 	sidebar: "sidebar <collapse|expand|toggle>",
+	copy: "copy <email|site|github>",
 	open: "cd <route>",
 };
 
@@ -389,6 +420,7 @@ const HELP_COMMAND_EXAMPLES: Partial<Record<NavBrandCommandId, readonly string[]
 	theme: ["theme dark", "theme amber"],
 	background: ["bg matrix off", "background stars on"],
 	sidebar: ["sidebar collapse", "sidebar"],
+	copy: ["copy email", "copy site"],
 	clear: ["clear"],
 	"clear-history": ["cmd+k"],
 	reset: ["reset"],
@@ -401,6 +433,7 @@ const HELP_FEATURED_ALIASES: Partial<Record<NavBrandCommandId, readonly string[]
 	"clear-history": ["⌘k", "ctrl+k", "ctrl+shift+k"],
 	reset: ["reload", "restart", "reboot"],
 	close: ["exit", "quit", "logout", ":q"],
+	copy: ["clip", "pbcopy"],
 };
 
 export function getNavBrandCommand(commandId: NavBrandCommandId): NavBrandCommandDefinition {
@@ -419,6 +452,18 @@ function normalizeCompletionInput(input: string): string {
 	return input.toLowerCase().replace(/\s+/g, " ").trimStart();
 }
 
+const VERBOSE_TERMS = new Set(["--verbose", "-v", "verbose", "details", "more"]);
+
+function parseVerboseInput(input: string): { normalizedInput: string; verbose: boolean; argv: string[] } {
+	const argv = input.trim().split(/\s+/).filter(Boolean);
+	const keptArgs = argv.filter((arg) => !VERBOSE_TERMS.has(arg.toLowerCase()));
+	return {
+		normalizedInput: normalizeCommandInput(keptArgs.join(" ")),
+		verbose: keptArgs.length !== argv.length,
+		argv,
+	};
+}
+
 function getCommandTerms(command: NavBrandCommandDefinition): string[] {
 	return [command.command, ...(command.aliases ?? []), ...(command.keywords ?? [])];
 }
@@ -431,8 +476,35 @@ function getHelpUsage(command: NavBrandCommandDefinition): string {
 	return HELP_COMMAND_PATTERNS[command.id] ?? command.command;
 }
 
+function formatArgv(argv?: readonly string[]): string {
+	return (argv && argv.length > 0 ? argv : []).map((arg) => `"${arg}"`).join(" ");
+}
+
+function wrapVerboseOutput(command: string, body: string, options: NavBrandVerboseOptions = {}): string {
+	if (!options.verbose) return body;
+
+	const argvLine = options.argv?.length ? [`stellar verbose argv ${formatArgv(options.argv)}`] : [];
+	return [
+		"[diagnostics]",
+		`stellar verbose command ${command}`,
+		"stellar info using alexmbugua.me terminal@asce1062",
+		...argvLine,
+		body,
+		"stellar verbose exit 0",
+		"stellar info ok",
+	].join("\n");
+}
+
+function formatOutputRow(label: string, value: string, width = 16): string {
+	return `${label.padEnd(width)}${value}`;
+}
+
+function formatOutputList(label: string, values: readonly string[], separator = ", "): string {
+	return formatOutputRow(label, values.length > 0 ? values.join(separator) : "none");
+}
+
 function formatCommandLine(command: NavBrandCommandDefinition): string {
-	return `${getHelpUsage(command).padEnd(14)} ${command.description}`;
+	return formatOutputRow(getHelpUsage(command), command.description, HELP_COMMAND_WIDTH);
 }
 
 function getCommandsForSection(sectionId: HelpSectionId): NavBrandCommandDefinition[] {
@@ -451,7 +523,7 @@ function buildHelpSections(): string[] {
 function buildHelpPatterns(): string[] {
 	return Object.entries(HELP_COMMAND_PATTERNS).map(([commandId, pattern]) => {
 		const command = getNavBrandCommand(commandId as NavBrandCommandId);
-		return `${pattern.padEnd(29)} ${command.description}`;
+		return formatOutputRow(pattern, command.description, HELP_COMMAND_WIDTH);
 	});
 }
 
@@ -467,7 +539,7 @@ function buildAllCommandsLine(): string {
 function buildFeaturedAliases(): string[] {
 	return Object.entries(HELP_FEATURED_ALIASES).map(([commandId, aliases]) => {
 		const command = getNavBrandCommand(commandId as NavBrandCommandId);
-		return `${command.command} -> ${aliases.join(", ")}`;
+		return formatOutputList(command.command, aliases);
 	});
 }
 
@@ -498,51 +570,78 @@ function resolveHelpTopic(topic: string): NavBrandCommandDefinition | NavBrandCo
 	return null;
 }
 
-function buildCommandTopicHelp(command: NavBrandCommandDefinition): string {
+function buildVerboseCommandTopicHelp(
+	command: NavBrandCommandDefinition,
+	options: NavBrandVerboseOptions = {}
+): string {
+	const body = [
+		"[command]",
+		formatOutputRow("name", command.command),
+		formatOutputRow("label", command.label),
+		formatOutputRow("intent", command.intent),
+		formatOutputRow("action", command.action),
+		formatOutputRow("usage", getHelpUsage(command)),
+		formatOutputRow("summary", command.description),
+		formatOutputRow("aliases", command.aliases?.join(", ") ?? "none"),
+		formatOutputRow("keywords", command.keywords?.join(", ") ?? "none"),
+	].join("\n");
+
+	return wrapVerboseOutput(`help ${command.command}`, body, options);
+}
+
+function buildCommandTopicHelp(command: NavBrandCommandDefinition, options: NavBrandVerboseOptions = {}): string {
+	if (options.verbose) {
+		return buildVerboseCommandTopicHelp(command, options);
+	}
+
 	const lines = [
-		`help: ${command.command} (${command.label})`,
-		`${command.description}`,
-		`usage: ${getHelpUsage(command)}`,
-		`intent: ${command.intent}`,
+		"[command]",
+		formatOutputRow("name", command.command),
+		formatOutputRow("label", command.label),
+		formatOutputRow("intent", command.intent),
+		formatOutputRow("action", command.action),
+		formatOutputRow("usage", getHelpUsage(command)),
+		formatOutputRow("summary", command.description),
 	];
 	if (command.aliases?.length) {
-		lines.push(`aliases: ${command.aliases.join(", ")}`);
+		lines.push(formatOutputList("aliases", command.aliases));
 	}
 	if (command.keywords?.length) {
-		lines.push(`keywords: ${command.keywords.join(", ")}`);
+		lines.push(formatOutputList("keywords", command.keywords));
 	}
-	lines.push(`accepted input: ${getCommandTerms(command).join(", ")}`);
+	lines.push(formatOutputList("accepted input", getCommandTerms(command)));
 	const examples = HELP_COMMAND_EXAMPLES[command.id];
 	if (examples?.length) {
-		lines.push(`examples: ${examples.join(" · ")}`);
+		lines.push(formatOutputList("examples", examples, " · "));
 	}
 	return lines.join("\n");
 }
 
-function buildIntentTopicHelp(intent: NavBrandCommandIntentGroup): string {
+function buildIntentTopicHelp(intent: NavBrandCommandIntentGroup, options: NavBrandVerboseOptions = {}): string {
 	const section = HELP_SECTION_BY_INTENT[intent];
 	const commands = NAVBRAND_COMMANDS.filter((command) => command.intent === intent);
 	const sectionCommands = section ? getCommandsForSection(section) : commands;
 	const commandLines = (sectionCommands.length > 0 ? sectionCommands : commands).map(formatCommandLine);
 	const patternLines = (sectionCommands.length > 0 ? sectionCommands : commands)
 		.filter((command) => HELP_COMMAND_PATTERNS[command.id])
-		.map((command) => `pattern: ${HELP_COMMAND_PATTERNS[command.id]}`);
+		.map((command) => formatOutputRow("pattern", HELP_COMMAND_PATTERNS[command.id]!));
 
-	return [`help: ${HELP_SECTION_TITLES[section] ?? intent}`, ...commandLines, ...patternLines].join("\n");
+	const body = [`[${HELP_SECTION_TITLES[section] ?? intent}]`, ...commandLines, ...patternLines].join("\n");
+	return wrapVerboseOutput(`help ${intent}`, body, options);
 }
 
-export function buildNavBrandHelpMessage(topic?: string | null): string {
+export function buildNavBrandHelpMessage(topic?: string | null, options: NavBrandVerboseOptions = {}): string {
 	if (topic) {
 		const resolvedTopic = resolveHelpTopic(topic);
 		if (!resolvedTopic) {
 			return `help: ${topic}\nunknown topic · try: help, help navigation, help clear, help search`;
 		}
 		return typeof resolvedTopic === "string"
-			? buildIntentTopicHelp(resolvedTopic)
-			: buildCommandTopicHelp(resolvedTopic);
+			? buildIntentTopicHelp(resolvedTopic, options)
+			: buildCommandTopicHelp(resolvedTopic, options);
 	}
 
-	return [
+	const body = [
 		"stellar console help",
 		"compact command surface for alexmbugua.me · navigation, preferences, system notes, and search handoff",
 		"",
@@ -552,22 +651,22 @@ export function buildNavBrandHelpMessage(topic?: string | null): string {
 		...buildHelpSections(),
 		"",
 		"[examples]",
-		buildHelpExamples(),
+		formatOutputRow("try", buildHelpExamples()),
 		"",
 		"[useful aliases]",
 		...buildFeaturedAliases(),
 		"",
 		"[all commands]",
-		buildAllCommandsLine(),
+		formatOutputRow("registered", buildAllCommandsLine()),
 		"",
-		"topic help: clear help · search help · navigation help",
+		formatOutputRow("topic help", "clear help · search help · navigation help"),
 	].join("\n");
+
+	return wrapVerboseOutput("help", body, options);
 }
 
-export const NAVBRAND_HELP_MESSAGE = buildNavBrandHelpMessage();
-
-export function buildNavBrandIdentityMessage(): string {
-	return [
+export function buildNavBrandIdentityMessage(options: NavBrandVerboseOptions = {}): string {
+	const body = [
 		`${SITE.author} // ${SOCIAL.github}`,
 		`site: ${new URL(SITE.url).hostname}`,
 		`brand: ${SITE.title}`,
@@ -575,37 +674,73 @@ export function buildNavBrandIdentityMessage(): string {
 		`role: ${PROFESSIONAL.jobTitle}`,
 		`field: ${SITE.description}`,
 		`contact: ${SOCIAL.email}`,
-	].join("\n");
+	];
+
+	if (options.verbose) {
+		body.push(
+			"[identity]",
+			formatOutputRow("canonical", SITE.url),
+			formatOutputRow("repo", SOCIAL.repo),
+			formatOutputRow("profiles", String(SOCIAL.profiles.length)),
+			...SOCIAL.profiles.map((profile) => formatOutputRow(profile.name, profile.url, 22))
+		);
+	}
+
+	return wrapVerboseOutput("whoami", body.join("\n"), options);
 }
 
-export function buildNavBrandStatusMessage(context: NavBrandStatusContext = {}): string {
+export function buildNavBrandStatusMessage(
+	context: NavBrandStatusContext = {},
+	options: NavBrandVerboseOptions = {}
+): string {
 	const route = context.route ?? "/";
 	const theme = context.theme ?? "unknown";
 	const flavor = context.flavor && context.flavor !== "default" ? context.flavor : "default";
 	const network = context.network ?? "unknown";
 	const motion = context.reducedMotion ? "reduced" : "full";
 
-	return [
+	const body = [
 		"[status]",
-		"presence\tonline",
-		`route\t${route}`,
-		`theme\t${theme} / ${flavor}`,
-		`network\t${network}`,
-		`motion\t${motion}`,
-		`commands\t${NAVBRAND_COMMANDS.length} registered`,
-	].join("\n");
-}
+		formatOutputRow("presence", "online"),
+		formatOutputRow("route", route),
+		formatOutputRow("theme", `${theme} / ${flavor}`),
+		formatOutputRow("network", network),
+		formatOutputRow("motion", motion),
+		formatOutputRow("commands", `${NAVBRAND_COMMANDS.length} registered`),
+	];
 
-export function buildNavBrandHistoryMessage(history: readonly string[]): string {
-	if (history.length === 0) {
-		return "[history]\nsession memory empty";
+	if (options.verbose) {
+		body.push(
+			formatOutputRow("platform", context.platform ?? "unknown"),
+			formatOutputRow("timezone", context.timezone ?? "unknown"),
+			formatOutputRow("viewport", context.viewport ?? "unknown"),
+			formatOutputRow("language", context.language ?? "unknown")
+		);
 	}
 
-	return [
+	return wrapVerboseOutput("status", body.join("\n"), options);
+}
+
+export function buildNavBrandHistoryMessage(history: readonly string[], options: NavBrandVerboseOptions = {}): string {
+	if (history.length === 0) {
+		return wrapVerboseOutput("history", "[history]\nsession memory empty", options);
+	}
+
+	const body = [
 		"[history]",
 		`${history.length} ${history.length === 1 ? "command" : "commands"} in session memory`,
 		...history.map((command, index) => `${index + 1}. ${command}`),
-	].join("\n");
+	];
+
+	if (options.verbose) {
+		body.push(
+			formatOutputRow("recall", "ArrowUp / ArrowDown cycles history"),
+			formatOutputRow("filter", "Type a prefix before ArrowUp to scope recall"),
+			formatOutputRow("clear", "cmd+k clears session history")
+		);
+	}
+
+	return wrapVerboseOutput("history", body.join("\n"), options);
 }
 
 const ROUTE_ALIASES: Readonly<Record<string, string>> = {
@@ -664,23 +799,33 @@ function getRouteAliasTargets(): string[] {
 	return Object.keys(ROUTE_ALIASES).filter((alias) => !alias.includes("%"));
 }
 
-export function buildNavBrandRouteListMessage(): string {
-	return [
+export function buildNavBrandRouteListMessage(options: NavBrandVerboseOptions = {}): string {
+	const routes = getNavBrandRouteEntries();
+	const body = [
 		"[routes]",
-		"open with\tcd <route>",
-		...getNavBrandRouteEntries().map((entry) => `${entry.name}\t${entry.href}`),
-	].join("\n");
+		formatOutputRow("open with", "cd <route>"),
+		...routes.map((entry) => formatOutputRow(entry.name, entry.href)),
+	];
+
+	if (options.verbose) {
+		body.push(
+			formatOutputRow("count", `${routes.length} routes`),
+			formatOutputRow("source", "src/data/navigation.ts + redirect aliases"),
+			formatOutputRow("examples", "cd blog · open projects · cd guestbook")
+		);
+	}
+
+	return wrapVerboseOutput("ls", body.join("\n"), options);
 }
 
-function getSuggestionTermsForUnknownInput(): string[] {
+function getSuggestionTermsForUnknownInput(): Array<{ term: string; priority: number }> {
 	return [
-		...new Set([
-			...NAVBRAND_COMMANDS.flatMap((command) => [command.command, ...(command.aliases ?? [])]),
-			"search <query>",
-			"cd <route>",
-			"theme dark",
-			"bg matrix off",
-		]),
+		...NAVBRAND_COMMANDS.map((command) => ({ term: command.command, priority: 0 })),
+		...NAVBRAND_COMMANDS.flatMap((command) => (command.aliases ?? []).map((term) => ({ term, priority: 1 }))),
+		{ term: "search <query>", priority: 0 },
+		{ term: "cd <route>", priority: 0 },
+		{ term: "theme dark", priority: 0 },
+		{ term: "bg matrix off", priority: 0 },
 	];
 }
 
@@ -711,26 +856,50 @@ function getUnknownInputSuggestions(input: string): string[] {
 	if (!normalizedInput) return [];
 
 	return getSuggestionTermsForUnknownInput()
-		.map((term) => ({
+		.map(({ term, priority }) => ({
 			term,
+			priority,
 			score: getEditDistance(normalizedInput, normalizeCommandInput(term)),
 		}))
 		.filter(({ score, term }) => score <= Math.max(2, Math.floor(term.length / 3)))
-		.sort((a, b) => a.score - b.score || a.term.length - b.term.length || a.term.localeCompare(b.term))
+		.sort(
+			(a, b) =>
+				a.score - b.score || a.priority - b.priority || a.term.length - b.term.length || a.term.localeCompare(b.term)
+		)
 		.slice(0, 3)
 		.map(({ term }) => term);
 }
 
 export function buildNavBrandUnknownCommandMessage(input: string): string {
 	const suggestions = getUnknownInputSuggestions(input);
-	const lines = ["[unknown]", `input\t${input}`];
+	const lines = ["[unknown]", formatOutputRow("input", input)];
 
 	if (suggestions.length > 0) {
-		lines.push(`did you mean\t${suggestions.join(" · ")}`);
+		lines.push(formatOutputRow("did you mean", suggestions.join(" · ")));
 	}
 
-	lines.push("try\thelp · ls · search <query>");
+	lines.push(formatOutputRow("try", "help · ls · search <query>"));
 	return lines.join("\n");
+}
+
+function resolveCopyTarget(query: string | null): { label: string; value: string } | null {
+	const normalized = normalizeCommandInput(query ?? "");
+	const githubUrl =
+		SOCIAL.profiles.find((profile) => profile.name === "GitHub")?.url ?? `https://github.com/${SOCIAL.github}`;
+
+	if (normalized === "email" || normalized === "mail" || normalized === "contact") {
+		return { label: "email", value: SOCIAL.email };
+	}
+
+	if (normalized === "site" || normalized === "url" || normalized === "home") {
+		return { label: "site", value: SITE.url };
+	}
+
+	if (normalized === "github" || normalized === "gh" || normalized === "repo") {
+		return { label: "github", value: githubUrl };
+	}
+
+	return null;
 }
 
 function normalizeFlavorTarget(value: string): string | null {
@@ -779,8 +948,13 @@ const THEME_CHAINED_FLAVOR_TARGETS = [
 	"default",
 ] as const;
 const POSTFIX_HELP_TERMS = ["help", "?", "man", "commands", "menu", "--help", "-h"] as const;
+const POSTFIX_VERBOSE_TERMS = ["--verbose", "-v", "verbose", "details", "more"] as const;
+const VERBOSE_COMMAND_IDS = new Set<NavBrandCommandId>(["help", "status", "identity", "history", "list"]);
 const SUGGESTION_PATTERN_PHRASES: readonly string[] = [
 	...["search", "find", "lookup"].map((command) => `${command} `),
+	...["copy", "clip", "clipboard", "pbcopy"].flatMap((command) =>
+		["email", "site", "github"].map((target) => `${command} ${target}`)
+	),
 	...getSuggestionRouteTargets().flatMap((route) => [`cd ${route}`, `open ${route}`, `start ${route}`]),
 	...["dark", "light", "toggle", ...THEME_FLAVOR_TARGETS].map((value) => `theme ${value}`),
 	...THEME_FLAVOR_TARGETS.map((value) => `theme flavor ${value}`),
@@ -809,35 +983,100 @@ function getPostfixHelpPhrases(): string[] {
 	);
 }
 
+function getPostfixVerbosePhrases(): string[] {
+	return NAVBRAND_COMMANDS.filter((command) => VERBOSE_COMMAND_IDS.has(command.id))
+		.flatMap(getCommandCompletionTerms)
+		.flatMap((term) => POSTFIX_VERBOSE_TERMS.map((verboseTerm) => `${normalizeCommandInput(term)} ${verboseTerm}`));
+}
+
+function getPostfixFlagPhrases(): string[] {
+	return [...getPostfixHelpPhrases(), ...getPostfixVerbosePhrases()];
+}
+
+function dedupeSuggestionPhraseEntries(entries: SuggestionPhraseEntry[]): SuggestionPhraseEntry[] {
+	const bestByPhrase = new Map<string, SuggestionPhraseEntry>();
+
+	for (const entry of entries) {
+		const existing = bestByPhrase.get(entry.phrase);
+		if (
+			!existing ||
+			entry.priority < existing.priority ||
+			(entry.priority === existing.priority && entry.order < existing.order)
+		) {
+			bestByPhrase.set(entry.phrase, entry);
+		}
+	}
+
+	return [...bestByPhrase.values()].sort(
+		(a, b) => a.priority - b.priority || a.order - b.order || a.phrase.localeCompare(b.phrase)
+	);
+}
+
+function getBaseSuggestionPhraseEntries(): SuggestionPhraseEntry[] {
+	let order = 0;
+	const entries: SuggestionPhraseEntry[] = [];
+
+	for (const command of NAVBRAND_COMMANDS) {
+		entries.push({ phrase: normalizeCommandInput(command.command), priority: 0, order });
+		order += 1;
+	}
+
+	for (const phrase of SUGGESTION_PATTERN_PHRASES) {
+		entries.push({ phrase, priority: 1, order });
+		order += 1;
+	}
+
+	for (const command of NAVBRAND_COMMANDS) {
+		for (const alias of command.aliases ?? []) {
+			entries.push({ phrase: normalizeCommandInput(alias), priority: 2, order });
+			order += 1;
+		}
+	}
+
+	for (const command of NAVBRAND_COMMANDS) {
+		for (const keyword of command.keywords ?? []) {
+			entries.push({ phrase: normalizeCommandInput(keyword), priority: 3, order });
+			order += 1;
+		}
+	}
+
+	return dedupeSuggestionPhraseEntries(entries);
+}
+
 function getBaseSuggestionPhrases(): string[] {
-	return [
-		...new Set([
-			...NAVBRAND_COMMANDS.flatMap(getCommandCompletionTerms).map(normalizeCommandInput),
-			...SUGGESTION_PATTERN_PHRASES,
-		]),
-	];
+	return getBaseSuggestionPhraseEntries().map((entry) => entry.phrase);
 }
 
 function getSuggestionPhrases(): string[] {
-	return [...new Set([...getBaseSuggestionPhrases(), ...getPostfixHelpPhrases()])];
+	return [...new Set([...getBaseSuggestionPhrases(), ...getPostfixFlagPhrases()])];
 }
 
 function getCompletionPhrases(input: string): string[] {
-	const postfixHelpCandidate = input.match(/^(.+)\s+(\S+)$/);
-	const shouldIncludePostfixHelp =
-		postfixHelpCandidate !== null &&
-		Boolean(resolveHelpTopic(postfixHelpCandidate[1])) &&
-		POSTFIX_HELP_TERMS.some((helpTerm) => helpTerm.startsWith(postfixHelpCandidate[2]));
+	const basePhrases = getBaseSuggestionPhrases();
+	const hasBaseCompletions = basePhrases.some((phrase) => phrase.startsWith(input) && phrase.length > input.length);
+	const postfixFlagCandidate = input.match(/^(.+)\s+(\S*)$/);
+	const shouldIncludePostfixFlags =
+		postfixFlagCandidate !== null &&
+		Boolean(resolveHelpTopic(postfixFlagCandidate[1])) &&
+		[...POSTFIX_HELP_TERMS, ...POSTFIX_VERBOSE_TERMS].some((flagTerm) => flagTerm.startsWith(postfixFlagCandidate[2]));
+	const flagFragment = postfixFlagCandidate?.[2] ?? "";
 
-	return shouldIncludePostfixHelp ? getSuggestionPhrases() : getBaseSuggestionPhrases();
+	return shouldIncludePostfixFlags && (!hasBaseCompletions || flagFragment.startsWith("-"))
+		? getSuggestionPhrases()
+		: basePhrases;
 }
 
 function isKnownDynamicCommand(input: string): boolean {
 	const routeMatch = input.match(/^(cd|open|start|xdg-open|invoke-item|ii)\s+(.+)$/);
 	const postfixHelpMatch = input.match(/^(.+)\s+(help|\?|man|commands|menu|--help|-h)$/);
+	const postfixVerboseMatch = input.match(/^(.+)\s+(--verbose|-v|verbose|details|more)$/);
 	return (
 		(postfixHelpMatch ? Boolean(resolveHelpTopic(postfixHelpMatch[1])) : false) ||
+		(postfixVerboseMatch
+			? getPostfixVerbosePhrases().some((phrase) => phrase === normalizeCommandInput(input))
+			: false) ||
 		/^(search|find|lookup)\s+.+$/.test(input) ||
+		/^(copy|clip|clipboard|pbcopy)\s+(email|mail|contact|site|url|home|github|gh|repo)$/.test(input) ||
 		(routeMatch ? resolveRouteTarget(routeMatch[2]) !== null : false) ||
 		/^theme\s+(dark|light|toggle|default|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
 		/^theme\s+flavor\s+(default|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
@@ -911,48 +1150,44 @@ export function resolveNavBrandCommandCompletions(input: string): NavBrandComman
  * hand off to the dedicated Search surfaces.
  */
 export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandCommand | null {
-	const normalizedInput = normalizeCommandInput(input);
+	const { normalizedInput, verbose, argv } = parseVerboseInput(input);
 	if (!normalizedInput) return null;
+	const resolved = (command: NavBrandCommandDefinition, query: string | null = null): ResolvedNavBrandCommand => ({
+		command,
+		query,
+		verbose,
+		argv,
+	});
 
 	const postfixHelpMatch = normalizedInput.match(/^(.+)\s+(help|\?|man|commands|menu|--help|-h)$/);
 	if (postfixHelpMatch) {
-		return {
-			command: getNavBrandCommand("help"),
-			query: postfixHelpMatch[1].trim(),
-		};
+		return resolved(getNavBrandCommand("help"), postfixHelpMatch[1].trim());
 	}
 
 	const helpTopicMatch = normalizedInput.match(/^(help|\?|man|commands|menu|--help|-h)\s+(.+)$/);
 	if (helpTopicMatch) {
-		return {
-			command: getNavBrandCommand("help"),
-			query: helpTopicMatch[2].trim(),
-		};
+		return resolved(getNavBrandCommand("help"), helpTopicMatch[2].trim());
 	}
 
 	const searchCommand = getNavBrandCommand("search");
 	const searchPrefixMatch = normalizedInput.match(/^(find|search|lookup)\s+(.+)$/);
 	if (searchPrefixMatch) {
-		return {
-			command: searchCommand,
-			query: searchPrefixMatch[2].trim(),
-		};
+		return resolved(searchCommand, searchPrefixMatch[2].trim());
 	}
 
 	const shellNavigationMatch = normalizedInput.match(/^(cd|open|start|xdg-open|invoke-item|ii)\s+(.+)$/);
 	if (shellNavigationMatch) {
 		const target = shellNavigationMatch[2].trim();
 		if (normalizeCommandInput(target) === "search") {
-			return {
-				command: searchCommand,
-				query: null,
-			};
+			return resolved(searchCommand);
 		}
 
-		return {
-			command: getNavBrandCommand("open"),
-			query: target,
-		};
+		return resolved(getNavBrandCommand("open"), target);
+	}
+
+	const copyMatch = normalizedInput.match(/^(copy|clip|clipboard|pbcopy)\s+(.+)$/);
+	if (copyMatch && resolveCopyTarget(copyMatch[2])) {
+		return resolved(getNavBrandCommand("copy"), normalizeCommandInput(copyMatch[2]));
 	}
 
 	const themeMatch = normalizedInput.match(/^theme\s+(?:flavor\s+)?(.+)$/);
@@ -962,25 +1197,16 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 		if (chainedThemeMatch) {
 			const flavor = normalizeFlavorTarget(chainedThemeMatch[2]);
 			if (flavor !== null) {
-				return {
-					command: getNavBrandCommand("theme"),
-					query: `${chainedThemeMatch[1]} flavor:${flavor || "default"}`,
-				};
+				return resolved(getNavBrandCommand("theme"), `${chainedThemeMatch[1]} flavor:${flavor || "default"}`);
 			}
 		}
 
 		const flavor = normalizeFlavorTarget(themeValue);
 		if (themeValue === "light" || themeValue === "dark" || themeValue === "toggle") {
-			return {
-				command: getNavBrandCommand("theme"),
-				query: themeValue,
-			};
+			return resolved(getNavBrandCommand("theme"), themeValue);
 		}
 		if (flavor !== null) {
-			return {
-				command: getNavBrandCommand("theme"),
-				query: `flavor:${flavor || "default"}`,
-			};
+			return resolved(getNavBrandCommand("theme"), `flavor:${flavor || "default"}`);
 		}
 	}
 
@@ -990,10 +1216,7 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 	if (backgroundMatch) {
 		const target = normalizeBackgroundTarget(backgroundMatch[2]);
 		if (target) {
-			return {
-				command: getNavBrandCommand("background"),
-				query: `${target}:${normalizeBackgroundAction(backgroundMatch[3])}`,
-			};
+			return resolved(getNavBrandCommand("background"), `${target}:${normalizeBackgroundAction(backgroundMatch[3])}`);
 		}
 	}
 
@@ -1001,42 +1224,30 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 	if (legacyBackgroundMatch) {
 		const target = normalizeBackgroundTarget(legacyBackgroundMatch[1]);
 		if (target) {
-			return {
-				command: getNavBrandCommand("background"),
-				query: `${target}:${normalizeBackgroundAction(legacyBackgroundMatch[2])}`,
-			};
+			return resolved(
+				getNavBrandCommand("background"),
+				`${target}:${normalizeBackgroundAction(legacyBackgroundMatch[2])}`
+			);
 		}
 	}
 
 	const backgroundKeywordTarget = normalizeBackgroundTarget(normalizedInput);
 	if (backgroundKeywordTarget) {
-		return {
-			command: getNavBrandCommand("background"),
-			query: `${backgroundKeywordTarget}:on`,
-		};
+		return resolved(getNavBrandCommand("background"), `${backgroundKeywordTarget}:on`);
 	}
 
 	const sidebarActionMatch = normalizedInput.match(/^sidebar\s+(collapse|expand|toggle)$/);
 	if (sidebarActionMatch) {
-		return {
-			command: getNavBrandCommand("sidebar"),
-			query: sidebarActionMatch[1],
-		};
+		return resolved(getNavBrandCommand("sidebar"), sidebarActionMatch[1]);
 	}
 
 	const legacySidebarActionMatch = normalizedInput.match(/^(collapse|expand)\s+sidebar$/);
 	if (legacySidebarActionMatch) {
-		return {
-			command: getNavBrandCommand("sidebar"),
-			query: legacySidebarActionMatch[1],
-		};
+		return resolved(getNavBrandCommand("sidebar"), legacySidebarActionMatch[1]);
 	}
 
 	if (normalizedInput === "sidebar" || normalizedInput === "rail" || normalizedInput === "panel") {
-		return {
-			command: getNavBrandCommand("sidebar"),
-			query: "toggle",
-		};
+		return resolved(getNavBrandCommand("sidebar"), "toggle");
 	}
 
 	let bestMatch: { command: NavBrandCommandDefinition; score: number } | null = null;
@@ -1062,10 +1273,7 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 
 	if (!bestMatch) return null;
 
-	return {
-		command: bestMatch.command,
-		query: null,
-	};
+	return resolved(bestMatch.command);
 }
 
 /**
@@ -1087,6 +1295,13 @@ export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): N
 
 	if (command.action === "external-link" && command.href) {
 		return { type: "external-link", href: command.href };
+	}
+
+	if (command.action === "copy") {
+		const target = resolveCopyTarget(query);
+		return target
+			? { type: "copy", ...target }
+			: { type: "message", message: "copy target required · try: copy email" };
 	}
 
 	if (command.id === "theme") {

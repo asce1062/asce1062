@@ -1,10 +1,25 @@
 /**
- * Copy to clipboard utility with notification
+ * Copy to clipboard utilities.
+ *
+ * `writeTextToClipboard` is the shared low-level browser primitive. UI surfaces
+ * decide how to acknowledge success: the legacy class shows a notification,
+ * while the terminal prints inline command output.
  */
 
 export interface CopyToClipboardOptions {
 	notificationId: string;
 	notificationDuration?: number;
+}
+
+export async function writeTextToClipboard(text: string): Promise<boolean> {
+	if (!navigator.clipboard?.writeText) return false;
+
+	try {
+		await navigator.clipboard.writeText(text);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 export class CopyToClipboard {
@@ -21,14 +36,14 @@ export class CopyToClipboard {
 	 * Copy text to clipboard
 	 */
 	async copy(text: string): Promise<boolean> {
-		try {
-			await navigator.clipboard.writeText(text);
+		const copied = await writeTextToClipboard(text);
+		if (copied) {
 			this.showNotification();
 			return true;
-		} catch (err) {
-			console.error("Failed to copy to clipboard:", err);
-			return false;
 		}
+
+		console.error("Failed to copy to clipboard");
+		return false;
 	}
 
 	/**

@@ -6,6 +6,7 @@ import {
 	NAVBRAND_HINT_COMMAND_IDS,
 	buildNavBrandHelpMessage,
 	buildNavBrandHistoryMessage,
+	buildNavBrandIdentityMessage,
 	buildNavBrandRouteListMessage,
 	buildNavBrandCommandIntent,
 	buildNavBrandStatusMessage,
@@ -24,6 +25,7 @@ describe("NAVBRAND_COMMANDS", () => {
 			"help",
 			"email",
 			"github",
+			"copy",
 			"theme",
 			"background",
 			"sidebar",
@@ -43,6 +45,7 @@ describe("NAVBRAND_COMMANDS", () => {
 		expect(getNavBrandCommand("search").action).toBe("search-handoff");
 		expect(getNavBrandCommand("help").action).toBe("hint");
 		expect(getNavBrandCommand("email").action).toBe("external-link");
+		expect(getNavBrandCommand("copy").action).toBe("copy");
 		expect(getNavBrandCommand("theme").action).toBe("toggle-pref");
 		expect(getNavBrandCommand("clear").intent).toBe("clear");
 		expect(getNavBrandCommand("open").intent).toBe("navigation");
@@ -79,6 +82,30 @@ describe("resolveNavBrandCommandInput", () => {
 	it("matches direct commands", () => {
 		expect(resolveNavBrandCommandInput("help")?.command.id).toBe("help");
 		expect(resolveNavBrandCommandInput("status")?.command.id).toBe("status");
+	});
+
+	it("strips verbose flags before resolving commands", () => {
+		expect(resolveNavBrandCommandInput("status --verbose")).toMatchObject({
+			command: { id: "status" },
+			verbose: true,
+		});
+		expect(resolveNavBrandCommandInput("whoami -v")).toMatchObject({
+			command: { id: "identity" },
+			verbose: true,
+		});
+		expect(resolveNavBrandCommandInput("history details")).toMatchObject({
+			command: { id: "history" },
+			verbose: true,
+		});
+		expect(resolveNavBrandCommandInput("ls more")).toMatchObject({
+			command: { id: "list" },
+			verbose: true,
+		});
+		expect(resolveNavBrandCommandInput("copy email --verbose")).toMatchObject({
+			command: { id: "copy" },
+			query: "email",
+			verbose: true,
+		});
 	});
 
 	it("does not treat page routes as direct commands", () => {
@@ -230,10 +257,10 @@ describe("resolveNavBrandCommandInput", () => {
 		const internalNavRoutes = mainNavigation.filter((link) => !link.external && link.href.startsWith("/"));
 
 		for (const link of internalNavRoutes) {
-			expect(routeList).toContain(`${link.name.toLowerCase().replace(/\s+/g, "-")}\t${link.href}`);
+			expect(routeList).toContain(`${link.name.toLowerCase().replace(/\s+/g, "-").padEnd(16)}${link.href}`);
 		}
-		expect(routeList).toContain("notebook\t/notes");
-		expect(routeList).toContain("now\t/now");
+		expect(routeList).toContain("notebook        /notes");
+		expect(routeList).toContain("now             /now");
 		expect(routeList).not.toContain("github");
 	});
 
@@ -262,7 +289,7 @@ describe("resolveNavBrandCommandInput", () => {
 			command: { id: "help" },
 			query: "lsa",
 		});
-		expect(buildNavBrandHelpMessage("lsa")).toContain("help: ls (List)");
+		expect(buildNavBrandHelpMessage("lsa")).toContain("name            ls");
 	});
 
 	it("resolves control and contact commands with argument payloads", () => {
@@ -309,6 +336,18 @@ describe("resolveNavBrandCommandInput", () => {
 		expect(resolveNavBrandCommandInput("github")).toMatchObject({
 			command: { id: "github", action: "external-link" },
 		});
+		expect(resolveNavBrandCommandInput("copy email")).toMatchObject({
+			command: { id: "copy", action: "copy" },
+			query: "email",
+		});
+		expect(resolveNavBrandCommandInput("copy site")).toMatchObject({
+			command: { id: "copy", action: "copy" },
+			query: "site",
+		});
+		expect(resolveNavBrandCommandInput("copy github")).toMatchObject({
+			command: { id: "copy", action: "copy" },
+			query: "github",
+		});
 	});
 
 	it("resolves discovery commands as local message actions", () => {
@@ -344,7 +383,7 @@ describe("buildNavBrandHelpMessage", () => {
 		expect(help).toContain("navigation");
 		expect(help).toContain("preferences");
 		expect(help).toContain("terminal");
-		expect(help).toContain(`${clear.command.padEnd(14)} ${clear.description}`);
+		expect(help).toContain(`${clear.command.padEnd(36)}${clear.description}`);
 		expect(help).toContain("\n\n[usage patterns]\n");
 		expect(help).toContain("\n\n[start here]\n");
 		expect(help.indexOf("[all commands]")).toBeGreaterThan(help.indexOf("[useful aliases]"));
@@ -371,27 +410,42 @@ describe("buildNavBrandHelpMessage", () => {
 		expect(help).toContain("theme <dark|light|toggle|flavor>");
 		expect(help).toContain("background <stars|matrix> <on|off>");
 		expect(help).toContain("sidebar <collapse|expand|toggle>");
+		expect(help).toContain("copy <email|site|github>");
 		expect(help).toContain("search astro");
 		expect(help).toContain("cd blog");
 		expect(help).toContain("theme dark");
 		expect(help).toContain("theme amber");
 		expect(help).toContain("bg matrix off");
-		expect(help).toContain("clear -> cls, ctrl+l, clear-host");
-		expect(help).toContain("cmd+k -> ⌘k, ctrl+k, ctrl+shift+k");
-		expect(help).toContain("reset -> reload, restart, reboot");
-		expect(help).toContain("close -> exit, quit, logout, :q");
-		expect(help).toContain("search -> find, lookup");
+		expect(help).toContain("clear           cls, ctrl+l, clear-host");
+		expect(help).toContain("cmd+k           ⌘k, ctrl+k, ctrl+shift+k");
+		expect(help).toContain("reset           reload, restart, reboot");
+		expect(help).toContain("close           exit, quit, logout, :q");
+		expect(help).toContain("search          find, lookup");
 	});
 
 	it("builds compact topic help by command, alias, or intent group", () => {
-		expect(buildNavBrandHelpMessage("clear")).toContain("clear");
-		expect(buildNavBrandHelpMessage("clear")).toContain("aliases: cls, clr, clean, wipe, c, ctrl+l, clear-host");
+		expect(buildNavBrandHelpMessage("clear")).toContain("[command]");
+		expect(buildNavBrandHelpMessage("clear")).toContain("name            clear");
+		expect(buildNavBrandHelpMessage("clear")).toContain("aliases         cls, clr, clean, wipe, c, ctrl+l, clear-host");
 		expect(buildNavBrandHelpMessage("cmd+k")).toContain("Keyboard Clear");
 		expect(buildNavBrandHelpMessage("cmd+k")).toContain("Typed form of the Cmd/Ctrl+K shortcut");
 		expect(buildNavBrandHelpMessage("cls")).toContain("clear");
 		expect(buildNavBrandHelpMessage("search")).toContain("search <query>");
 		expect(buildNavBrandHelpMessage("navigation")).toContain("navigation");
 		expect(buildNavBrandHelpMessage("navigation")).toContain("cd <route>");
+	});
+
+	it("builds verbose topic help with semantic command metadata instead of raw registry shape", () => {
+		const help = buildNavBrandHelpMessage("pwd", { verbose: true, argv: ["help", "pwd", "--verbose"] });
+
+		expect(help).toContain("stellar verbose command help pwd");
+		expect(help).toContain("[diagnostics]");
+		expect(help).toContain("[command]");
+		expect(help).toContain("name            pwd");
+		expect(help).toContain("intent          navigation");
+		expect(help).toContain("summary         Print the current site route.");
+		expect(help).toContain("keywords        route, working directory");
+		expect(help).not.toContain('id: "pwd"');
 	});
 });
 
@@ -406,12 +460,39 @@ describe("polished terminal command output helpers", () => {
 		});
 
 		expect(status).toContain("[status]");
-		expect(status).toContain("presence\tonline");
-		expect(status).toContain("route\t/notes");
-		expect(status).toContain("theme\tdark / crt-green");
-		expect(status).toContain("network\tonline");
-		expect(status).toContain("motion\tfull");
-		expect(status).toContain(`commands\t${NAVBRAND_COMMANDS.length} registered`);
+		expect(status).toContain("presence        online");
+		expect(status).toContain("route           /notes");
+		expect(status).toContain("theme           dark / crt-green");
+		expect(status).toContain("network         online");
+		expect(status).toContain("motion          full");
+		expect(status).toContain(`commands        ${NAVBRAND_COMMANDS.length} registered`);
+	});
+
+	it("builds verbose status output with diagnostic framing and expanded context", () => {
+		const status = buildNavBrandStatusMessage(
+			{
+				route: "/about",
+				theme: "dark",
+				flavor: "crt-green",
+				network: "online",
+				reducedMotion: false,
+				platform: "macOS",
+				timezone: "Africa/Nairobi",
+				viewport: "1680×1050",
+				language: "en-US",
+			},
+			{ verbose: true, argv: ["status", "--verbose"] }
+		);
+
+		expect(status).toContain("stellar verbose command status");
+		expect(status).toContain('stellar verbose argv "status" "--verbose"');
+		expect(status).toContain("[status]");
+		expect(status).toContain("platform        macOS");
+		expect(status).toContain("timezone        Africa/Nairobi");
+		expect(status).toContain("viewport        1680×1050");
+		expect(status).toContain("language        en-US");
+		expect(status).toContain("stellar verbose exit 0");
+		expect(status).toContain("stellar info ok");
 	});
 
 	it("builds history output with a stable empty state and numbered command memory", () => {
@@ -419,24 +500,30 @@ describe("polished terminal command output helpers", () => {
 		expect(buildNavBrandHistoryMessage(["help", "theme dark", "cd blog"])).toBe(
 			"[history]\n3 commands in session memory\n1. help\n2. theme dark\n3. cd blog"
 		);
+		expect(buildNavBrandHistoryMessage(["help"], { verbose: true, argv: ["history", "--verbose"] })).toContain(
+			"recall          ArrowUp / ArrowDown cycles history"
+		);
 	});
 
 	it("builds unknown-command output with useful suggestions instead of a dead end", () => {
 		const message = buildNavBrandUnknownCommandMessage("hlep");
 
 		expect(message).toContain("[unknown]");
-		expect(message).toContain("input\thlep");
-		expect(message).toContain("did you mean\thelp");
-		expect(message).toContain("try\thelp · ls · search <query>");
+		expect(message).toContain("input           hlep");
+		expect(message).toContain("did you mean    help");
+		expect(message).toContain("try             help · ls · search <query>");
 	});
 
 	it("keeps route listing readable with a heading and command hint", () => {
 		const routeList = buildNavBrandRouteListMessage();
 
 		expect(routeList).toContain("[routes]");
-		expect(routeList).toContain("open with\tcd <route>");
-		expect(routeList).toContain("blog\t/blog");
-		expect(routeList).toContain("guestbook\t/guestbook");
+		expect(routeList).toContain("open with       cd <route>");
+		expect(routeList).toContain("blog            /blog");
+		expect(routeList).toContain("guestbook       /guestbook");
+		expect(buildNavBrandRouteListMessage({ verbose: true, argv: ["ls", "--verbose"] })).toContain(
+			"source          src/data/navigation.ts + redirect aliases"
+		);
 	});
 });
 
@@ -497,6 +584,10 @@ describe("resolveNavBrandCommandSuggestion", () => {
 			state: "partial",
 			completion: "k",
 		});
+		expect(resolveNavBrandCommandSuggestion("copy e")).toEqual({
+			state: "partial",
+			completion: "mail",
+		});
 		expect(resolveNavBrandCommandSuggestion("lsa")).toEqual({
 			state: "known",
 			completion: "",
@@ -513,6 +604,14 @@ describe("resolveNavBrandCommandSuggestion", () => {
 			completion: "",
 		});
 		expect(resolveNavBrandCommandSuggestion("background --help")).toEqual({
+			state: "known",
+			completion: "",
+		});
+		expect(resolveNavBrandCommandSuggestion("whoami -v")).toEqual({
+			state: "known",
+			completion: "",
+		});
+		expect(resolveNavBrandCommandSuggestion("status --verbose")).toEqual({
 			state: "known",
 			completion: "",
 		});
@@ -549,6 +648,23 @@ describe("resolveNavBrandCommandCompletions", () => {
 		expect(result.items.map((item) => item.value)).toEqual(
 			expect.arrayContaining(["help", "history", "hide", "hiragana"])
 		);
+	});
+
+	it("ranks canonical commands before aliases and keyword-only matches", () => {
+		const values = resolveNavBrandCommandCompletions("c").items.map((item) => item.value);
+
+		expect(values.indexOf("copy")).toBeLessThan(values.indexOf("clip"));
+		expect(values.indexOf("clear")).toBeLessThan(values.indexOf("clean"));
+		expect(values.indexOf("close")).toBeLessThan(values.indexOf("close terminal"));
+		expect(values.indexOf("copy")).toBeLessThan(values.indexOf("contact"));
+	});
+
+	it("keeps command-family patterns ahead of aliases once a command prefix is established", () => {
+		expect(resolveNavBrandCommandCompletions("copy ").items.map((item) => item.value)).toEqual([
+			"copy email",
+			"copy site",
+			"copy github",
+		]);
 	});
 
 	it("keeps trailing-space patterns available for tab completion", () => {
@@ -622,6 +738,40 @@ describe("resolveNavBrandCommandCompletions", () => {
 		});
 	});
 
+	it("suggests command flags after complete commands", () => {
+		expect(resolveNavBrandCommandCompletions("whoami ").items).toEqual(
+			expect.arrayContaining([
+				{
+					value: "whoami --help",
+					completion: "--help",
+				},
+				{
+					value: "whoami --verbose",
+					completion: "--verbose",
+				},
+				{
+					value: "whoami -v",
+					completion: "-v",
+				},
+			])
+		);
+		expect(resolveNavBrandCommandCompletions("whoami -").items.map((item) => item.value)).toEqual(
+			expect.arrayContaining(["whoami -h", "whoami --help", "whoami -v", "whoami --verbose"])
+		);
+		expect(resolveNavBrandCommandCompletions("whoami -v")).toEqual({
+			state: "known",
+			items: [],
+		});
+		expect(resolveNavBrandCommandSuggestion("clear -v")).toEqual({
+			state: "unknown",
+			completion: "",
+		});
+		expect(resolveNavBrandCommandCompletions("clear -").items.map((item) => item.value)).toEqual(
+			expect.arrayContaining(["clear -h", "clear --help"])
+		);
+		expect(resolveNavBrandCommandCompletions("clear -").items.map((item) => item.value)).not.toContain("clear -v");
+	});
+
 	it("returns no items for truly unknown input", () => {
 		expect(resolveNavBrandCommandCompletions("zz")).toEqual({
 			state: "unknown",
@@ -634,21 +784,39 @@ describe("targeted command help", () => {
 	it("shows aliases, keywords, examples, and accepted patterns for command topics", () => {
 		const help = buildNavBrandHelpMessage("background");
 
-		expect(help).toContain("help: background (Background)");
-		expect(help).toContain("usage: background <stars|matrix> <on|off>");
-		expect(help).toContain("aliases: bg, stars, matrix, stars on, stars off, matrix on, matrix off");
-		expect(help).toContain("keywords: rain, hiragana, space");
+		expect(help).toContain("[command]");
+		expect(help).toContain("name            background");
+		expect(help).toContain("usage           background <stars|matrix> <on|off>");
+		expect(help).toContain("aliases         bg, stars, matrix, stars on, stars off, matrix on, matrix off");
+		expect(help).toContain("keywords        rain, hiragana, space");
 		expect(help).toContain(
-			"accepted input: background, bg, stars, matrix, stars on, stars off, matrix on, matrix off, rain, hiragana, space"
+			"accepted input  background, bg, stars, matrix, stars on, stars off, matrix on, matrix off, rain, hiragana, space"
 		);
-		expect(help).toContain("examples: bg matrix off");
+		expect(help).toContain("examples        bg matrix off");
 	});
 
 	it("resolves keyword topics back to their owning command help", () => {
 		const help = buildNavBrandHelpMessage("hiragana");
 
-		expect(help).toContain("help: background (Background)");
-		expect(help).toContain("keywords: rain, hiragana, space");
+		expect(help).toContain("[command]");
+		expect(help).toContain("name            background");
+		expect(help).toContain("keywords        rain, hiragana, space");
+	});
+});
+
+describe("buildNavBrandIdentityMessage", () => {
+	it("builds verbose identity output with site config social and contact information", () => {
+		const identity = buildNavBrandIdentityMessage({ verbose: true, argv: ["whoami", "--verbose"] });
+
+		expect(identity).toContain("stellar verbose command whoami");
+		expect(identity).toContain("[identity]");
+		expect(identity).toContain(SITE.author);
+		expect(identity).toContain(PROFESSIONAL.jobTitle);
+		expect(identity).toContain(SOCIAL.email);
+		expect(identity).toContain("profiles        ");
+		expect(identity).toContain("GitHub                https://github.com/asce1062");
+		expect(identity).toContain("LinkedIn              https://www.linkedin.com/in/alex-mbugua");
+		expect(identity).toContain("stellar info ok");
 	});
 });
 
@@ -661,6 +829,24 @@ describe("buildNavBrandCommandIntent", () => {
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("github")!)).toMatchObject({
 			type: "external-link",
 			href: "https://github.com/asce1062",
+		});
+	});
+
+	it("builds copy intents for stable contact values", () => {
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("copy email")!)).toEqual({
+			type: "copy",
+			label: "email",
+			value: SOCIAL.email,
+		});
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("copy site")!)).toEqual({
+			type: "copy",
+			label: "site",
+			value: SITE.url,
+		});
+		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("copy github")!)).toEqual({
+			type: "copy",
+			label: "github",
+			value: "https://github.com/asce1062",
 		});
 	});
 

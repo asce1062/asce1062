@@ -178,5 +178,21 @@ import "@/styles/components/terminal-modal.css";
 </section>
 
 <script>
+	import { initTerminalShortcut } from "@/scripts/keyboardShortcuts";
 	import "@/scripts/terminalModal";
+
+	let terminalShortcutCleanup: (() => void) | null = null;
+
+	function bindTerminalShortcut() {
+		terminalShortcutCleanup?.();
+		terminalShortcutCleanup = initTerminalShortcut();
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", bindTerminalShortcut, { once: true });
+	} else {
+		bindTerminalShortcut();
+	}
+
+	document.addEventListener("astro:page-load", bindTerminalShortcut);
 </script>

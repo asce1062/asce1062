@@ -22,13 +22,12 @@ export const COLLAPSED_NUDGE_INITIAL_DELAY_MS = 7_000;
 export const COLLAPSED_NUDGE_REPEAT_DELAY_MS = 22_000;
 export const COLLAPSED_NUDGE_VISIBLE_DURATION_MS = 4_000;
 export const COLLAPSED_SCHEDULED_NUDGE_CHANCE = 0.15;
-export const TRANSITION_EFFECT_CHANCE = 0.18;
-export const DECRYPT_EFFECT_CHANCE = 0.08;
+const TRANSITION_EFFECT_CHANCE = 0.18;
+const DECRYPT_EFFECT_CHANCE = 0.08;
 export const EFFECT_COOLDOWN_MS = 20_000;
 
 export const SYSTEM_MESSAGE_COOLDOWN_MS = 5 * 60_000;
 export const RARE_MESSAGE_COOLDOWN_MS = 30 * 60_000;
-export const RETURN_MESSAGE_COOLDOWN_MS = 10_000;
 export const SYSTEM_STATE_DURATION_MS = 4_000;
 
 const STATE_PRIORITY: NavBrandState[] = ["return", "system", "idle", "active", "arrival", "hint"];
