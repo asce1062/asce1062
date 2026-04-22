@@ -9,8 +9,10 @@
  *
  * It should remain browser-agnostic so it stays easy to unit test.
  */
+import type { TerminalTextEffectKind } from "@/lib/textEffects/terminalTextEffect";
+
 export type NavBrandState = "arrival" | "active" | "idle" | "return" | "system" | "hint";
-export type NavBrandEffect = "none" | "typing" | "decrypt";
+export type NavBrandEffect = "none" | TerminalTextEffectKind;
 
 export const IDLE_DELAY_MS = 45_000;
 export const RETURN_SETTLE_MS = 4_000;
