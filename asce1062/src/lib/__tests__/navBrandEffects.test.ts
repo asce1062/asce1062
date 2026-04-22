@@ -1,5 +1,24 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { playNavBrandEffect } from "@/lib/navBrand/effects";
 import { EFFECT_COOLDOWN_MS, chooseTransitionEffect, type NavBrandEffect } from "@/lib/navBrand/state";
+
+function createMockEffectElement(text = ""): HTMLElement {
+	const target = new EventTarget() as HTMLElement & EventTarget;
+	target.textContent = text;
+	Object.defineProperty(target, "dataset", {
+		value: {
+			greetingTarget: text,
+			textEffectStableText: text,
+		} as DOMStringMap,
+		writable: true,
+	});
+	return target;
+}
+
+afterEach(() => {
+	vi.useRealTimers();
+	vi.restoreAllMocks();
+});
 
 describe("chooseTransitionEffect", () => {
 	it("returns none when reduced motion is enabled", () => {
@@ -75,5 +94,32 @@ describe("chooseTransitionEffect", () => {
 				decryptRandomValue: 0,
 			})
 		).toBe("decrypt");
+	});
+});
+
+describe("playNavBrandEffect", () => {
+	it("uses a paired full transition instead of reset-then-reveal", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("alex");
+		const rootEl = createMockEffectElement();
+
+		expect(
+			playNavBrandEffect({
+				el,
+				rootEl,
+				effect: "typing",
+				text: "engineer",
+			})
+		).toBe(true);
+
+		vi.advanceTimersByTime(120);
+		expect(el.textContent).not.toBe("engineer");
+		expect(rootEl.dataset.navbrandEffect).toBe("backspace");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("engineer");
+		expect(el.dataset.textEffectStableText).toBe("engineer");
+		expect(rootEl.dataset.navbrandEffect).toBe("none");
 	});
 });

@@ -26,10 +26,29 @@
  *
  * Markup contract:
  *   data-text-effect="typing"
- *   data-text-effect="typing, decrypt"
+ *   data-text-effect="typing, decrypt, backspace, entropy"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"    // optional, used by random-time
  *   data-text-effect-managed="manual"       // optional, skip registry binding
+ *
+ * Motion behavior:
+ *   - `data-text-effect` lists effect names, not family names. Use public
+ *     effect values such as `typing`, `decrypt`, `backspace`, `entropy`,
+ *     `glitch-lock-on`, or `signal-loss`.
+ *   - The shared engine maps those effects into internal families:
+ *     `type`, `cipher`, and `rare`. Families only exist so the engine can infer
+ *     the paired phase for a transition.
+ *   - If stable text changes, enter effects automatically use their paired exit
+ *     effect first (`backspace -> typing`, `entropy -> decrypt`,
+ *     `signal-loss -> glitch-lock-on`).
+ *   - If the stable text is unchanged, effects remain lightweight flourishes.
+ *   - `standaloneSafe` effects may be chosen for random standalone playback
+ *     because they can settle without changing the stable text.
+ *   - Rare effects such as `glitch-lock-on` / `signal-loss` are opt-in only:
+ *     declare them explicitly when a surface has earned that extra energy.
+ *   - `data-text-effect-stable-text` is the generic stable-text cache. The
+ *     engine still mirrors to `data-greeting-target` for older consumers, but
+ *     new surfaces should not depend on greeting-specific naming.
  *
  * Lifecycle:
  *   - Runs on every astro:page-load

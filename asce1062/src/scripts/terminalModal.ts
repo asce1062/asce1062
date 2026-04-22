@@ -615,7 +615,7 @@ function clearSequenceTimers(): void {
 
 function getCurrentAtmosphereText(el: HTMLElement | null): string {
 	if (!el) return "";
-	return el.dataset.greetingTarget ?? el.textContent?.trim() ?? "";
+	return el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent?.trim() ?? "";
 }
 
 function resolveTerminalAtmosphere(reason: TerminalAtmosphereReason): string {
@@ -752,7 +752,8 @@ function resetTerminalRuntime(elements: TerminalModalElements): void {
 	if (elements.atmosphere) {
 		resetTerminalTextEffect(elements.atmosphere);
 		elements.atmosphere.textContent = "restoring context";
-		delete elements.atmosphere.dataset.greetingTarget;
+		elements.atmosphere.dataset.textEffectStableText = "restoring context";
+		elements.atmosphere.dataset.greetingTarget = "restoring context";
 	}
 
 	syncPromptMirror(elements);
@@ -791,7 +792,8 @@ function resetTerminalSession(elements: TerminalModalElements): void {
 	if (elements.atmosphere) {
 		resetTerminalTextEffect(elements.atmosphere);
 		elements.atmosphere.textContent = "restoring context";
-		delete elements.atmosphere.dataset.greetingTarget;
+		elements.atmosphere.dataset.textEffectStableText = "restoring context";
+		elements.atmosphere.dataset.greetingTarget = "restoring context";
 	}
 
 	syncPromptMirror(elements);

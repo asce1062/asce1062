@@ -1,8 +1,10 @@
 /**
  * Shared terminal-text flourish engine.
  *
- * This module is the reusable implementation layer for the site's
- * terminal-adjacent text flourishes.
+ * This module is the reusable implementation layer for terminal-adjacent text
+ * motion. It supports both small decorative flourishes and full text-to-text
+ * transitions where one stable string exits before the next stable string
+ * enters.
  *
  * It supports two integration styles:
  *
@@ -18,14 +20,37 @@
  *    `src/scripts/navBrand.ts` decides exactly when an effect should run and
  *    which effect should be used.
  *
- * Available effect families:
- *   - type   : `typing` enter, `backspace` exit
- *   - cipher : `decrypt` enter, `entropy` exit
+ * Motion vocabulary:
+ *   - Effect names are the public/declarative values:
+ *     `typing`, `backspace`, `decrypt`, `entropy`, `glitch-lock-on`,
+ *     `signal-loss`.
+ *   - Families are internal pairing groups:
+ *     `type` pairs `typing` with `backspace`
+ *     `cipher` pairs `decrypt` with `entropy`
+ *     `rare` pairs `glitch-lock-on` with `signal-loss`
+ *   - Roles describe lifecycle direction:
+ *     `enter` effects reveal or resolve text into place
+ *     `exit` effects remove or destabilize text before handoff
+ *     `standalone` is reserved for future effects that are neither directional
+ *   - `standaloneSafe` means an effect may run as a flourish without changing
+ *     the stable text. Example: `backspace` can delete and then restore the
+ *     same text; `typing` is not used for random standalone selection because
+ *     it reads more clearly as an enter/reveal phase.
  *
  * New effects should be registered in `TERMINAL_TEXT_EFFECTS` with family,
  * lifecycle role, standalone eligibility, and reduced-motion strategy before
  * adding a renderer. The transition coordinator uses that metadata to keep
  * randomization, standalone flourishes, and reduced-motion behavior coherent.
+ *
+ * Stable text model:
+ *   - `data-text-effect-stable-text` is the generic cache of the element's
+ *     settled text after an effect completes.
+ *   - `data-greeting-target` is still written for backwards compatibility with
+ *     older navbrand/header code, but new consumers should treat
+ *     `data-text-effect-stable-text` as the generic contract.
+ *   - When an enter effect is asked to render a new stable text, playback is
+ *     promoted from a reveal into a full paired transition:
+ *     previous stable text -> paired exit -> new stable text -> enter.
  *
  * Trigger vocabulary:
  *   - `load`          : play immediately when bound
@@ -45,6 +70,7 @@
  * Declarative markup contract:
  *   data-text-effect="typing"
  *   data-text-effect="typing, decrypt, backspace, entropy"
+ *   data-text-effect="glitch-lock-on, signal-loss" // rare, explicit opt-in
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
@@ -58,16 +84,20 @@
  *     `src/lib/navBrand/state.ts`, while this file only parses, binds, and
  *     plays effects.
  */
-export type TerminalTextEffectFamily = "type" | "cipher" | "rare" | "system";
+export type TerminalTextEffectFamily = "type" | "cipher" | "rare";
 export type TerminalTextEffectRole = "enter" | "exit" | "standalone";
-export type TerminalTextEffectKind = "typing" | "backspace" | "decrypt" | "entropy";
+export type TerminalTextEffectKind = "typing" | "backspace" | "decrypt" | "entropy" | "glitch-lock-on" | "signal-loss";
 export type TerminalTextEffectState = "none" | TerminalTextEffectKind;
 export type TerminalTextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
 export type TerminalTextEffectMetadata = {
+	/** Internal grouping used to infer enter/exit pairs without hardcoding pairs at callsites. */
 	family: TerminalTextEffectFamily;
+	/** Direction of travel for transition sequencing. */
 	role: TerminalTextEffectRole;
+	/** Whether this effect can run alone and restore/settle without implying a content change. */
 	standaloneSafe: boolean;
+	/** Central reduced-motion fallback for this effect when animation is disabled. */
 	reducedMotion: TerminalTextEffectReducedMotionStrategy;
 };
 
@@ -92,6 +122,18 @@ export const TERMINAL_TEXT_EFFECTS: Record<TerminalTextEffectKind, TerminalTextE
 	},
 	entropy: {
 		family: "cipher",
+		role: "exit",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	"glitch-lock-on": {
+		family: "rare",
+		role: "enter",
+		standaloneSafe: true,
+		reducedMotion: "instant-target",
+	},
+	"signal-loss": {
+		family: "rare",
 		role: "exit",
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
@@ -145,6 +187,10 @@ const DEFAULT_BACKSPACE_STEP_MS = 42;
 const DEFAULT_BACKSPACE_HOLD_MS = 140;
 const DEFAULT_ENTROPY_DURATION_MS = 520;
 const DEFAULT_ENTROPY_TOTAL_FRAMES = 22;
+const DEFAULT_GLITCH_LOCK_DURATION_MS = 620;
+const DEFAULT_GLITCH_LOCK_TOTAL_FRAMES = 28;
+const DEFAULT_SIGNAL_LOSS_DURATION_MS = 420;
+const DEFAULT_SIGNAL_LOSS_TOTAL_FRAMES = 18;
 const DEFAULT_TRANSITION_HOLD_MS = 80;
 const TERMINAL_BLOCK_CURSOR = "█";
 
@@ -179,6 +225,20 @@ export type TerminalTextTransitionOptions = TerminalTextEffectOptions & {
 };
 
 const activeEffects = new WeakMap<HTMLElement, ActiveEffectHandle>();
+/**
+ * Family pair map.
+ *
+ * This is what lets callers request `typing` while the coordinator infers that
+ * changed stable text should first leave with `backspace`. The same rule applies
+ * to `decrypt -> entropy` and `glitch-lock-on -> signal-loss`.
+ */
+const TERMINAL_TEXT_EFFECT_FAMILY_PAIRS: Partial<
+	Record<TerminalTextEffectFamily, { enter: TerminalTextEffectKind; exit: TerminalTextEffectKind }>
+> = {
+	type: { enter: "typing", exit: "backspace" },
+	cipher: { enter: "decrypt", exit: "entropy" },
+	rare: { enter: "glitch-lock-on", exit: "signal-loss" },
+};
 const triggerHandlers = new WeakMap<
 	HTMLElement,
 	{
@@ -212,6 +272,17 @@ function setRootEffect(
 
 export function getTerminalTextEffectMetadata(effect: TerminalTextEffectKind): TerminalTextEffectMetadata {
 	return TERMINAL_TEXT_EFFECTS[effect];
+}
+
+/** Resolve the opposite directional phase inside an effect's family. */
+export function getPairedTerminalTextEffect(
+	effect: TerminalTextEffectKind,
+	role: TerminalTextEffectRole
+): TerminalTextEffectKind | "none" {
+	const metadata = TERMINAL_TEXT_EFFECTS[effect];
+	const pair = TERMINAL_TEXT_EFFECT_FAMILY_PAIRS[metadata.family];
+	if (!pair || role === "standalone") return "none";
+	return pair[role];
 }
 
 export function normalizeTerminalTextEffectTriggers(
@@ -277,6 +348,8 @@ export function resolveTerminalTextEffectKind(
 	options: { mode?: TerminalTextTransitionMode } = {}
 ): TerminalTextEffectKind {
 	const normalizedEffects = normalizeTerminalTextEffectKinds(effects).filter((effect) => {
+		// Standalone randomization should only choose effects that make sense
+		// without changing the element's stable text.
 		if (options.mode === "standalone") return TERMINAL_TEXT_EFFECTS[effect].standaloneSafe;
 		return true;
 	});
@@ -292,7 +365,7 @@ export function resolveTerminalTextEffectKind(
  * Declarative parser for the registry path.
  *
  * Supported attributes:
- * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt"`
+ * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt, backspace, entropy"`
  * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"`
  * - `data-text-effect-interval-ms="18000"`
  * - `data-text-effect-managed="manual"` to opt out of the declarative registry
@@ -301,6 +374,10 @@ export function resolveTerminalTextEffectKind(
  * - unknown effects are ignored; if nothing valid remains, the registry skips the element
  * - multiple effects are allowed so `random-effect` can choose from the
  *   element's declared set rather than a hardcoded global pair
+ * - declaring an enter effect is enough for full transitions; the paired exit
+ *   is inferred from metadata when the stable text changes
+ * - declaring an exit effect allows explicit standalone flourishes such as
+ *   `backspace` or `entropy`
  * - trigger strings are normalized/deduplicated before binding
  * - invalid interval values are ignored rather than crashing
  */
@@ -552,6 +629,98 @@ function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs?: numb
 	};
 }
 
+function runGlitchLockOnEnterRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
+	const totalFrames = DEFAULT_GLITCH_LOCK_TOTAL_FRAMES;
+	const totalDuration = durationMs ?? DEFAULT_GLITCH_LOCK_DURATION_MS;
+	const frameInterval = totalDuration / totalFrames;
+	let frame = 0;
+	let resolvePromise: () => void = () => {};
+	let settled = false;
+	const promise = new Promise<void>((resolve) => {
+		resolvePromise = resolve;
+	});
+	const intervalId = globalThis.setInterval(() => {
+		const lockRatio = frame / totalFrames;
+
+		el.textContent = text
+			.split("")
+			.map((char, i) => {
+				if (char === " ") return char;
+				const charProgress = (i + 1) / Math.max(text.length, 1);
+				if (lockRatio > charProgress * 0.86) return char;
+				return DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)];
+			})
+			.join("");
+
+		frame += 1;
+
+		if (frame >= totalFrames) {
+			globalThis.clearInterval(intervalId);
+			if (settled) return;
+			settled = true;
+			el.textContent = text;
+			resolvePromise();
+		}
+	}, frameInterval);
+
+	return {
+		promise,
+		cancel: () => {
+			if (settled) return;
+			settled = true;
+			globalThis.clearInterval(intervalId);
+			resolvePromise();
+		},
+	};
+}
+
+function runSignalLossExitRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
+	const totalFrames = DEFAULT_SIGNAL_LOSS_TOTAL_FRAMES;
+	const totalDuration = durationMs ?? DEFAULT_SIGNAL_LOSS_DURATION_MS;
+	const frameInterval = totalDuration / totalFrames;
+	let frame = 0;
+	let resolvePromise: () => void = () => {};
+	let settled = false;
+	const promise = new Promise<void>((resolve) => {
+		resolvePromise = resolve;
+	});
+	const intervalId = globalThis.setInterval(() => {
+		const lossRatio = frame / totalFrames;
+		const visibleCount = Math.max(0, Math.ceil((1 - lossRatio) * text.length));
+
+		el.textContent = text
+			.split("")
+			.slice(0, visibleCount)
+			.map((char, i) => {
+				if (char === " ") return char;
+				const isLosingSignal = i >= visibleCount - Math.ceil(text.length * 0.28);
+				if (!isLosingSignal) return char;
+				return DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)];
+			})
+			.join("");
+
+		frame += 1;
+
+		if (frame >= totalFrames) {
+			globalThis.clearInterval(intervalId);
+			if (settled) return;
+			settled = true;
+			el.textContent = "";
+			resolvePromise();
+		}
+	}, frameInterval);
+
+	return {
+		promise,
+		cancel: () => {
+			if (settled) return;
+			settled = true;
+			globalThis.clearInterval(intervalId);
+			resolvePromise();
+		},
+	};
+}
+
 function runPhaseRenderer(options: {
 	el: HTMLElement;
 	effect: TerminalTextEffectKind;
@@ -568,6 +737,10 @@ function runPhaseRenderer(options: {
 			return runDecryptEnterRenderer(options.el, options.text, options.durationMs);
 		case "entropy":
 			return runEntropyExitRenderer(options.el, options.text, options.durationMs);
+		case "glitch-lock-on":
+			return runGlitchLockOnEnterRenderer(options.el, options.text, options.durationMs);
+		case "signal-loss":
+			return runSignalLossExitRenderer(options.el, options.text, options.durationMs);
 	}
 }
 
@@ -717,6 +890,16 @@ export async function runTerminalTextTransition(options: TerminalTextTransitionO
  * - this function performs playback only
  * - it does not decide if an effect is eligible
  * - it does not attach triggers
+ * - it does promote changed stable text into a paired full transition
+ *
+ * Example:
+ *   current stable text: "alex"
+ *   playTerminalTextEffect({ effect: "typing", text: "engineer" })
+ *   result: "alex" backspaces out, then "engineer" types in
+ *
+ * If the stable text has not changed, the same call remains an enter-only
+ * flourish/reveal of the current target.
+ *
  * Those decisions belong to concrete callers such as:
  * - `renderNavBrand()` in `src/scripts/navBrand.ts` for state-driven playback
  * - `bindTerminalTextEffectTriggers()` in this file for trigger-driven playback
@@ -734,16 +917,22 @@ export function playTerminalTextEffect(options: {
 }): boolean {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TERMINAL_TEXT_EFFECTS[options.effect] : null;
-	const mode = metadata?.role === "exit" ? "standalone" : "enter-only";
+	const fromText =
+		options.el.dataset.textEffectStableText ??
+		options.el.dataset.greetingTarget ??
+		options.el.textContent ??
+		options.text;
+	const hasChangedStableText = Boolean(metadata && metadata.role === "enter" && fromText && fromText !== options.text);
+	const mode = metadata?.role === "exit" ? "standalone" : hasChangedStableText ? "full-transition" : "enter-only";
 	void runTerminalTextTransition({
 		...options,
 		toText: options.text,
-		fromText:
-			options.el.dataset.textEffectStableText ??
-			options.el.dataset.greetingTarget ??
-			options.el.textContent ??
-			options.text,
+		fromText,
 		mode,
+		enterEffect: metadata?.role === "enter" ? options.effect : undefined,
+		exitEffect: hasChangedStableText
+			? getPairedTerminalTextEffect(options.effect as TerminalTextEffectKind, "exit")
+			: undefined,
 		effect: options.effect,
 	});
 	return options.effect !== "none" && !isReducedMotionRequested(options.reducedMotion);

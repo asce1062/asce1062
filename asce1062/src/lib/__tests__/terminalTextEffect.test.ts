@@ -108,6 +108,16 @@ describe("resolveTerminalTextEffectKind", () => {
 			role: "exit",
 			standaloneSafe: true,
 		});
+		expect(getTerminalTextEffectMetadata("glitch-lock-on")).toMatchObject({
+			family: "rare",
+			role: "enter",
+			standaloneSafe: true,
+		});
+		expect(getTerminalTextEffectMetadata("signal-loss")).toMatchObject({
+			family: "rare",
+			role: "exit",
+			standaloneSafe: true,
+		});
 	});
 
 	it("returns the first declared effect when not using random-effect", () => {
@@ -136,7 +146,7 @@ describe("readTerminalTextEffectConfig", () => {
 	it("parses effect config from dataset attributes", () => {
 		const el = {
 			dataset: {
-				textEffect: "typing, decrypt, backspace, entropy",
+				textEffect: "typing, decrypt, backspace, entropy, glitch-lock-on, signal-loss",
 				textEffectTriggers:
 					"load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time",
 				textEffectIntervalMs: "18000",
@@ -144,7 +154,7 @@ describe("readTerminalTextEffectConfig", () => {
 		} as unknown as HTMLElement;
 
 		expect(readTerminalTextEffectConfig(el)).toEqual({
-			effects: ["typing", "decrypt", "backspace", "entropy"],
+			effects: ["typing", "decrypt", "backspace", "entropy", "glitch-lock-on", "signal-loss"],
 			triggers: [
 				"load",
 				"hover",
@@ -331,6 +341,47 @@ describe("playTerminalTextEffect", () => {
 			mode: "full-transition",
 			exitEffect: "entropy",
 			enterEffect: "decrypt",
+		});
+
+		await vi.runAllTimersAsync();
+		await transition;
+		expect(el.textContent).toBe("alex");
+	});
+
+	it("promotes changed stable text into a paired full transition", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("alex");
+		resetElementText(el, "alex");
+
+		expect(
+			playTerminalTextEffect({
+				el,
+				effect: "typing",
+				text: "engineer",
+			})
+		).toBe(true);
+
+		vi.advanceTimersByTime(120);
+		expect(el.textContent).not.toBe("engineer");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("engineer");
+		expect(el.dataset.textEffectStableText).toBe("engineer");
+	});
+
+	it("runs a full signal-loss to glitch-lock-on transition", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("asce1062");
+
+		const transition = runTerminalTextTransition({
+			el,
+			fromText: "asce1062",
+			toText: "alex",
+			mode: "full-transition",
+			exitEffect: "signal-loss",
+			enterEffect: "glitch-lock-on",
 		});
 
 		await vi.runAllTimersAsync();

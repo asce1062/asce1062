@@ -45,7 +45,7 @@ import {
 	type NavBrandState,
 } from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
-import { playNavBrandEffect, resetNavBrandEffect } from "@/lib/navBrand/effects";
+import { playNavBrandEffect } from "@/lib/navBrand/effects";
 
 const SESSION_KEY = "nav-brand-visited";
 const NAVBRAND_TERMINAL_TEASER_HINT = "open terminal";
@@ -436,7 +436,6 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 		tone,
 	});
 	applyCursorMode(elements.cursor, getCursorModeForState(state, isReducedMotion()));
-	resetNavBrandEffect(elements.greeting, elements.root);
 	playNavBrandEffect({
 		el: elements.greeting,
 		rootEl: elements.root,
@@ -460,7 +459,7 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 	memory.lastGreetingText = greeting;
 }
 
-/** Preserve the original visit-count/felt-duration subline behavior from Phase 1. */
+/** Preserve the original visit-count/felt-duration subline behavior. */
 function getSubline(lastVisitTsOverride?: number): string | null {
 	const visits = getVisitCount();
 	if (visits < 2) return null;
