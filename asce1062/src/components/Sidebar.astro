@@ -69,20 +69,25 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<span class="nav-brand-chrome">│ </span><span
 						id="nav-brand-greeting"
 						class="nav-brand-greeting"
-						aria-live="polite">·</span
+						aria-live="polite"
+						data-text-effect="typing, decrypt, glitch-lock-on"
+						data-text-effect-triggers="load, resume, route-enter, idle-return, content-change, random-effect">·</span
 					>
 				</span>
 				<span class="nav-brand-line" id="nav-brand-sub-row">
 					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
 					></span>
 				</span>
-				<!-- Phase 3 teaser contract: this stays lightweight and only advertises
-				terminal intent. `src/scripts/navBrand.ts` listens for interaction here
+				<!-- this stays lightweight and only advertises terminal intent.
+				`src/scripts/navBrand.ts` listens for interaction here
 				and dispatches the shared `navbrand:open-terminal` event; the modal task
 				owns the actual terminal window lifecycle. -->
 				<span class="nav-brand-line nav-brand-teaser-line">
-					<span class="nav-brand-chrome">│ </span><span id="nav-brand-teaser" class="nav-brand-teaser-text"
-						>open terminal</span
+					<span class="nav-brand-chrome">│ </span><span
+						id="nav-brand-teaser"
+						class="nav-brand-teaser-text"
+						data-text-effect="typing, glitch-lock-on"
+						data-text-effect-triggers="content-change, random-effect, resume">open terminal</span
 					>
 				</span>
 				<span class="nav-brand-line">
@@ -111,6 +116,10 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 			</div>
 		</div>
 	</div>
+
+	<script>
+		import "@/scripts/textEffectRegistry";
+	</script>
 
 	<nav class="nav-body" aria-label="Main navigation">
 		{

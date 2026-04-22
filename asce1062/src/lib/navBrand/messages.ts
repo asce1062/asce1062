@@ -2,7 +2,7 @@
  * Navbrand message catalog + pure message selection helpers.
  *
  * This file intentionally contains no DOM logic. It is the source of truth for:
- * - phase/state-specific message pools
+ * - state-specific message pools
  * - milestone and felt-duration phrasing
  * - same-category repetition guards
  *

@@ -36,7 +36,6 @@ import {
 	COLLAPSED_NUDGE_VISIBLE_DURATION_MS,
 	RARE_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_CHANCE,
-	chooseTransitionEffect,
 	getScheduledCuriosityDelay,
 	shouldShowCollapsedEventCuriosityNudge,
 	shouldShowScheduledCollapsedCuriosityNudge,
@@ -45,7 +44,6 @@ import {
 	type NavBrandState,
 } from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
-import { playNavBrandEffect } from "@/lib/navBrand/effects";
 
 const SESSION_KEY = "nav-brand-visited";
 const NAVBRAND_TERMINAL_TEASER_HINT = "open terminal";
@@ -83,7 +81,6 @@ type NavBrandMemory = {
 	lastGreetingText: string | null;
 	lastSystemTs: number;
 	lastRareTs: number;
-	lastEffectTs: number;
 	lastIdleTs: number;
 	lastReturnTs: number;
 	idleCount: number;
@@ -132,7 +129,6 @@ const memory: NavBrandMemory = {
 	lastGreetingText: null,
 	lastSystemTs: 0,
 	lastRareTs: 0,
-	lastEffectTs: 0,
 	lastIdleTs: 0,
 	lastReturnTs: 0,
 	idleCount: 0,
@@ -407,41 +403,22 @@ function triggerCollapsedCuriosityNudge(immediate = false): void {
 /**
  * Single render entrypoint.
  *
- * State/effect/cursor choices are delegated outward; this function applies the
- * resulting presentation in one place so the DOM contract stays compact.
+ * State/cursor choices stay here; text flourishes are declared on the sidebar
+ * elements with `data-text-effect*` and coordinated by `textEffectRegistry`.
  */
 function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: RenderState): void {
 	elements = getElements();
 	if (!elements.greeting) return;
 
-	const previousState = memory.lastState;
-	const now = Date.now();
-	const effect = chooseTransitionEffect({
-		fromState: previousState,
-		toState: state,
-		tone,
-		reducedMotion: isReducedMotion(),
-		lastEffectTs: memory.lastEffectTs,
-		now,
-		randomValue: Math.random(),
-		decryptRandomValue: Math.random(),
-	});
-
 	elements.greeting.dataset.mode = mode;
+	elements.greeting.textContent = greeting;
 	setSubline(subline);
 
 	applyNavBrandPresentation(elements.root, {
 		state,
-		effect,
 		tone,
 	});
 	applyCursorMode(elements.cursor, getCursorModeForState(state, isReducedMotion()));
-	playNavBrandEffect({
-		el: elements.greeting,
-		rootEl: elements.root,
-		effect,
-		text: greeting,
-	});
 
 	if (state !== "hint") {
 		hintTimer = clearTimer(hintTimer);
@@ -449,10 +426,6 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: Ren
 		scheduleTeaserNudge();
 		scheduleCuriositySurface("collapsedSidebar");
 		scheduleCuriositySurface("mobileHeader");
-	}
-
-	if (effect !== "none") {
-		memory.lastEffectTs = now;
 	}
 
 	memory.lastState = state;

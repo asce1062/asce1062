@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS,
+	DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
 	TERMINAL_TEXT_EFFECTS,
 	bindTerminalTextEffectTriggers,
 	getTerminalTextEffectMetadata,
@@ -8,10 +9,13 @@ import {
 	playTerminalTextEffect,
 	readTerminalTextEffectConfig,
 	runTerminalTextTransition,
+	resolveTerminalTextEffectDurationMs,
 	resolveTypingDurationMs,
 	resolveTerminalTextEffectKind,
 	shouldHandleTerminalTextEffectTrigger,
 } from "@/lib/textEffects/terminalTextEffect";
+
+const SIGNAL_ARTIFACT_PATTERN = /[_\-/\\|\s]/;
 
 function createMockEffectElement(text = ""): HTMLElement {
 	const target = new EventTarget() as HTMLElement & EventTarget;
@@ -64,6 +68,7 @@ describe("normalizeTerminalTextEffectTriggers", () => {
 				"route-enter",
 				"intersection",
 				"idle-return",
+				"content-change",
 				"random-effect",
 				"random-time",
 				"click",
@@ -78,6 +83,7 @@ describe("normalizeTerminalTextEffectTriggers", () => {
 			"route-enter",
 			"intersection",
 			"idle-return",
+			"content-change",
 			"random-effect",
 			"random-time",
 		]);
@@ -148,7 +154,7 @@ describe("readTerminalTextEffectConfig", () => {
 			dataset: {
 				textEffect: "typing, decrypt, backspace, entropy, glitch-lock-on, signal-loss",
 				textEffectTriggers:
-					"load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time",
+					"load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time",
 				textEffectIntervalMs: "18000",
 			},
 		} as unknown as HTMLElement;
@@ -163,6 +169,7 @@ describe("readTerminalTextEffectConfig", () => {
 				"route-enter",
 				"intersection",
 				"idle-return",
+				"content-change",
 				"random-effect",
 				"random-time",
 			],
@@ -215,6 +222,47 @@ describe("playTerminalTextEffect", () => {
 
 		vi.advanceTimersByTime(2_000);
 		expect(el.textContent).toBe("Alex");
+	});
+
+	it("keeps typing end blink at a terminal-readable cadence", () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement();
+
+		playTerminalTextEffect({
+			el,
+			effect: "typing",
+			text: "A",
+		});
+
+		vi.advanceTimersByTime(650);
+		const duringEndBlink = el.textContent;
+		vi.advanceTimersByTime(250);
+		expect(el.textContent).toBe(duringEndBlink);
+		vi.advanceTimersByTime(300);
+		expect(el.textContent).not.toBe(duringEndBlink);
+	});
+
+	it("holds a backspace cursor blink before restoring stable text", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("A");
+
+		playTerminalTextEffect({
+			el,
+			effect: "backspace",
+			text: "A",
+		});
+
+		vi.advanceTimersByTime(760);
+		expect(el.textContent).toBe("█");
+		vi.advanceTimersByTime(200);
+		expect(el.textContent).toBe("█");
+		vi.advanceTimersByTime(350);
+		expect(el.textContent).toBe("");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("A");
 	});
 
 	it("centrally applies reduced-motion fallback", () => {
@@ -388,6 +436,109 @@ describe("playTerminalTextEffect", () => {
 		await transition;
 		expect(el.textContent).toBe("alex");
 	});
+
+	it("renders glitch-lock-on as signal instability instead of dense cipher scramble", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement();
+
+		const transition = runTerminalTextTransition({
+			el,
+			fromText: "",
+			toText: "alex",
+			mode: "enter-only",
+			enterEffect: "glitch-lock-on",
+		});
+
+		await vi.advanceTimersByTimeAsync(140);
+		expect(el.textContent).toMatch(/[alex]/);
+		expect(el.textContent).toMatch(SIGNAL_ARTIFACT_PATTERN);
+		expect(el.textContent).not.toMatch(/[░▒▓█▐▌▄▀■□◆◇○●]/);
+
+		await vi.runAllTimersAsync();
+		await transition;
+		expect(el.textContent).toBe("alex");
+	});
+
+	it("renders signal-loss as dropout and hard cut instead of entropy scramble", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("alexmbugua");
+
+		const transition = runTerminalTextTransition({
+			el,
+			fromText: "alexmbugua",
+			toText: "",
+			mode: "exit-only",
+			exitEffect: "signal-loss",
+		});
+
+		await vi.advanceTimersByTimeAsync(140);
+		expect(el.textContent).toMatch(/[alexmbugua]/);
+		expect(el.textContent).toMatch(SIGNAL_ARTIFACT_PATTERN);
+		expect(el.textContent).not.toMatch(/[░▒▓█▐▌▄▀■□◆◇○●]/);
+
+		await vi.runAllTimersAsync();
+		await transition;
+		expect(el.textContent).toBe("");
+	});
+
+	it("holds signal-loss dropout briefly before standalone restoration", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+
+		playTerminalTextEffect({
+			el,
+			effect: "signal-loss",
+			text: "signal",
+		});
+
+		await vi.advanceTimersByTimeAsync(820);
+		expect(el.textContent).toBe("______");
+		await vi.advanceTimersByTimeAsync(220);
+		expect(el.textContent).toBe("______");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("preserves whitespace in signal-loss dropout so long text can wrap", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal lost");
+
+		playTerminalTextEffect({
+			el,
+			effect: "signal-loss",
+			text: "signal lost",
+		});
+
+		await vi.advanceTimersByTimeAsync(820);
+		expect(el.textContent).toBe("______ ____");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal lost");
+	});
+
+	it("preserves whitespace during late signal-loss fragmentation", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal lost");
+
+		playTerminalTextEffect({
+			el,
+			effect: "signal-loss",
+			text: "signal lost",
+		});
+
+		await vi.advanceTimersByTimeAsync(680);
+		expect(el.textContent).toContain(" ");
+		expect(el.textContent).not.toBe("___________");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal lost");
+	});
 });
 
 describe("resolveTypingDurationMs", () => {
@@ -404,8 +555,30 @@ describe("resolveTypingDurationMs", () => {
 	});
 });
 
+describe("resolveTerminalTextEffectDurationMs", () => {
+	it("gives every effect a deliberate dwell for short text", () => {
+		expect(resolveTerminalTextEffectDurationMs("typing", "Alex")).toBeGreaterThanOrEqual(780);
+		expect(resolveTerminalTextEffectDurationMs("backspace", "Alex")).toBeGreaterThanOrEqual(620);
+		expect(resolveTerminalTextEffectDurationMs("decrypt", "Alex")).toBeGreaterThanOrEqual(760);
+		expect(resolveTerminalTextEffectDurationMs("entropy", "Alex")).toBeGreaterThanOrEqual(620);
+		expect(resolveTerminalTextEffectDurationMs("glitch-lock-on", "Alex")).toBeGreaterThanOrEqual(420);
+		expect(resolveTerminalTextEffectDurationMs("signal-loss", "Alex")).toBeGreaterThanOrEqual(420);
+	});
+
+	it("caps every effect so long text does not overstay", () => {
+		const longText = "incoming transmission from the outer console perimeter";
+
+		expect(resolveTerminalTextEffectDurationMs("typing", longText)).toBeLessThanOrEqual(2_400);
+		expect(resolveTerminalTextEffectDurationMs("backspace", longText)).toBeLessThanOrEqual(1_600);
+		expect(resolveTerminalTextEffectDurationMs("decrypt", longText)).toBeLessThanOrEqual(1_400);
+		expect(resolveTerminalTextEffectDurationMs("entropy", longText)).toBeLessThanOrEqual(1_200);
+		expect(resolveTerminalTextEffectDurationMs("glitch-lock-on", longText)).toBeLessThanOrEqual(760);
+		expect(resolveTerminalTextEffectDurationMs("signal-loss", longText)).toBeLessThanOrEqual(820);
+	});
+});
+
 describe("bindTerminalTextEffectTriggers", () => {
-	it("binds activate to both click and touchstart", () => {
+	it("binds activate to both click and touchstart", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
@@ -418,16 +591,112 @@ describe("bindTerminalTextEffectTriggers", () => {
 		});
 
 		el.dispatchEvent(new Event("click"));
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 
 		resetElementText(el, "signal");
 		el.dispatchEvent(new Event("touchstart"));
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 	});
 
-	it("plays on focus and resume triggers", () => {
+	it("uses entry-only playback on load, then paired exit-entry loops on replay triggers", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		vi.stubGlobal("document", createMockDocument());
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["load", "hover"],
+		});
+
+		expect(el.textContent).toBe("█");
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.advanceTimersByTimeAsync(620);
+		expect(el.textContent).not.toBe("signal");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("loops decrypt through entropy on replay triggers", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["decrypt"],
+			triggers: ["hover"],
+		});
+
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.advanceTimersByTimeAsync(620);
+		expect(el.textContent).not.toBe("signal");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("loops glitch-lock-on through signal-loss on replay triggers", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["glitch-lock-on"],
+			triggers: ["hover"],
+		});
+
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.advanceTimersByTimeAsync(820);
+		expect(el.textContent).toBe("______");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("runs content-change as an explicit old-content to new-content transition", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		let observerCallback: MutationCallback | undefined;
+
+		class MockMutationObserver {
+			constructor(callback: MutationCallback) {
+				observerCallback = callback;
+			}
+			observe(): void {}
+			disconnect(): void {}
+			takeRecords(): MutationRecord[] {
+				return [];
+			}
+		}
+
+		vi.stubGlobal("MutationObserver", MockMutationObserver);
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["content-change"],
+		});
+
+		el.textContent = "transmission";
+		observerCallback?.([], {} as MutationObserver);
+		await vi.advanceTimersByTimeAsync(80);
+		expect(el.textContent).not.toBe("transmission");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("transmission");
+	});
+
+	it("plays on focus and resume triggers", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
@@ -441,7 +710,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		});
 
 		el.dispatchEvent(new Event("focusin"));
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 
 		resetElementText(el, "signal");
@@ -451,11 +720,11 @@ describe("bindTerminalTextEffectTriggers", () => {
 			value: "visible",
 		});
 		mockDocument.dispatchEvent(new Event("visibilitychange"));
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 	});
 
-	it("plays on route-enter", () => {
+	it("plays on route-enter", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
@@ -469,11 +738,103 @@ describe("bindTerminalTextEffectTriggers", () => {
 		});
 
 		mockDocument.dispatchEvent(new Event("astro:after-swap"));
-		vi.runAllTimers();
+		await vi.advanceTimersByTimeAsync(DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS - 1);
+		expect(el.textContent).toBe("signal");
+		await vi.advanceTimersByTimeAsync(1);
+		expect(el.textContent).not.toBe("signal");
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 	});
 
-	it("plays on intersection", () => {
+	it("can treat bind-time playback as delayed route-enter instead of immediate load", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		vi.stubGlobal("document", createMockDocument());
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["load", "route-enter"],
+			initialTrigger: "route-enter",
+		});
+
+		await vi.advanceTimersByTimeAsync(DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS - 1);
+		expect(el.textContent).toBe("signal");
+		await vi.advanceTimersByTimeAsync(1);
+		expect(el.textContent).not.toBe("signal");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("can delay bind-time load playback for registry-managed first paint", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		vi.stubGlobal("document", createMockDocument());
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["load"],
+			initialDelayMs: DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
+		});
+
+		await vi.advanceTimersByTimeAsync(DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS - 1);
+		expect(el.textContent).toBe("signal");
+		await vi.advanceTimersByTimeAsync(1);
+		expect(el.textContent).not.toBe("signal");
+
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("does not let intersection bypass pending initial playback", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		vi.stubGlobal("document", createMockDocument());
+		let observerCallback: ((entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void) | undefined;
+
+		class MockIntersectionObserver {
+			constructor(callback: (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void) {
+				observerCallback = callback;
+			}
+			observe(): void {}
+			disconnect(): void {}
+			unobserve(): void {}
+			takeRecords(): IntersectionObserverEntry[] {
+				return [];
+			}
+			root = null;
+			rootMargin = "";
+			thresholds = [];
+		}
+
+		vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["typing"],
+			triggers: ["load", "intersection"],
+			initialDelayMs: DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
+		});
+
+		observerCallback?.(
+			[{ isIntersecting: true, target: el } as unknown as IntersectionObserverEntry],
+			{} as IntersectionObserver
+		);
+		await vi.advanceTimersByTimeAsync(DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS - 1);
+		expect(el.textContent).toBe("signal");
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(el.textContent).not.toBe("signal");
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("signal");
+	});
+
+	it("plays on intersection", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
@@ -507,11 +868,11 @@ describe("bindTerminalTextEffectTriggers", () => {
 			[{ isIntersecting: true, target: el } as unknown as IntersectionObserverEntry],
 			{} as IntersectionObserver
 		);
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 	});
 
-	it("plays on idle-return after enough inactivity", () => {
+	it("plays on idle-return after enough inactivity", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
@@ -527,32 +888,70 @@ describe("bindTerminalTextEffectTriggers", () => {
 		mockDocument.dispatchEvent(new Event("mousemove"));
 		vi.advanceTimersByTime(45_001);
 		mockDocument.dispatchEvent(new Event("keydown"));
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
 	});
 
-	it("does not restart typing while the effect is already active", () => {
+	it("does not restart typing while the effect is already active", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
+		const seenTriggers: string[] = [];
 
 		bindTerminalTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["hover"],
+			getText: (_node, trigger) => {
+				seenTriggers.push(trigger);
+				return "signal";
+			},
 		});
 
 		el.dispatchEvent(new Event("mouseenter"));
 		vi.advanceTimersByTime(220);
-		const partial = el.textContent;
 		el.dispatchEvent(new Event("mouseenter"));
 		vi.advanceTimersByTime(220);
 
-		expect(el.textContent?.length).toBeGreaterThanOrEqual(partial?.length ?? 0);
+		expect(seenTriggers).toEqual(["hover"]);
 		expect(el.textContent).not.toBe("");
 
-		vi.runAllTimers();
+		await vi.runAllTimersAsync();
 		expect(el.textContent).toBe("signal");
+	});
+
+	it("does not replay exit flourishes from hover churn until pointer movement rearms hover", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const el = createMockEffectElement("signal");
+		const mockDocument = createMockDocument();
+		const seenTriggers: string[] = [];
+		vi.stubGlobal("document", mockDocument);
+
+		bindTerminalTextEffectTriggers({
+			el,
+			effects: ["entropy"],
+			triggers: ["hover"],
+			getText: (_node, trigger) => {
+				seenTriggers.push(trigger);
+				return "signal";
+			},
+		});
+
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.runAllTimersAsync();
+		expect(seenTriggers).toEqual(["hover"]);
+		expect(el.textContent).toBe("signal");
+
+		el.dispatchEvent(new Event("mouseleave"));
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.runAllTimersAsync();
+		expect(seenTriggers).toEqual(["hover"]);
+
+		mockDocument.dispatchEvent(new Event("mousemove"));
+		el.dispatchEvent(new Event("mouseenter"));
+		await vi.runAllTimersAsync();
+		expect(seenTriggers).toEqual(["hover", "hover"]);
 	});
 
 	it("passes the triggering cause into custom text readers", async () => {
@@ -580,12 +979,12 @@ describe("bindTerminalTextEffectTriggers", () => {
 			value: "visible",
 		});
 		mockDocument.dispatchEvent(new Event("visibilitychange"));
-		await vi.advanceTimersByTimeAsync(2_000);
+		await vi.advanceTimersByTimeAsync(5_000);
 		expect(seenTriggers).toContain("resume");
 		expect(el.textContent).toBe("signal-resume");
 
 		await vi.advanceTimersByTimeAsync(18_000);
-		await vi.advanceTimersByTimeAsync(2_000);
+		await vi.advanceTimersByTimeAsync(5_000);
 		expect(seenTriggers).toContain("random-time");
 		expect(el.textContent).toBe("signal-random-time");
 	});

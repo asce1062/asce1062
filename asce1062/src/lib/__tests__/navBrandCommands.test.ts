@@ -19,7 +19,7 @@ import {
 } from "@/lib/navBrand/commands";
 
 describe("NAVBRAND_COMMANDS", () => {
-	it("defines the phase 3 command row against real site actions", () => {
+	it("defines the command row against real site actions", () => {
 		expect(NAVBRAND_COMMANDS.map(({ id }) => id)).toEqual([
 			"search",
 			"help",

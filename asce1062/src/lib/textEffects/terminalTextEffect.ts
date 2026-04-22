@@ -16,9 +16,8 @@
  *
  * 2. State-driven consumers
  *    Call `playTerminalTextEffect` / `resetTerminalTextEffect` directly.
- *    Best for navbrand or any feature where a coordinator/state machine such as
- *    `src/scripts/navBrand.ts` decides exactly when an effect should run and
- *    which effect should be used.
+ *    Best for features where a coordinator/state machine decides exactly when
+ *    an effect should run and which effect should be used.
  *
  * Motion vocabulary:
  *   - Effect names are the public/declarative values:
@@ -48,9 +47,12 @@
  *   - `data-greeting-target` is still written for backwards compatibility with
  *     older navbrand/header code, but new consumers should treat
  *     `data-text-effect-stable-text` as the generic contract.
- *   - When an enter effect is asked to render a new stable text, playback is
- *     promoted from a reveal into a full paired transition:
- *     previous stable text -> paired exit -> new stable text -> enter.
+ *   - `load` uses entry-only playback. Later replay triggers for enter effects
+ *     use the full family loop against the stable text:
+ *     stable text -> paired exit -> same stable text -> enter.
+ *   - `content-change` is the explicit trigger for dynamic surfaces. When the
+ *     element's observed content changes, playback becomes:
+ *     old stable content -> paired exit -> new content -> enter.
  *
  * Trigger vocabulary:
  *   - `load`          : play immediately when bound
@@ -63,15 +65,16 @@
  *   - `route-enter`   : play after Astro soft-navigation swaps in the route
  *   - `intersection`  : play when the element scrolls into view
  *   - `idle-return`   : play when the user returns after inactivity
+ *   - `content-change`: play when the element's observed content changes
  *   - `manual`        : reserved for explicit external triggering
  *   - `random-effect` : randomize across the element's declared effect list
  *   - `random-time`   : replay on an interval
  *
  * Declarative markup contract:
  *   data-text-effect="typing"
- *   data-text-effect="typing, decrypt, backspace, entropy"
+ *   data-text-effect="decrypt, entropy, typing, backspace, glitch-lock-on, signal-loss"
  *   data-text-effect="glitch-lock-on, signal-loss" // rare, explicit opt-in
- *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
+ *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
  *
@@ -150,6 +153,7 @@ export type TerminalTextEffectTrigger =
 	| "route-enter"
 	| "intersection"
 	| "idle-return"
+	| "content-change"
 	| "manual"
 	| "random-effect"
 	| "random-time";
@@ -179,20 +183,69 @@ const DEFAULT_TYPING_BASE_MULTIPLIER = 2.4;
 const DEFAULT_TYPING_SHORT_TEXT_THRESHOLD = 8;
 const DEFAULT_TYPING_SHORT_TEXT_BONUS_MULTIPLIER = 1.4;
 const DEFAULT_TYPING_LEAD_IN_MS = 120;
-const DEFAULT_TYPING_END_BLINK_INTERVAL_MS = 110;
-const DEFAULT_TYPING_END_BLINK_COUNT = 2;
-const DEFAULT_DECRYPT_DURATION_MS = 700;
+const DEFAULT_TYPING_END_BLINK_INTERVAL_MS = 500;
+const DEFAULT_TYPING_END_BLINK_COUNT = 3;
+const DEFAULT_HUMAN_PAUSE_CHANCE = 0.12;
+const DEFAULT_HUMAN_PAUSE_MIN_MS = 140;
+const DEFAULT_HUMAN_PAUSE_MAX_MS = 420;
 const DEFAULT_DECRYPT_TOTAL_FRAMES = 40;
 const DEFAULT_BACKSPACE_STEP_MS = 42;
 const DEFAULT_BACKSPACE_HOLD_MS = 140;
-const DEFAULT_ENTROPY_DURATION_MS = 520;
 const DEFAULT_ENTROPY_TOTAL_FRAMES = 22;
-const DEFAULT_GLITCH_LOCK_DURATION_MS = 620;
-const DEFAULT_GLITCH_LOCK_TOTAL_FRAMES = 28;
-const DEFAULT_SIGNAL_LOSS_DURATION_MS = 420;
-const DEFAULT_SIGNAL_LOSS_TOTAL_FRAMES = 18;
+const DEFAULT_GLITCH_LOCK_TOTAL_FRAMES = 6;
+const DEFAULT_SIGNAL_LOSS_TOTAL_FRAMES = 7;
+const DEFAULT_SIGNAL_LOSS_BLACKOUT_HOLD_MS = 760;
 const DEFAULT_TRANSITION_HOLD_MS = 80;
+export const DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS = 1062;
 const TERMINAL_BLOCK_CURSOR = "█";
+const SIGNAL_ARTIFACTS = [" ", "_", "-", "|", "/", "\\"] as const;
+
+const EFFECT_DURATION_PROFILES: Record<
+	TerminalTextEffectKind,
+	{
+		minMs: number;
+		maxMs: number;
+		perCharMs: number;
+		baseMs: number;
+	}
+> = {
+	typing: {
+		minMs: DEFAULT_TYPING_MIN_DURATION_MS,
+		maxMs: DEFAULT_TYPING_MAX_DURATION_MS,
+		perCharMs: DEFAULT_TYPING_STEP_MS * DEFAULT_TYPING_BASE_MULTIPLIER,
+		baseMs: DEFAULT_TYPING_LEAD_IN_MS,
+	},
+	backspace: {
+		minMs: 620,
+		maxMs: 1_600,
+		perCharMs: 46,
+		baseMs: DEFAULT_BACKSPACE_HOLD_MS,
+	},
+	decrypt: {
+		minMs: 760,
+		maxMs: 1_400,
+		perCharMs: 18,
+		baseMs: 620,
+	},
+	entropy: {
+		minMs: 620,
+		maxMs: 1_200,
+		perCharMs: 16,
+		baseMs: 500,
+	},
+	"glitch-lock-on": {
+		minMs: 420,
+		maxMs: 760,
+		perCharMs: 8,
+		baseMs: 360,
+	},
+	"signal-loss": {
+		minMs: 420,
+		maxMs: 820,
+		perCharMs: 10,
+		baseMs: 360,
+	},
+};
 
 type ActiveEffectHandle = {
 	cancel: () => void;
@@ -243,6 +296,7 @@ const triggerHandlers = new WeakMap<
 	HTMLElement,
 	{
 		mouseenter: EventListener;
+		mouseleave: EventListener;
 		focusin: EventListener;
 		touchstart: EventListener;
 		click: EventListener;
@@ -250,6 +304,8 @@ const triggerHandlers = new WeakMap<
 >();
 const randomTimers = new WeakMap<HTMLElement, IntervalHandle>();
 const triggerCleanups = new WeakMap<HTMLElement, Array<() => void>>();
+const hoverReplayLocks = new WeakSet<HTMLElement>();
+const hoverReplayUnlockers = new WeakMap<HTMLElement, EventListener>();
 
 function clearActiveEffect(el: HTMLElement): void {
 	activeEffects.get(el)?.cancel();
@@ -308,6 +364,32 @@ function clearTriggerBindings(el: HTMLElement): void {
 	triggerCleanups.delete(el);
 }
 
+function clearHoverReplayLock(el: HTMLElement): void {
+	hoverReplayLocks.delete(el);
+	const unlock = hoverReplayUnlockers.get(el);
+	if (unlock && typeof document !== "undefined") {
+		document.removeEventListener("mousemove", unlock);
+		document.removeEventListener("pointerdown", unlock);
+		document.removeEventListener("touchstart", unlock);
+	}
+	hoverReplayUnlockers.delete(el);
+}
+
+function scheduleHoverReplayUnlock(el: HTMLElement): void {
+	if (!hoverReplayLocks.has(el) || hoverReplayUnlockers.has(el)) return;
+	if (typeof document === "undefined") {
+		clearHoverReplayLock(el);
+		return;
+	}
+
+	const unlock = () => clearHoverReplayLock(el);
+	hoverReplayUnlockers.set(el, unlock);
+	document.addEventListener("mousemove", unlock, { once: true });
+	document.addEventListener("pointerdown", unlock, { once: true });
+	document.addEventListener("touchstart", unlock, { once: true });
+	registerTriggerCleanup(el, () => clearHoverReplayLock(el));
+}
+
 function registerTriggerCleanup(el: HTMLElement, cleanup: () => void): void {
 	const cleanups = triggerCleanups.get(el) ?? [];
 	cleanups.push(cleanup);
@@ -336,9 +418,23 @@ export function resolveTypingDurationMs(text: string, typingStepMs = DEFAULT_TYP
 	return clamp(duration, DEFAULT_TYPING_MIN_DURATION_MS, DEFAULT_TYPING_MAX_DURATION_MS);
 }
 
+export function resolveTerminalTextEffectDurationMs(effect: TerminalTextEffectKind, text: string): number {
+	if (effect === "typing") return resolveTypingDurationMs(text);
+
+	const profile = EFFECT_DURATION_PROFILES[effect];
+	const length = Math.max(text.trim().length, 1);
+	return clamp(profile.baseMs + length * profile.perCharMs, profile.minMs, profile.maxMs);
+}
+
 function renderTypingFrame(text: string, visibleLength: number, showCursor: boolean): string {
 	const resolvedText = text.slice(0, visibleLength);
 	return showCursor ? `${resolvedText}${TERMINAL_BLOCK_CURSOR}` : resolvedText;
+}
+
+function resolveHumanPauseMs(averageStepMs: number): number {
+	if (Math.random() <= 1 - DEFAULT_HUMAN_PAUSE_CHANCE) return 0;
+	const pauseWindow = DEFAULT_HUMAN_PAUSE_MAX_MS - DEFAULT_HUMAN_PAUSE_MIN_MS;
+	return DEFAULT_HUMAN_PAUSE_MIN_MS + Math.random() * Math.max(pauseWindow, averageStepMs);
 }
 
 export function resolveTerminalTextEffectKind(
@@ -366,7 +462,7 @@ export function resolveTerminalTextEffectKind(
  *
  * Supported attributes:
  * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt, backspace, entropy"`
- * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"`
+ * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time"`
  * - `data-text-effect-interval-ms="18000"`
  * - `data-text-effect-managed="manual"` to opt out of the declarative registry
  *
@@ -375,7 +471,7 @@ export function resolveTerminalTextEffectKind(
  * - multiple effects are allowed so `random-effect` can choose from the
  *   element's declared set rather than a hardcoded global pair
  * - declaring an enter effect is enough for full transitions; the paired exit
- *   is inferred from metadata when the stable text changes
+ *   is inferred from metadata when stable content replays or changes
  * - declaring an exit effect allows explicit standalone flourishes such as
  *   `backspace` or `entropy`
  * - trigger strings are normalized/deduplicated before binding
@@ -474,33 +570,35 @@ function runTypingEnterRenderer(
 			el.textContent = text;
 			finish();
 		};
-		const scheduleTrailingBlink = () => {
+		const scheduleTrailingBlink = (blinkText: string, completeText: string) => {
 			schedule(() => {
 				trailingBlinkCount += 1;
-				const showCursor = trailingBlinkCount % 2 === 1;
-				el.textContent = renderTypingFrame(text, text.length, showCursor);
+				const showCursor = trailingBlinkCount % 2 === 0;
+				el.textContent = renderTypingFrame(blinkText, blinkText.length, showCursor);
 
 				if (trailingBlinkCount >= DEFAULT_TYPING_END_BLINK_COUNT * 2) {
+					el.textContent = completeText;
 					complete();
 					return;
 				}
 
-				scheduleTrailingBlink();
+				scheduleTrailingBlink(blinkText, completeText);
 			}, DEFAULT_TYPING_END_BLINK_INTERVAL_MS);
 		};
 		const scheduleNext = () => {
 			const variance = Math.random() * Math.min(DEFAULT_TYPING_STEP_VARIANCE_MS, averageStepMs * 0.45);
 			const punctuationPause = /[.,;:!?]/.test(text[index] ?? "") ? averageStepMs * 0.9 : 0;
+			const humanPause = index > 0 ? resolveHumanPauseMs(averageStepMs) : 0;
 			const baseDelay = averageStepMs * (0.72 + Math.random() * 0.42);
 			const leadIn = index === 0 ? DEFAULT_TYPING_LEAD_IN_MS : 0;
-			schedule(tick, baseDelay + variance + punctuationPause + leadIn);
+			schedule(tick, baseDelay + variance + punctuationPause + humanPause + leadIn);
 		};
 		const tick = () => {
 			index += 1;
 			el.textContent = renderTypingFrame(text, index, true);
 
 			if (index >= text.length) {
-				scheduleTrailingBlink();
+				scheduleTrailingBlink(text, text);
 				return;
 			}
 
@@ -517,32 +615,51 @@ function runBackspaceExitRenderer(
 	typingStepMs = DEFAULT_BACKSPACE_STEP_MS
 ): EffectRendererHandle {
 	return createTimeoutRenderer((schedule, finish) => {
+		const resolvedDurationMs = resolveTerminalTextEffectDurationMs("backspace", text);
+		const averageStepMs = Math.max(
+			(resolvedDurationMs - DEFAULT_BACKSPACE_HOLD_MS) / Math.max(text.length, 1),
+			typingStepMs
+		);
 		let index = text.length;
+		let trailingBlinkCount = 0;
 		el.textContent = renderTypingFrame(text, index, true);
 
+		const scheduleTrailingBlink = () => {
+			schedule(() => {
+				trailingBlinkCount += 1;
+				const showCursor = trailingBlinkCount % 2 === 0;
+				el.textContent = renderTypingFrame("", 0, showCursor);
+
+				if (trailingBlinkCount >= DEFAULT_TYPING_END_BLINK_COUNT * 2) {
+					el.textContent = "";
+					finish();
+					return;
+				}
+
+				scheduleTrailingBlink();
+			}, DEFAULT_TYPING_END_BLINK_INTERVAL_MS);
+		};
 		const tick = () => {
 			index -= 1;
 			el.textContent = renderTypingFrame(text, Math.max(index, 0), true);
 
 			if (index <= 0) {
-				schedule(() => {
-					el.textContent = TERMINAL_BLOCK_CURSOR;
-					finish();
-				}, DEFAULT_BACKSPACE_HOLD_MS);
+				scheduleTrailingBlink();
 				return;
 			}
 
-			const variance = Math.random() * Math.min(DEFAULT_TYPING_STEP_VARIANCE_MS, typingStepMs * 0.6);
-			schedule(tick, typingStepMs + variance);
+			const variance = Math.random() * Math.min(DEFAULT_TYPING_STEP_VARIANCE_MS, averageStepMs * 0.35);
+			const humanPause = resolveHumanPauseMs(averageStepMs);
+			schedule(tick, averageStepMs + variance + humanPause);
 		};
 
-		schedule(tick, typingStepMs);
+		schedule(tick, averageStepMs);
 	});
 }
 
 function runDecryptEnterRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_DECRYPT_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? DEFAULT_DECRYPT_DURATION_MS;
+	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("decrypt", text);
 	const frameInterval = totalDuration / totalFrames;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
@@ -586,7 +703,7 @@ function runDecryptEnterRenderer(el: HTMLElement, text: string, durationMs?: num
 
 function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_ENTROPY_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? DEFAULT_ENTROPY_DURATION_MS;
+	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("entropy", text);
 	const frameInterval = totalDuration / totalFrames;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
@@ -629,9 +746,34 @@ function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs?: numb
 	};
 }
 
+function getSignalArtifact(index: number): string {
+	return SIGNAL_ARTIFACTS[index % SIGNAL_ARTIFACTS.length] ?? "_";
+}
+
+function renderGlitchLockFrame(text: string, frame: number, totalFrames: number): string {
+	if (frame >= totalFrames - 1) return text;
+	const chars = text.split("");
+	const instability = 1 - frame / Math.max(totalFrames - 1, 1);
+	const artifactEvery = Math.max(2, Math.ceil(4 - instability * 2));
+
+	const body = chars
+		.map((char, index) => {
+			if (char === " ") return char;
+			if ((index + frame) % artifactEvery === 0) return getSignalArtifact(index + frame);
+			if (instability > 0.62 && (index + frame) % 3 === 0) return `${char}${char}`;
+			return char;
+		})
+		.join("");
+
+	if (frame === 0) return `${body}${chars.at(-1) ?? ""}`;
+	if (frame === 1) return `${getSignalArtifact(frame)}${body}`;
+	if (frame === totalFrames - 2) return body.replace(/[ _\-/\\|]/, "");
+	return body;
+}
+
 function runGlitchLockOnEnterRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_GLITCH_LOCK_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? DEFAULT_GLITCH_LOCK_DURATION_MS;
+	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("glitch-lock-on", text);
 	const frameInterval = totalDuration / totalFrames;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
@@ -640,17 +782,7 @@ function runGlitchLockOnEnterRenderer(el: HTMLElement, text: string, durationMs?
 		resolvePromise = resolve;
 	});
 	const intervalId = globalThis.setInterval(() => {
-		const lockRatio = frame / totalFrames;
-
-		el.textContent = text
-			.split("")
-			.map((char, i) => {
-				if (char === " ") return char;
-				const charProgress = (i + 1) / Math.max(text.length, 1);
-				if (lockRatio > charProgress * 0.86) return char;
-				return DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)];
-			})
-			.join("");
+		el.textContent = renderGlitchLockFrame(text, frame, totalFrames);
 
 		frame += 1;
 
@@ -674,10 +806,50 @@ function runGlitchLockOnEnterRenderer(el: HTMLElement, text: string, durationMs?
 	};
 }
 
+function renderSignalLossFrame(text: string, frame: number, totalFrames: number): string {
+	if (frame === 0) return text;
+	if (frame >= totalFrames - 1) return renderSignalLossDropoutText(text);
+
+	const chars = text.split("");
+	const lossRatio = frame / Math.max(totalFrames - 1, 1);
+	const shouldFalseRecover = totalFrames > 5 && frame === Math.floor(totalFrames * 0.45);
+	if (shouldFalseRecover) return text;
+
+	const dropoutCount = Math.max(1, Math.ceil(chars.length * lossRatio * 0.72));
+	const start = Math.min(chars.length - 1, (frame * 2) % Math.max(chars.length, 1));
+	const rendered = chars.map((char, index) => {
+		if (char === " ") return char;
+		const inPrimaryDropout = index >= start && index < start + dropoutCount;
+		const inWrappedDropout = start + dropoutCount > chars.length && index < (start + dropoutCount) % chars.length;
+		const shouldDrop = inPrimaryDropout || inWrappedDropout || (lossRatio > 0.58 && (index + frame) % 3 === 0);
+		if (!shouldDrop) return char;
+		return frame % 2 === 0 ? "_" : " ";
+	});
+
+	if (lossRatio > 0.72) {
+		return rendered
+			.map((char, index) => {
+				if (/\s/.test(chars[index] ?? "")) return chars[index] ?? char;
+				return index < Math.floor(chars.length * (1 - lossRatio)) ? char : "_";
+			})
+			.join("");
+	}
+
+	return rendered.join("");
+}
+
+function renderSignalLossDropoutText(text: string): string {
+	return text
+		.split("")
+		.map((char) => (/\s/.test(char) ? char : "_"))
+		.join("");
+}
+
 function runSignalLossExitRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_SIGNAL_LOSS_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? DEFAULT_SIGNAL_LOSS_DURATION_MS;
+	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("signal-loss", text);
 	const frameInterval = totalDuration / totalFrames;
+	let timeoutId: TimeoutHandle | null = null;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
 	let settled = false;
@@ -685,19 +857,7 @@ function runSignalLossExitRenderer(el: HTMLElement, text: string, durationMs?: n
 		resolvePromise = resolve;
 	});
 	const intervalId = globalThis.setInterval(() => {
-		const lossRatio = frame / totalFrames;
-		const visibleCount = Math.max(0, Math.ceil((1 - lossRatio) * text.length));
-
-		el.textContent = text
-			.split("")
-			.slice(0, visibleCount)
-			.map((char, i) => {
-				if (char === " ") return char;
-				const isLosingSignal = i >= visibleCount - Math.ceil(text.length * 0.28);
-				if (!isLosingSignal) return char;
-				return DECRYPT_CHARS[Math.floor(Math.random() * DECRYPT_CHARS.length)];
-			})
-			.join("");
+		el.textContent = renderSignalLossFrame(text, frame, totalFrames);
 
 		frame += 1;
 
@@ -705,17 +865,21 @@ function runSignalLossExitRenderer(el: HTMLElement, text: string, durationMs?: n
 			globalThis.clearInterval(intervalId);
 			if (settled) return;
 			settled = true;
-			el.textContent = "";
-			resolvePromise();
+			el.textContent = renderSignalLossDropoutText(text);
+			timeoutId = globalThis.setTimeout(resolvePromise, DEFAULT_SIGNAL_LOSS_BLACKOUT_HOLD_MS);
 		}
 	}, frameInterval);
 
 	return {
 		promise,
 		cancel: () => {
-			if (settled) return;
+			if (settled && timeoutId === null) return;
 			settled = true;
 			globalThis.clearInterval(intervalId);
+			if (timeoutId !== null) {
+				globalThis.clearTimeout(timeoutId);
+				timeoutId = null;
+			}
 			resolvePromise();
 		},
 	};
@@ -897,12 +1061,13 @@ export async function runTerminalTextTransition(options: TerminalTextTransitionO
  *   playTerminalTextEffect({ effect: "typing", text: "engineer" })
  *   result: "alex" backspaces out, then "engineer" types in
  *
- * If the stable text has not changed, the same call remains an enter-only
- * flourish/reveal of the current target.
+ * If the stable text has not changed, this imperative API remains enter-only.
+ * Declarative replay triggers such as hover/random-time use
+ * `bindTerminalTextEffectTriggers()` to run the full family loop instead.
  *
- * Those decisions belong to concrete callers such as:
- * - `renderNavBrand()` in `src/scripts/navBrand.ts` for state-driven playback
- * - `bindTerminalTextEffectTriggers()` in this file for trigger-driven playback
+ * Those decisions belong to concrete callers. Trigger-driven surfaces should
+ * prefer `bindTerminalTextEffectTriggers()` via `src/scripts/textEffectRegistry.ts`
+ * so timing stays declarative in markup.
  */
 export function playTerminalTextEffect(options: {
 	el: HTMLElement | null;
@@ -943,8 +1108,8 @@ export function playTerminalTextEffect(options: {
  *
  * This is intentionally separate from `playTerminalTextEffect()` so decorative
  * surfaces can opt into behavior declaratively through
- * `src/scripts/textEffectRegistry.ts`, while state machines such as
- * `src/scripts/navBrand.ts` keep full control over timing and effect choice.
+ * `src/scripts/textEffectRegistry.ts`. State machines should only use this API
+ * directly when effect timing cannot be expressed with declarative triggers.
  *
  * Stacking behavior:
  * - triggers are additive, not exclusive
@@ -963,6 +1128,8 @@ export function bindTerminalTextEffectTriggers(options: {
 	effect?: TerminalTextEffectKind;
 	effects?: TerminalTextEffectKind[];
 	triggers?: TerminalTextEffectTrigger[];
+	initialTrigger?: TerminalTextEffectTrigger | "none";
+	initialDelayMs?: number;
 	getText?: (el: HTMLElement, trigger: TerminalTextEffectTrigger) => string;
 	durationMs?: number;
 	typingStepMs?: number;
@@ -973,6 +1140,8 @@ export function bindTerminalTextEffectTriggers(options: {
 		effect,
 		effects,
 		triggers,
+		initialTrigger = "load",
+		initialDelayMs,
 		getText,
 		durationMs,
 		typingStepMs,
@@ -993,35 +1162,105 @@ export function bindTerminalTextEffectTriggers(options: {
 	const shouldBindClick =
 		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "click") ||
 		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "activate");
+	let pendingInitialPlayback = false;
+	const automaticReplayTriggers = new Set<TerminalTextEffectTrigger>([
+		"resume",
+		"route-enter",
+		"intersection",
+		"idle-return",
+		"random-time",
+	]);
 
-	const play = (trigger: TerminalTextEffectTrigger) => {
+	const play = (
+		trigger: TerminalTextEffectTrigger,
+		options: {
+			fromText?: string;
+			toText?: string;
+			forceLoop?: boolean;
+		} = {}
+	) => {
+		if (pendingInitialPlayback && automaticReplayTriggers.has(trigger)) return;
 		if (hasActiveEffect(el)) return;
-		const text = textReader(el, trigger);
+		const text = options.toText ?? textReader(el, trigger);
 		if (!text) return;
-		playTerminalTextEffect({
-			el,
-			effect: resolveTerminalTextEffectKind(candidateEffects, useRandomEffect, Math.random()),
-			text,
-			durationMs,
-			typingStepMs,
-		});
+		const selectedEffect = resolveTerminalTextEffectKind(candidateEffects, useRandomEffect, Math.random());
+		const metadata = TERMINAL_TEXT_EFFECTS[selectedEffect];
+		const fromText =
+			options.fromText ?? el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent ?? text;
+		const shouldLoop = options.forceLoop || (trigger !== "load" && metadata.role === "enter");
+
+		if (shouldLoop && metadata.role === "enter") {
+			void runTerminalTextTransition({
+				el,
+				fromText,
+				toText: text,
+				mode: "full-transition",
+				enterEffect: selectedEffect,
+				exitEffect: getPairedTerminalTextEffect(selectedEffect, "exit"),
+				durationMs,
+				typingStepMs,
+			});
+			return;
+		}
+
+		playTerminalTextEffect({ el, effect: selectedEffect, text, durationMs, typingStepMs });
 	};
 
 	clearTriggerBindings(el);
 
 	const handlers = triggerHandlers.get(el) ?? {
-		mouseenter: () => play("hover"),
+		mouseenter: () => {
+			if (hoverReplayLocks.has(el)) return;
+			hoverReplayLocks.add(el);
+			play("hover");
+		},
+		mouseleave: () => scheduleHoverReplayUnlock(el),
 		focusin: () => play("focus"),
 		touchstart: () => play("tap"),
 		click: () => play("click"),
 	};
 	triggerHandlers.set(el, handlers);
 
-	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "load")) {
-		play("load");
+	const createDelayedPlayback = (trigger: TerminalTextEffectTrigger, delayMs: number) => {
+		let timer: TimeoutHandle | undefined;
+		const schedule = () => {
+			if (timer !== undefined) globalThis.clearTimeout(timer);
+			pendingInitialPlayback = true;
+			timer = globalThis.setTimeout(() => {
+				timer = undefined;
+				pendingInitialPlayback = false;
+				play(trigger);
+			}, delayMs);
+		};
+		const cleanup = () => {
+			if (timer !== undefined) {
+				globalThis.clearTimeout(timer);
+				timer = undefined;
+			}
+			pendingInitialPlayback = false;
+		};
+		return { schedule, cleanup };
+	};
+
+	if (initialTrigger === "route-enter" && shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "route-enter")) {
+		const routeEnterPlayback = createDelayedPlayback(
+			"route-enter",
+			initialDelayMs ?? DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS
+		);
+		routeEnterPlayback.schedule();
+		registerTriggerCleanup(el, routeEnterPlayback.cleanup);
+	} else if (initialTrigger !== "none" && shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "load")) {
+		if (initialDelayMs !== undefined && initialDelayMs > 0) {
+			const loadPlayback = createDelayedPlayback("load", initialDelayMs);
+			loadPlayback.schedule();
+			registerTriggerCleanup(el, loadPlayback.cleanup);
+		} else {
+			play("load");
+		}
 	}
 
 	el.removeEventListener("mouseenter", handlers.mouseenter);
+	el.removeEventListener("mouseleave", handlers.mouseleave);
 	el.removeEventListener("focusin", handlers.focusin);
 	el.removeEventListener("touchstart", handlers.touchstart);
 	el.removeEventListener("click", handlers.click);
@@ -1034,6 +1273,8 @@ export function bindTerminalTextEffectTriggers(options: {
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "hover")) {
 		el.addEventListener("mouseenter", handlers.mouseenter);
+		el.addEventListener("mouseleave", handlers.mouseleave);
+		registerTriggerCleanup(el, () => clearHoverReplayLock(el));
 	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "focus")) {
@@ -1057,9 +1298,15 @@ export function bindTerminalTextEffectTriggers(options: {
 	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "route-enter") && typeof document !== "undefined") {
-		const routeEnterHandler = () => play("route-enter");
+		const routeEnterPlayback = createDelayedPlayback("route-enter", DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS);
+		const routeEnterHandler = () => {
+			routeEnterPlayback.schedule();
+		};
 		document.addEventListener("astro:after-swap", routeEnterHandler);
-		registerTriggerCleanup(el, () => document.removeEventListener("astro:after-swap", routeEnterHandler));
+		registerTriggerCleanup(el, () => {
+			document.removeEventListener("astro:after-swap", routeEnterHandler);
+			routeEnterPlayback.cleanup();
+		});
 	}
 
 	if (
@@ -1091,6 +1338,22 @@ export function bindTerminalTextEffectTriggers(options: {
 			document.addEventListener(eventName, idleReturnHandler);
 			registerTriggerCleanup(el, () => document.removeEventListener(eventName, idleReturnHandler));
 		}
+	}
+
+	if (
+		shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "content-change") &&
+		typeof MutationObserver !== "undefined"
+	) {
+		let lastObservedText = textReader(el, "content-change");
+		const observer = new MutationObserver(() => {
+			const nextText = (el.textContent ?? "").trim();
+			if (!nextText || nextText === lastObservedText || hasActiveEffect(el)) return;
+			const fromText = lastObservedText;
+			lastObservedText = nextText;
+			play("content-change", { fromText, toText: nextText, forceLoop: true });
+		});
+		observer.observe(el, { characterData: true, childList: true, subtree: true });
+		registerTriggerCleanup(el, () => observer.disconnect());
 	}
 
 	if (shouldHandleTerminalTextEffectTrigger(normalizedTriggers, "random-time")) {

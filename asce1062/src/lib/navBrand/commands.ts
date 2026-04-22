@@ -4,7 +4,7 @@ import { mainNavigation } from "@/data/navigation";
 /**
  * Navbrand interaction-layer command catalog.
  *
- * Phase 3's terminal surface is a compact terminal-like command environment,
+ * Terminal surface is a compact terminal-like command environment,
  * not just another website nav menu. Commands normalize many aliases into a
  * small set of intents: lifecycle controls, system/profile output, identity,
  * shell-style route navigation, preference toggles, and search handoff.
@@ -1280,7 +1280,7 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
  * Convert a resolved command into a concrete runtime intent.
  *
  * The coordinator executes these intents; parsing and argument normalization
- * stay in this pure module so later Phase 3 slices can reuse the same contract.
+ * stay in this pure module so we can reuse the same contract.
  */
 export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): NavBrandCommandIntent | null {
 	const { command, query } = resolved;
