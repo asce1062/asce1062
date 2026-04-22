@@ -99,6 +99,7 @@ export type NavBrandCommandIntent =
 	| { type: "toggle-pref"; target: string; value: string | boolean }
 	| { type: "batch"; intents: readonly NavBrandCommandIntent[] }
 	| { type: "message"; message: string }
+	| { type: "show-status" }
 	| { type: "clear-viewport" }
 	| { type: "clear-history" }
 	| { type: "reset-terminal" }
@@ -326,6 +327,14 @@ export const NAVBRAND_VISIBLE_COMMAND_IDS: readonly NavBrandCommandId[] = ["sear
 export const NAVBRAND_HINT_COMMAND_IDS: readonly NavBrandCommandId[] = ["search", "open", "help"];
 export const NAVBRAND_COMMAND_PROMPT_HINT = "try: cd blog · find auth0";
 export const NAVBRAND_UNKNOWN_COMMAND_HINT = "unknown command · try: help";
+
+export type NavBrandStatusContext = {
+	route?: string;
+	theme?: string;
+	flavor?: string;
+	network?: "online" | "offline" | string;
+	reducedMotion?: boolean;
+};
 
 type RandomSource = () => number;
 type HelpSectionId = "start" | "navigation" | "search" | "preferences" | "terminal" | "identity" | "external";
@@ -569,6 +578,36 @@ export function buildNavBrandIdentityMessage(): string {
 	].join("\n");
 }
 
+export function buildNavBrandStatusMessage(context: NavBrandStatusContext = {}): string {
+	const route = context.route ?? "/";
+	const theme = context.theme ?? "unknown";
+	const flavor = context.flavor && context.flavor !== "default" ? context.flavor : "default";
+	const network = context.network ?? "unknown";
+	const motion = context.reducedMotion ? "reduced" : "full";
+
+	return [
+		"[status]",
+		"presence\tonline",
+		`route\t${route}`,
+		`theme\t${theme} / ${flavor}`,
+		`network\t${network}`,
+		`motion\t${motion}`,
+		`commands\t${NAVBRAND_COMMANDS.length} registered`,
+	].join("\n");
+}
+
+export function buildNavBrandHistoryMessage(history: readonly string[]): string {
+	if (history.length === 0) {
+		return "[history]\nsession memory empty";
+	}
+
+	return [
+		"[history]",
+		`${history.length} ${history.length === 1 ? "command" : "commands"} in session memory`,
+		...history.map((command, index) => `${index + 1}. ${command}`),
+	].join("\n");
+}
+
 const ROUTE_ALIASES: Readonly<Record<string, string>> = {
 	root: "/",
 	rss: "/rss.xml",
@@ -626,9 +665,72 @@ function getRouteAliasTargets(): string[] {
 }
 
 export function buildNavBrandRouteListMessage(): string {
-	return getNavBrandRouteEntries()
-		.map((entry) => `${entry.name}\t${entry.href}`)
-		.join("\n");
+	return [
+		"[routes]",
+		"open with\tcd <route>",
+		...getNavBrandRouteEntries().map((entry) => `${entry.name}\t${entry.href}`),
+	].join("\n");
+}
+
+function getSuggestionTermsForUnknownInput(): string[] {
+	return [
+		...new Set([
+			...NAVBRAND_COMMANDS.flatMap((command) => [command.command, ...(command.aliases ?? [])]),
+			"search <query>",
+			"cd <route>",
+			"theme dark",
+			"bg matrix off",
+		]),
+	];
+}
+
+function getEditDistance(a: string, b: string): number {
+	const rows = a.length + 1;
+	const cols = b.length + 1;
+	const distances = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0));
+
+	for (let row = 0; row < rows; row += 1) distances[row]![0] = row;
+	for (let col = 0; col < cols; col += 1) distances[0]![col] = col;
+
+	for (let row = 1; row < rows; row += 1) {
+		for (let col = 1; col < cols; col += 1) {
+			const cost = a[row - 1] === b[col - 1] ? 0 : 1;
+			distances[row]![col] = Math.min(
+				distances[row - 1]![col]! + 1,
+				distances[row]![col - 1]! + 1,
+				distances[row - 1]![col - 1]! + cost
+			);
+		}
+	}
+
+	return distances[a.length]![b.length]!;
+}
+
+function getUnknownInputSuggestions(input: string): string[] {
+	const normalizedInput = normalizeCommandInput(input);
+	if (!normalizedInput) return [];
+
+	return getSuggestionTermsForUnknownInput()
+		.map((term) => ({
+			term,
+			score: getEditDistance(normalizedInput, normalizeCommandInput(term)),
+		}))
+		.filter(({ score, term }) => score <= Math.max(2, Math.floor(term.length / 3)))
+		.sort((a, b) => a.score - b.score || a.term.length - b.term.length || a.term.localeCompare(b.term))
+		.slice(0, 3)
+		.map(({ term }) => term);
+}
+
+export function buildNavBrandUnknownCommandMessage(input: string): string {
+	const suggestions = getUnknownInputSuggestions(input);
+	const lines = ["[unknown]", `input\t${input}`];
+
+	if (suggestions.length > 0) {
+		lines.push(`did you mean\t${suggestions.join(" · ")}`);
+	}
+
+	lines.push("try\thelp · ls · search <query>");
+	return lines.join("\n");
 }
 
 function normalizeFlavorTarget(value: string): string | null {
@@ -1023,7 +1125,7 @@ export function buildNavBrandCommandIntent(resolved: ResolvedNavBrandCommand): N
 	}
 
 	if (command.intent === "status") {
-		return { type: "message", message: "presence engine online" };
+		return { type: "show-status" };
 	}
 
 	if (command.intent === "identity") {

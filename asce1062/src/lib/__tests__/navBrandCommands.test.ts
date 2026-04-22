@@ -5,8 +5,11 @@ import {
 	NAVBRAND_COMMANDS,
 	NAVBRAND_HINT_COMMAND_IDS,
 	buildNavBrandHelpMessage,
+	buildNavBrandHistoryMessage,
 	buildNavBrandRouteListMessage,
 	buildNavBrandCommandIntent,
+	buildNavBrandStatusMessage,
+	buildNavBrandUnknownCommandMessage,
 	getNavBrandCommand,
 	resolveNavBrandCommandCompletions,
 	resolveNavBrandCommandSuggestion,
@@ -392,6 +395,51 @@ describe("buildNavBrandHelpMessage", () => {
 	});
 });
 
+describe("polished terminal command output helpers", () => {
+	it("builds a concise structured status response from live terminal context", () => {
+		const status = buildNavBrandStatusMessage({
+			route: "/notes",
+			theme: "dark",
+			flavor: "crt-green",
+			network: "online",
+			reducedMotion: false,
+		});
+
+		expect(status).toContain("[status]");
+		expect(status).toContain("presence\tonline");
+		expect(status).toContain("route\t/notes");
+		expect(status).toContain("theme\tdark / crt-green");
+		expect(status).toContain("network\tonline");
+		expect(status).toContain("motion\tfull");
+		expect(status).toContain(`commands\t${NAVBRAND_COMMANDS.length} registered`);
+	});
+
+	it("builds history output with a stable empty state and numbered command memory", () => {
+		expect(buildNavBrandHistoryMessage([])).toBe("[history]\nsession memory empty");
+		expect(buildNavBrandHistoryMessage(["help", "theme dark", "cd blog"])).toBe(
+			"[history]\n3 commands in session memory\n1. help\n2. theme dark\n3. cd blog"
+		);
+	});
+
+	it("builds unknown-command output with useful suggestions instead of a dead end", () => {
+		const message = buildNavBrandUnknownCommandMessage("hlep");
+
+		expect(message).toContain("[unknown]");
+		expect(message).toContain("input\thlep");
+		expect(message).toContain("did you mean\thelp");
+		expect(message).toContain("try\thelp · ls · search <query>");
+	});
+
+	it("keeps route listing readable with a heading and command hint", () => {
+		const routeList = buildNavBrandRouteListMessage();
+
+		expect(routeList).toContain("[routes]");
+		expect(routeList).toContain("open with\tcd <route>");
+		expect(routeList).toContain("blog\t/blog");
+		expect(routeList).toContain("guestbook\t/guestbook");
+	});
+});
+
 describe("resolveNavBrandCommandSuggestion", () => {
 	it("marks empty prompt state without a suggestion", () => {
 		expect(resolveNavBrandCommandSuggestion("")).toEqual({
@@ -658,8 +706,7 @@ describe("buildNavBrandCommandIntent", () => {
 
 	it("builds message intents for local discovery commands", () => {
 		expect(buildNavBrandCommandIntent(resolveNavBrandCommandInput("status")!)).toMatchObject({
-			type: "message",
-			message: "presence engine online",
+			type: "show-status",
 		});
 	});
 

@@ -15,12 +15,14 @@
 import { PREF_KEYS, getPref } from "@/lib/prefs";
 import {
 	buildNavBrandCommandIntent,
+	buildNavBrandHistoryMessage,
 	buildNavBrandRouteListMessage,
+	buildNavBrandStatusMessage,
+	buildNavBrandUnknownCommandMessage,
 	resolveNavBrandCommandCompletions,
 	resolveNavBrandCommandSuggestion,
 	resolveNavBrandCommandInput,
 	type NavBrandCommandCompletion,
-	type NavBrandCommandId,
 	type NavBrandCommandIntent,
 	type ResolvedNavBrandCommand,
 } from "@/lib/navBrand/commands";
@@ -31,6 +33,12 @@ import {
 	selectTerminalAtmosphereMessage,
 	type TerminalAtmosphereReason,
 } from "@/lib/navBrand/messages";
+import {
+	createTerminalHistoryNavigationSession,
+	navigateTerminalHistory,
+	resetTerminalHistoryNavigationSession,
+	type TerminalHistoryNavigationSession,
+} from "@/lib/navBrand/historyNavigation";
 import { buildTerminalPrelude } from "@/lib/navBrand/terminalPrelude";
 import { buildTerminalSystemProfile, type TerminalSystemProfile } from "@/lib/navBrand/terminalSystemProfile";
 import {
@@ -170,6 +178,7 @@ const _sequenceTimers: number[] = [];
 let _completionInput = "";
 let _completionItems: NavBrandCommandCompletion[] = [];
 let _completionIndex = 0;
+let _historyNavigationSession: TerminalHistoryNavigationSession = createTerminalHistoryNavigationSession();
 
 function getElements(): TerminalModalElements {
 	return {
@@ -390,6 +399,10 @@ function closeCompletionMenu(elements: TerminalModalElements): void {
 	}
 }
 
+function resetHistoryNavigation(): void {
+	_historyNavigationSession = resetTerminalHistoryNavigationSession();
+}
+
 function renderCompletionMenu(elements: TerminalModalElements): void {
 	const menu = ensureCompletionMenu(elements);
 	if (!menu || _completionItems.length === 0) {
@@ -450,6 +463,8 @@ function acceptCompletion(elements: TerminalModalElements, index = _completionIn
 	if (!item) return false;
 
 	elements.input.value = item.value;
+	elements.input.setSelectionRange(elements.input.value.length, elements.input.value.length);
+	resetHistoryNavigation();
 	closeCompletionMenu(elements);
 	syncPromptMirror(elements);
 	elements.input.focus();
@@ -463,6 +478,27 @@ function acceptInlineSuggestion(elements: TerminalModalElements): boolean {
 
 	elements.input.value = `${elements.input.value}${suggestion.completion}`;
 	elements.input.setSelectionRange(elements.input.value.length, elements.input.value.length);
+	resetHistoryNavigation();
+	closeCompletionMenu(elements);
+	syncPromptMirror(elements);
+	return true;
+}
+
+function navigateInputHistory(elements: TerminalModalElements, direction: "previous" | "next"): boolean {
+	if (!elements.input) return false;
+
+	const result = navigateTerminalHistory({
+		direction,
+		history: _commandHistory,
+		input: elements.input.value,
+		session: _historyNavigationSession,
+	});
+
+	_historyNavigationSession = result.session;
+	if (result.value === elements.input.value) return false;
+
+	elements.input.value = result.value;
+	elements.input.setSelectionRange(result.value.length, result.value.length);
 	closeCompletionMenu(elements);
 	syncPromptMirror(elements);
 	return true;
@@ -689,6 +725,7 @@ function resetTerminalRuntime(elements: TerminalModalElements): void {
 	_terminalLastAtmosphere = null;
 	_terminalLastSystemTs = 0;
 	_terminalLastRareTs = 0;
+	resetHistoryNavigation();
 
 	if (elements.log) {
 		elements.log.innerHTML = "";
@@ -727,6 +764,7 @@ function resetTerminalSession(elements: TerminalModalElements): void {
 	_terminalLastAtmosphere = null;
 	_terminalLastSystemTs = 0;
 	_terminalLastRareTs = 0;
+	resetHistoryNavigation();
 
 	if (elements.log) {
 		elements.log.innerHTML = "";
@@ -1264,14 +1302,7 @@ function applyToggleIntent(target: string, value: string | boolean): void {
 	}
 }
 
-function buildMessageOutput(
-	commandId: NavBrandCommandId,
-	intent: Extract<NavBrandCommandIntent, { type: "message" }>
-): string {
-	if (commandId === "status") {
-		return "presence engine online · local horizon stable";
-	}
-
+function buildMessageOutput(intent: Extract<NavBrandCommandIntent, { type: "message" }>): string {
 	return intent.message;
 }
 
@@ -1350,7 +1381,7 @@ function executeResolvedCommand(
 ): void {
 	const intent = buildNavBrandCommandIntent(resolved);
 	if (!intent) {
-		appendCommandAndOutput(elements, rawInput, "unknown command · try: help", "system");
+		appendCommandAndOutput(elements, rawInput, buildNavBrandUnknownCommandMessage(rawInput), "system");
 		return;
 	}
 
@@ -1382,11 +1413,24 @@ function executeResolvedCommand(
 	}
 
 	if (intent.type === "show-history") {
-		const historyText =
-			_commandHistory.length > 0
-				? _commandHistory.map((command, index) => `${index + 1}. ${command}`).join("\n")
-				: "no commands in session memory yet";
-		appendCommandAndOutput(elements, rawInput, historyText, "system");
+		appendCommandAndOutput(elements, rawInput, buildNavBrandHistoryMessage(_commandHistory), "system");
+		return;
+	}
+
+	if (intent.type === "show-status") {
+		const snapshot = getTerminalSystemSnapshot();
+		appendCommandAndOutput(
+			elements,
+			rawInput,
+			buildNavBrandStatusMessage({
+				route: snapshot.route,
+				theme: snapshot.theme,
+				flavor: snapshot.flavor,
+				network: snapshot.network,
+				reducedMotion: snapshot.reducedMotion,
+			}),
+			"system"
+		);
 		return;
 	}
 
@@ -1406,7 +1450,7 @@ function executeResolvedCommand(
 	}
 
 	if (intent.type === "message") {
-		appendCommandAndOutput(elements, rawInput, buildMessageOutput(resolved.command.id, intent), "system");
+		appendCommandAndOutput(elements, rawInput, buildMessageOutput(intent), "system");
 		return;
 	}
 
@@ -1455,7 +1499,7 @@ function submitCommand(rawInput: string): void {
 	_commandHistory.push(normalizedInput);
 	const resolved = resolveNavBrandCommandInput(normalizedInput);
 	if (!resolved) {
-		appendCommandAndOutput(elements, normalizedInput, "unknown command · try: help", "system");
+		appendCommandAndOutput(elements, normalizedInput, buildNavBrandUnknownCommandMessage(normalizedInput), "system");
 		return;
 	}
 
@@ -1585,6 +1629,7 @@ function initTerminalModal(): void {
 				return;
 			}
 			submitCommand(elements.input?.value ?? "");
+			resetHistoryNavigation();
 			noteTerminalActivity();
 			if (elements.input) {
 				elements.input.value = "";
@@ -1598,6 +1643,7 @@ function initTerminalModal(): void {
 	elements.input.addEventListener(
 		"input",
 		() => {
+			resetHistoryNavigation();
 			closeCompletionMenu(elements);
 			syncPromptMirror(elements);
 			noteTerminalActivity();
@@ -1614,7 +1660,9 @@ function initTerminalModal(): void {
 				event.preventDefault();
 				event.stopPropagation();
 				closeCompletionMenu(elements);
+				resetHistoryNavigation();
 				clearVisibleHistory(getElements());
+				return;
 			}
 
 			if (event.key === "ArrowRight" && acceptInlineSuggestion(elements)) {
@@ -1622,7 +1670,16 @@ function initTerminalModal(): void {
 				return;
 			}
 
-			if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+			if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+				if (_commandHistory.length > 0) {
+					event.preventDefault();
+					closeCompletionMenu(elements);
+					navigateInputHistory(elements, event.key === "ArrowUp" ? "previous" : "next");
+					return;
+				}
+			}
+
+			if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
 				schedulePromptMirrorSync(elements);
 			}
 
