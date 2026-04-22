@@ -416,16 +416,27 @@ Global Utility Styles
 
 .footnotes {
 	margin-top: 2rem;
-	padding-bottom: 5.5vh;
+	padding-bottom: 12vh;
 	max-width: calc(var(--sidebar-width) + var(--content-width));
 	@apply px-4 md:px-8 mx-auto;
 	color: var(--color-base-content);
 }
 
+.footnotes ol {
+	list-style: decimal;
+	list-style-position: outside;
+	padding-left: 1.875rem;
+	margin-top: 1rem;
+}
+
+.footnotes li {
+	margin-bottom: 0.75rem;
+}
+
 @media (min-width: 1024px) {
 	.footnotes {
 		/* Push past the sidebar column, keep the same px-8 right padding */
-		padding-left: calc(var(--sidebar-width) + 2rem);
+		padding-left: calc(var(--sidebar-width) + 1.875rem);
 	}
 }
 

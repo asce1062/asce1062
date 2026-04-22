@@ -10,6 +10,7 @@
 	position: relative;
 	line-height: 1;
 	cursor: pointer;
+	top: 2px;
 }
 
 .terminal-header-trigger__icon-wrap {
@@ -43,6 +44,7 @@
 	letter-spacing: 0.04em;
 	opacity: 0;
 	pointer-events: none;
+	top: 4px;
 	box-shadow: 0 0 0.95rem color-mix(in oklab, var(--color-secondary) 10%, transparent);
 	transform: scale(0.96);
 	transition:
