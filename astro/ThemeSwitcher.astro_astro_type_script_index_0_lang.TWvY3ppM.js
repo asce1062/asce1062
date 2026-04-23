@@ -1,0 +1,1 @@
+import{i as o,h as l,s}from"./themeManager.CYwlUuIx.js";let e=null;function a(){e?.abort(),e=new AbortController;const{signal:t}=e;o();const n=document.getElementById("theme-toggle-btn");n&&n.addEventListener("click",l,{signal:t}),s(t)}document.addEventListener("astro:page-load",a);

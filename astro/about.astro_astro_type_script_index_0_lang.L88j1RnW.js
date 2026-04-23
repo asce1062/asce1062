@@ -1,0 +1,1 @@
+import{s as a}from"./asciiWidget.D_GmYYli.js";let t=null;function d(){t?.(),t=null;const e=document.getElementById("nav-brand-name");e&&(e.textContent="alex"),t=a("neofetch",{onRender:(n,o)=>{o&&e&&(e.textContent=n.text.toLowerCase())}})}document.addEventListener("astro:page-load",d);

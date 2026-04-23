@@ -1,4 +1,4 @@
-import{f as r}from"./feedbackManager.BdKtNrV7.js";function a(t){const{text:e,font:n,art:c}=JSON.parse(t),i=`[${n}]
+import{f as r}from"./feedbackManager.BvxmE4ad.js";function a(t){const{text:e,font:n,art:c}=JSON.parse(t),i=`[${n}]
 
 \`\`\`figlet
 `+c+"\n```",o="```json\n"+JSON.stringify({text:e,font:n,art:c},null,2)+"\n```";return i+`
