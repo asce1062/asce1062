@@ -58,7 +58,7 @@ const bodyBgCss = `background-color:${L["base-100"]};background-image:url("${bod
 // Card pattern. Inline base64 so it survives clients that block remote images.
 // Notecard SVGs are small (<5 KB) and don't push email past most email clients' 102 KB clip limit.
 const entryStyle = parseEntryStyle(styleJson);
-const patternFill = theme === "dark" ? hexDark["base-300"] : hexLight["base-300"];
+const patternFill = L["guestbook-pattern-ink"];
 const patternDataUri = getPatternDataUri(entryStyle.bg, patternFill);
 const msgBorderCss = entryBorderCss(entryStyle, L);
 const msgBgCss = patternDataUri

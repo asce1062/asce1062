@@ -53,7 +53,7 @@ export const FLAVOR_LABELS: Record<Flavor, string> = {
 
 /** Swatch color for each flavor (used as --swatch CSS custom property). */
 export const FLAVOR_SWATCHES: Record<Flavor, string> = {
-	"": "",
+	"": "oklch(70% 0.191 22.216)",
 	"crt-green": "oklch(78% 0.22 145)",
 	amber: "oklch(75% 0.20 70)",
 	synthwave: "oklch(72% 0.28 330)",

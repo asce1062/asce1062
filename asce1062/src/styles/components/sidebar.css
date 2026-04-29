@@ -44,7 +44,7 @@ Only visual / component styles live here.
 	overflow: hidden;
 }
 
-/* Topography pattern overlay. Flavor-aware via var(--color-base-300) as mask color */
+/* Topography pattern overlay. Flavor-aware via var(--color-atmosphere-ink) as mask color */
 .nav-menu::before {
 	content: "";
 	position: absolute;
@@ -58,7 +58,7 @@ Only visual / component styles live here.
 
 @supports (mask-image: none) {
 	.nav-menu::before {
-		background-color: var(--color-base-300);
+		background-color: var(--color-atmosphere-ink);
 		mask-image: var(--bg-topography);
 	}
 }
@@ -504,9 +504,8 @@ A compact row of color swatch buttons.
 	width: 1.25rem;
 	height: 1.25rem;
 	flex-shrink: 0;
-	/* Use --swatch for flavored buttons; fall back to faint primary for default */
-	background: var(--swatch, color-mix(in oklab, var(--color-primary), transparent 70%));
-	border: 1.5px solid var(--color-base-300);
+	background: var(--swatch);
+	border: 1.5px solid color-mix(in oklab, var(--swatch), black 38%);
 	cursor: pointer;
 	padding: 0;
 	transition:
@@ -516,20 +515,20 @@ A compact row of color swatch buttons.
 }
 
 .nav-flavor-swatch:hover {
-	border-color: var(--color-accent);
+	border-color: color-mix(in oklab, var(--swatch), white 28%);
 	transform: scale(1.2);
 }
 
 .nav-flavor-swatch:focus-visible {
-	outline: 2px solid var(--color-accent);
+	outline: 2px solid color-mix(in oklab, var(--swatch), white 28%);
 	outline-offset: 2px;
 }
 
 .nav-flavor-swatch--active {
-	border-color: var(--color-accent);
+	border-color: color-mix(in oklab, var(--swatch), white 28%);
 	box-shadow:
-		0 0 0 1px var(--color-accent),
-		var(--glow-accent);
+		0 0 0 1px color-mix(in oklab, var(--swatch), white 28%),
+		0 0 12px color-mix(in oklab, var(--swatch), transparent 55%);
 }
 
 /*

@@ -63,6 +63,7 @@ describe("hashValue", () => {
 
 	it("uses a default pepper when GUESTBOOK_HASH_PEPPER is not set outside production", async () => {
 		vi.stubEnv("PROD", false);
+		vi.stubEnv("GUESTBOOK_HASH_PEPPER", undefined);
 		// No env stub → falls back to 'guestbook-default-pepper'
 		const result = await hashValue("input");
 		expect(result).toHaveLength(64);
@@ -89,6 +90,7 @@ describe("hashValue", () => {
 
 	it("throws in production when GUESTBOOK_HASH_PEPPER is missing", async () => {
 		vi.stubEnv("PROD", true);
+		vi.stubEnv("GUESTBOOK_HASH_PEPPER", undefined);
 		await expect(hashValue("input")).rejects.toThrow("GUESTBOOK_HASH_PEPPER is required in production");
 	});
 

@@ -69,6 +69,12 @@
 	--color-muted: oklch(58% 0.05 75);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(86.272% 0.027 91.774);
+	/* Background atmosphere ink (topography mask). Separated from base-300 so surfaces stay stable. */
+	--color-atmosphere-ink: oklch(72% 0.075 90);
+	/* Guestbook card pattern ink. Quieter than atmosphere ink so dense hero patterns don't compete with text. */
+	--color-guestbook-pattern-ink: oklch(81.8% 0.054 90.3);
+	/* Matrix rain glyphs. Stronger than atmosphere ink for low-brightness OLED visibility. */
+	--color-matrix-rain: oklch(70% 0.075 90);
 
 	/*
 	============================================
@@ -349,6 +355,11 @@ html[data-theme="dark"] {
 	--color-muted: oklch(68% 0.025 90);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(16% 0.012 270);
+	/* Background atmosphere ink (topography mask). Separated from base-300 so surfaces stay stable. */
+	--color-atmosphere-ink: oklch(38% 0.032 270);
+	--color-guestbook-pattern-ink: oklch(26% 0.018 277.9);
+	/* Matrix rain glyphs. Stronger than atmosphere ink for low-brightness OLED visibility. */
+	--color-matrix-rain: oklch(24% 0.045 95);
 
 	/* Glow token intensity (dark mode. stronger phosphor emission) */
 	--glow-active: inset 0 0 18px color-mix(in oklab, var(--color-primary), transparent 65%);
@@ -405,6 +416,9 @@ html[data-theme="dark"][data-flavor="crt-green"] {
 	--color-muted: oklch(52% 0.09 148);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(10% 0.025 145);
+	--color-atmosphere-ink: oklch(34% 0.08 145);
+	--color-guestbook-pattern-ink: oklch(21% 0.053 145);
+	--color-matrix-rain: oklch(26% 0.11 148);
 
 	/* Strong phosphor glow (earned) */
 	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 58%);
@@ -444,6 +458,9 @@ html[data-theme="dark"][data-flavor="amber"] {
 	--color-muted: oklch(52% 0.08 75);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(13% 0.028 50);
+	--color-atmosphere-ink: oklch(36% 0.08 58);
+	--color-guestbook-pattern-ink: oklch(23.5% 0.054 54);
+	--color-matrix-rain: oklch(28% 0.1 78);
 
 	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 60%);
 	--glow-accent: 0 0 22px color-mix(in oklab, var(--color-accent), transparent 50%);
@@ -483,6 +500,9 @@ html[data-theme="dark"][data-flavor="synthwave"] {
 	--color-muted: oklch(62% 0.05 280);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(17% 0.09 281);
+	--color-atmosphere-ink: oklch(40% 0.1 281);
+	--color-guestbook-pattern-ink: oklch(27% 0.095 281);
+	--color-matrix-rain: oklch(30% 0.08 275);
 
 	/* Vivid synthwave glows (neon emission at full power) */
 	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 58%);
@@ -523,6 +543,9 @@ html[data-theme="dark"][data-flavor="dos"] {
 	--color-muted: oklch(68% 0.01 265);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(18% 0.038 265);
+	--color-atmosphere-ink: oklch(44% 0.04 265);
+	--color-guestbook-pattern-ink: oklch(32% 0.04 265);
+	--color-matrix-rain: oklch(34% 0.024 265);
 
 	/* No glow (DOS was sharp, physical CRT, but no ambient flourishes) */
 	--glow-active: inset 0 0 0 transparent;
@@ -532,10 +555,10 @@ html[data-theme="dark"][data-flavor="dos"] {
 
 /* 5. Void dark */
 html[data-theme="dark"][data-flavor="void"] {
-	--color-base-100: oklch(5% 0 0);
-	--color-base-200: oklch(10% 0 0);
-	--color-base-300: oklch(14% 0 0);
-	--color-base-content: oklch(88% 0 0);
+	--color-base-100: oklch(0% 0 0);
+	--color-base-200: oklch(19% 0 0);
+	--color-base-300: oklch(22% 0 0);
+	--color-base-content: oklch(87.609% 0 0);
 
 	--color-primary: oklch(52% 0 0);
 	--color-primary-content: oklch(96% 0 0);
@@ -563,6 +586,9 @@ html[data-theme="dark"][data-flavor="void"] {
 	--color-muted: oklch(42% 0 0);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(8% 0 0);
+	--color-atmosphere-ink: oklch(32% 0 0);
+	--color-guestbook-pattern-ink: oklch(24% 0 0);
+	--color-matrix-rain: oklch(22% 0 0);
 
 	/* Absolute silence (no glow in the void) */
 	--glow-active: inset 0 0 0 transparent;
@@ -603,6 +629,9 @@ html[data-theme="dark"][data-flavor="ice"] {
 	--color-muted: oklch(58% 0.01 205);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(11% 0.02 212);
+	--color-atmosphere-ink: oklch(36% 0.04 210);
+	--color-guestbook-pattern-ink: oklch(22.5% 0.031 211);
+	--color-matrix-rain: oklch(28% 0.06 205);
 
 	/* Cold glow (tight, clinical, not warm) */
 	--glow-active: inset 0 0 16px color-mix(in oklab, var(--color-primary), transparent 62%);
@@ -643,6 +672,9 @@ html[data-theme="dark"][data-flavor="redline"] {
 	--color-muted: oklch(52% 0.008 22);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(10% 0.024 20);
+	--color-atmosphere-ink: oklch(34% 0.05 22);
+	--color-guestbook-pattern-ink: oklch(21% 0.037 21);
+	--color-matrix-rain: oklch(26% 0.09 22);
 
 	/* Maximum tension glow (the loudest flavor)*/
 	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 55%);
@@ -685,6 +717,9 @@ html[data-theme="light"][data-flavor="crt-green"] {
 	--color-muted: oklch(55% 0.06 142);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(90% 0.022 138);
+	--color-atmosphere-ink: oklch(76% 0.04 138);
+	--color-guestbook-pattern-ink: oklch(79% 0.029 138);
+	--color-matrix-rain: oklch(78% 0.075 148);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -716,6 +751,9 @@ html[data-theme="light"][data-flavor="amber"] {
 	--color-muted: oklch(55% 0.06 75);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(82% 0.072 88);
+	--color-atmosphere-ink: oklch(72% 0.075 90);
+	--color-guestbook-pattern-ink: oklch(79% 0.075 89);
+	--color-matrix-rain: oklch(70% 0.075 90);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -747,6 +785,9 @@ html[data-theme="light"][data-flavor="synthwave"] {
 	--color-muted: oklch(58% 0.03 295);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(91% 0.028 298);
+	--color-atmosphere-ink: oklch(78% 0.06 295);
+	--color-guestbook-pattern-ink: oklch(86% 0.039 296.5);
+	--color-matrix-rain: oklch(70% 0.09 295);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -778,6 +819,9 @@ html[data-theme="light"][data-flavor="dos"] {
 	--color-muted: oklch(55% 0.015 260);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(90% 0 0);
+	--color-atmosphere-ink: oklch(74% 0.012 260);
+	--color-guestbook-pattern-ink: oklch(79% 0.006 130);
+	--color-matrix-rain: oklch(68% 0.03 260);
 
 	/* No glow (DOS was sharp, systematic UI) */
 	--glow-active: inset 0 0 0 transparent;
@@ -809,6 +853,9 @@ html[data-theme="light"][data-flavor="void"] {
 	--color-muted: oklch(55% 0 0);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(92% 0 0);
+	--color-atmosphere-ink: oklch(78% 0 0);
+	--color-guestbook-pattern-ink: oklch(79% 0 0);
+	--color-matrix-rain: oklch(68% 0 0);
 
 	/* Absolute silence (no glow in the void) */
 	--glow-active: inset 0 0 0 transparent;
@@ -840,6 +887,9 @@ html[data-theme="light"][data-flavor="ice"] {
 	--color-muted: oklch(58% 0.012 210);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(92% 0.012 210);
+	--color-atmosphere-ink: oklch(78% 0.018 210);
+	--color-guestbook-pattern-ink: oklch(79% 0.012 210);
+	--color-matrix-rain: oklch(68% 0.06 205);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -871,6 +921,9 @@ html[data-theme="light"][data-flavor="redline"] {
 	--color-muted: oklch(58% 0.015 22);
 	/* Inline code surface (slightly elevated from base) */
 	--color-code-bg: oklch(93% 0.02 22);
+	--color-atmosphere-ink: oklch(78% 0.04 22);
+	--color-guestbook-pattern-ink: oklch(79% 0.025 22);
+	--color-matrix-rain: oklch(70% 0.09 22);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;

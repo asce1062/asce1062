@@ -27,16 +27,12 @@
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0rem;
-	--pattern-fill: oklch(88.272% 0.049 91.774);
+	--pattern-fill: var(--color-guestbook-pattern-ink);
 	transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 .entry-bubble:hover {
 	border-color: var(--color-accent);
-}
-
-html[data-theme="dark"] .entry-bubble {
-	--pattern-fill: oklch(23.219% 0.004 308.229);
 }
 
 /* Ensure content always sits above the patterned ::before layer */
@@ -168,11 +164,7 @@ html[data-theme="dark"] .entry-bubble {
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 0rem;
-	--pattern-fill: oklch(88.272% 0.049 91.774);
-}
-
-html[data-theme="dark"] .textarea-wrapper {
-	--pattern-fill: oklch(23.219% 0.004 308.229);
+	--pattern-fill: var(--color-guestbook-pattern-ink);
 }
 
 .textarea-wrapper::before {
@@ -243,11 +235,7 @@ html[data-theme="dark"] .textarea-wrapper {
 	border-radius: 0rem;
 	flex-shrink: 0;
 	background-color: var(--color-neutral);
-	--pattern-fill: oklch(84.133% 0.065 90.856);
-}
-
-html[data-theme="dark"] .pattern-swatch {
-	--pattern-fill: oklch(23.219% 0.004 308.229);
+	--pattern-fill: var(--color-guestbook-pattern-ink);
 }
 
 .pattern-swatch::before {

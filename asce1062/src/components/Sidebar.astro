@@ -221,7 +221,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 							aria-label={FLAVOR_LABELS[flavor]}
 							aria-pressed="false"
 							title={FLAVOR_LABELS[flavor]}
-							style={FLAVOR_SWATCHES[flavor] ? `--swatch: ${FLAVOR_SWATCHES[flavor]}` : undefined}
+							style={`--swatch: ${FLAVOR_SWATCHES[flavor]}`}
 						/>
 					))
 				}

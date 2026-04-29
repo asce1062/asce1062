@@ -9,7 +9,7 @@
  *
  * localStorage key: "matrix-bg" - "1" when enabled; absent when disabled.
  *
- * Colors: theme-aware. Reads --color-base-100 (trail) and --color-base-300
+ * Colors: theme-aware. Reads --color-base-100 (trail) and --color-matrix-rain
  * (characters) from CSS custom properties at runtime.
  *
  * Mutual exclusion with Stars: enabling Matrix dispatches "background:activate"
@@ -56,14 +56,14 @@ let _charColor = "#00ff41";
 function refreshColors(): void {
 	const style = getComputedStyle(document.documentElement);
 	const base = style.getPropertyValue("--color-base-100").trim();
-	const secondary = style.getPropertyValue("--color-base-300").trim();
+	const matrix = style.getPropertyValue("--color-matrix-rain").trim();
 
 	// base-100 is an oklch(...) string (append alpha channel for the trail).
 	if (base) {
 		_trailColor = base.replace(/\)$/, " / 0.05)");
 	}
-	if (secondary) {
-		_charColor = secondary;
+	if (matrix) {
+		_charColor = matrix;
 	}
 }
 

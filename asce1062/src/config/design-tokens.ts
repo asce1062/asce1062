@@ -145,6 +145,8 @@ const hexColorValues: HexColorValue[] = [
 	{ id: "base-200", light: "#e4d8b4", dark: "#171618" },
 	{ id: "base-300", light: "#dbca9b", dark: "#1e1d1f" },
 	{ id: "base-content", light: "#793205", dark: "#fef2c6" },
+	{ id: "atmosphere-ink", light: "#b7a36d", dark: "#3c4254" },
+	{ id: "guestbook-pattern-ink", light: "#d1c39c", dark: "#22232d" },
 	// Semantic
 	{ id: "primary", light: "#ff9fa0", dark: "#ff6266" },
 	{ id: "primary-content", light: "#801518", dark: "#440607" },
@@ -176,6 +178,13 @@ export const colorValues: ColorValue[] = [
 	{ id: "base-200", role: "Base 200", light: "oklch(88.272% 0.049 91.774)", dark: "oklch(20.219% 0.004 308.229)" },
 	{ id: "base-300", role: "Base 300", light: "oklch(84.133% 0.065 90.856)", dark: "oklch(23.219% 0.004 308.229)" },
 	{ id: "base-content", role: "Base Content", light: "oklch(41% 0.112 45.904)", dark: "oklch(96% 0.059 95.617)" },
+	{ id: "atmosphere-ink", role: "Atmosphere Ink", light: "oklch(72% 0.075 90)", dark: "oklch(38% 0.032 270)" },
+	{
+		id: "guestbook-pattern-ink",
+		role: "Guestbook Pattern Ink",
+		light: "oklch(81.8% 0.054 90.3)",
+		dark: "oklch(26% 0.018 277.9)",
+	},
 	// Semantic
 	{ id: "primary", role: "Primary", light: "oklch(80% 0.114 19.571)", dark: "oklch(70% 0.191 22.216)" },
 	{ id: "primary-content", role: "Primary Content", light: "oklch(39% 0.141 25.723)", dark: "oklch(25% 0.092 26.042)" },

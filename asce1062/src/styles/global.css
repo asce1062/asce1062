@@ -603,7 +603,7 @@ stays within body rather than escaping to the viewport. html provides the
 background-color canvas.
 
 Approach (mask-image): the SVG's path alpha (fill-opacity="0.4") reveals
-var(--color-base-300) at 40% opacity in path areas, adapting to all flavors automatically.
+var(--color-atmosphere-ink) at 40% opacity in path areas, adapting to all flavors automatically.
 Fallback: SVG displayed directly at low opacity.
 */
 body::before {
@@ -617,7 +617,7 @@ body::before {
 
 @supports (mask-image: none) {
 	body::before {
-		background-color: var(--color-base-300);
+		background-color: var(--color-atmosphere-ink);
 		mask-image: var(--bg-topography);
 	}
 }
