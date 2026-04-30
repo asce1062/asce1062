@@ -484,22 +484,6 @@ Share Notification (Global)
 	animation: slideOutToRight var(--duration-slow) var(--ease-out) forwards;
 }
 
-.close-btn {
-	background: none;
-	border: none;
-	color: var(--color-base-100);
-	cursor: pointer;
-	padding: 0.25rem;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: opacity var(--duration-base);
-}
-
-.close-btn:hover {
-	opacity: 0.7;
-}
-
 @keyframes slideInFromRight {
 	from {
 		transform: translateX(400px);
@@ -529,10 +513,6 @@ Share Notification (Global)
 		padding: 0.75rem 1rem;
 		font-size: 0.875rem;
 		gap: 0.75rem;
-	}
-
-	.close-btn {
-		font-size: 0.875rem;
 	}
 }
 
