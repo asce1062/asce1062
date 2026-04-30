@@ -66,6 +66,11 @@ const SCROLL_THRESHOLD = 50;
  */
 const STICKY_TOP_PX = 5;
 
+/**
+ * Breathing room between the sticky TOC and the heading selected from it.
+ */
+const ANCHOR_OFFSET_GAP_PX = 16;
+
 let _ac: AbortController | null = null;
 
 export function init(): void {
@@ -76,7 +81,10 @@ export function init(): void {
 	const toc = document.getElementById("toc-container") as HTMLElement | null;
 	const details = document.getElementById("toc-details") as HTMLDetailsElement | null;
 
-	if (!toc) return;
+	if (!toc) {
+		document.documentElement.style.removeProperty("--anchor-scroll-margin-top");
+		return;
+	}
 
 	// ── Per-init state ──
 	let hidden = false;
@@ -93,6 +101,11 @@ export function init(): void {
 		toc!.style.transform = next ? "translateY(-100%)" : "";
 	}
 
+	function updateAnchorOffset(): void {
+		const offset = Math.ceil(toc!.getBoundingClientRect().height + ANCHOR_OFFSET_GAP_PX);
+		document.documentElement.style.setProperty("--anchor-scroll-margin-top", `${offset}px`);
+	}
+
 	// ── details: track open state and close on link click ──
 	if (details) {
 		details.addEventListener(
@@ -100,14 +113,24 @@ export function init(): void {
 			() => {
 				isDetailsOpen = details.open;
 				if (details.open) setHidden(false);
+				updateAnchorOffset();
 			},
 			{ signal }
 		);
 
 		details.querySelectorAll("a").forEach((link) => {
-			link.addEventListener("click", () => (details.open = false), { signal });
+			link.addEventListener(
+				"click",
+				() => {
+					details.open = false;
+					updateAnchorOffset();
+				},
+				{ signal }
+			);
 		});
 	}
+
+	window.addEventListener("resize", updateAnchorOffset, { passive: true, signal });
 
 	// ── scroll: sticky detection + threshold dead zone + rAF ──
 	window.addEventListener(
@@ -156,5 +179,6 @@ export function init(): void {
 	);
 
 	// Ensure visible on every page init
+	updateAnchorOffset();
 	setHidden(false);
 }
