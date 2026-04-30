@@ -3,7 +3,7 @@
  * Handles guestbook entry action menus: toggle, clipboard, share, anchor highlight
  */
 
-import { copyToClipboard } from "@/scripts/feedbackManager";
+import { copyToClipboard, shareOrCopyToClipboard } from "@/scripts/feedbackManager";
 
 const NOTIFICATION_ID = "entry-action-notification";
 
@@ -78,20 +78,15 @@ async function handleShareEntry(button: HTMLElement): Promise<void> {
 	const entryName = button.dataset.entryName || "someone";
 	const permalink = `https://alexmbugua.me/guestbook#entry-${entryId}`;
 
-	if (navigator.share) {
-		try {
-			await navigator.share({
-				title: `Guestbook entry by ${entryName}`,
-				url: permalink,
-			});
-			return;
-		} catch (err) {
-			// User cancelled or share failed. Fall back to clipboard
-			if ((err as DOMException).name === "AbortError") return;
-		}
-	}
-
-	await copyToClipboard(permalink, NOTIFICATION_ID);
+	await shareOrCopyToClipboard({
+		shareData: {
+			title: `Guestbook entry by ${entryName}`,
+			text: `Guestbook entry by ${entryName}`,
+			url: permalink,
+		},
+		clipboardText: permalink,
+		notificationId: NOTIFICATION_ID,
+	});
 }
 
 /** Dispatch action from a menu item click */

@@ -18,6 +18,14 @@ const notificationHideTimers = new Map<string, number>();
 // Keyed on primaryIcon so rapid repeated clicks cancel the prior pending restore.
 const iconRestoreTimers = new WeakMap<HTMLElement, number>();
 
+export type ShareOrCopyResult = "shared" | "copied" | "cancelled" | "failed";
+
+interface ShareOrCopyOptions {
+	shareData: ShareData;
+	clipboardText: string;
+	notificationId: string;
+}
+
 /**
  * Show a notification with auto-hide.
  * Cancels any in-flight hide animation or auto-hide timer before showing,
@@ -108,6 +116,28 @@ export async function copyToClipboard(text: string, notificationId: string): Pro
 
 	console.error("[feedbackManager] Failed to copy to clipboard");
 	return false;
+}
+
+/**
+ * Prefer the browser/device native share sheet, with clipboard fallback.
+ * User-cancelled native share dialogs are treated as intentional no-ops.
+ */
+export async function shareOrCopyToClipboard({
+	shareData,
+	clipboardText,
+	notificationId,
+}: ShareOrCopyOptions): Promise<ShareOrCopyResult> {
+	if (navigator.share) {
+		try {
+			await navigator.share(shareData);
+			return "shared";
+		} catch (err) {
+			if ((err as DOMException).name === "AbortError") return "cancelled";
+		}
+	}
+
+	const copied = await copyToClipboard(clipboardText, notificationId);
+	return copied ? "copied" : "failed";
 }
 
 /**

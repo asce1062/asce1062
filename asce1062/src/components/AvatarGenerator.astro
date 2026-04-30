@@ -35,7 +35,7 @@ import "@/styles/components/avatar.css";
 	import { AvatarRenderer } from "@/scripts/avatarRenderer";
 	import { AvatarStateManager } from "@/scripts/avatarStateManager";
 	import { avatarStore, AVATAR_CHANGE_EVENT } from "@/scripts/avatarStore";
-	import { copyToClipboard, initShareNotification, showNotification } from "@/scripts/feedbackManager";
+	import { initShareNotification, shareOrCopyToClipboard, showNotification } from "@/scripts/feedbackManager";
 	import type { Gender, AvatarState } from "@/data/avatarConfig";
 	import { avatarConfig, getImagePath } from "@/data/avatarConfig";
 
@@ -291,7 +291,15 @@ import "@/styles/components/avatar.css";
 		newShareBtn?.addEventListener("click", async () => {
 			const url = controllerInstance?.getStateManager().getShareURL();
 			if (url) {
-				await copyToClipboard(url, "avatar-share-notification");
+				await shareOrCopyToClipboard({
+					shareData: {
+						title: "8-bit avatar",
+						text: "Check out this 8-bit avatar",
+						url,
+					},
+					clipboardText: url,
+					notificationId: "avatar-share-notification",
+				});
 			}
 		});
 	}
