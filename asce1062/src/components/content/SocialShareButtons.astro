@@ -10,8 +10,10 @@ interface Props {
 }
 
 const { title, url } = Astro.props;
+const shareText = `${title}\n${url}`;
 const encodedTitle = encodeURIComponent(title);
 const encodedUrl = encodeURIComponent(url);
+const encodedShareText = encodeURIComponent(shareText);
 
 const shareLinks = [
 	{
@@ -27,6 +29,18 @@ const shareLinks = [
 		label: "Share on Facebook",
 	},
 	{
+		platform: "LinkedIn",
+		url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+		icon: "icon-linkedin",
+		label: "Share on LinkedIn",
+	},
+	{
+		platform: "Reddit",
+		url: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
+		icon: "icon-reddit",
+		label: "Share on Reddit",
+	},
+	{
 		platform: "X/Twitter",
 		url: `https://x.com/intent/post?text=${encodedTitle}&url=${encodedUrl}`,
 		icon: "icon-twitter-x",
@@ -37,6 +51,18 @@ const shareLinks = [
 		url: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
 		icon: "icon-telegram",
 		label: "Share on Telegram",
+	},
+	{
+		platform: "Mastodon",
+		url: `https://share.joinmastodon.org/#text=${encodedShareText}`,
+		icon: "icon-mastodon",
+		label: "Share on Mastodon",
+	},
+	{
+		platform: "Bluesky",
+		url: `https://bsky.app/intent/compose?text=${encodedShareText}`,
+		icon: "icon-bluesky",
+		label: "Share on Bluesky",
 	},
 	{
 		platform: "Pinterest",
