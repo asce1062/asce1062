@@ -15,6 +15,8 @@ import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager
 import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
+import ShareNotification from "@/components/ShareNotification.astro";
+import { SOCIAL } from "@/config/site-config";
 
 const currentPath = Astro.url.pathname;
 
@@ -60,7 +62,7 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 				data-navbrand-effect="none"
 				data-navbrand-tone="normal"
 				aria-label="Open terminal">
-				<span class="nav-brand-line">
+				<span class="nav-brand-line nav-brand-email-copy" data-navbrand-copy-email={SOCIAL.email} title="Copy email">
 					<span class="nav-brand-chrome">┌─[</span><span id="nav-brand-name" class="nav-brand-name">alex</span><span
 						class="nav-brand-chrome">@</span
 					><span class="nav-brand-host">alexmbugua.me</span><span class="nav-brand-chrome">]</span>
@@ -70,9 +72,11 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 						id="nav-brand-greeting"
 						class="nav-brand-greeting"
 						aria-live="polite"
-						data-text-effect="typing, decrypt, glitch-lock-on"
-						data-text-effect-triggers="load, resume, route-enter, idle-return, content-change, random-effect">·</span
-					>
+						data-text-effect="decrypt, glitch-lock-on, typing"
+						data-text-effect-triggers="load, hover, activate, resume, route-enter, idle-return, random-effect, random-time"
+						data-text-effect-interval-ms="33410"
+						>·
+					</span>
 				</span>
 				<span class="nav-brand-line" id="nav-brand-sub-row">
 					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
@@ -86,15 +90,20 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 					<span class="nav-brand-chrome">│ </span><span
 						id="nav-brand-teaser"
 						class="nav-brand-teaser-text"
-						data-text-effect="typing, glitch-lock-on"
-						data-text-effect-triggers="content-change, random-effect, resume">open terminal</span
+						data-text-effect="glitch-lock-on, typing"
+						data-text-effect-triggers="load, resume, route-enter, idle-return, random-effect">open terminal</span
 					>
 				</span>
 				<span class="nav-brand-line">
 					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
 						class="nav-brand-chrome">
 						~
-					</span><span class="blink nav-brand-cursor" data-cursor-mode="active" aria-hidden="true">_</span>
+					</span><span
+						id="nav-brand-visit-count"
+						class="nav-brand-visit-count"
+						data-text-effect="typing"
+						data-text-effect-triggers="load, resume, route-enter, idle-return">visit 1</span
+					>
 				</span>
 			</button>
 		</div>
@@ -239,6 +248,8 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 		<AvatarMiniWidget instanceId="sidebar" canvasClass="nav-status-avatar avatar-frame" />
 	</div>
 </aside>
+
+<ShareNotification id="sidebar-email-notification" message="Email copied!" />
 
 <!-- Overlay transparent click trap. closes nav -->
 <label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>

@@ -139,6 +139,10 @@ body:has(#nav-toggle:checked) {
 	white-space: nowrap;
 }
 
+.nav-brand-email-copy {
+	cursor: copy;
+}
+
 .nav-brand-chrome {
 	color: var(--color-muted);
 	/* opacity: 0.22; */
@@ -222,14 +226,9 @@ body:has(#nav-toggle:checked) {
 	color: var(--color-accent);
 }
 
-.nav-brand-cursor {
+.nav-brand-visit-count {
 	color: var(--color-accent);
-	opacity: 1;
-	transition:
-		color 0.35s ease,
-		opacity 0.35s ease,
-		filter 0.35s ease,
-		animation-duration 0.35s ease;
+	margin-left: 0.5ch;
 }
 
 .nav-brand-prompt[data-navbrand-state="idle"] {
@@ -264,42 +263,17 @@ body:has(#nav-toggle:checked) {
 	color: color-mix(in oklab, var(--color-secondary) 68%, var(--color-base-content));
 }
 
-.nav-brand-cursor[data-cursor-mode="idle"] {
-	opacity: 0.45;
-	animation-duration: 1.8s;
-}
-
-.nav-brand-cursor[data-cursor-mode="return"] {
-	color: var(--color-warning);
-	filter: drop-shadow(0 0 0.25rem color-mix(in oklab, var(--color-warning) 30%, transparent));
-	animation-duration: 0.5s;
-}
-
-.nav-brand-cursor[data-cursor-mode="system"] {
-	color: var(--color-accent);
-	filter: drop-shadow(0 0 0.3rem color-mix(in oklab, var(--color-accent) 28%, transparent));
-	animation-duration: 0.72s;
-}
-
-.nav-brand-cursor[data-cursor-mode="paused"] {
-	opacity: 0.65;
-	filter: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
 	.nav-brand-prompt,
 	.nav-brand-greeting,
 	.nav-brand-sub,
 	.nav-brand-sub-row,
-	.nav-brand-cursor,
 	.nav-brand-teaser-text {
 		transition: none;
 	}
 
 	.nav-brand-prompt[data-navbrand-state="return"] .nav-brand-greeting,
-	.nav-brand-prompt[data-navbrand-state="system"] .nav-brand-greeting,
-	.nav-brand-cursor[data-cursor-mode="return"],
-	.nav-brand-cursor[data-cursor-mode="system"] {
+	.nav-brand-prompt[data-navbrand-state="system"] .nav-brand-greeting {
 		text-shadow: none;
 		filter: none;
 	}

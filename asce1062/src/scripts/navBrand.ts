@@ -12,14 +12,10 @@
  * message selection or state/effect rules are invented.
  */
 import { PREF_KEYS, getPref, setPref } from "@/lib/prefs";
-import {
-	applyCursorMode,
-	applyNavBrandPresentation,
-	getCursorModeForState,
-	type NavBrandTone,
-} from "@/lib/navBrand/cursor";
+import { applyNavBrandPresentation, type NavBrandTone } from "@/lib/navBrand/cursor";
 import {
 	NAVBRAND_MESSAGE_POOLS,
+	getMessagePool,
 	getActiveTimeBucket,
 	getFeltDuration,
 	getMilestoneGreeting,
@@ -27,7 +23,6 @@ import {
 	selectActiveGreeting,
 } from "@/lib/navBrand/messages";
 import {
-	HINT_STATE_DURATION_MS,
 	IDLE_DELAY_MS,
 	RARE_MESSAGE_COOLDOWN_MS,
 	RETURN_SETTLE_MS,
@@ -44,10 +39,16 @@ import {
 	type NavBrandState,
 } from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
+import {
+	playTerminalTextEffect,
+	readTerminalTextEffectConfig,
+	resolveTerminalTextEffectKind,
+} from "@/lib/textEffects/terminalTextEffect";
+import { copyToClipboard, initShareNotification } from "@/scripts/feedbackManager";
 
 const SESSION_KEY = "nav-brand-visited";
+const SIDEBAR_EMAIL_NOTIFICATION_ID = "sidebar-email-notification";
 const NAVBRAND_TERMINAL_TEASER_HINT = "open terminal";
-const NAVBRAND_TERMINAL_TEASER_SUBLINE = "search, explore, tune the signal";
 const NAVBRAND_TERMINAL_NUDGE_MS = 24_000;
 const NAVBRAND_TERMINAL_NUDGE_RESET_MS = 5_500;
 const NAVBRAND_TERMINAL_NUDGES = ["try: whoami", "search the signal", "try: history", "tune the console"] as const;
@@ -62,9 +63,9 @@ type NavBrandElements = {
 	greeting: HTMLElement | null;
 	subRow: HTMLElement | null;
 	subline: HTMLElement | null;
-	cursor: HTMLElement | null;
 	teaserTrigger: HTMLElement | null;
 	teaserText: HTMLElement | null;
+	visitCount: HTMLElement | null;
 };
 
 type RenderState = {
@@ -73,6 +74,7 @@ type RenderState = {
 	subline: string | null;
 	mode: "arrival" | "tod";
 	tone?: NavBrandTone;
+	onGreetingComplete?: () => void;
 };
 
 type NavBrandMemory = {
@@ -108,7 +110,6 @@ let hintTimer: number | null = null;
 let teaserNudgeTimer: number | null = null;
 let teaserResetTimer: number | null = null;
 let listenersBound = false;
-let motionMedia: MediaQueryList | null = null;
 let lastActivityTs = Date.now();
 const curiositySurfaces: Record<CuriositySurfaceId, CuriositySurfaceTimers> = {
 	collapsedSidebar: {
@@ -152,14 +153,10 @@ function getElements(): NavBrandElements {
 		greeting: document.getElementById("nav-brand-greeting"),
 		subRow: document.getElementById("nav-brand-sub-row"),
 		subline: document.getElementById("nav-brand-sub"),
-		cursor: document.querySelector(".nav-brand-cursor"),
 		teaserTrigger: document.querySelector("[data-navbrand-terminal-trigger]"),
 		teaserText: document.getElementById("nav-brand-teaser"),
+		visitCount: document.getElementById("nav-brand-visit-count"),
 	};
-}
-
-function isReducedMotion(): boolean {
-	return motionMedia?.matches ?? false;
 }
 
 function getSessionFlag(): boolean {
@@ -203,7 +200,38 @@ function setSubline(subline: string | null): void {
 function setTeaserText(text: string): void {
 	elements = getElements();
 	if (!elements.teaserText) return;
-	elements.teaserText.textContent = text;
+	setAnimatedText(elements.teaserText, text);
+}
+
+function setAnimatedText(el: HTMLElement, text: string, onComplete?: () => void): void {
+	if (el.dataset.textEffectStableText === text) {
+		onComplete?.();
+		return;
+	}
+
+	if (el.dataset.textEffect) {
+		const config = readTerminalTextEffectConfig(el);
+		const effect = config
+			? resolveTerminalTextEffectKind(config.effects, config.triggers.includes("random-effect"), Math.random())
+			: "typing";
+
+		playTerminalTextEffect({
+			el,
+			effect,
+			text,
+			onComplete,
+		});
+		return;
+	}
+
+	el.textContent = text;
+	onComplete?.();
+}
+
+function setVisitCountText(): void {
+	elements = getElements();
+	if (!elements.visitCount) return;
+	setAnimatedText(elements.visitCount, `visit ${Math.max(getVisitCount(), 1)}`);
 }
 
 function getTriggerSource(target: HTMLElement | null): string | null {
@@ -403,22 +431,22 @@ function triggerCollapsedCuriosityNudge(immediate = false): void {
 /**
  * Single render entrypoint.
  *
- * State/cursor choices stay here; text flourishes are declared on the sidebar
+ * State choices stay here; text flourishes are declared on the sidebar
  * elements with `data-text-effect*` and coordinated by `textEffectRegistry`.
  */
-function renderNavBrand({ state, greeting, subline, mode, tone = "normal" }: RenderState): void {
+function renderNavBrand({ state, greeting, subline, mode, tone = "normal", onGreetingComplete }: RenderState): void {
 	elements = getElements();
 	if (!elements.greeting) return;
 
 	elements.greeting.dataset.mode = mode;
-	elements.greeting.textContent = greeting;
+	setAnimatedText(elements.greeting, greeting, onGreetingComplete);
+	setVisitCountText();
 	setSubline(subline);
 
 	applyNavBrandPresentation(elements.root, {
 		state,
 		tone,
 	});
-	applyCursorMode(elements.cursor, getCursorModeForState(state, isReducedMotion()));
 
 	if (state !== "hint") {
 		hintTimer = clearTimer(hintTimer);
@@ -439,28 +467,18 @@ function getSubline(lastVisitTsOverride?: number): string | null {
 	return `visit ${visits} · ${getFeltDuration(lastVisitTsOverride ?? getLastVisitTs(), Date.now())}`;
 }
 
+function isTerminalEngaged(): boolean {
+	const terminalWindow = document.getElementById("terminal-modal");
+	const terminalDock = document.getElementById("terminal-dock-chip");
+	return Boolean((terminalWindow && !terminalWindow.hidden) || terminalDock?.dataset.terminalDocked === "true");
+}
+
 function choosePoolMessage(category: MessageCategory): string {
-	const greeting = pickMessage(NAVBRAND_MESSAGE_POOLS[category], {
+	const greeting = pickMessage(getMessagePool(category, { terminalEngaged: isTerminalEngaged() }), {
 		lastMessage: memory.lastGreetingByCategory[category] ?? null,
 	});
 	memory.lastGreetingByCategory[category] = greeting;
 	return greeting;
-}
-
-function renderHint(greeting: string, subline = getSubline()): void {
-	renderNavBrand({
-		state: "hint",
-		greeting,
-		subline,
-		mode: "tod",
-	});
-
-	hintTimer = clearTimer(hintTimer);
-	hintTimer = window.setTimeout(() => {
-		if (memory.lastState === "hint") {
-			renderActive({ allowSystem: false });
-		}
-	}, HINT_STATE_DURATION_MS);
 }
 
 function chooseSystemOverride(): { message: string; tone: NavBrandTone } | null {
@@ -545,6 +563,7 @@ function renderActive(options: { allowSystem?: boolean } = {}): void {
 		greeting: selectActiveGreeting({
 			hour: new Date().getHours(),
 			lastMessage: memory.lastGreetingByCategory[getActiveCategory()],
+			terminalEngaged: isTerminalEngaged(),
 		}),
 		subline,
 		mode: "tod",
@@ -587,15 +606,22 @@ function renderReturn(): void {
 		return;
 	}
 
+	settleTimer = clearTimer(settleTimer);
 	renderNavBrand({
 		state: "return",
 		greeting: choosePoolMessage("return"),
 		subline,
 		mode: "tod",
+		onGreetingComplete: () => {
+			settleTimer = clearTimer(settleTimer);
+			settleTimer = window.setTimeout(() => {
+				if (memory.lastState === "return") {
+					renderActive({ allowSystem: false });
+				}
+			}, RETURN_SETTLE_MS);
+		},
 	});
 
-	settleTimer = clearTimer(settleTimer);
-	settleTimer = window.setTimeout(() => renderActive({ allowSystem: false }), RETURN_SETTLE_MS);
 	scheduleIdleTimer();
 }
 
@@ -604,14 +630,18 @@ function getTeaserTrigger(target: EventTarget | null): HTMLElement | null {
 	return target.closest<HTMLElement>("[data-navbrand-terminal-trigger]");
 }
 
+function getEmailCopyTarget(target: EventTarget | null): HTMLElement | null {
+	if (!(target instanceof Element)) return null;
+	return target.closest<HTMLElement>("[data-navbrand-copy-email]");
+}
+
 function isWithinTeaser(relatedTarget: EventTarget | null): boolean {
 	return getTeaserTrigger(relatedTarget) !== null;
 }
 
-function restoreAfterTeaserHint(): void {
-	if (memory.lastState === "hint") {
-		renderActive({ allowSystem: false });
-	}
+function restoreTeaserHint(): void {
+	setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
+	scheduleTeaserNudge();
 }
 
 /**
@@ -686,29 +716,37 @@ function bindListeners(): void {
 		const trigger = getTeaserTrigger(event.target);
 		if (!trigger || !isExpandedSidebarTrigger(trigger)) return;
 		setTeaserText("launch terminal");
-		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("focusin", (event) => {
 		const trigger = getTeaserTrigger(event.target);
 		if (!trigger || !isExpandedSidebarTrigger(trigger)) return;
 		setTeaserText("press enter");
-		renderHint(NAVBRAND_TERMINAL_TEASER_HINT, NAVBRAND_TERMINAL_TEASER_SUBLINE);
 	});
 
 	document.addEventListener("pointerout", (event) => {
 		const trigger = getTeaserTrigger(event.target);
 		if (!trigger || !isExpandedSidebarTrigger(trigger) || isWithinTeaser(event.relatedTarget)) return;
-		restoreAfterTeaserHint();
+		restoreTeaserHint();
 	});
 
 	document.addEventListener("focusout", (event) => {
 		const trigger = getTeaserTrigger(event.target);
 		if (!trigger || !isExpandedSidebarTrigger(trigger) || isWithinTeaser(event.relatedTarget)) return;
-		restoreAfterTeaserHint();
+		restoreTeaserHint();
 	});
 
 	document.addEventListener("click", (event) => {
+		const emailTarget = getEmailCopyTarget(event.target);
+		if (emailTarget) {
+			const email = emailTarget.dataset.navbrandCopyEmail;
+			if (!email) return;
+			event.preventDefault();
+			event.stopPropagation();
+			void copyToClipboard(email, SIDEBAR_EMAIL_NOTIFICATION_ID);
+			return;
+		}
+
 		const teaserTrigger = getTeaserTrigger(event.target);
 		if (!teaserTrigger) return;
 		if (event.detail === 0) return;
@@ -761,19 +799,11 @@ function bindListeners(): void {
 	});
 }
 
-function initMotionListener(): void {
-	if (motionMedia) return;
-	motionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
-	motionMedia.addEventListener("change", () => {
-		applyCursorMode(elements.cursor, getCursorModeForState(memory.lastState, isReducedMotion()));
-	});
-}
-
 if (typeof document !== "undefined") {
-	initMotionListener();
 	bindListeners();
 
 	document.addEventListener("astro:page-load", () => {
+		initShareNotification(SIDEBAR_EMAIL_NOTIFICATION_ID);
 		elements = getElements();
 		if (!getSessionFlag()) {
 			onNewVisit();
