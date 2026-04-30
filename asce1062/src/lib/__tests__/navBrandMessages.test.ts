@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
 	NAVBRAND_MESSAGE_POOLS,
 	getActiveTimeBucket,
+	getMessagePool,
 	pickMessage,
 	selectActiveGreeting,
 	selectTerminalAtmosphereMessage,
@@ -30,6 +31,20 @@ describe("pickMessage", () => {
 	});
 });
 
+describe("getMessagePool", () => {
+	it("filters terminal-only copy until the terminal is engaged", () => {
+		expect(getMessagePool("activeAfternoon", { terminalEngaged: false })).not.toContain("sun still on the terminal");
+		expect(getMessagePool("activeLate", { terminalEngaged: false })).not.toContain("the terminal is still warm");
+		expect(getMessagePool("idle", { terminalEngaged: false })).not.toContain("terminal idle");
+		expect(getMessagePool("idleEscalation", { terminalEngaged: false })).not.toContain("you left the terminal open");
+
+		expect(getMessagePool("activeAfternoon", { terminalEngaged: true })).toContain("sun still on the terminal");
+		expect(getMessagePool("activeLate", { terminalEngaged: true })).toContain("the terminal is still warm");
+		expect(getMessagePool("idle", { terminalEngaged: true })).toContain("terminal idle");
+		expect(getMessagePool("idleEscalation", { terminalEngaged: true })).toContain("you left the terminal open");
+	});
+});
+
 describe("selectActiveGreeting", () => {
 	it("chooses from the correct time-of-day pool", () => {
 		const greeting = selectActiveGreeting({
@@ -49,6 +64,24 @@ describe("selectActiveGreeting", () => {
 		});
 		expect(greeting).not.toBe(previous);
 		expect(NAVBRAND_MESSAGE_POOLS.activeEvening).toContain(greeting);
+	});
+
+	it("only selects terminal-specific greetings when the terminal is engaged", () => {
+		expect(
+			selectActiveGreeting({
+				hour: 14,
+				terminalEngaged: false,
+				random: () => 0.99,
+			})
+		).not.toBe("sun still on the terminal");
+
+		expect(
+			selectActiveGreeting({
+				hour: 14,
+				terminalEngaged: true,
+				random: () => 0.99,
+			})
+		).toBe("sun still on the terminal");
 	});
 });
 

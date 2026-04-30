@@ -56,6 +56,33 @@ export const NAVBRAND_MESSAGE_POOLS: MessagePool = {
 	hints: ["type / to search", "try: blog", "try: projects", "try: guestbook"],
 };
 
+/**
+ * Eligibility metadata only
+ * These strings are in NAVBRAND_MESSAGE_POOLS
+ * and filtered out of sidebar selection until the terminal is open/docked.
+ */
+const TERMINAL_ENGAGED_ONLY_MESSAGES: Partial<Record<MessagePoolKey, readonly string[]>> = {
+	activeAfternoon: ["sun still on the terminal"],
+	activeLate: ["the terminal is still warm"],
+	idle: ["terminal idle"],
+	idleEscalation: ["you left the terminal open"],
+};
+
+export function getMessagePool(
+	category: MessagePoolKey,
+	options: {
+		terminalEngaged?: boolean;
+	} = {}
+): string[] {
+	const pool = NAVBRAND_MESSAGE_POOLS[category];
+	if (options.terminalEngaged) return [...pool];
+
+	const terminalOnly = TERMINAL_ENGAGED_ONLY_MESSAGES[category];
+	if (!terminalOnly || terminalOnly.length === 0) return [...pool];
+
+	return pool.filter((message) => !terminalOnly.includes(message));
+}
+
 /** visitor-memory greeting ladder. */
 export function getMilestoneGreeting(visits: number): string {
 	if (visits <= 1) return "hello, stranger";
@@ -139,9 +166,10 @@ export function selectActiveGreeting(options: {
 	hour: number;
 	lastMessage?: string | null;
 	random?: RandomSource;
+	terminalEngaged?: boolean;
 }): string {
 	const bucket = getActiveTimeBucket(options.hour);
-	return pickMessage(NAVBRAND_MESSAGE_POOLS[bucket], options);
+	return pickMessage(getMessagePool(bucket, { terminalEngaged: options.terminalEngaged }), options);
 }
 
 /**
@@ -178,21 +206,21 @@ export function selectTerminalAtmosphereMessage(options: {
 		if (visits <= 1) {
 			return {
 				category: "arrival",
-				message: pickMessage(NAVBRAND_MESSAGE_POOLS.arrival, { lastMessage, random }),
+				message: pickMessage(getMessagePool("arrival", { terminalEngaged: true }), { lastMessage, random }),
 			};
 		}
 
 		const category = getActiveTimeBucket(hour);
 		return {
 			category,
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+			message: pickMessage(getMessagePool(category, { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
 	if (reason === "resume" || reason === "idle-return") {
 		return {
 			category: "return",
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS.return, { lastMessage, random }),
+			message: pickMessage(getMessagePool("return", { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
@@ -200,34 +228,34 @@ export function selectTerminalAtmosphereMessage(options: {
 		const category: MessagePoolKey = idleCount > 0 ? "idleEscalation" : "idle";
 		return {
 			category,
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+			message: pickMessage(getMessagePool(category, { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
 	if (rareEligible) {
 		return {
 			category: "rare",
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS.rare, { lastMessage, random }),
+			message: pickMessage(getMessagePool("rare", { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
 	if (systemEligible) {
 		return {
 			category: "system",
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS.system, { lastMessage, random }),
+			message: pickMessage(getMessagePool("system", { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
 	if (random() < 0.28) {
 		return {
 			category: "hints",
-			message: pickMessage(NAVBRAND_MESSAGE_POOLS.hints, { lastMessage, random }),
+			message: pickMessage(getMessagePool("hints", { terminalEngaged: true }), { lastMessage, random }),
 		};
 	}
 
 	const category = getActiveTimeBucket(hour);
 	return {
 		category,
-		message: pickMessage(NAVBRAND_MESSAGE_POOLS[category], { lastMessage, random }),
+		message: pickMessage(getMessagePool(category, { terminalEngaged: true }), { lastMessage, random }),
 	};
 }

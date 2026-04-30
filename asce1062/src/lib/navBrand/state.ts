@@ -12,7 +12,6 @@ export type NavBrandState = "arrival" | "active" | "idle" | "return" | "system" 
 
 export const IDLE_DELAY_MS = 45_000;
 export const RETURN_SETTLE_MS = 4_000;
-export const HINT_STATE_DURATION_MS = 4_500;
 export const SYSTEM_MESSAGE_CHANCE = 0.05;
 export const RARE_MESSAGE_CHANCE = 0.0125;
 export const COLLAPSED_EVENT_NUDGE_CHANCE = 0.14;
