@@ -5,22 +5,27 @@
 import ShareNotification from "@/components/ShareNotification.astro";
 ---
 
-<div class="action-buttons">
-	<button id="randomize-btn" class="btn btn-primary btn-elevation font-retro">
-		<span class="font-retro text-primary-content">Randomize</span>
+<div class="avatar-icon-actions" aria-label="Avatar quick actions">
+	<button
+		id="save-avatar-btn"
+		type="button"
+		class="icon group scale-90 p-2 hover:rotate-6 sm:p-1 cursor-pointer"
+		title="Save avatar to use site-wide"
+		aria-label="Save avatar to use site-wide">
+		<i class="icon-floppy text-2xl"></i>
 	</button>
-	<button id="download-btn" class="btn btn-secondary btn-pixel font-retro">
-		<span class="font-retro text-secondary-content">Download</span>
-	</button>
-	<button id="save-avatar-btn" class="btn btn-accent btn-frame font-retro" title="Save avatar to use site-wide">
-		<span class="font-retro text-accent-content">Save</span>
-	</button>
-	<a
-		id="share-btn"
-		class="icon group hover:text-accent scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer"
-		aria-label="Share Avatar">
+	<a id="share-btn" class="icon group scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer" aria-label="Share Avatar">
 		<i class="icon-share text-2xl"></i>
 	</a>
+</div>
+
+<div class="action-buttons">
+	<button id="randomize-btn" class="btn btn-primary btn-pixel font-retro">
+		<span class="font-retro text-primary-content">Randomize</span>
+	</button>
+	<button id="download-btn" class="btn btn-secondary btn-frame font-retro">
+		<span class="font-retro text-secondary-content">Download</span>
+	</button>
 </div>
 
 <ShareNotification id="avatar-share-notification" />
