@@ -6,11 +6,11 @@
  *
  * Every mutation (changeGender, updateLayerValue, randomize) calls syncStore(),
  * which writes to the store without persisting and dispatches "avatar-state-change"
- * so the sidebar mini widget re-renders in real time. Persistence to localStorage
- * only happens when the user explicitly clicks a Save button (avatarStore.saveToStorage()).
+ * so same-page surfaces can re-render in real time. The manager itself always
+ * starts from localStorage or defaults; unsaved store memory is exploratory.
  *
- * On init the constructor reads from avatarStore (which already loaded from
- * localStorage or defaults), then overlays URL params if present.
+ * On init the constructor reads from explicit localStorage first, then defaults,
+ * then overlays URL params if present.
  */
 
 import type { Gender, AvatarState } from "@/data/avatarConfig";
@@ -31,9 +31,11 @@ export class AvatarStateManager {
 	}
 
 	constructor(_initialGender: Gender = "male") {
-		// Bootstrap from store (already loaded from localStorage or defaults).
-		this.currentGender = avatarStore.gender;
-		this.currentState = { ...avatarStore.state };
+		// Bootstrap from explicit persistence or defaults. Do not trust unsaved
+		// avatarStore memory here; users may have been exploring without saving.
+		const saved = avatarStore.getSavedState();
+		this.currentGender = saved?.gender ?? _initialGender;
+		this.currentState = saved ? { ...saved.state } : getDefaultState(this.currentGender);
 		this.currentLayer = avatarConfig[this.currentGender][0].name;
 		this.genderRadios = document.querySelectorAll('input[name="gender"]');
 
@@ -70,7 +72,6 @@ export class AvatarStateManager {
 		// does not discard a previously saved customisation.
 		this.currentState = avatarStore.getSavedStateForGender(newGender) ?? getDefaultState(newGender);
 		this.currentLayer = avatarConfig[this.currentGender][0].name;
-		this.updateURL();
 		this.syncStore();
 		await this.notifyStateChange();
 	}
@@ -81,30 +82,24 @@ export class AvatarStateManager {
 
 	async updateLayerValue(layerName: string, value: number): Promise<void> {
 		this.currentState[layerName] = value;
-		this.updateURL();
 		this.syncStore();
 		await this.notifyStateChange();
 	}
 
 	async randomize(): Promise<void> {
 		this.currentState = getRandomState(this.currentGender);
-		this.updateURL();
 		this.syncStore();
 		await this.notifyStateChange();
 	}
 
-	/** Update the browser URL (replaceState). /8biticon-specific. */
-	updateURL(): void {
+	/** Build a /8biticon URL for the current exploratory state without mutating browser history. */
+	getShareURL(): string {
 		const parts = avatarConfig[this.currentGender].map((l) => this.currentState[l.name]);
 		const avatarString = parts.join("-");
 		const url = new URL(window.location.href);
 		url.searchParams.set("gender", this.currentGender);
 		url.searchParams.set("avatar", avatarString);
-		window.history.replaceState({}, "", url.toString());
-	}
-
-	getShareURL(): string {
-		return window.location.href;
+		return url.toString();
 	}
 
 	/**
@@ -124,7 +119,6 @@ export class AvatarStateManager {
 				input.checked = input.value === newGender;
 			});
 		}
-		this.updateURL();
 	}
 
 	/**
