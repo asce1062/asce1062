@@ -77,16 +77,36 @@ class AvatarStore {
 	}
 
 	/**
+	 * Return the persisted avatar state regardless of gender.
+	 * Returns null when the user has not explicitly saved an avatar.
+	 */
+	getSavedState(): { gender: Gender; state: AvatarState } | null {
+		const saved = getPref(PREF_KEYS.avatarState);
+		if (!saved) return null;
+		const parsed = parseAvatarState(saved);
+		if (!parsed) return null;
+		return { gender: parsed.gender, state: { ...parsed.state } };
+	}
+
+	/**
 	 * Return the persisted avatar state if it was saved for the given gender.
 	 * Returns null if nothing is saved or the saved avatar is for a different gender.
 	 * Use this to prefer a saved avatar over defaults when switching gender.
 	 */
 	getSavedStateForGender(gender: Gender): AvatarState | null {
-		const saved = getPref(PREF_KEYS.avatarState);
-		if (!saved) return null;
-		const parsed = parseAvatarState(saved);
+		const parsed = this.getSavedState();
 		if (!parsed || parsed.gender !== gender) return null;
 		return { ...parsed.state };
+	}
+
+	/** Reset transient in-memory state to the explicit saved avatar, or defaults when unsaved. */
+	resetToSavedOrDefault({ dispatch = true }: { dispatch?: boolean } = {}): void {
+		const saved = this.getSavedState();
+		this._gender = saved?.gender ?? "male";
+		this._state = saved ? { ...saved.state } : getDefaultState(this._gender);
+		if (dispatch) {
+			this._dispatch();
+		}
 	}
 
 	/**

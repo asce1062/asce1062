@@ -52,6 +52,10 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 
 	if (!canvas) return ac;
 
+	// Treat a newly initialized mini picker as a fresh surface: saved avatar or defaults
+	// are the source of truth, while prior unsaved exploration is discarded.
+	avatarStore.resetToSavedOrDefault({ dispatch: false });
+
 	function setActiveGender(g: Gender): void {
 		genderBtns.forEach((b) => b.classList.toggle("nav-avatar-btn--active", b.dataset.gender === g));
 	}
