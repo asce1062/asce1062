@@ -41,7 +41,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	width: min(60%, 400px);
+	width: min(70%, 400px);
 	margin-top: 0.35rem;
 }
 
@@ -201,11 +201,22 @@
 	.generator-layout {
 		grid-template-columns: 1fr;
 		gap: 1.5rem;
+		justify-items: center;
 	}
 
 	#avatar-canvas {
 		max-width: 100%;
 		height: auto;
+	}
+
+	.preview-section,
+	.selection-section {
+		width: 100%;
+		max-width: 400px;
+	}
+
+	.selection-section {
+		align-items: center;
 	}
 
 	.layer-tabs {
@@ -216,6 +227,7 @@
 	.layer-content {
 		grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
 		gap: 0.5rem;
+		width: 100%;
 		max-height: min(400px, 52vh);
 		background: transparent;
 	}
@@ -227,6 +239,10 @@
 
 	.layer-tab-text {
 		font-size: 0.8rem;
+	}
+
+	.avatar-icon-actions {
+		width: min(65%, 400px);
 	}
 }
 
@@ -256,5 +272,9 @@
 	.layer-content {
 		grid-template-columns: repeat(auto-fill, minmax(3.75rem, 1fr));
 		padding-inline: 0.25rem;
+	}
+
+	.avatar-icon-actions {
+		width: min(60%, 400px);
 	}
 }
