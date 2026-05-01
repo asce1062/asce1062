@@ -1,0 +1,151 @@
+/*
+============================================
+Share Notification
+============================================
+*/
+.share-notification {
+	position: fixed;
+	top: 2rem;
+	right: 2rem;
+	isolation: isolate;
+	display: grid;
+	grid-template-columns: 3.15rem minmax(0, 1fr) 2.15rem;
+	align-items: center;
+	column-gap: 0.18rem;
+	width: max-content;
+	max-width: min(calc(100vw - 2rem), 20rem);
+	min-height: 4.55rem;
+	padding: 0.5rem 0.78rem 0.5rem 0;
+	overflow: hidden;
+	color: var(--color-base-content);
+	background:
+		linear-gradient(
+			90deg,
+			var(--color-info) 0 3rem,
+			color-mix(in oklab, var(--color-base-100) 94%, var(--color-neutral)) 3rem
+		),
+		var(--color-base-100);
+	border: 1px solid color-mix(in oklab, var(--color-info) 58%, transparent);
+	box-shadow:
+		0.45rem 0.45rem 0 color-mix(in oklab, var(--color-accent) 16%, transparent),
+		0 1rem 2.8rem color-mix(in oklab, black 42%, transparent);
+	font-weight: 600;
+	z-index: 1000;
+	animation: shareNotificationLaunch var(--duration-slow) var(--ease-out);
+}
+
+.share-notification::before {
+	content: "";
+	position: absolute;
+	inset: 0.52rem 0.42rem;
+	z-index: -1;
+	border: 1px dashed color-mix(in oklab, var(--color-base-content) 18%, transparent);
+	pointer-events: none;
+}
+
+.share-notification__sigil {
+	display: grid;
+	place-items: center;
+	height: 100%;
+	color: var(--color-info-content);
+	font-size: 1.58rem;
+}
+
+.share-notification__sigil i {
+	transform: scaleX(-1);
+}
+
+.share-notification__copy {
+	display: grid;
+	gap: 0.16rem;
+	min-width: 0;
+	max-width: 12.4rem;
+}
+
+.share-notification__title {
+	overflow: hidden;
+	color: var(--color-base-content);
+	font-size: 0.9rem;
+	line-height: 1.2;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.share-notification__message {
+	overflow: hidden;
+	color: color-mix(in oklab, var(--color-base-content) 56%, transparent);
+	font-size: 0.66rem;
+	letter-spacing: 0.05em;
+	line-height: 1.25;
+	text-overflow: ellipsis;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.share-notification .btn {
+	justify-self: center;
+	margin-right: 0;
+}
+
+.share-notification.hidden {
+	display: none;
+}
+
+.share-notification.fadeOut {
+	animation: shareNotificationDepart var(--duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes shareNotificationLaunch {
+	from {
+		clip-path: inset(0 0 0 100%);
+		opacity: 0;
+		transform: translate3d(1.5rem, -0.35rem, 0);
+	}
+	to {
+		clip-path: inset(0);
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes shareNotificationDepart {
+	from {
+		clip-path: inset(0);
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		clip-path: inset(0 0 0 100%);
+		opacity: 0;
+		transform: translate3d(1.5rem, -0.35rem, 0);
+	}
+}
+
+@media (max-width: 768px) {
+	.share-notification {
+		top: 1rem;
+		right: 1rem;
+		grid-template-columns: 2.9rem minmax(0, 1fr) 2.05rem;
+		width: max-content;
+		max-width: min(calc(100vw - 2rem), 19rem);
+		min-height: 4.25rem;
+		padding: 0.44rem 0.68rem 0.44rem 0;
+		background:
+			linear-gradient(
+				90deg,
+				var(--color-info) 0 2.75rem,
+				color-mix(in oklab, var(--color-base-100) 94%, var(--color-neutral)) 2.75rem
+			),
+			var(--color-base-100);
+		font-size: 0.875rem;
+		column-gap: 0.14rem;
+	}
+
+	.share-notification__sigil {
+		font-size: 1.38rem;
+	}
+
+	.share-notification__copy {
+		max-width: 11rem;
+	}
+}

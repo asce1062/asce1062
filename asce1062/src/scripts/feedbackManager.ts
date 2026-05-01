@@ -7,6 +7,7 @@ import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 
 const AUTO_HIDE_DELAY = 3000; // ms. time before a notification auto-hides
 const FADE_OUT_DURATION = 300; // ms. matches the fadeOut CSS animation duration
+const RARE_NOTIFICATION_TITLE_CHANCE = 0.08;
 
 // Auto-hide timers: fires hideNotification() after AUTO_HIDE_DELAY.
 const notificationTimers = new Map<string, number>();
@@ -24,6 +25,35 @@ interface ShareOrCopyOptions {
 	shareData: ShareData;
 	clipboardText: string;
 	notificationId: string;
+}
+
+function parseTitleOptions(value: string | undefined): string[] {
+	if (!value) return [];
+	try {
+		const parsed = JSON.parse(value);
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+	} catch {
+		return [];
+	}
+}
+
+function pickNotificationTitle(notification: HTMLElement): string | null {
+	const common = parseTitleOptions(notification.dataset.titleOptions);
+	const rare = parseTitleOptions(notification.dataset.rareTitleOptions);
+	const pool = rare.length > 0 && Math.random() < RARE_NOTIFICATION_TITLE_CHANCE ? rare : common;
+	if (pool.length === 0) return null;
+	return pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? null;
+}
+
+function updateNotificationTitle(notification: HTMLElement): void {
+	if (typeof notification.querySelector !== "function") return;
+
+	const title = notification.querySelector<HTMLElement>("[data-share-notification-title]");
+	if (!title) return;
+
+	const nextTitle = pickNotificationTitle(notification);
+	if (nextTitle) title.textContent = nextTitle;
 }
 
 /**
@@ -54,6 +84,7 @@ export function showNotification(notificationId: string): void {
 	}
 
 	// Show: clear both animation and hidden state.
+	updateNotificationTitle(notification);
 	notification.classList.remove("fadeOut", "hidden");
 
 	// Schedule auto-hide.

@@ -3,6 +3,7 @@
  * Reusable share notification component
  * Shows a dismissible notification when content is copied to clipboard
  */
+import "@/styles/components/share-notification.css";
 
 interface Props {
 	id: string;
@@ -10,11 +11,119 @@ interface Props {
 }
 
 const { id, message = "Link copied!" } = Astro.props;
+
+const titleOptions = [
+	"All systems nominal",
+	"Orbit achieved",
+	"Set phasers to share",
+	"Engage",
+	"Punch it",
+	"Signal riding starlight",
+	"[ uplink established ]",
+	":: share() resolved",
+	"To the moon, Alice!",
+	"Beam me up, Scotty",
+	"Vector committed",
+	"Constellation aligned",
+	"Slipstream engaged",
+	"Starpath unlocked",
+	"> transmit: success",
+	"// broadcast complete",
+	"link.exe launched",
+	"Make it so",
+	"Live long and prosper",
+];
+const rareTitleOptions = [
+	"🖖",
+	"👽",
+	"👾",
+	"🤖",
+	"🛰️",
+	"📡",
+	"🚀",
+	"✨",
+	"💫",
+	"🌌",
+	"🌠",
+	"🌟",
+	"☄️",
+	"👨‍🚀",
+	"👩‍🚀",
+	"🛸",
+	"🪐",
+	"🧬",
+	"👻",
+	"⚡",
+	"🔥",
+	"💥",
+	"💨",
+	"🌪️",
+	"🌈",
+	"🌊",
+	"🍃",
+	"🍁",
+	"🍄",
+	"🌵",
+	"🌴",
+	"🍀",
+	"👀",
+	"😶‍🌫️",
+	"🙂",
+	"🙃",
+	"😎",
+	"😏",
+	"#",
+	"$",
+	"~",
+	"^^",
+	">_",
+	"::",
+	"…",
+	"[]",
+	"<>",
+	"{}",
+	"//",
+	"o7",
+	"¬_¬",
+	"(¬‿¬)",
+	"(づ￣ ³￣)づ",
+	"｡◕‿◕｡",
+	"(｡◕‿◕｡)",
+	"♥‿♥",
+	"◉_◉",
+	"(ᵔᴥᵔ)",
+	"ʕ•́ᴥ•̀ʔっ",
+	"ʕ•ᴥ•ʔ",
+	"ᕙ(⇀‸↼‶)ᕗ",
+	"ᕦ(ò_óˇ)ᕤ",
+	"(~˘▾˘)~",
+	"~(˘▾˘~)",
+	"(ง'̀-'́)ง",
+	"(づ｡◕‿‿◕｡)づ",
+	"ヾ(⌐■_■)ノ♪",
+	"♪~ ᕕ(ᐛ)ᕗ",
+	"(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧",
+	"｡゜(｀Д´)゜｡",
+	"(╯°□°）╯︵ ┻━┻",
+];
 ---
 
 <!-- Share Notification -->
-<div id={id} class="share-notification hidden" role="status" aria-live="polite" aria-atomic="true">
-	<span class="font-retro">{message}</span>
+<div
+	id={id}
+	class="share-notification hidden"
+	role="status"
+	aria-live="polite"
+	aria-atomic="true"
+	data-title-options={JSON.stringify(titleOptions)}
+	data-rare-title-options={JSON.stringify(rareTitleOptions)}>
+	<span class="share-notification__sigil" aria-hidden="true">
+		<i class="icon-rocket-takeoff"></i>
+	</span>
+	<span class="share-notification__copy">
+		<strong class="share-notification__title font-retro" data-share-notification-title>{titleOptions[0]}</strong>
+		<small class="share-notification__message" data-share-notification-message>{message}</small>
+	</span>
 	<button id={`${id}-close`} class="btn btn-frame btn-error btn-xs" aria-label="Close notification">
 		<i class="icon-x-lg" aria-hidden="true"></i>
 	</button>
