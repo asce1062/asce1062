@@ -755,6 +755,15 @@
 		font-size: 0.625rem;
 	}
 
+	.terminal-window__system-art,
+	.terminal-window__system-row {
+		font-size: 0.625rem;
+	}
+
+	.terminal-window__system-font {
+		font-size: 0.5625rem;
+	}
+
 	.terminal-window__system-label {
 		min-width: 5.25rem;
 	}
