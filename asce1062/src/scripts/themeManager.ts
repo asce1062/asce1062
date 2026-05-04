@@ -4,7 +4,7 @@
  * Handles light/dark theme switching.
  *
  * Theme priority:
- *   URL param (?theme=light|dark) - highest; for embeds and screenshots only
+ *   URL params (?theme=light|dark, ?flavor=<id>) - highest; for embeds and screenshots only
  *   match-device mode             - live OS preference; wins over stored manual choice
  *   localStorage                  - authoritative persisted user preference
  *   data-theme attribute          - fallback; reflects what's painted on screen
@@ -27,6 +27,7 @@
  */
 
 import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
+import { isFlavor, setFlavor, type Flavor } from "@/scripts/flavorManager";
 import { atomicSwitch } from "@/scripts/themeTransition";
 
 export type Theme = "light" | "dark";
@@ -40,6 +41,13 @@ export const MATCH_DEVICE_THEME_CHANGE_EVENT = "match-device-theme-change";
 
 // Element ID of the theme icon. matches the <i id="toggleIcon"> in ThemeSwitcher.astro
 const ICON_ELEMENT_ID = "toggleIcon";
+
+/**
+ * URL theme overrides are presentation hints for embeds/screenshots. Once the
+ * user manually toggles theme, the visible URL stays intact but the current
+ * runtime stops treating ?theme= as authoritative until the next hard load.
+ */
+let hasManualThemeOverride = false;
 
 /** Return the OS/browser preferred color scheme. */
 export function getSystemTheme(): Theme {
@@ -89,8 +97,23 @@ export function resolveActiveTheme(): Theme {
  * Returns the theme if ?theme=light or ?theme=dark, otherwise null.
  */
 export function getThemeFromUrl(): Theme | null {
+	if (hasManualThemeOverride) return null;
 	const param = new URLSearchParams(window.location.search).get("theme");
 	return param === "light" || param === "dark" ? param : null;
+}
+
+/**
+ * Read the URL flavor override, if present.
+ * Returns:
+ *   - a known flavor id for ?flavor=crt-green|amber|synthwave|dos|void|ice|redline
+ *   - "" for ?flavor=default or ?flavor= (default warm void)
+ *   - null when absent or invalid
+ */
+export function getFlavorFromUrl(): Flavor | null {
+	const param = new URLSearchParams(window.location.search).get("flavor");
+	if (param === null) return null;
+	if (param === "" || param === "default") return "";
+	return isFlavor(param) ? param : null;
 }
 
 /**
@@ -131,7 +154,9 @@ export function setTheme(theme: Theme, persist: boolean = true): Theme {
  * Toggle between light and dark, persist the new value, and return it.
  */
 export function toggleTheme(): Theme {
-	return setTheme(getCurrentTheme() === "light" ? "dark" : "light");
+	const prevTheme = getCurrentTheme();
+	hasManualThemeOverride = true;
+	return setTheme(prevTheme === "light" ? "dark" : "light");
 }
 
 /**
@@ -148,16 +173,21 @@ export function updateThemeIcon(): void {
 }
 
 /**
- * If a URL theme is present, apply it without persisting.
- * Call early to avoid a flash of the wrong theme for embed/screenshot use.
+ * If URL appearance params are present, apply them without persisting.
+ * Call early to avoid a flash of the wrong theme/flavor for embed/screenshot use.
  */
 export function initThemeFromUrl(): void {
 	const urlTheme = getThemeFromUrl();
 	if (urlTheme) setTheme(urlTheme, false);
+
+	const urlFlavor = getFlavorFromUrl();
+	if (urlFlavor !== null) {
+		setFlavor(urlFlavor, { emitEvent: false });
+	}
 }
 
 /**
- * Initialize the theme switcher: apply any URL override and sync the icon.
+ * Initialize the theme switcher: apply any URL appearance overrides and sync the icon.
  */
 export function initThemeSwitcher(): void {
 	initThemeFromUrl();
@@ -173,6 +203,7 @@ export function initThemeSwitcher(): void {
 export function handleThemeToggle(): void {
 	const prevTheme = getCurrentTheme();
 	const newTheme: Theme = prevTheme === "light" ? "dark" : "light";
+	hasManualThemeOverride = true;
 	disableMatchDeviceTheme();
 	atomicSwitch(() => setTheme(newTheme), {
 		source: "theme-toggle",

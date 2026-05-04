@@ -159,8 +159,13 @@ function init(): void {
 
 // Re-stamp data-theme before the new page's content becomes visible on soft nav.
 document.addEventListener("astro:after-swap", () => {
+	const urlTheme = getThemeFromUrl();
+	if (urlTheme) {
+		document.documentElement.setAttribute("data-theme", urlTheme);
+		return;
+	}
+
 	if (!isMatchDeviceTheme()) return;
-	if (getThemeFromUrl()) return;
 	// Apply without calling the full setTheme to keep this synchronous and
 	// avoid a double dispatch. the astro:page-load init() call right after
 	// will call setTheme() which handles persistence and icon sync.
