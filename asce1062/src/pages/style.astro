@@ -1,0 +1,771 @@
+---
+/**
+ * Style Guide
+ * Editorial style, interface specimens, and implementation notes for alexmbugua.me.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { colorRoles } from "@/config/design-tokens";
+import "@/styles/components/guestbook.css";
+
+const colorSpecimens = colorRoles;
+
+const badgeVariants = ["primary", "secondary", "accent", "neutral", "info", "success", "warning", "error"];
+const buttonVariants = ["primary", "secondary", "accent", "neutral", "info", "success", "warning", "error"];
+const buttonPersonalities = ["btn-elevation", "btn-pixel", "btn-frame"];
+const inputVariants = ["accent", "success", "warning", "error"];
+const controlVariants = ["primary", "secondary", "accent", "success", "warning", "error"];
+const linkVariants = ["primary", "secondary", "accent", "neutral", "info", "success", "warning", "error"];
+
+const voiceRules = [
+	"Warm, not loud.",
+	"Precise, not academic.",
+	"Personal, not diary-only.",
+	"Curious, not performative.",
+	"Specific before abstract.",
+	"Clear before clever.",
+];
+
+const titleRules = [
+	"Use sentence case by default.",
+	"Keep technical titles specific, searchable, and human.",
+	"Preserve proper nouns, acronyms, product names, package names, filenames, and commands.",
+	"Let essays and personal reflections be more poetic when the mood earns it.",
+	"Do not write clickbait, keyword soup, or inflated academic phrasing.",
+];
+
+const formattingRules = [
+	"Short paragraphs by default.",
+	"Headings create scan paths; they are not decoration.",
+	"Use inline code for filenames, commands, CSS classes, symbols, API names, and storage keys.",
+	"Use fenced code blocks for commands, snippets, logs, and config fragments.",
+	"Use footnotes for side quests, jokes, provenance, and extra context.",
+	"Use bullets when they make a thing easier to scan.",
+	"Keep punctuation calm. Prefer commas, periods, colons, and parentheses over repeated em dashes.",
+];
+
+const technicalRules = [
+	"Show the bug before the fix when that helps the reader.",
+	"Name the environment when it matters: OS, browser, package version, font version, service, or deploy target.",
+	"Name files and commands precisely.",
+	"Explain the tradeoff, not just the outcome.",
+	"Include failure states and debugging notes when they will help future Alex.",
+];
+
+const breakRules = [
+	"Rhythm matters more than strict structure.",
+	"A poetic title fits the piece better than a searchable one.",
+	"A tiny fragment makes the thought land.",
+	"The interface needs to feel alive, not merely correct.",
+	"A one-off page needs a one-off moment, as long as it still respects the system.",
+];
+
+const goodTitles = [
+	"Fixing missing Block Element glyphs in 0xProto",
+	"Building an animated footnote system in Astro",
+	"Day n' Night [Dusk Till Dawn (hi)]",
+];
+
+const avoidTitles = [
+	"You won't believe this font bug",
+	"A comprehensive exploration of modern typographic remediation",
+	"Some thoughts",
+];
+
+const motifs = [
+	"signal",
+	"orbit",
+	"constellation",
+	"starlight",
+	"uplink",
+	"terminal",
+	"phosphor",
+	"telemetry",
+	"field notes",
+	"lab notes",
+	"boot sequence",
+	"transmission",
+	"archive",
+	"tiny machines",
+];
+
+const carefulWords = ["hacker", "glitch", "retro", "AI", "productivity", "cinematic", "seamless"];
+
+const doNotShip = [
+	"Corporate filler: fast-paced landscape, leverage, cutting-edge, game-changing.",
+	"Generic portfolio cliches that could describe anyone.",
+	"Effects that make content harder to read.",
+	"One-off colors when a semantic token already exists.",
+	"Rounded non-circular surfaces unless they serve a clear purpose.",
+	"Animations that ignore reduced-motion preferences.",
+	"Primary navigation clutter for pages that belong in Explore or footer contexts.",
+	"New CSS primitives that duplicate existing utilities in src/styles/utilities.",
+];
+---
+
+<Layout
+	title="Style Guide"
+	description="Editorial style, interface specimens, and implementation notes for alexmbugua.me."
+	ogImage="images/social-preview.png">
+	<article class="max-w-none">
+		<section id="mission-control" class="mb-10">
+			<p class="mb-2 text-xs text-muted">
+				<span class="font-bold text-success">$</span>
+				<span class="ml-1 text-warning">cat ~/style/field-manual.md</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h1 class="mb-3 text-heading-1"><i class="icon-flask-florence"></i> /style</h1>
+			<p class="text-lg text-base-content">
+				A working reference, not a manifesto: how alexmbugua.me writes, names things, and presents itself.
+			</p>
+			<p>
+				This is a <a href="https://indieweb.org/style-guide" target="_blank" rel="noopener noreferrer">style page</a>
+				in the IndieWeb sense: part editorial guide, part design reference, part reminder to keep the site recognizably mine.
+				The philosophy lives in <a href="/notes/2026-03-12-guiding-principles">Guiding Principles</a>; the raw token
+				matrix lives in <a href="/palette">/palette</a>.
+			</p>
+			<p>If something on this site feels consistent, it probably passed through this page.</p>
+		</section>
+
+		<section id="writing" class="mb-14">
+			<h2><i class="icon-pencil-square"></i> Writing</h2>
+			<p>
+				The site speaks like a developer thinking out loud at a clean desk: warm, specific, a little unusual but
+				intentional, and useful enough for future Alex to debug from.
+			</p>
+
+			<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]">
+				<div class="space-y-8">
+					<section>
+						<h3>Voice</h3>
+						<ul>
+							{voiceRules.map((rule) => <li>{rule}</li>)}
+						</ul>
+						<p>The site should read like someone thinking clearly, not performing intelligence.</p>
+						<p>Clarity beats cleverness. Specificity beats abstraction. Shipping beats theorizing.</p>
+					</section>
+
+					<section>
+						<h3>Titles</h3>
+						<ul>
+							{titleRules.map((rule) => <li>{rule}</li>)}
+						</ul>
+					</section>
+
+					<section>
+						<h3>Formatting</h3>
+						<ul>
+							{formattingRules.map((rule) => <li>{rule}</li>)}
+						</ul>
+					</section>
+
+					<section>
+						<h3>Technical writing</h3>
+						<ul>
+							{technicalRules.map((rule) => <li>{rule}</li>)}
+						</ul>
+					</section>
+				</div>
+
+				<div class="space-y-8">
+					<section class="not-prose mb-8">
+						<h3 class="m-0 mb-3 text-sm font-bold text-success">Good titles</h3>
+						<ul class="m-0 mb-5 list-none space-y-2 p-0 text-sm">
+							{goodTitles.map((title) => <li class="border-l-2 border-success pl-3">{title}</li>)}
+						</ul>
+						<h3 class="m-0 mb-3 text-sm font-bold text-warning">Less good</h3>
+						<ul class="m-0 list-none space-y-2 p-0 text-sm">
+							{avoidTitles.map((title) => <li class="border-l-2 border-warning pl-3">{title}</li>)}
+						</ul>
+					</section>
+
+					<section>
+						<h3>This site is not</h3>
+						<ul>
+							<li>A portfolio trying to impress everyone.</li>
+							<li>A blog optimized for clicks.</li>
+							<li>A content machine.</li>
+							<li>A place for polished perfection at the expense of honest notes.</li>
+						</ul>
+						<p>It is a working space: a place to think, build, revise, and leave useful traces behind.</p>
+					</section>
+
+					<section>
+						<h3>Breaking the rules</h3>
+						<p>Rules exist to make the site clearer, not stricter. Break them when:</p>
+						<ul>
+							{breakRules.map((rule) => <li>{rule}</li>)}
+						</ul>
+						<p>If it reads better and still feels like this site, it is better.</p>
+					</section>
+				</div>
+
+				<section class="lg:col-span-2">
+					<h3>Example</h3>
+					<div class="not-prose grid gap-4 md:grid-cols-2">
+						<section>
+							<p class="m-0 mb-2 text-xs font-bold uppercase text-error">Before</p>
+							<p class="m-0 text-sm">
+								In this article we explore the implementation of a scalable animation system for a modern web interface.
+							</p>
+						</section>
+						<section>
+							<p class="m-0 mb-2 text-xs font-bold uppercase text-success">After</p>
+							<p class="m-0 text-sm">I wanted the sidebar to feel alive. Here's how I made it breathe.</p>
+						</section>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="interface-system" class="mb-8">
+			<h2><i class="icon-collection"></i> Interface system</h2>
+			<p>
+				The rest of this page is the supporting UI specimen sheet: tokens, type, prose elements, controls, cards, and
+				terminal accents. These exist to support the writing: to keep it readable, consistent, and unmistakably part of
+				this site.
+			</p>
+		</section>
+
+		<section id="color-roles" class="mb-12">
+			<h2><i class="icon-palette"></i> Color roles</h2>
+			<p>
+				Use semantic roles first. Base tokens build surfaces, brand tokens carry action, status tokens mean state, and
+				atmosphere tokens keep the cosmic layer from leaking into structural UI.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+				{
+					colorSpecimens.map((role) => (
+						<section>
+							<div class="mb-3 flex items-center gap-3">
+								<span
+									class="h-9 w-9 shrink-0 border border-base-300"
+									style={`background-color: var(--color-${role.id})`}
+									aria-hidden="true"
+								/>
+								<div>
+									<h3 class="m-0 text-sm font-bold">{role.name}</h3>
+									<code class="text-xs text-muted">--color-{role.id}</code>
+								</div>
+							</div>
+							<p class="m-0 text-sm text-muted">{role.description}</p>
+						</section>
+					))
+				}
+			</div>
+		</section>
+
+		<section id="type" class="mb-12">
+			<h2><i class="icon-type"></i> Type</h2>
+			<p>
+				The site speaks in <code>0xProto</code>. <code>uni0553</code> is a rare accent for pixel-era labels, buttons, and
+				console charm. No soft corporate sans voice sneaks into the cockpit.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 md:grid-cols-2">
+				<section>
+					<p class="m-0 mb-2 text-xs font-bold uppercase text-muted">Primary / 0xProto</p>
+					<p class="m-0 text-xl leading-relaxed">
+						The quick brown fox pings <code>localhost</code> at 03:17 and waits for the signal.
+					</p>
+				</section>
+				<section>
+					<p class="m-0 mb-2 text-xs font-bold uppercase text-muted">Accent / uni0553</p>
+					<p class="m-0 font-retro text-xl leading-relaxed">BOOT SEQUENCE / FIELD NOTES / STAR MAP</p>
+				</section>
+			</div>
+		</section>
+
+		<section id="selection-body" class="mb-12">
+			<h2><i class="icon-cursor-text"></i> Global selection and body</h2>
+			<p>
+				The global body layer uses <code>0xProto</code>, <code>--color-base-content</code>, and the ambient topography
+				surface. Browser text selection uses <code>--color-info</code> with <code>--color-info-content</code>.
+			</p>
+			<p class="not-prose mt-5 text-sm">
+				Drag across this sentence to test the real <code>::selection</code> style. Visible token preview:
+				<span class="bg-info px-1 text-info-content">selected text</span>.
+			</p>
+		</section>
+
+		<section id="headings" class="mb-12">
+			<h2><i class="icon-type-h1"></i> Headings</h2>
+			<p>Headings should create a usable scan path. Terminal flavor is welcome; broken outline order is not.</p>
+
+			<div class="not-prose mt-5">
+				<p class="mb-3 text-heading-1">H1 Header: main transmission</p>
+				<p class="mb-3 text-heading-2">H2 Header: section waypoint</p>
+				<p class="mb-3 text-heading-3">H3 Header: local construct</p>
+				<p class="mb-0 text-base font-bold text-base-content">H4 Header: compact detail</p>
+			</div>
+		</section>
+
+		<section id="prose" class="mb-12">
+			<h2><i class="icon-paragraph"></i> Prose</h2>
+			<p>
+				The prose layer should be readable before it is clever. Links, lists, quotes, tables, and details carry the same
+				sharp terminal language as the rest of the site.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Inline prose</h3>
+					<p class="m-0 text-sm leading-relaxed">
+						A regular <a href="/hello">internal link</a>, an
+						<a href="https://slashpages.net/#style" target="_blank" rel="noopener noreferrer">
+							external slashpage link
+						</a>
+						, <strong>strong text</strong>, <em>emphasis</em>,
+						<mark class="bg-secondary px-1 text-secondary-content">search result mark</mark>, <ins>inserted text</ins>,
+						<sup><a href="#resources">1</a></sup>, and <code>inline-code</code>.
+					</p>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Keyboard</h3>
+					<p class="m-0 text-sm leading-relaxed">
+						Use <kbd>Cmd</kbd> + <kbd>K</kbd> for command-palette style shortcuts and <kbd>Ctrl</kbd> +
+						<kbd>Shift</kbd> + <kbd>L</kbd> for theme language.
+					</p>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Lists</h3>
+					<ul class="m-0 space-y-1 pl-5 text-sm">
+						<li>Use bullets for quick scanning.</li>
+						<li>Keep items parallel when possible.</li>
+						<li>Do not turn every paragraph into a list.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Blockquote</h3>
+					<blockquote class="m-0">
+						<p class="m-0">A note can sound personal and still be precise. The lab bench has room for both.</p>
+					</blockquote>
+				</section>
+
+				<section class="lg:col-span-2">
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Table</h3>
+					<table class="m-0 text-sm">
+						<thead>
+							<tr>
+								<th>Element</th>
+								<th>Use</th>
+								<th>Site note</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><code>code</code></td>
+								<td>Inline tokens</td>
+								<td>Filenames, classes, commands, APIs</td>
+							</tr>
+							<tr>
+								<td><code>blockquote</code></td>
+								<td>Quoted or pulled notes</td>
+								<td>Warm warning rail, no ornamental quote marks</td>
+							</tr>
+							<tr>
+								<td><code>kbd</code></td>
+								<td>Keyboard input</td>
+								<td>Use for shortcuts like <kbd>Cmd</kbd> + <kbd>K</kbd></td>
+							</tr>
+							<tr>
+								<td><code>details</code></td>
+								<td>Side context</td>
+								<td>Use when the page needs optional depth</td>
+							</tr>
+						</tbody>
+					</table>
+				</section>
+
+				<section class="lg:col-span-2">
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Details / callout</h3>
+					<details>
+						<summary class="cursor-pointer text-sm font-bold text-warning">Open a tiny side quest</summary>
+						<p class="m-0 mt-3 text-sm">
+							Use details for tangents, source notes, tool output, or anything useful that should not interrupt the main
+							scan path.
+						</p>
+					</details>
+				</section>
+			</div>
+		</section>
+
+		<section id="code" class="mb-12">
+			<h2><i class="icon-code-slash"></i> Code</h2>
+			<p>
+				Code should feel like material from the same terminal as the UI. Inline code is compact; blocks are bordered and
+				scrollable. Markdown-rendered pages get the Shiki data attributes; Astro-authored pages only get those highlight
+				styles when the attributes are written into the markup intentionally.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-6 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Inline tokens</h3>
+					<p class="m-0 text-sm">
+						Name the exact thing: <code>src/pages/style.astro</code>, <code>--color-accent</code>,
+						<code>theme-flavor</code>, <code>astro:page-load</code>.
+					</p>
+				</section>
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Markdown-only highlight hooks</h3>
+					<p class="m-0 text-sm">
+						Generated MDX/Shiki output may include <code>data-theme</code>, <code>data-line</code>,
+						<code>data-highlighted-line</code>, and <code>data-highlighted-chars</code>. Do not expect those styles from
+						plain <code>.astro</code> snippets unless those attributes are authored explicitly.
+					</p>
+				</section>
+			</div>
+		</section>
+
+		<section id="buttons" class="mb-12">
+			<h2><i class="icon-hand-index"></i> Buttons</h2>
+			<p>
+				Buttons are italic, monospace, sharp-edged controls. Start with <code>.btn</code>, add a color when state or
+				emphasis requires it, then add a personality variant only when the surface deserves extra character.
+			</p>
+
+			<div class="not-prose mt-5 space-y-5">
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Color variants</h3>
+					<div class="flex flex-wrap gap-3">
+						<button type="button" class="btn">default</button>
+						{
+							buttonVariants.map((variant) => (
+								<button type="button" class={`btn btn-${variant}`}>
+									{variant}
+								</button>
+							))
+						}
+						<button type="button" class="btn" disabled> disabled </button>
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Personality variants</h3>
+					<div class="flex flex-wrap gap-4">
+						{
+							buttonPersonalities.map((variant) => (
+								<button type="button" class={`btn btn-accent ${variant}`}>
+									{variant.replace("btn-", "")}
+								</button>
+							))
+						}
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Sizes</h3>
+					<div class="flex flex-wrap items-center gap-3">
+						<button type="button" class="btn btn-secondary btn-xs">xs</button>
+						<button type="button" class="btn btn-secondary btn-sm">sm</button>
+						<button type="button" class="btn btn-secondary">default</button>
+						<button type="button" class="btn btn-secondary btn-lg">lg</button>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="links" class="mb-12">
+			<h2><i class="icon-link-45deg"></i> Link actions</h2>
+			<p>
+				Use <code>.link-action</code> for navigational commands. Plain prose links remain text; action links are little terminal
+				buttons with icons or command glyphs.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Variants</h3>
+					<div class="flex flex-wrap gap-3">
+						<a href="/style" class="link-action no-underline">
+							<i class="icon-flask-florence"></i>
+							default
+						</a>
+						{
+							linkVariants.map((variant) => (
+								<a href="/style" class={`link-action link-action--${variant} no-underline`}>
+									<span aria-hidden="true">&gt;</span>
+									{variant}
+								</a>
+							))
+						}
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Sizes</h3>
+					<div class="flex flex-wrap items-center gap-3">
+						<a href="/style" class="link-action link-action--accent link-action--xs no-underline">xs</a>
+						<a href="/style" class="link-action link-action--accent link-action--sm no-underline">sm</a>
+						<a href="/style" class="link-action link-action--accent no-underline">default</a>
+						<a href="/style" class="link-action link-action--accent link-action--lg no-underline">lg</a>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="badges" class="mb-12">
+			<h2><i class="icon-tags"></i> Badges and tags</h2>
+			<p>
+				Badges label metadata, state, and tiny taxonomy. Tags can use <code>.link-action</code> when they navigate; badges
+				are better when they just annotate.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Badge variants</h3>
+					<div class="flex flex-wrap gap-2">
+						<span class="badge">default</span>
+						{badgeVariants.map((variant) => <span class={`badge badge-${variant}`}>{variant}</span>)}
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Badge sizes</h3>
+					<div class="flex flex-wrap items-center gap-2">
+						<span class="badge badge-secondary badge-xs">xs</span>
+						<span class="badge badge-secondary badge-sm">sm</span>
+						<span class="badge badge-secondary">default</span>
+						<span class="badge badge-secondary badge-lg">lg</span>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="forms" class="mb-12">
+			<h2><i class="icon-input-cursor-text"></i> Forms</h2>
+			<p>
+				Inputs are blunt terminal fields with visible focus rings. The patterned textarea below intentionally imports
+				the guestbook component styles so this page can document that form surface where it is used.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Text inputs</h3>
+					<div class="grid gap-3">
+						<input class="input" value="default input" aria-label="Default input specimen" />
+						{
+							inputVariants.map((variant) => (
+								<input
+									class={`input input-${variant}`}
+									value={`${variant} input`}
+									aria-label={`${variant} input specimen`}
+								/>
+							))
+						}
+						<input class="input input-sm" value="small input" aria-label="Small input specimen" />
+						<input class="input input-lg" value="large input" aria-label="Large input specimen" />
+						<input class="input" value="disabled input" aria-label="Disabled input specimen" disabled />
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Named input moods</h3>
+					<div class="grid gap-3">
+						<input class="input-allowed" value="allowed signal" aria-label="Allowed input specimen" />
+						<input class="input-honeypot" value="honeypot field" aria-label="Honeypot input specimen" />
+					</div>
+				</section>
+
+				<section class="lg:col-span-2">
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Guestbook textarea surface</h3>
+					<div class="textarea-wrapper"
+						><textarea class="block min-h-28 w-full p-2.5 text-sm textarea-styled" aria-label="Textarea style specimen"
+							>Say hi, write a poem, or sketch some ASCII art...</textarea
+						></div
+					>
+				</section>
+			</div>
+		</section>
+
+		<section id="controls" class="mb-12">
+			<h2><i class="icon-toggles"></i> Controls</h2>
+			<p>
+				Checkboxes use the icon font. Toggles are square, compact, and tokenized. Every state needs focus visibility and
+				reduced-motion respect.
+			</p>
+
+			<div class="not-prose mt-5 space-y-5">
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Checkbox states and sizes</h3>
+					<div class="flex flex-wrap items-center gap-4 text-sm">
+						<label><input type="checkbox" class="checkbox" checked disabled /> disabled</label>
+						<label><input type="checkbox" class="checkbox" /> unchecked</label>
+						<label><input type="checkbox" class="checkbox" checked /> checked</label>
+						<label><input type="checkbox" class="checkbox checkbox-xs" checked /> xs</label>
+						<label><input type="checkbox" class="checkbox checkbox-sm" checked /> sm</label>
+						<label><input type="checkbox" class="checkbox" checked /> default</label>
+						<label><input type="checkbox" class="checkbox checkbox-lg" checked /> lg</label>
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Checkbox colors</h3>
+					<div class="flex flex-wrap gap-4 text-sm">
+						{
+							controlVariants.map((variant) => (
+								<label>
+									<input type="checkbox" class={`checkbox checkbox-${variant}`} checked /> {variant}
+								</label>
+							))
+						}
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Toggle states and sizes</h3>
+					<div class="flex flex-wrap items-center gap-4 text-sm">
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle" checked disabled />
+							disabled
+						</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" /> off</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" checked /> on</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-xs" checked /> xs</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-sm" checked /> sm</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" checked /> default</label>
+						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-lg" checked /> lg</label>
+					</div>
+				</section>
+
+				<section>
+					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Toggle colors</h3>
+					<div class="flex flex-wrap items-center gap-4 text-sm">
+						{
+							controlVariants.map((variant) => (
+								<label class="flex items-center gap-2">
+									<input type="checkbox" class={`toggle toggle-${variant}`} checked /> {variant}
+								</label>
+							))
+						}
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="cards" class="mb-12">
+			<h2><i class="icon-collection"></i> Cards and frames</h2>
+			<p>
+				Cards are structural surfaces, not decoration. Keep borders sharp, use base surfaces, and reserve heavy
+				character for places where it helps the object feel handled.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-3">
+				<section>
+					<h3 class="m-0 mb-2 text-sm font-bold text-accent">Plain panel</h3>
+					<p class="m-0 text-sm text-muted">Use for small grouped references, metadata, and utility specimens.</p>
+				</section>
+				<section>
+					<h3 class="m-0 mb-2 text-sm font-bold text-accent">Content card surface</h3>
+					<p class="m-0 text-sm text-muted">Matches the quiet framed cards used by content listings.</p>
+				</section>
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Avatar frame</h3>
+					<div
+						class="avatar-frame grid place-items-center font-retro text-xs text-warning"
+						style="--avatar-frame-size: 4rem;"
+						aria-label="Avatar frame specimen">
+						8BIT
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="terminal-bits" class="mb-12">
+			<h2><i class="icon-terminal"></i> Terminal bits</h2>
+			<p>
+				These are the tiny signals that make the site feel alive: command prompts, cursors, ASCII-ish labels, and
+				phosphor accents. Use them like seasoning, not wallpaper.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Prompt line</h3>
+					<p class="m-0 text-sm text-muted">
+						<span class="font-bold text-success">$</span>
+						<span class="ml-1 text-warning">transmit --channel style --mode warm-void</span>
+						<span class="blink" aria-hidden="true">_</span>
+					</p>
+				</section>
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-accent">System labels</h3>
+					<div class="flex flex-wrap gap-2">
+						<span class="badge badge-secondary badge-sm">&gt; signal</span>
+						<span class="badge badge-accent badge-sm">uplink</span>
+						<span class="badge badge-warning badge-sm">boot sequence</span>
+						<span class="badge badge-info badge-sm">telemetry</span>
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="words" class="mb-12">
+			<h2><i class="icon-quote"></i> Words and motifs</h2>
+			<p>
+				Recurring words should feel like site weather, not a thesaurus trap. Use motifs when they clarify tone or
+				structure.
+			</p>
+
+			<div class="not-prose mt-5 grid gap-4 md:grid-cols-2">
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-success">Preferred motifs</h3>
+					<div class="flex flex-wrap gap-2">
+						{motifs.map((word) => <span class="badge badge-secondary badge-sm">{word}</span>)}
+					</div>
+				</section>
+				<section>
+					<h3 class="m-0 mb-3 text-sm font-bold text-warning">Use carefully</h3>
+					<div class="flex flex-wrap gap-2">
+						{carefulWords.map((word) => <span class="badge badge-warning badge-sm">{word}</span>)}
+					</div>
+				</section>
+			</div>
+		</section>
+
+		<section id="do-not-ship" class="mb-12">
+			<h2><i class="icon-x-octagon"></i> Do not ship</h2>
+			<ul>
+				{doNotShip.map((item) => <li>{item}</li>)}
+			</ul>
+		</section>
+
+		<section id="resources" class="mb-6">
+			<h2><i class="icon-book"></i> Resources</h2>
+			<ul>
+				<li>
+					<a href="https://rubenerd.com/the-rubenerd-style-guide/" target="_blank" rel="noopener noreferrer">
+						Ruben Schade's style guide
+					</a>
+				</li>
+				<li>
+					<a href="https://me.micahrl.com/style/" target="_blank" rel="noopener noreferrer">
+						Micah R Ledbetter's style guide
+					</a>
+				</li>
+				<li>
+					<a href="https://rknight.me/about/design/" target="_blank" rel="noopener noreferrer">
+						Robb's design style guide
+					</a>
+				</li>
+				<li>
+					<a href="/palette">/palette</a> for design tokens and theme flavors
+				</li>
+				<li>
+					<a href="/colophon">/colophon</a> for stack, typography, credits, and site architecture
+				</li>
+				<li>
+					<a href="/notes/2026-03-12-guiding-principles">Guiding Principles</a> for the philosophy behind the site
+				</li>
+			</ul>
+
+			<blockquote>
+				<p>
+					This guide is allowed to change. The site is a living room, a lab bench, and a tiny observatory. Standards
+					should help it feel more like itself, not trap it in amber.
+				</p>
+			</blockquote>
+		</section>
+	</article>
+</Layout>
