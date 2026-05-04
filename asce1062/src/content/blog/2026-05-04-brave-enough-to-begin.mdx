@@ -1,0 +1,33 @@
+---
+title: "The Courage to Make Mistakes"
+pubDate: 2026-05-04
+description: "The fall doesn’t define you. The rising does."
+image:
+    url: "/src/assets/blog/brave-enough-to-begin.png"
+    alt: "fear won’t stop you from falling, it only stops you from flying"
+tags: ["motivation", "courage", "confidence", "resilience"]
+permalink: "2026-05-04-brave-enough-to-begin"
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}>
+
+- The greatest mistake you can make in life, is to be continually fearing that you will make one
+- Fear never prevents the fall, it only prevents the flight
+- The road was never meant to be walked without missteps
+- You don't grow by avoiding the rain.
+- You grow by walking through it and realizing it couldn't hurt you
+- A flawless life is an unlived one
+- Regret doesn't come from falling, it comes from never trying
+- Mistakes are not the end, they are the evidence that you were brave enough to begin[^1]
+- the fall does not define you, it's the relentless rising that carves your legacy
+
+[^1]: Proverbs 24:16 - for though the righteous fall seven times, they rise again, but the wicked stumble when calamity strikes.
+</ContentLayout>
