@@ -417,9 +417,12 @@ Global Utility Styles
 .footnotes {
 	margin-top: 2rem;
 	padding-bottom: 12vh;
-	max-width: calc(var(--sidebar-width) + var(--content-width));
+	max-width: calc(var(--sidebar-current-width) + var(--content-width));
 	@apply px-4 md:px-8 mx-auto;
 	color: var(--color-base-content);
+	transition:
+		max-width var(--duration-base) var(--ease-out),
+		padding-left var(--duration-base) var(--ease-out);
 }
 
 .footnotes ol {
@@ -435,8 +438,8 @@ Global Utility Styles
 
 @media (min-width: 1024px) {
 	.footnotes {
-		/* Push past the sidebar column, keep the same px-8 right padding */
-		padding-left: calc(var(--sidebar-width) + 1.875rem);
+		/* Push past the active sidebar column, keep the same px-8 right padding */
+		padding-left: calc(var(--sidebar-current-width) + 1.875rem);
 	}
 }
 
