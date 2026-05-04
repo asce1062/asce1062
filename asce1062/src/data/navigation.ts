@@ -176,6 +176,14 @@ export const mainNavigation: NavigationLink[] = [
 		section: "explore",
 	},
 	{
+		name: "Style",
+		href: "/style",
+		icon: "icon-flask-florence",
+		ariaLabel: "Site style specimens and writing conventions",
+		animation: "rotate-left",
+		section: "explore",
+	},
+	{
 		name: "Privacy",
 		href: "/privacy",
 		icon: "icon-cookie",
