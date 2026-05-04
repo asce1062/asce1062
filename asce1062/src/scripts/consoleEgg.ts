@@ -7,19 +7,39 @@
  * Fires on every page navigation. Initial load and every Astro soft navigation.
  * Picks a new random variant each time, so the font changes as you move around the site.
  *
- * Colors are sourced from design-tokens.ts (hexDark)
+ * Colors resolve from live CSS variables so theme flavors affect the console.
  *
  * Note: there is no reliable cross-browser API to detect when DevTools is opened,
  * so we fire on page load/navigation, the closest practical equivalent.
  */
 import asciiData from "@/data/ascii-art.json";
+import { hexDark } from "@/config/design-tokens";
 
 type AsciiVariant = { readonly text: string; readonly font: string; readonly art: string };
 const asciiVariants = (asciiData as AsciiVariant[]).filter((v) => v.text !== "404");
-import { hexDark } from "@/config/design-tokens";
 
-// ── Palette (dark theme) ──
-const C = {
+type ConsoleColorRole =
+	| "primary"
+	| "secondary"
+	| "accent"
+	| "warning"
+	| "success"
+	| "info"
+	| "baseContent"
+	| "neutralContent";
+
+const colorVars: Record<ConsoleColorRole, string> = {
+	primary: "--color-primary",
+	secondary: "--color-secondary",
+	accent: "--color-accent",
+	warning: "--color-warning",
+	success: "--color-success",
+	info: "--color-info",
+	baseContent: "--color-base-content",
+	neutralContent: "--color-neutral-content",
+};
+
+const fallbackColors: Record<ConsoleColorRole, string> = {
 	primary: hexDark["primary"],
 	secondary: hexDark["secondary"],
 	accent: hexDark["accent"],
@@ -28,7 +48,7 @@ const C = {
 	info: hexDark["info"],
 	baseContent: hexDark["base-content"],
 	neutralContent: hexDark["neutral-content"],
-} as const;
+};
 
 const mono = "font-family:monospace;";
 
@@ -79,6 +99,20 @@ function getTheme(): string {
 	return document.documentElement.getAttribute("data-theme") ?? "unknown";
 }
 
+function getFlavor(): string {
+	return document.documentElement.getAttribute("data-flavor") || "default";
+}
+
+function getConsoleColors(): Record<ConsoleColorRole, string> {
+	const style = window.getComputedStyle(document.documentElement);
+	return Object.fromEntries(
+		Object.entries(colorVars).map(([role, cssVar]) => {
+			const value = style.getPropertyValue(cssVar).trim();
+			return [role, value || fallbackColors[role as ConsoleColorRole]];
+		})
+	) as Record<ConsoleColorRole, string>;
+}
+
 /** Best-effort SW status. never throws, never breaks the easter egg. */
 async function getSwStatus(): Promise<string> {
 	try {
@@ -102,7 +136,9 @@ async function printEgg(): Promise<void> {
 	const lang = navigator.language ?? "unknown";
 	const network = navigator.onLine ? "Online" : "Offline";
 	const theme = getTheme();
+	const flavor = getFlavor();
 	const sw = await getSwStatus();
+	const C = getConsoleColors();
 
 	const lbl = (s: string) => s.padEnd(14);
 	const div = "\u2500".repeat(28);
@@ -115,14 +151,14 @@ async function printEgg(): Promise<void> {
 
 	// prompt. username matches the text of the randomly selected art variant
 	const promptUser = variant?.text ?? "asce1062";
-	parts.push(`%c${promptUser}%c@%calexmbugua.me%c:~$ %cneofetch%c_\n\n`);
+	parts.push(`%c${promptUser}%c@%calexmbugua.me%c:~$ %cneofetch%c█\n\n`);
 	styles.push(
 		`color:${C.primary};${mono}font-weight:bold;`, // username
 		`color:${C.neutralContent};${mono}`, // @
 		`color:${C.secondary};${mono}font-weight:bold;`, // alexmbugua.me
 		`color:${C.accent};${mono}font-weight:bold;`, // :~$
 		`color:${C.warning};${mono}`, // neofetch
-		`color:${C.neutralContent};${mono}` // _
+		`color:${C.secondary};${mono}` // █
 	);
 
 	// [font] + art
@@ -141,6 +177,7 @@ async function printEgg(): Promise<void> {
 		`%c${lbl("Language:")}%c${lang}\n`,
 		`%c${lbl("Network:")}%c${network}\n`,
 		`%c${lbl("Theme:")}%c${theme}\n`,
+		`%c${lbl("Flavor:")}%c${flavor}\n`,
 		`%c${lbl("SW:")}%c${sw}\n`,
 		`%c${div}\n\n`,
 		`%cPoking around the source? %cI\u2019m happy you\u2019re here ^^\n%cSay hi \u2192 %chttps://alexmbugua.me/hello`
@@ -155,6 +192,8 @@ async function printEgg(): Promise<void> {
 		`color:${C.info};${mono}`, // network val
 		`color:${C.baseContent};${mono}`, // Theme: key
 		`color:${C.info};${mono}`, // theme val
+		`color:${C.baseContent};${mono}`, // Flavor: key
+		`color:${C.info};${mono}`, // flavor val
 		`color:${C.baseContent};${mono}`, // SW: key
 		`color:${swColor};${mono}`, // sw val
 		`color:${C.neutralContent};${mono}`, // divider

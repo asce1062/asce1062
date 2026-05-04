@@ -86,7 +86,7 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 								<p style={`margin:6px 0 0;font-size:13px;color:${C["neutral-content"]};`}>
 									Hi {name}, here&rsquo;s a copy of your guestbook entry
 								</p>
-								<p style={`margin:4px 0 0;font-size:11px;color:${C["neutral-content"]};`}>
+								<p style={`margin:4px 0 0;font-size:11px;color:${C["muted"]};`}>
 									You opted in to receive this when you submitted your entry.
 								</p>
 							</td>
@@ -117,7 +117,7 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 											-->
 											<pre
 												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${C["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}
-												>{previewMsg}{truncated && <span style={`color:${C["neutral-content"]};font-style:italic;`}> … (truncated)</span>}</pre
+												>{previewMsg}{truncated && <span style={`color:${C["muted"]};font-style:italic;`}> … (truncated)</span>}</pre
 											>
 										</td>
 									</tr>
@@ -160,11 +160,11 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 										<td
 											style={`padding-top:14px;text-align:center;font-size:12px;color:${C["neutral-content"]};font-family:'Courier New',Courier,monospace;`}>
 											Questions? Get in touch:&nbsp;
-											<a href={`mailto:${SOCIAL.email}`} style={`color:${C["accent"]};text-decoration:none;`}>
+											<a href={`mailto:${SOCIAL.email}`} style={`color:${C["link"]};text-decoration:none;`}>
 												{SOCIAL.email}
 											</a>
 											&nbsp;or&nbsp;
-											<a href={GITHUB_ISSUES_URL} style={`color:${C["accent"]};text-decoration:none;`}>
+											<a href={GITHUB_ISSUES_URL} style={`color:${C["link"]};text-decoration:none;`}>
 												open a GitHub issue
 											</a>
 											.

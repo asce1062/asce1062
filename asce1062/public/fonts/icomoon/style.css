@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?bgoptc');
-  src:  url('fonts/icomoon.eot?bgoptc#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.woff?bgoptc') format('woff'),
-    url('fonts/icomoon.ttf?bgoptc') format('truetype'),
-    url('fonts/icomoon.svg?bgoptc#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?q9ofl1');
+  src:  url('fonts/icomoon.eot?q9ofl1#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.woff?q9ofl1') format('woff'),
+    url('fonts/icomoon.ttf?q9ofl1') format('truetype'),
+    url('fonts/icomoon.svg?q9ofl1#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -126,6 +126,9 @@
 }
 .icon-git-commit:before {
   content: "\e991";
+}
+.icon-flask-florence:before {
+  content: "\e9cf";
 }
 .icon-bluesky:before {
   content: "\e9cc";

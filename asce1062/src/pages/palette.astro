@@ -4,7 +4,15 @@
  */
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
-import { colorRoles, colorValues, getCssVar, getContentVar } from "@/config/design-tokens";
+import {
+	colorRoles,
+	colorValues,
+	flavorTokenIds,
+	flavorTokenLabels,
+	getCssVar,
+	getContentVar,
+	themeFlavors,
+} from "@/config/design-tokens";
 import "@/styles/components/palette.css";
 ---
 
@@ -15,7 +23,7 @@ import "@/styles/components/palette.css";
 	<article class="prose prose-neutral dark:prose-invert max-w-none">
 		<h2><i class="icon-palette"></i> Palette</h2>
 		<p class="text-sm text-neutral-content mb-8">
-			Design tokens that power this site. Colors adapt automatically between light and dark modes.
+			Design tokens that power this site. Colors adapt between light, dark, and optional terminal flavors.
 		</p>
 
 		<!-- Tabbed View -->
@@ -23,6 +31,7 @@ import "@/styles/components/palette.css";
 			<!-- Radio inputs (must be siblings of view panels for CSS ~ selector) -->
 			<input type="radio" name="palette-view" id="swatches-tab" class="sr-only" checked />
 			<input type="radio" name="palette-view" id="ingredients-tab" class="sr-only" />
+			<input type="radio" name="palette-view" id="flavors-tab" class="sr-only" />
 
 			<!-- Tab labels -->
 			<div class="flex gap-2 border-b border-base-300 mb-6" role="tablist" aria-label="Palette views">
@@ -41,6 +50,14 @@ import "@/styles/components/palette.css";
 					tabindex="0"
 					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
 					<i class="icon-palette2" aria-hidden="true"></i> Ingredients
+				</label>
+				<label
+					for="flavors-tab"
+					role="tab"
+					aria-controls="flavors-view"
+					tabindex="0"
+					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+					<i class="icon-flask-florence" aria-hidden="true"></i> Flavors
 				</label>
 			</div>
 
@@ -62,12 +79,12 @@ import "@/styles/components/palette.css";
 									{/* Color swatches - main color and content color if available */}
 									<div class="flex shrink-0 items-center -space-x-2">
 										<div
-											class="h-8 w-8 shrink-0 rounded-full border-2 border-base-100 ring-1 ring-base-300"
+											class="h-8 w-8 shrink-0 border-2 border-base-100 ring-1 ring-base-300"
 											style={`background-color: var(${getCssVar(role.id)})`}
 										/>
 										{getContentVar(role.id) && (
 											<div
-												class="h-8 w-8 shrink-0 rounded-full border-2 border-base-100 ring-1 ring-base-300"
+												class="h-8 w-8 shrink-0 border-2 border-base-100 ring-1 ring-base-300"
 												style={`background-color: var(${getContentVar(role.id)})`}
 											/>
 										)}
@@ -81,7 +98,7 @@ import "@/styles/components/palette.css";
 										<div class="flex flex-col items-center gap-2">
 											<span class="text-[11px] font-medium uppercase tracking-wide text-neutral-content">Main</span>
 											<div
-												class="h-12 w-12 rounded-full border-2 border-base-300 cursor-pointer"
+												class="h-12 w-12 border-2 border-base-300 cursor-pointer"
 												style={`background-color: var(${getCssVar(role.id)})`}
 											/>
 											<button
@@ -101,7 +118,7 @@ import "@/styles/components/palette.css";
 													Content
 												</span>
 												<div
-													class="h-12 w-12 rounded-full border-2 border-base-300 cursor-pointer"
+													class="h-12 w-12 border-2 border-base-300 cursor-pointer"
 													style={`background-color: var(${getContentVar(role.id)})`}
 												/>
 												<button
@@ -143,7 +160,7 @@ import "@/styles/components/palette.css";
 										<td>
 											<div class="flex items-center gap-3">
 												<div
-													class="h-[18px] w-[18px] shrink-0 rounded-full border border-base-300"
+													class="h-[18px] w-[18px] shrink-0 border border-base-300"
 													style={`background-color: var(${getCssVar(color.id)})`}
 												/>
 												<span class="text-sm font-semibold">{color.role}</span>
@@ -174,6 +191,76 @@ import "@/styles/components/palette.css";
 					</table>
 				</div>
 			</div>
+
+			<!-- Flavors View -->
+			<div id="flavors-view" class="view-panel" role="tabpanel" aria-labelledby="flavors-tab">
+				<p class="text-sm text-neutral-content mb-4">
+					Flavor overrides layered on top of the base light and dark themes. Sidebar swatches persist with
+					<code>theme-flavor</code>.
+				</p>
+				<div class="grid gap-6">
+					{
+						themeFlavors.map((flavor) => (
+							<section class="border border-base-300 bg-base-200 p-4 sm:p-6" id={`flavor-${flavor.id}`}>
+								<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+									<div>
+										<h3 class="m-0 flex items-center gap-3 text-heading-3">
+											<span class="h-5 w-5 border border-base-300" style={`background-color: ${flavor.swatch}`} />
+											{flavor.label}
+										</h3>
+										<p class="mt-2 text-sm text-muted">{flavor.description}</p>
+									</div>
+									<code class="shrink-0 border border-base-300 bg-base-100 px-2 py-1 text-xs text-muted">
+										{`data-flavor="${flavor.id}"`}
+									</code>
+								</div>
+
+								<div class="grid gap-4 xl:grid-cols-2">
+									<div class="flavor-surface border border-base-300 bg-base-100 p-3">
+										<div class="mb-3 flex items-center justify-between gap-3">
+											<h4 class="m-0 text-sm font-semibold text-base-content">Dark</h4>
+											<span class="text-xs text-muted">html[data-theme="dark"]</span>
+										</div>
+										<div class="flavor-token-grid">
+											{flavorTokenIds.map((tokenId) => (
+												<button
+													type="button"
+													class="oklch-copy flavor-token"
+													data-oklch={flavor.dark[tokenId]}
+													aria-label={`Copy dark ${flavor.label} ${flavorTokenLabels[tokenId]} color`}>
+													<span class="flavor-token__swatch" style={`background-color: ${flavor.dark[tokenId]}`} />
+													<span class="flavor-token__label">{flavorTokenLabels[tokenId]}</span>
+													<code>{flavor.dark[tokenId]}</code>
+												</button>
+											))}
+										</div>
+									</div>
+
+									<div class="flavor-surface border border-base-300 bg-base-100 p-3">
+										<div class="mb-3 flex items-center justify-between gap-3">
+											<h4 class="m-0 text-sm font-semibold text-base-content">Light</h4>
+											<span class="text-xs text-muted">html[data-theme="light"]</span>
+										</div>
+										<div class="flavor-token-grid">
+											{flavorTokenIds.map((tokenId) => (
+												<button
+													type="button"
+													class="oklch-copy flavor-token"
+													data-oklch={flavor.light[tokenId]}
+													aria-label={`Copy light ${flavor.label} ${flavorTokenLabels[tokenId]} color`}>
+													<span class="flavor-token__swatch" style={`background-color: ${flavor.light[tokenId]}`} />
+													<span class="flavor-token__label">{flavorTokenLabels[tokenId]}</span>
+													<code>{flavor.light[tokenId]}</code>
+												</button>
+											))}
+										</div>
+									</div>
+								</div>
+							</section>
+						))
+					}
+				</div>
+			</div>
 		</div>
 
 		<hr class="my-8 border-base-300" />
@@ -185,7 +272,7 @@ import "@/styles/components/palette.css";
 					class="underline decoration-dashed"
 					target="_blank"
 					rel="noopener noreferrer">OKLCH</a
-				> for perceptual uniformity. Theme switches automatically between light and dark modes.
+				> for perceptual uniformity. Theme and flavor values are documented from <code>src/styles/theme.css</code>.
 			</p>
 			<a href="/colophon" class="link-action no-underline">
 				<i class="icon-book"></i>
