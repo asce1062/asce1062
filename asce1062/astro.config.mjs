@@ -169,19 +169,21 @@ export default defineConfig({
 				skipWaiting: true,
 
 				// Strip known query params before precache lookup so URLs like
-				// /?theme=dark resolve to the cached / instead of falling back to /offline
-				ignoreURLParametersMatching: [/^theme$/, /^utm_\w+/i, /^fbclid$/i, /^ref$/i],
+				// /?theme=dark resolve to the cached / instead of falling back to /offline.
+				// Netlify appends ?dpl=<deploy-id> to some transformed asset URLs.
+				ignoreURLParametersMatching: [/^theme$/, /^dpl$/, /^utm_\w+/i, /^fbclid$/i, /^ref$/i],
 
 				// Offline fallback
 				navigateFallback: "/offline",
 				navigateFallbackDenylist: [
 					/^\/api\//, // API routes. Always hit the network, never serve fallback
-					/\.xml$/, // Don't intercept XML files (RSS, sitemap)
-					/\.txt$/, // Don't intercept text files (robots.txt, humans.txt)
-					/\.pdf$/, // Don't intercept PDF files
-					/\.json$/, // Don't intercept JSON files (pubvendors.json, etc.)
-					/\.pgp$/, // Don't intercept PGP key files
-					/\.sig$/, // Don't intercept signature files
+					/\.xml(\?.*)?$/, // Don't intercept XML files (RSS, sitemap)
+					/\.txt(\?.*)?$/, // Don't intercept text files (robots.txt, humans.txt)
+					/\.pdf(\?.*)?$/, // Don't intercept PDF files
+					/\.json(\?.*)?$/, // Don't intercept JSON files (pubvendors.json, etc.)
+					/\.pgp(\?.*)?$/, // Don't intercept PGP key files
+					/\.sig(\?.*)?$/, // Don't intercept signature files
+					/\.(?:css|js|mjs|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot|otf)(\?.*)?$/, // Asset URLs, including deploy query params
 					/^\/.well-known\//, // Don't intercept .well-known resources
 					/^\/rss$/, // Allow /rss → /rss.xml redirect
 					/^\/feed$/, // Allow /feed → /rss.xml redirect
@@ -278,7 +280,7 @@ export default defineConfig({
 					},
 					// 8bit avatar images (runtime cache due to large size)
 					{
-						urlPattern: /\/8bit\/img\/.*\.png$/i,
+						urlPattern: /\/8bit\/img\/.*\.png(\?.*)?$/i,
 						handler: "CacheFirst",
 						options: {
 							cacheName: "avatar-assets-cache",
@@ -293,7 +295,7 @@ export default defineConfig({
 					},
 					// Other images
 					{
-						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)(\?.*)?$/i,
 						handler: "CacheFirst",
 						options: {
 							cacheName: "image-cache",
