@@ -331,11 +331,18 @@ const doNotShip = [
 
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Lists</h3>
+					<p class="m-0 mb-2 text-xs font-bold uppercase text-muted">Unordered</p>
 					<ul class="m-0 space-y-1 pl-5 text-sm">
 						<li>Use bullets for quick scanning.</li>
 						<li>Keep items parallel when possible.</li>
 						<li>Do not turn every paragraph into a list.</li>
 					</ul>
+					<p class="m-0 mt-4 mb-2 text-xs font-bold uppercase text-muted">Ordered</p>
+					<ol class="space-y-1 text-sm">
+						<li>Start with the thing that unlocks the rest.</li>
+						<li>Keep each step concrete and testable.</li>
+						<li>End with the expected outcome.</li>
+					</ol>
 				</section>
 
 				<section>
@@ -448,7 +455,7 @@ const doNotShip = [
 					<div class="flex flex-wrap gap-4">
 						{
 							buttonPersonalities.map((variant) => (
-								<button type="button" class={`btn btn-accent ${variant}`}>
+								<button type="button" class={`btn btn-primary ${variant}`}>
 									{variant.replace("btn-", "")}
 								</button>
 							))
