@@ -42,7 +42,9 @@ type AsciiVariant = {
 
 type RandomSource = () => number;
 
-const asciiVariants = (asciiData as AsciiVariant[]).filter((variant) => variant.text !== "404");
+const asciiVariants = (asciiData as AsciiVariant[]).filter(
+	(variant) => variant.text !== "404" && variant.text !== "Alex.Immer"
+);
 const SITE_GO_LIVE_AT = Date.parse("2025-06-13T00:00:00Z");
 const COLOR_ROLES: readonly TerminalSystemColorRole[] = ["primary", "secondary", "accent", "info", "success", "error"];
 

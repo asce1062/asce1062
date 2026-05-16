@@ -87,7 +87,13 @@ const FONTS = [
  * @example { text: "hello", font: "Banner" }
  */
 const PINNED_VARIANTS = [
-	// { text: "asce", font: "Banner3-D" },
+	{ text: "Alex.Immer", font: "miniwi" },
+	{ text: "Alex.Immer", font: "Tmplr" },
+	{ text: "Alex.Immer", font: "Calvin S" },
+	{ text: "Alex.Immer", font: "Future" },
+	{ text: "Alex.Immer", font: "Small Block" },
+	{ text: "Alex.Immer", font: "ICL-1900" },
+	{ text: "Alex.Immer", font: "Upside Down Text" },
 ];
 
 /**
