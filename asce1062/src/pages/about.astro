@@ -9,7 +9,9 @@ import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 
 type AsciiVariant = { text: string; font: string; art: string };
-const variantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => v.text !== "404"));
+const variantsJson = JSON.stringify(
+	(asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer")
+);
 ---
 
 <Layout

@@ -335,6 +335,15 @@ body:has(#nav-toggle:checked) {
 	transition: background-color var(--duration-fast) var(--ease-out);
 }
 
+.nav-link:is(button) {
+	border: 0;
+	background: transparent;
+	color: var(--color-primary);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
 .nav-link:hover,
 .nav-link--active {
 	background-color: var(--color-base-200);

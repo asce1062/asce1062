@@ -630,7 +630,7 @@
 	align-items: center;
 	gap: 0.5rem;
 	justify-content: center;
-	top: calc(1rem + 2.75rem + 0.45rem);
+	top: calc(1rem + (2.75rem + 0.45rem) * var(--dock-stack-index, 1));
 	left: calc(var(--sidebar-current-width) - 14px);
 	width: 1.5rem;
 	height: 2.75rem;
@@ -771,7 +771,7 @@
 	.terminal-dock-chip {
 		top: auto;
 		right: -14px;
-		bottom: 2.275rem;
+		bottom: calc(2.275rem + (2.75rem + 0.45rem) * var(--dock-mobile-stack-index, 0));
 		left: auto;
 		z-index: 107;
 		width: 1.5rem;

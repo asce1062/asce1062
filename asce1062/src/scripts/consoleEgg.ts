@@ -16,7 +16,7 @@ import asciiData from "@/data/ascii-art.json";
 import { hexDark } from "@/config/design-tokens";
 
 type AsciiVariant = { readonly text: string; readonly font: string; readonly art: string };
-const asciiVariants = (asciiData as AsciiVariant[]).filter((v) => v.text !== "404");
+const asciiVariants = (asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer");
 
 type ConsoleColorRole =
 	| "primary"

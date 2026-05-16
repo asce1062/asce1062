@@ -310,7 +310,7 @@ DARK MODE OVERRIDES
 Dark mode activates when data-theme="dark" is set on html element
 ============================================
 */
-html[data-theme="dark"] {
+:where(html, .theme-scope)[data-theme="dark"] {
 	/* Light Theme (Default) */
 	--color-base-100: oklch(13% 0.018 270);
 	--color-base-200: oklch(20% 0.013 270);
@@ -386,7 +386,7 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 /* ─── DARK FLAVORS ──────────────────────────────────────────────────────── */
 
 /* 1. CRT Green dark */
-html[data-theme="dark"][data-flavor="crt-green"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="crt-green"] {
 	--color-base-100: oklch(8% 0.025 145);
 	--color-base-200: oklch(12% 0.03 145);
 	--color-base-300: oklch(16% 0.035 145);
@@ -429,7 +429,7 @@ html[data-theme="dark"][data-flavor="crt-green"] {
 }
 
 /* 2. Amber Terminal dark */
-html[data-theme="dark"][data-flavor="amber"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="amber"] {
 	--color-base-100: oklch(11% 0.028 50);
 	--color-base-200: oklch(16% 0.032 52);
 	--color-base-300: oklch(20% 0.036 55);
@@ -470,7 +470,7 @@ html[data-theme="dark"][data-flavor="amber"] {
 }
 
 /* 3. Synthwave dark */
-html[data-theme="dark"][data-flavor="synthwave"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="synthwave"] {
 	--color-base-100: oklch(14% 0.09 281);
 	--color-base-200: oklch(19% 0.09 281);
 	--color-base-300: oklch(24% 0.09 281);
@@ -513,7 +513,7 @@ html[data-theme="dark"][data-flavor="synthwave"] {
 }
 
 /* 4. DOS Blue dark */
-html[data-theme="dark"][data-flavor="dos"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="dos"] {
 	--color-base-100: oklch(20% 0.04 265);
 	--color-base-200: oklch(24% 0.042 265);
 	--color-base-300: oklch(28% 0.044 265);
@@ -556,7 +556,7 @@ html[data-theme="dark"][data-flavor="dos"] {
 }
 
 /* 5. Void dark */
-html[data-theme="dark"][data-flavor="void"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="void"] {
 	--color-base-100: oklch(0% 0 0);
 	--color-base-200: oklch(19% 0 0);
 	--color-base-300: oklch(22% 0 0);
@@ -599,7 +599,7 @@ html[data-theme="dark"][data-flavor="void"] {
 }
 
 /* 6. Ice dark */
-html[data-theme="dark"][data-flavor="ice"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="ice"] {
 	--color-base-100: oklch(9% 0.022 212);
 	--color-base-200: oklch(14% 0.026 210);
 	--color-base-300: oklch(18% 0.03 210);
@@ -642,7 +642,7 @@ html[data-theme="dark"][data-flavor="ice"] {
 }
 
 /* 7. Redline dark */
-html[data-theme="dark"][data-flavor="redline"] {
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="redline"] {
 	--color-base-100: oklch(8% 0.024 20);
 	--color-base-200: oklch(12% 0.03 20);
 	--color-base-300: oklch(16% 0.036 22);
@@ -696,7 +696,7 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 /* ─── LIGHT FLAVORS ─────────────────────────────────────────────────────── */
 
 /* 1. CRT Green light */
-html[data-theme="light"][data-flavor="crt-green"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="crt-green"] {
 	--color-base-100: oklch(96% 0.012 140);
 	--color-base-200: oklch(92% 0.018 140);
 	--color-base-300: oklch(87% 0.024 138);
@@ -730,7 +730,7 @@ html[data-theme="light"][data-flavor="crt-green"] {
 }
 
 /* 2. Amber light */
-html[data-theme="light"][data-flavor="amber"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="amber"] {
 	--color-base-100: oklch(91.637% 0.034 90.515);
 	--color-base-200: oklch(88.272% 0.049 91.774);
 	--color-base-300: oklch(84.133% 0.065 90.856);
@@ -764,7 +764,7 @@ html[data-theme="light"][data-flavor="amber"] {
 }
 
 /* 3. Synthwave light */
-html[data-theme="light"][data-flavor="synthwave"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="synthwave"] {
 	--color-base-100: oklch(97% 0.014 300);
 	--color-base-200: oklch(94% 0.028 298);
 	--color-base-300: oklch(89% 0.052 295);
@@ -798,7 +798,7 @@ html[data-theme="light"][data-flavor="synthwave"] {
 }
 
 /* 4. DOS light */
-html[data-theme="light"][data-flavor="dos"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="dos"] {
 	--color-base-100: oklch(100% 0 0);
 	--color-base-200: oklch(93% 0 0);
 	--color-base-300: oklch(86% 0 0);
@@ -832,7 +832,7 @@ html[data-theme="light"][data-flavor="dos"] {
 }
 
 /* 5. Void light */
-html[data-theme="light"][data-flavor="void"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="void"] {
 	--color-base-100: oklch(100% 0 0);
 	--color-base-200: oklch(97% 0 0);
 	--color-base-300: oklch(94% 0 0);
@@ -866,7 +866,7 @@ html[data-theme="light"][data-flavor="void"] {
 }
 
 /* 6. Ice light */
-html[data-theme="light"][data-flavor="ice"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="ice"] {
 	--color-base-100: oklch(99% 0.006 210);
 	--color-base-200: oklch(95% 0.01 210);
 	--color-base-300: oklch(88% 0.014 210);
@@ -900,7 +900,7 @@ html[data-theme="light"][data-flavor="ice"] {
 }
 
 /* 7. Redline light */
-html[data-theme="light"][data-flavor="redline"] {
+:where(html, .theme-scope)[data-theme="light"][data-flavor="redline"] {
 	--color-base-100: oklch(99% 0.006 22);
 	--color-base-200: oklch(96% 0.016 22);
 	--color-base-300: oklch(90% 0.04 22);

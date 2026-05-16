@@ -13,6 +13,7 @@ export interface NavigationLink {
 	external?: boolean;
 	download?: boolean;
 	animation?: "rotate-left" | "rotate-right";
+	action?: "open-music";
 	multiPathIcon?: boolean; // For icons with multiple path elements
 	pathCount?: number; // Number of path elements for multi-path icons
 	section?: "main" | "explore" | "meta"; // Nav drawer grouping
@@ -229,6 +230,15 @@ export const mainNavigation: NavigationLink[] = [
 		icon: "icon-search-heart",
 		ariaLabel: "Search the site",
 		animation: "rotate-right",
+		section: "explore",
+	},
+	{
+		name: "Music",
+		href: "#music-player",
+		icon: "icon-boombox",
+		ariaLabel: "Open the music player",
+		animation: "rotate-right",
+		action: "open-music",
 		section: "explore",
 	},
 	{

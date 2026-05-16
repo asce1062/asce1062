@@ -31,6 +31,11 @@ interface ImportMetaEnv {
 	readonly GUESTBOOK_EMAIL_TIMEOUT_MS: string | undefined;
 	/** Max retries for 429/5xx Resend errors (default 2, max 5) */
 	readonly GUESTBOOK_EMAIL_RETRIES: string | undefined;
+
+	// Shared music player (Navidrome / Subsonic)
+	readonly NAVIDROME_URL: string | undefined;
+	readonly NAVIDROME_USER: string | undefined;
+	readonly NAVIDROME_PASS: string | undefined;
 }
 
 interface ImportMeta {

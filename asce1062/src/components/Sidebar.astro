@@ -38,7 +38,9 @@ const grouped = navSections.map((s) => ({
 }));
 
 type AsciiVariant = { text: string; font: string; art: string };
-const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) => v.text !== "404"));
+const eggVariantsJson = JSON.stringify(
+	(asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer")
+);
 ---
 
 <!-- State machine: hidden checkbox -->
@@ -145,24 +147,36 @@ const eggVariantsJson = JSON.stringify((asciiData as AsciiVariant[]).filter((v) 
 								return (
 									<li>
 										<b>
-											<a
-												class:list={["nav-link", { "nav-link--active": active }]}
-												href={link.href}
-												aria-label={link.ariaLabel}
-												aria-current={active ? "page" : undefined}
-												data-tooltip={link.name}
-												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-												{link.multiPathIcon && link.pathCount ? (
-													<span class={`${link.icon} nav-icon`} aria-hidden="true">
-														{Array.from({ length: link.pathCount }, (_, i) => (
-															<span class={`path${i + 1}`} />
-														))}
-													</span>
-												) : (
+											{link.action === "open-music" ? (
+												<button
+													type="button"
+													class="nav-link"
+													aria-label={link.ariaLabel}
+													data-tooltip={link.name}
+													data-music-player-trigger>
 													<i class={`${link.icon} nav-icon`} aria-hidden="true" />
-												)}
-												<span class="nav-text">{link.name}</span>
-											</a>
+													<span class="nav-text">{link.name}</span>
+												</button>
+											) : (
+												<a
+													class:list={["nav-link", { "nav-link--active": active }]}
+													href={link.href}
+													aria-label={link.ariaLabel}
+													aria-current={active ? "page" : undefined}
+													data-tooltip={link.name}
+													{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+													{link.multiPathIcon && link.pathCount ? (
+														<span class={`${link.icon} nav-icon`} aria-hidden="true">
+															{Array.from({ length: link.pathCount }, (_, i) => (
+																<span class={`path${i + 1}`} />
+															))}
+														</span>
+													) : (
+														<i class={`${link.icon} nav-icon`} aria-hidden="true" />
+													)}
+													<span class="nav-text">{link.name}</span>
+												</a>
+											)}
 										</b>
 									</li>
 								);
