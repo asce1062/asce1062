@@ -1,13 +1,17 @@
 #!/usr/bin/env node
+import { randomBytes } from "node:crypto";
 import { stdin as input, stderr, stdout } from "node:process";
 import readline from "node:readline";
 import { hash, Algorithm } from "@node-rs/argon2";
 
 const MIN_TOKEN_LENGTH = 32;
+const GENERATED_TOKEN_BYTES = 32;
+const GENERATE_FLAGS = new Set(["--generate", "-g"]);
 
 function usage() {
 	return [
 		"Usage:",
+		"  node scripts/hash-admin-token.mjs --generate",
 		"  node scripts/hash-admin-token.mjs <raw-token>",
 		"  node scripts/hash-admin-token.mjs",
 		"",
@@ -15,6 +19,16 @@ function usage() {
 		"Save the raw token separately in a password manager; store only the hash in deployment env.",
 		"In local .env files, escape each $ as \\$ so Vite does not expand the hash fields.",
 	].join("\n");
+}
+
+function generateRawToken() {
+	return randomBytes(GENERATED_TOKEN_BYTES).toString("hex");
+}
+
+function printGeneratedTokenInstructions(token) {
+	stderr.write(`Raw admin token: ${token}\n`);
+	stderr.write("Save this raw token in a password manager. It cannot be recovered from ADMIN_TOKEN_HASH.\n");
+	stderr.write("Store only the hash printed on stdout in ADMIN_TOKEN_HASH.\n");
 }
 
 function printError(message) {
@@ -91,13 +105,24 @@ async function readTokenFromInput() {
 			input.on("error", reject);
 		});
 		const [token = "", confirmation = ""] = text.split(/\r?\n/);
+		if (!token) {
+			const generatedToken = generateRawToken();
+			printGeneratedTokenInstructions(generatedToken);
+			return generatedToken;
+		}
 		if (token !== confirmation) {
 			throw new Error("Token values do not match.");
 		}
 		return token;
 	}
 
-	const token = await promptHidden("Raw admin token: ");
+	const token = await promptHidden("Raw admin token (leave blank to generate one): ");
+	if (!token) {
+		const generatedToken = generateRawToken();
+		printGeneratedTokenInstructions(generatedToken);
+		return generatedToken;
+	}
+
 	const confirmation = await promptHidden("Confirm raw admin token: ");
 
 	if (token !== confirmation) {
@@ -108,7 +133,9 @@ async function readTokenFromInput() {
 }
 
 async function main() {
-	const token = process.argv[2] ?? (await readTokenFromInput());
+	const arg = process.argv[2];
+	const isGenerateMode = GENERATE_FLAGS.has(arg ?? "");
+	const token = isGenerateMode ? generateRawToken() : (arg ?? (await readTokenFromInput()));
 	const validationError = validateToken(token);
 
 	if (validationError) {
@@ -117,6 +144,10 @@ async function main() {
 
 	// This hash is the value for ADMIN_TOKEN_HASH. The raw token is shown only
 	// to the operator and must be stored separately in a password manager.
+	if (isGenerateMode) {
+		printGeneratedTokenInstructions(token);
+	}
+
 	const tokenHash = await hash(token, { algorithm: Algorithm.Argon2id });
 	stdout.write(`${tokenHash}\n`);
 }

@@ -396,13 +396,22 @@ Required variables (set in Netlify dashboard under Site settings → Environment
 - `ASTRO_DB_APP_TOKEN` - Turso auth token for guestbook
 - `ADMIN_TOKEN_HASH` - Argon2id hash for the admin guestbook token
 
-Generate the admin token once, save the raw token somewhere safe, and store only
-`ADMIN_TOKEN_HASH` in deployment environment variables:
+Generate the admin token once:
 
 ```sh
-node -e "console.log(crypto.randomBytes(32).toString('hex'))"
-node scripts/hash-admin-token.mjs <raw-token>
+npm run hash:admin-token
 ```
+
+In interactive mode, leave the raw-token prompt blank to generate a new token.
+You can also force generation directly:
+
+```sh
+npm run hash:admin-token -- --generate
+```
+
+The command prints the raw token to stderr and the Argon2id hash to stdout. Save the
+raw token in a password manager, then store only `ADMIN_TOKEN_HASH` in deployment
+environment variables.
 
 In local `.env` files, escape each `$` so Vite's dotenv expansion preserves the
 hash:
