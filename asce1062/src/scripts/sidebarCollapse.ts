@@ -17,6 +17,7 @@
 import { getPref, setPref, removePref } from "@/lib/prefs";
 import { PREF_KEYS } from "@/lib/prefs";
 import { bindAvatarMiniWidget } from "@/scripts/avatarMiniWidget";
+import { getSidebarCollapseShortcutLabel, initSidebarCollapseShortcut } from "@/scripts/keyboardShortcuts";
 
 const COLLAPSED_ATTR = "data-sidebar-collapsed";
 const TRANSITION_ATTR = "data-sidebar-transition";
@@ -52,6 +53,18 @@ function isCollapsed(): boolean {
 	return document.documentElement.hasAttribute(COLLAPSED_ATTR);
 }
 
+function syncCollapseTabState(tab: HTMLElement | null, collapsed: boolean): void {
+	if (!tab) return;
+
+	const actionLabel = collapsed ? "Open sidebar" : "Close sidebar";
+	const shortcutLabel = getSidebarCollapseShortcutLabel();
+
+	tab.setAttribute("aria-label", actionLabel);
+	tab.setAttribute("aria-expanded", collapsed ? "false" : "true");
+	tab.setAttribute("aria-keyshortcuts", shortcutLabel === "⌘+." ? "Meta+." : "Control+.");
+	tab.setAttribute("title", `${actionLabel} ${shortcutLabel}`);
+}
+
 function setCollapsed(collapsed: boolean): void {
 	const html = document.documentElement;
 	const tab = document.getElementById("sidebar-collapse-tab");
@@ -62,15 +75,12 @@ function setCollapsed(collapsed: boolean): void {
 		html.setAttribute(COLLAPSED_ATTR, "");
 		html.style.setProperty(COLLAPSED_WIDTH_VAR, "var(--sidebar-collapsed-width)");
 		setPref(PREF_KEYS.sidebarCollapsed, "1");
-		tab?.setAttribute("aria-label", "Expand sidebar");
-		tab?.setAttribute("aria-expanded", "false");
 	} else {
 		html.removeAttribute(COLLAPSED_ATTR);
 		html.style.setProperty(COLLAPSED_WIDTH_VAR, "var(--sidebar-width)");
 		removePref(PREF_KEYS.sidebarCollapsed);
-		tab?.setAttribute("aria-label", "Collapse sidebar");
-		tab?.setAttribute("aria-expanded", "true");
 	}
+	syncCollapseTabState(tab, collapsed);
 
 	document.dispatchEvent(
 		new CustomEvent(SIDEBAR_COLLAPSE_EVENT, {
@@ -98,8 +108,7 @@ function initCollapse(): void {
 	);
 
 	// Sync aria state to match current persisted preference
-	tab.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-	tab.setAttribute("aria-expanded", collapsed ? "false" : "true");
+	syncCollapseTabState(tab, collapsed);
 
 	// Bind the collapsed header avatar widget so it renders the user's avatar
 	_headerWidgetAc?.abort();
@@ -113,6 +122,8 @@ function initCollapse(): void {
 	}
 
 	tab.addEventListener("click", () => setCollapsed(!isCollapsed()), { signal });
+	const cleanupSidebarShortcut = initSidebarCollapseShortcut(() => setCollapsed(!isCollapsed()));
+	signal.addEventListener("abort", cleanupSidebarShortcut, { once: true });
 
 	// Escape while focused inside a collapsed sidebar: expand and return focus to tab
 	document.addEventListener(
