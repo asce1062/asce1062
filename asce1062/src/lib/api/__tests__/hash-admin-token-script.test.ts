@@ -25,6 +25,27 @@ function runInteractive(input: string): Promise<{ code: number | null; stdout: s
 }
 
 describe("hash-admin-token script", () => {
+	it("generates a raw token and prints only an Argon2id hash to stdout", async () => {
+		const { stdout, stderr } = await execFileAsync("node", [SCRIPT_PATH, "--generate"]);
+
+		const rawTokenMatch = stderr.match(/Raw admin token: ([a-f0-9]{64})/);
+		expect(rawTokenMatch?.[1]).toHaveLength(64);
+		expect(stderr).toContain("Save this raw token in a password manager.");
+		expect(stdout.trim()).toMatch(/^\$argon2id\$/);
+		expect(stdout).not.toContain(rawTokenMatch?.[1] ?? "");
+	});
+
+	it("generates a raw token when interactive input is left empty", async () => {
+		const result = await runInteractive("\n");
+
+		const rawTokenMatch = result.stderr.match(/Raw admin token: ([a-f0-9]{64})/);
+		expect(result.code).toBe(0);
+		expect(rawTokenMatch?.[1]).toHaveLength(64);
+		expect(result.stderr).toContain("Save this raw token in a password manager.");
+		expect(result.stdout.trim()).toMatch(/^\$argon2id\$/);
+		expect(result.stdout).not.toContain(rawTokenMatch?.[1] ?? "");
+	});
+
 	it("prints only an Argon2id hash in argument mode", async () => {
 		const { stdout, stderr } = await execFileAsync("node", [SCRIPT_PATH, VALID_TOKEN]);
 
