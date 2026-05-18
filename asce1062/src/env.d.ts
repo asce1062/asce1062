@@ -14,7 +14,7 @@ interface ImportMetaEnv {
 	readonly COMMIT_REF: string | undefined;
 
 	// Admin
-	readonly ADMIN_TOKEN: string | undefined;
+	readonly ADMIN_TOKEN_HASH: string | undefined;
 
 	// Guestbook moderation
 	readonly GUESTBOOK_HASH_PEPPER: string | undefined;

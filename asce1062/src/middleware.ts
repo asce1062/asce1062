@@ -1,16 +1,15 @@
 import { defineMiddleware } from "astro:middleware";
-import { checkAdminAuth, setAdminCookie, checkPostOrigin } from "@/lib/api/admin-auth";
+import { checkAdminAuth, checkPostOrigin } from "@/lib/api/admin-auth";
 
 /**
  * Global middleware
  *
  * For all /admin* routes:
  *  - CSRF: reject cross-origin POST requests
- *  - ?token= upgrade: set cookie + 303 redirect to token-free URL (covers /admin AND /admin/*)
  *  - Security headers applied to every response (including early returns)
  *
  * For /admin/* sub-pages only (not the /admin hub itself):
- *  - Auth enforcement: cookie checked; redirect to /admin on failure
+ *  - Auth enforcement: signed session cookie or bearer token checked; redirect to /admin on failure
 
  */
 
@@ -57,13 +56,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return applyAdminHeaders(new Response("Forbidden", { status: 403 }));
 	}
 
-	// ?token= upgrade on ALL admin routes (including /admin hub itself)
-	// Set cookie and redirect to clean URL so the token leaves history/logs immediately
-	const auth = checkAdminAuth(request, cookies);
-	if (auth.ok && auth.fromQuery) {
-		setAdminCookie(cookies, auth.token);
-		return applyAdminHeaders(context.redirect(auth.cleanUrl, 303));
-	}
+	const auth = await checkAdminAuth(request, cookies);
 
 	// Auth enforcement on sub-pages only. /admin handles its own login form
 	if (isAdminSubpage && !auth.ok) {

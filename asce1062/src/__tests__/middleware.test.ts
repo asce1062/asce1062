@@ -1,6 +1,6 @@
 /**
  * Unit tests for src/middleware.ts
- * CSRF enforcement, token upgrade (303 + cookie), auth redirect,
+ * CSRF enforcement, auth redirect,
  * passthrough for non-admin routes, security headers on ALL paths.
  *
  * Design constraints:
@@ -25,13 +25,11 @@ vi.mock("astro:middleware", () => ({
 vi.mock("@/lib/api/admin-auth", () => ({
 	checkPostOrigin: vi.fn(),
 	checkAdminAuth: vi.fn(),
-	setAdminCookie: vi.fn(),
-	deleteAdminCookie: vi.fn(),
 }));
 
 // Import AFTER mocks are registered
 import { onRequest } from "@/middleware";
-import { checkPostOrigin, checkAdminAuth, setAdminCookie } from "@/lib/api/admin-auth";
+import { checkPostOrigin, checkAdminAuth } from "@/lib/api/admin-auth";
 
 // onRequest is typed as AstroMiddleware but the mock strips the wrapper, leaving
 // a plain async function. Cast once here so tests can call it without `as Function`.
@@ -182,7 +180,7 @@ describe("CSRF enforcement", () => {
 	it("allows a same-origin POST to proceed past the CSRF check", async () => {
 		vi.mocked(checkPostOrigin).mockReturnValue(true);
 		// checkAdminAuth needs to return something. Use ok:false so it falls through to next()
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		// /admin (not a subpage). Auth check is skipped, next() called
 		const ctx = makeContext("/admin", "POST");
 		const response = await handler(ctx, ctx.next);
@@ -191,81 +189,27 @@ describe("CSRF enforcement", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Token upgrade. ?token= in URL → set cookie + 303
+// Query tokens are rejected
 // ---------------------------------------------------------------------------
 
-describe("token upgrade (query → cookie + redirect)", () => {
-	it("redirects 303 when a valid token is in the query string", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin`,
-		});
+describe("query token rejection", () => {
+	it("does not upgrade a query token on /admin", async () => {
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin?token=valid-token");
+		const response = await handler(ctx, ctx.next);
+		expect(ctx.next).toHaveBeenCalledOnce();
+		expect(response.status).toBe(200);
+		expect(ctx.cookies.set).not.toHaveBeenCalled();
+	});
+
+	it("redirects sub-page query-token attempts to /admin", async () => {
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+		const ctx = makeContext("/admin/guestbook?token=valid-token");
 		const response = await handler(ctx, ctx.next);
 		expect(response.status).toBe(303);
-	});
-
-	it("redirect Location is the cleanUrl (token removed from URL)", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin`,
-		});
-		const ctx = makeContext("/admin?token=valid-token");
-		const response = await handler(ctx, ctx.next);
-		expect(response.headers.get("Location")).toBe(`${SITE}/admin`);
-	});
-
-	it("calls setAdminCookie with the token from auth result", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin`,
-		});
-		const ctx = makeContext("/admin?token=valid-token");
-		await handler(ctx, ctx.next);
-		expect(setAdminCookie).toHaveBeenCalledWith(ctx.cookies, "valid-token");
-	});
-
-	it("applies security headers to the 303 redirect response", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin`,
-		});
-		const ctx = makeContext("/admin?token=valid-token");
-		const response = await handler(ctx, ctx.next);
+		expect(response.headers.get("Location")).toBe("/admin");
+		expect(ctx.cookies.set).not.toHaveBeenCalled();
 		assertSecurityHeaders(response);
-	});
-
-	it("does NOT call next() during token upgrade (redirect is the final response)", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin`,
-		});
-		const ctx = makeContext("/admin?token=valid-token");
-		await handler(ctx, ctx.next);
-		expect(ctx.next).not.toHaveBeenCalled();
-	});
-
-	it("token upgrade works on /admin sub-pages (not just hub)", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
-			ok: true,
-			fromQuery: true,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin/dashboard`,
-		});
-		const ctx = makeContext("/admin/dashboard?token=valid-token");
-		const response = await handler(ctx, ctx.next);
-		expect(response.status).toBe(303);
-		expect(response.headers.get("Location")).toBe(`${SITE}/admin/dashboard`);
 	});
 });
 
@@ -275,7 +219,7 @@ describe("token upgrade (query → cookie + redirect)", () => {
 
 describe("auth enforcement on /admin/* sub-pages", () => {
 	it("redirects to /admin when cookie auth fails on a sub-page", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin/dashboard");
 		const response = await handler(ctx, ctx.next);
 		expect(response.status).toBe(303);
@@ -283,21 +227,21 @@ describe("auth enforcement on /admin/* sub-pages", () => {
 	});
 
 	it("applies security headers to the auth-enforcement redirect", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin/guestbook");
 		const response = await handler(ctx, ctx.next);
 		assertSecurityHeaders(response);
 	});
 
 	it("does NOT call next() on auth redirect", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin/settings");
 		await handler(ctx, ctx.next);
 		expect(ctx.next).not.toHaveBeenCalled();
 	});
 
 	it("does NOT redirect on /admin (hub) when auth fails. Hub handles its own login form", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin");
 		const response = await handler(ctx, ctx.next);
 		// Auth enforcement is only for sub-pages; /admin itself should call next()
@@ -306,11 +250,8 @@ describe("auth enforcement on /admin/* sub-pages", () => {
 	});
 
 	it("calls next() for /admin/* when auth is valid via cookie", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
+		vi.mocked(checkAdminAuth).mockResolvedValue({
 			ok: true,
-			fromQuery: false,
-			token: "valid-token",
-			cleanUrl: `${SITE}/admin/dashboard`,
 		});
 		const ctx = makeContext("/admin/dashboard");
 		const response = await handler(ctx, ctx.next);
@@ -325,18 +266,15 @@ describe("auth enforcement on /admin/* sub-pages", () => {
 
 describe("security headers on happy-path admin responses", () => {
 	it("applies all security headers to the next() response on /admin", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({ ok: false });
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
 		const ctx = makeContext("/admin");
 		const response = await handler(ctx, ctx.next);
 		assertSecurityHeaders(response);
 	});
 
 	it("applies all security headers when auth passes on /admin/page", async () => {
-		vi.mocked(checkAdminAuth).mockReturnValue({
+		vi.mocked(checkAdminAuth).mockResolvedValue({
 			ok: true,
-			fromQuery: false,
-			token: "tok",
-			cleanUrl: `${SITE}/admin/page`,
 		});
 		const ctx = makeContext("/admin/page");
 		const response = await handler(ctx, ctx.next);
