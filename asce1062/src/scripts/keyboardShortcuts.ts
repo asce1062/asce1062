@@ -15,7 +15,7 @@ export interface ShortcutConfig {
 }
 
 function isEditableShortcutTarget(target: EventTarget | null): boolean {
-	if (!(target instanceof HTMLElement)) return false;
+	if (typeof HTMLElement === "undefined" || !(target instanceof HTMLElement)) return false;
 	if (target.isContentEditable) return true;
 
 	const tagName = target.tagName.toLowerCase();
@@ -24,6 +24,13 @@ function isEditableShortcutTarget(target: EventTarget | null): boolean {
 
 type TerminalShortcutEventLike = Pick<KeyboardEvent, "key"> &
 	Partial<Pick<KeyboardEvent, "ctrlKey" | "altKey" | "metaKey" | "shiftKey">>;
+type SidebarCollapseShortcutEventLike = Pick<KeyboardEvent, "key"> &
+	Partial<Pick<KeyboardEvent, "ctrlKey" | "altKey" | "metaKey" | "shiftKey">>;
+
+function getNavigatorPlatform(): string {
+	if (typeof navigator === "undefined") return "";
+	return navigator.platform ?? "";
+}
 
 /**
  * Match the global terminal launcher.
@@ -39,6 +46,22 @@ export function isTerminalShortcutEvent(event: TerminalShortcutEventLike): boole
 		event.metaKey !== true &&
 		event.shiftKey !== true
 	);
+}
+
+/**
+ * Match the global sidebar collapse shortcut: Cmd+. on macOS, Ctrl+. elsewhere.
+ */
+export function isSidebarCollapseShortcutEvent(event: SidebarCollapseShortcutEventLike): boolean {
+	return (
+		event.key === "." &&
+		(event.ctrlKey === true || event.metaKey === true) &&
+		event.altKey !== true &&
+		event.shiftKey !== true
+	);
+}
+
+export function getSidebarCollapseShortcutLabel(platform: string = getNavigatorPlatform()): string {
+	return /Mac|iPhone|iPad|iPod/i.test(platform) ? "⌘+." : "Ctrl+.";
 }
 
 /**
@@ -155,6 +178,25 @@ export function initTerminalShortcut(): () => void {
 				bubbles: true,
 			})
 		);
+	};
+
+	document.addEventListener("keydown", handler);
+
+	return () => {
+		document.removeEventListener("keydown", handler);
+	};
+}
+
+/**
+ * Toggle the desktop sidebar with Cmd+. / Ctrl+. outside editable controls.
+ */
+export function initSidebarCollapseShortcut(callback: () => void): () => void {
+	const handler = (e: KeyboardEvent) => {
+		if (!e.key || !isSidebarCollapseShortcutEvent(e)) return;
+		if (isEditableShortcutTarget(e.target)) return;
+
+		e.preventDefault();
+		callback();
 	};
 
 	document.addEventListener("keydown", handler);
