@@ -166,6 +166,7 @@ Before deploying, you need to link your repository to Netlify. Choose either the
 6. Add environment variables (click **"Show advanced"** → **"New variable"**)
    - `ASTRO_DB_REMOTE_URL`: Turso database URL (e.g. `libsql://alexmbugua-guestbook-<user>.turso.io`)
    - `ASTRO_DB_APP_TOKEN`: Turso auth token
+   - `ADMIN_TOKEN_HASH`: Argon2id hash for the admin guestbook token
    - `NODE_VERSION`: `22`
 
 7. Click **"Deploy project"**
@@ -393,6 +394,24 @@ Required variables (set in Netlify dashboard under Site settings → Environment
 
 - `ASTRO_DB_REMOTE_URL` - Turso database URL for guestbook
 - `ASTRO_DB_APP_TOKEN` - Turso auth token for guestbook
+- `ADMIN_TOKEN_HASH` - Argon2id hash for the admin guestbook token
+
+Generate the admin token once, save the raw token somewhere safe, and store only
+`ADMIN_TOKEN_HASH` in deployment environment variables:
+
+```sh
+node -e "console.log(crypto.randomBytes(32).toString('hex'))"
+node scripts/hash-admin-token.mjs <raw-token>
+```
+
+In local `.env` files, escape each `$` so Vite's dotenv expansion preserves the
+hash:
+
+```env
+ADMIN_TOKEN_HASH=\$argon2id\$v=19\$m=19456,t=2,p=1\$...\$...
+```
+
+In Netlify's environment variable UI, paste the raw hash without backslashes.
 
 Auto-configured by Netlify:
 

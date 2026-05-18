@@ -1,14 +1,19 @@
 ---
 /**
  * Admin hub page
- * Login form sets a cookie for token-based auth, which is checked on all /admin/* pages
+ * Login form verifies a raw token once and stores an opaque signed session cookie
  * Lists all auth-protected pages on the site
  */
 export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { countPendingEntries } from "@/lib/api/guestbook";
-import { getAdminCookieToken, isValidToken, setAdminCookie, deleteAdminCookie } from "@/lib/api/admin-auth";
+import {
+	checkAdminAuth,
+	clearAdminSessionCookie,
+	createAdminSessionCookie,
+	verifyAdminToken,
+} from "@/lib/api/admin-auth";
 
 const ADMIN_PAGES = [
 	{
@@ -18,8 +23,7 @@ const ADMIN_PAGES = [
 		icon: "icon-journal-bookmark",
 	},
 ];
-// Auth: check cookie
-const isAuthed = isValidToken(getAdminCookieToken(Astro.cookies));
+const auth = await checkAdminAuth(Astro.request, Astro.cookies);
 
 // Handle POST actions
 let loginError = false;
@@ -30,8 +34,8 @@ if (Astro.request.method === "POST") {
 
 	if (action === "login") {
 		const submittedToken = String(formData.get("token") ?? "");
-		if (isValidToken(submittedToken)) {
-			setAdminCookie(Astro.cookies, submittedToken);
+		if (await verifyAdminToken(submittedToken)) {
+			createAdminSessionCookie(Astro.cookies);
 			return Astro.redirect("/admin");
 		}
 		// Slow down sequential brute-force attempts.
@@ -43,11 +47,12 @@ if (Astro.request.method === "POST") {
 	}
 
 	if (action === "logout") {
-		deleteAdminCookie(Astro.cookies);
+		clearAdminSessionCookie(Astro.cookies);
 		return Astro.redirect("/admin");
 	}
 }
 
+const isAuthed = auth.ok;
 const pendingCount = isAuthed ? await countPendingEntries() : 0;
 ---
 

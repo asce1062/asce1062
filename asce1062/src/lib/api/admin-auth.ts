@@ -1,72 +1,106 @@
 /**
- * Admin authentication utilities
- *
- * Centralizes cookie name, options, and token verification.
+ * Admin authentication utilities.
  *
  * Security properties:
- *  - Tokens are sanitized (trimmed, CRLF-stripped) before comparison
- *  - Comparison is timing-safe to prevent length-based timing leaks
- *  - Cookie options match on set and delete to ensure consistent browser behavior
- *  - ?token= query hits receive a cookie and are redirected to the clean URL
- *    so the token never stays in browser history or server logs
+ *  - Runtime auth uses ADMIN_TOKEN_HASH only; no raw token env var is read
+ *  - Raw tokens are verified with Argon2 and never stored in cookies
+ *  - Admin sessions use a signed, HttpOnly, SameSite=Strict cookie
+ *  - Token query params are not accepted because URLs leak into logs/history
  */
-import { timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { AstroCookies } from "astro";
+import { verify } from "@node-rs/argon2";
 
-const ADMIN_COOKIE_NAME = "admin_token";
+const ADMIN_COOKIE_NAME = "admin_session";
+const SESSION_VERSION = "v1";
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const MAX_TOKEN_LENGTH = 512;
 
 const COOKIE_OPTIONS = {
 	path: "/admin",
 	httpOnly: true,
 	secure: import.meta.env.PROD,
 	sameSite: "strict" as const,
-	maxAge: 60 * 60 * 24 * 7, // 7 days
+	maxAge: SESSION_TTL_SECONDS,
 };
 
-/** Strip CR/LF, trim, and cap length. Guards against copy-paste artifacts and oversized inputs. */
-function sanitizeToken(value: string): string {
-	return value
-		.replace(/[\r\n]/g, "")
-		.trim()
-		.slice(0, 256);
+function getAdminTokenHash(): string {
+	return (process.env.ADMIN_TOKEN_HASH ?? import.meta.env.ADMIN_TOKEN_HASH ?? "").trim();
 }
 
-/**
- * Timing-safe string equality.
- *
- * When lengths differ, a dummy comparison is performed anyway so the
- * function always runs in proportional time regardless of input.
- */
 function safeEqual(a: string, b: string): boolean {
 	const ab = Buffer.from(a, "utf8");
 	const bb = Buffer.from(b, "utf8");
 	if (ab.length !== bb.length) {
-		// Consume constant time relative to `a` length, then return false.
 		timingSafeEqual(ab, Buffer.alloc(ab.length));
 		return false;
 	}
 	return timingSafeEqual(ab, bb);
 }
 
-/** Read the raw admin token from the cookie jar. */
-export function getAdminCookieToken(cookies: AstroCookies): string | undefined {
-	return cookies.get(ADMIN_COOKIE_NAME)?.value;
+function signSessionPayload(payload: string, tokenHash: string): string {
+	return createHmac("sha256", tokenHash).update(payload).digest("base64url");
 }
 
-/** Return true when candidate is non-empty and matches the configured ADMIN_TOKEN. */
-export function isValidToken(candidate: string | undefined): boolean {
-	const ADMIN_TOKEN = import.meta.env.ADMIN_TOKEN;
-	if (!ADMIN_TOKEN || !candidate) return false;
-	return safeEqual(sanitizeToken(candidate), sanitizeToken(ADMIN_TOKEN));
+function getBearerToken(request: Request): string {
+	const authHeader = request.headers.get("authorization") || "";
+	return authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 }
 
-/** Persist the admin session cookie. Sanitizes the token before storage. */
-export function setAdminCookie(cookies: AstroCookies, token: string): void {
-	cookies.set(ADMIN_COOKIE_NAME, sanitizeToken(token), COOKIE_OPTIONS);
+function normalizeToken(token: string | undefined): string {
+	if (!token) return "";
+	if (/[\r\n]/.test(token)) return "";
+	const normalized = token.trim();
+	if (!normalized || normalized.length > MAX_TOKEN_LENGTH) return "";
+	return normalized;
+}
+
+function isValidSessionCookie(cookies: AstroCookies): boolean {
+	const tokenHash = getAdminTokenHash();
+	const session = cookies.get(ADMIN_COOKIE_NAME)?.value;
+	if (!tokenHash || !session) return false;
+
+	const parts = session.split(".");
+	if (parts.length !== 4) return false;
+
+	const [version, expiresAt, nonce, signature] = parts;
+	if (version !== SESSION_VERSION || !/^\d+$/.test(expiresAt) || !nonce || !signature) return false;
+
+	const expiresAtMs = Number(expiresAt);
+	if (!Number.isSafeInteger(expiresAtMs) || expiresAtMs <= Date.now()) return false;
+
+	const payload = `${version}.${expiresAt}.${nonce}`;
+	const expectedSignature = signSessionPayload(payload, tokenHash);
+	return safeEqual(signature, expectedSignature);
+}
+
+/** Return true when a raw token verifies against ADMIN_TOKEN_HASH. */
+export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
+	const tokenHash = getAdminTokenHash();
+	const normalizedToken = normalizeToken(token);
+	if (!normalizedToken || !tokenHash) return false;
+
+	try {
+		return await verify(tokenHash, normalizedToken);
+	} catch {
+		return false;
+	}
+}
+
+/** Persist an opaque signed admin session cookie. The raw token is never stored. */
+export function createAdminSessionCookie(cookies: AstroCookies): void {
+	const tokenHash = getAdminTokenHash();
+	if (!tokenHash) return;
+
+	const expiresAt = String(Date.now() + SESSION_TTL_SECONDS * 1000);
+	const nonce = randomBytes(16).toString("base64url");
+	const payload = `${SESSION_VERSION}.${expiresAt}.${nonce}`;
+	const signature = signSessionPayload(payload, tokenHash);
+	cookies.set(ADMIN_COOKIE_NAME, `${payload}.${signature}`, COOKIE_OPTIONS);
 }
 
 /** Remove the admin session cookie using the same options used to set it. */
-export function deleteAdminCookie(cookies: AstroCookies): void {
+export function clearAdminSessionCookie(cookies: AstroCookies): void {
 	cookies.delete(ADMIN_COOKIE_NAME, {
 		path: COOKIE_OPTIONS.path,
 		secure: COOKIE_OPTIONS.secure,
@@ -85,9 +119,7 @@ export function checkPostOrigin(request: Request): boolean {
 	if (request.method !== "POST") return true;
 	const expected = new URL(request.url).origin;
 	const origin = request.headers.get("origin");
-	// Treat the string "null" (sent by sandboxed contexts) as a failure.
 	if (origin) return origin !== "null" && origin === expected;
-	// No Origin header. Fall back to Referer (older browsers / same-origin fetches)
 	const referer = request.headers.get("referer");
 	if (!referer) return false;
 	try {
@@ -97,26 +129,10 @@ export function checkPostOrigin(request: Request): boolean {
 	}
 }
 
-/**
- * Verify an incoming sub-page request via cookie or ?token= query param.
- *
- * When the token arrives via the query string, returns `cleanUrl` (the same
- * URL with the token param stripped) so the caller can set the cookie and
- * immediately redirect preventing the token from lingering in browser
- * history, server logs, or referrer headers.
- */
-export function checkAdminAuth(
-	request: Request,
-	cookies: AstroCookies
-): { ok: true; fromQuery: boolean; token: string; cleanUrl: string } | { ok: false } {
-	const url = new URL(request.url);
-	const queryToken = url.searchParams.get("token") ?? undefined;
-	const cookieToken = getAdminCookieToken(cookies);
-	const candidate = queryToken ?? cookieToken;
-	if (!isValidToken(candidate)) return { ok: false };
-
-	const cleanUrl = new URL(url);
-	cleanUrl.searchParams.delete("token");
-
-	return { ok: true, fromQuery: Boolean(queryToken), token: sanitizeToken(candidate!), cleanUrl: cleanUrl.toString() };
+/** Verify an incoming admin request via bearer token or signed session cookie. */
+export async function checkAdminAuth(request: Request, cookies: AstroCookies): Promise<{ ok: true } | { ok: false }> {
+	const token = getBearerToken(request);
+	if (token && (await verifyAdminToken(token))) return { ok: true };
+	if (isValidSessionCookie(cookies)) return { ok: true };
+	return { ok: false };
 }
