@@ -1,0 +1,675 @@
+---
+title: "Replacing raw admin tokens with Argon2-backed auth"
+pubDate: 2026-05-21
+description: "Replacing raw admin tokens with hashed credentials, signed sessions, and cleaner middleware boundaries in an Astro-based admin system."
+image:
+    url: "/src/assets/blog/migrating-to-argon2id-auth.png"
+    alt: "Guestbook interface on alexmbugua.me"
+tags: ["security", "authentication", "argon2id", "web-security", "astro", "webdev"]
+permalink: "2026-05-21-the-migrating-to-argon2id-auth"
+updatedDate: 2026-05-22
+---
+import ContentLayout from "@/layouts/ContentLayout.astro";
+
+<ContentLayout
+    title={frontmatter.title}
+    description={frontmatter.description}
+    image={frontmatter.image.url}
+    alt={frontmatter.image.alt}
+    date={(frontmatter.pubDate).toString().slice(0,10)}
+    tags={frontmatter.tags}
+    currentPost={frontmatter.permalink}
+    tableOfContents={tableOfContents}>
+
+# The shape of a small auth system
+<br/>
+The raw admin token was doing too many jobs.
+
+It was the login credential. It was the cookie value. It lived in environment config. Middleware trusted it on every
+request. And if I used the old shortcut flow, it could end up in a URL.
+
+That is not "simple auth for a small feature." That is one leak away from being deeply annoying.
+
+The guestbook admin page started with the kind of setup that feels reasonable when the feature is new: one secret,
+one cookie, one moderation page. But the token had quietly grown into infrastructure. It was not just a credential,
+it was the whole system.
+
+So I replaced `ADMIN_TOKEN` with `ADMIN_TOKEN_HASH`, verified login attempts with Argon2id, removed query-string
+token upgrades, and changed the browser cookie from "raw bearer credential" to "signed session envelope".
+
+The actual improvement was not really "we use Argon2 now."
+
+It was deciding the raw token should stop existing anywhere after login.
+
+The password-hashing side of this is its own topic, so I wrote that separately:
+[Argon2id and the shape of modern password security](/blog/2026-05-19-password-security-with-argon2id).
+
+---
+<br/>
+
+## `$ cat ~/old-flow.md`
+
+The old flow was simple:
+
+```ts title="src/lib/api/admin-auth.ts - before"
+const ADMIN_COOKIE_NAME = "admin_token";
+
+export function isValidToken(candidate: string | undefined): boolean {
+	const ADMIN_TOKEN = import.meta.env.ADMIN_TOKEN;
+	if (!ADMIN_TOKEN || !candidate) return false;
+	return safeEqual(sanitizeToken(candidate), sanitizeToken(ADMIN_TOKEN));
+}
+
+export function setAdminCookie(cookies: AstroCookies, token: string): void {
+	cookies.set(ADMIN_COOKIE_NAME, sanitizeToken(token), COOKIE_OPTIONS);
+}
+```
+
+This had some good instincts already:
+
+- `HttpOnly`
+- `SameSite=Strict`
+- timing-safe comparison
+- `/admin` cookie path
+- explicit CSRF checks for `POST`
+
+But the weak point was architectural: once login succeeded, the browser stored the raw admin token.
+
+That means any cookie disclosure was also credential disclosure. The cookie was not merely proof of a session.
+It was the actual admin secret.
+
+There was a second problem: query-string token upgrades.
+
+The previous middleware accepted `?token=...`, set a cookie, then redirected to the clean URL. That was better than
+leaving the token in the address bar, but URLs are a terrible place for secrets.
+
+They end up in browser history, screenshots, server logs, analytics dashboards, and whatever chat message you paste
+them into.
+
+The problem with URLs is that they keep getting copied long after you stop thinking about them as credentials.
+
+The safer rule here is pretty boring, which is usually a good sign:
+
+**admin credentials should enter through explicit auth channels only.**
+
+For this site, that means:
+
+- password-style login form
+- `Authorization: Bearer ...` for direct programmatic access
+- never `?token=...`
+
+---
+<br/>
+
+## `$ cat ~/migration-goals.md`
+
+The migration had a narrow scope, and I wanted to keep it that way.
+
+On the "do this" side: store only the hash in runtime config, verify submitted tokens with Argon2id, stop writing
+raw tokens into cookies, reject query-string token attempts outright, and keep the session cookie short-lived and
+scoped. Also make local and Netlify deployment hard to misconfigure since the operational side of security work tends
+to be where things actually go wrong.
+
+On the "explicitly not doing this" side: no full user system, no OAuth, no database-backed session table. This is
+still a one-operator admin flow for a personal site.
+
+The point was to remove the sharp edges without turning a guestbook moderation panel into an identity platform.
+
+---
+<br/>
+
+## `$ grep ADMIN_TOKEN_HASH src/lib/api/admin-auth.ts`
+
+The new auth utility reads a hash, normalizes the submitted token, then asks `@node-rs/argon2` to verify it.
+
+```ts title="src/lib/api/admin-auth.ts - after"
+import { verify } from "@node-rs/argon2";
+
+const MAX_TOKEN_LENGTH = 512;
+
+function getAdminTokenHash(): string {
+	return (process.env.ADMIN_TOKEN_HASH ?? import.meta.env.ADMIN_TOKEN_HASH ?? "").trim();
+}
+
+function normalizeToken(token: string | undefined): string {
+	if (!token) return "";
+	if (/[\r\n]/.test(token)) return "";
+
+	const normalized = token.trim();
+	if (!normalized || normalized.length > MAX_TOKEN_LENGTH) return "";
+
+	return normalized;
+}
+
+export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
+	const tokenHash = getAdminTokenHash();
+	const normalizedToken = normalizeToken(token);
+
+	if (!normalizedToken || !tokenHash) return false;
+
+	try {
+		return await verify(tokenHash, normalizedToken);
+	} catch {
+		return false;
+	}
+}
+```
+
+A few details matter here.
+
+First, auth is now asynchronous. That was the migration ripple I felt the most.
+
+The old comparison happened entirely in-process: read a string, sanitize it, compare it. Argon2 verification changes
+that shape. `checkAdminAuth()` becomes async, middleware has to `await` it, and every test that mocked auth now has to
+return a promise.
+
+Second, malformed hashes fail closed. `verify()` can throw if `ADMIN_TOKEN_HASH` is broken, so the function catches
+and returns `false`.
+
+Third, CRLF handling changed from "strip it" to "reject it".
+
+The old implementation sanitized copy-paste artifacts by removing `\r` and `\n`. That was convenient, but for auth
+input I prefer stricter behavior: if a credential contains line breaks, it is not the credential.
+
+The login page uses the raw token exactly once:
+
+```astro title="src/pages/admin/index.astro"
+if (action === "login") {
+	const submittedToken = String(formData.get("token") ?? "");
+
+	if (await verifyAdminToken(submittedToken)) {
+		createAdminSessionCookie(Astro.cookies);
+		return Astro.redirect("/admin");
+	}
+
+	await new Promise((r) => setTimeout(r, 500));
+	loginError = true;
+}
+```
+
+The `500ms` delay is not serious rate limiting. The comment in the implementation says so. On serverless, each
+invocation is isolated, so this only slows sequential attempts in a narrow case.
+
+I wanted the implementation to be honest about what it actually protects against.
+
+A `500ms` delay is not meaningful brute-force protection on serverless infrastructure. It only slows one very specific
+class of bad attempts.
+
+---
+<br/>
+
+## `$ cat ~/session-cookie.txt`
+
+The new cookie is named for what it is:
+
+```ts title="src/lib/api/admin-auth.ts"
+const ADMIN_COOKIE_NAME = "admin_session";
+const SESSION_VERSION = "v1";
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+const COOKIE_OPTIONS = {
+	path: "/admin",
+	httpOnly: true,
+	secure: import.meta.env.PROD,
+	sameSite: "strict" as const,
+	maxAge: SESSION_TTL_SECONDS,
+};
+```
+
+Instead of writing the token into the cookie, the code creates a signed payload:
+
+```ts title="src/lib/api/admin-auth.ts"
+function signSessionPayload(payload: string, tokenHash: string): string {
+	return createHmac("sha256", tokenHash).update(payload).digest("base64url");
+}
+
+export function createAdminSessionCookie(cookies: AstroCookies): void {
+	const tokenHash = getAdminTokenHash();
+	if (!tokenHash) return;
+
+	const expiresAt = String(Date.now() + SESSION_TTL_SECONDS * 1000);
+	const nonce = randomBytes(16).toString("base64url");
+	const payload = `${SESSION_VERSION}.${expiresAt}.${nonce}`;
+	const signature = signSessionPayload(payload, tokenHash);
+
+	cookies.set(ADMIN_COOKIE_NAME, `${payload}.${signature}`, COOKIE_OPTIONS);
+}
+```
+
+The cookie now contains:
+
+```txt
+v1.<expiresAt>.<nonce>.<signature>
+```
+
+No raw token.
+
+That changes the damage model. If the cookie leaks, it is still bad: an attacker may have a live session until expiry.
+But they do not get the reusable admin token.
+
+That is a much easier failure mode to reason about.
+
+The session validator checks structure, version, expiry, and signature:
+
+```ts title="src/lib/api/admin-auth.ts"
+function isValidSessionCookie(cookies: AstroCookies): boolean {
+	const tokenHash = getAdminTokenHash();
+	const session = cookies.get(ADMIN_COOKIE_NAME)?.value;
+
+	if (!tokenHash || !session) return false;
+
+	const parts = session.split(".");
+	if (parts.length !== 4) return false;
+
+	const [version, expiresAt, nonce, signature] = parts;
+	if (version !== SESSION_VERSION || !/^\d+$/.test(expiresAt) || !nonce || !signature) {
+		return false;
+	}
+
+	const expiresAtMs = Number(expiresAt);
+	if (!Number.isSafeInteger(expiresAtMs) || expiresAtMs <= Date.now()) return false;
+
+	const payload = `${version}.${expiresAt}.${nonce}`;
+	const expectedSignature = signSessionPayload(payload, tokenHash);
+
+	return safeEqual(signature, expectedSignature);
+}
+```
+
+Using `ADMIN_TOKEN_HASH` as the HMAC key has an operational side effect: rotating the admin token hash invalidates all
+existing sessions.
+
+For this admin flow, that is a feature. There is one operator, one moderation surface, and no need to preserve sessions
+across credential rotation.
+
+Could I build a more elaborate session system here? Sure.
+
+I could add database-backed sessions. I could introduce a separate signing secret. I could make it look more like a
+small auth product.
+
+But this is a personal-site moderation panel with exactly one operator. The simpler design wins unless the constraints
+change.
+
+For a multi-user app, I would not reuse the password hash this way. I would separate the password hash from a dedicated
+session-signing secret, probably with server-side session storage or explicit token revocation.
+
+Here, the smaller design is acceptable because the constraints are small and explicit.
+
+---
+<br/>
+
+## `$ sed -n '44,67p' src/middleware.ts`
+
+The old middleware had a special path for token upgrades:
+
+```ts title="src/middleware.ts - before"
+const auth = checkAdminAuth(request, cookies);
+
+if (auth.ok && auth.fromQuery) {
+	setAdminCookie(cookies, auth.token);
+	return applyAdminHeaders(context.redirect(auth.cleanUrl, 303));
+}
+```
+
+That branch is gone.
+
+The middleware now does three things, in order:
+
+```ts title="src/middleware.ts" "if (!isAdminRoute) return next();"#v "checkPostOrigin(request)"#s "if (isAdminSubpage && !auth.ok)"#i
+if (!isAdminRoute) return next(); // non-admin route pass-through
+
+// CSRF origin check
+if (request.method === "POST" && !checkPostOrigin(request)) {
+	return applyAdminHeaders(new Response("Forbidden", { status: 403 }));
+}
+
+const auth = await checkAdminAuth(request, cookies);
+
+// admin subpage auth enforcement
+if (isAdminSubpage && !auth.ok) {
+	return applyAdminHeaders(context.redirect("/admin", 303));
+}
+
+return applyAdminHeaders(await next());
+```
+
+This ended up being much easier to reason about.
+
+There is no "accept secret from URL, mutate cookie, redirect" side path. `/admin` remains the login hub. `/admin/*`
+remains protected. Security headers still wrap every response path.
+
+The auth check itself is also clearer:
+
+```ts title="src/lib/api/admin-auth.ts"
+export async function checkAdminAuth(
+	request: Request,
+	cookies: AstroCookies
+): Promise<{ ok: true } | { ok: false }> {
+	const token = getBearerToken(request);
+
+	if (token && (await verifyAdminToken(token))) return { ok: true };
+	if (isValidSessionCookie(cookies)) return { ok: true };
+
+	return { ok: false };
+}
+```
+
+Bearer token first. Session cookie second. Query string never enters the conversation.
+
+---
+<br/>
+
+## `$ rg "query token" src/__tests__ src/lib/api/__tests__`
+
+Removing query-string token upgrades looked like a small change, but it carried a lot of weight.
+
+The old behavior optimized for convenience:
+
+```txt
+/admin/guestbook?token=<secret>
+```
+
+The new behavior rejects it.
+
+That matters because URLs leak differently from form fields and headers. Even if the app immediately redirects,
+the original URL may already have passed through systems that were never meant to handle credentials.
+
+The annoying part is that the old flow was genuinely useful. Paste one URL, get an admin cookie, move on.
+
+Security improvements are usually less satisfying when they remove a shortcut you liked.
+
+The tests make the new contract explicit:
+
+```ts title="src/lib/api/__tests__/admin-auth.test.ts"
+it("rejects token query params instead of accepting or upgrading them", async () => {
+	const request = makeRequest(`${ADMIN_URL}?token=valid-token`);
+
+	await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
+	expect(verify).not.toHaveBeenCalled();
+});
+```
+
+The important assertion is not only `ok: false`.
+
+It is this:
+
+```ts
+expect(verify).not.toHaveBeenCalled();
+```
+
+A query token should not be treated as a malformed login attempt. It should not reach the verifier at all. That keeps
+the auth surface small and makes future regressions easier to spot.
+
+The middleware tests cover the route behavior:
+
+```ts title="src/__tests__/middleware.test.ts"
+it("does not upgrade a query token on /admin", async () => {
+	vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+
+	const ctx = makeContext("/admin?token=valid-token");
+	const response = await handler(ctx, ctx.next);
+
+	expect(ctx.next).toHaveBeenCalledOnce();
+	expect(response.status).toBe(200);
+	expect(ctx.cookies.set).not.toHaveBeenCalled();
+});
+
+it("redirects sub-page query-token attempts to /admin", async () => {
+	vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+
+	const ctx = makeContext("/admin/guestbook?token=valid-token");
+	const response = await handler(ctx, ctx.next);
+
+	expect(response.status).toBe(303);
+	expect(response.headers.get("Location")).toBe("/admin");
+	expect(ctx.cookies.set).not.toHaveBeenCalled();
+});
+```
+
+This is a summary of the migration:
+
+- `/admin?token=...` no longer creates a cookie
+- `/admin/guestbook?token=...` no longer bypasses login
+- no query token gets upgraded into a session
+
+---
+<br/>
+
+## `$ npm run hash:admin-token`
+
+A hash-based auth flow is only useful if generating the hash is hard to mess up.
+
+The helper script does three practical things:
+
+- generates or accepts a raw token
+- prints the raw token only for the operator to save
+- prints the Argon2id hash to stdout for `ADMIN_TOKEN_HASH`
+
+```js title="scripts/hash-admin-token.mjs"
+import { randomBytes } from "node:crypto";
+import { hash, Algorithm } from "@node-rs/argon2";
+
+const MIN_TOKEN_LENGTH = 32;
+const GENERATED_TOKEN_BYTES = 32;
+
+function generateRawToken() {
+	return randomBytes(GENERATED_TOKEN_BYTES).toString("hex");
+}
+
+const tokenHash = await hash(token, { algorithm: Algorithm.Argon2id });
+stdout.write(`${tokenHash}\n`);
+```
+
+The operator flow is intentionally small:
+
+```sh
+npm run hash:admin-token
+npm run hash:admin-token -- --generate
+```
+
+That matters because bad secret workflows create bad security habits.
+
+If the safest path is annoying, I will eventually do the annoying thing wrong. The helper makes the correct path the
+easy path:
+
+1. Generate a raw token.
+2. Save the raw token in a password manager.
+3. Store only the Argon2id hash in Netlify.
+4. Escape `$` only when the loader expands env references.
+
+The Vite `.env` detail is easy to miss:
+
+```env
+ADMIN_TOKEN_HASH=\$argon2id\$v=19\$m=19456,t=2,p=1\$...\$...
+```
+
+Argon2 hashes contain `$` separators. Vite-loaded `.env` files expand environment references, so literal dollar signs
+need escaping there.
+
+---
+<br/>
+
+## `$ npm test -- admin-auth middleware`
+
+The tests now describe the threat model.
+
+Mocking Argon2 also made the tests more honest. The unit tests do not need to spend CPU proving Argon2 works. They need
+to prove the application calls the verifier only through the right paths, fails closed when the hash is broken, and does
+not accidentally treat a query string as an auth channel.
+
+Token verification tests cover:
+
+- valid raw token
+- invalid raw token
+- empty token
+- oversized token
+- CRLF token
+- missing hash
+- malformed hash
+- Astro env fallback
+
+```ts title="src/lib/api/__tests__/admin-auth.test.ts"
+it("fails closed when ADMIN_TOKEN_HASH is malformed", async () => {
+	vi.mocked(verify).mockRejectedValueOnce(new Error("invalid hash"));
+
+	await expect(verifyAdminToken("valid-token")).resolves.toBe(false);
+});
+```
+
+Session tests cover:
+
+- cookie name changed to `admin_session`
+- raw token is not stored
+- path is `/admin`
+- `SameSite=Strict`
+- `HttpOnly`
+- delete options match set options
+- tampering fails
+
+```ts title="src/lib/api/__tests__/admin-auth.test.ts"
+it("does not store the raw admin token in the cookie", async () => {
+	const cookies = makeCookies();
+
+	createAdminSessionCookie(cookies);
+
+	const [, storedValue] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [
+		string,
+		string,
+		object,
+	];
+
+	expect(storedValue).not.toContain("valid-token");
+});
+```
+
+That test is small but important. It protects the main architectural promise of the migration.
+
+The middleware tests then check behavior at the route layer: CSRF still rejects early, admin subpages still redirect
+when unauthenticated, and query-string tokens do not set cookies.
+
+This split felt right:
+
+- `admin-auth.test.ts` proves the auth primitives.
+- `middleware.test.ts` proves request lifecycle behavior.
+- `hash-admin-token-script.test.ts` proves the operator tool does not echo secrets in the wrong place.
+
+---
+<br/>
+
+## `$ cat ~/deployment-notes.md`
+
+The migration has a few deployment rules worth writing down.
+
+First: deploy code and env together.
+
+If the new code ships without `ADMIN_TOKEN_HASH`, admin auth fails closed. That is good security behavior, but it is
+still an operational outage for moderation.
+
+Second: keep the raw token out of deployment config.
+
+Netlify should receive:
+
+```txt
+ADMIN_TOKEN_HASH=$argon2id$...
+```
+
+The password manager should receive:
+
+```txt
+raw admin token
+```
+
+Those are not interchangeable, even if they are generated from the same secret.
+
+Third: escaping depends on the environment loader. In this implementation, the important cases are:
+
+```env
+# Vite-loaded .env
+ADMIN_TOKEN_HASH=\$argon2id\$...
+```
+
+```txt
+# Netlify UI
+ADMIN_TOKEN_HASH=$argon2id$...
+```
+
+```txt
+# Docker Compose / Coolify-style interpolation
+ADMIN_TOKEN_HASH=$$argon2id$$...
+```
+
+> Vite-loaded `.env` files need `\$` for literal dollar signs. Shell exports depend on quoting style, single quotes
+> usually preserve `$`. Docker Compose / Coolify-style interpolation often uses `$$` for a literal `$`. Some dotenv
+> loaders do not expand `$` at all, so no escaping is needed. Worth checking which loader is actually in play before
+> deploying.
+
+Fourth: rotating the hash logs out existing browser sessions.
+
+Because the session signature is derived from `ADMIN_TOKEN_HASH`, rotation invalidates existing cookies. For this site,
+that is acceptable. For a larger app, session signing would deserve its own secret and its own rotation story.
+
+Fifth: watch for accidental whitespace.
+
+`getAdminTokenHash()` trims the configured hash, which helps with copy-paste edges, but I still do not want multiline
+values, wrapped terminal output, or shell quoting experiments anywhere near this value.
+
+Sixth: removing query tokens is a breaking operational change.
+
+Any old bookmark like this stops working:
+
+```txt
+/admin/guestbook?token=...
+```
+
+That is intentional. The replacement is the login form or an explicit bearer header.
+
+---
+<br/>
+
+## `$ echo $LESSON`
+
+The thing about small admin systems is that they rarely stay "temporary".
+
+The guestbook moderation flow started as a tiny convenience feature. A single token felt perfectly reasonable.
+
+A while later, that token was living in cookies, flowing through middleware, appearing in URLs, and acting as both
+credential and session.
+
+Nothing catastrophic happened. That is not the point.
+
+The shape of the system had drifted into something I no longer trusted.
+
+Before the migration, the raw token was the whole system.
+
+After the migration, the system has clearer boundaries:
+
+- raw token: operator-held credential
+- Argon2id hash: deployment-held verifier
+- signed cookie: browser-held session
+- middleware: route gatekeeper
+- login page: only place where form credentials become sessions
+- helper script: safe token provisioning path
+
+That separation is the lesson.
+
+Hashing the token was the obvious part. The more useful work was removing all the places where the token had quietly
+become infrastructure.
+
+I underestimated how much complexity was hiding in that convenience.
+
+The old flow was easy because the same secret worked everywhere: env var, URL, cookie, login form. The new flow is
+safer because each piece has exactly one job.
+
+That is usually what I want from security-sensitive code on a personal project: small enough to understand, strict
+enough to trust, and boring in the places where boring is doing real work.
+
+The migration itself was not especially large.
+
+Most of the diff was middleware cleanup, async auth plumbing, and replacing one cookie format with another.
+
+What changed more was how I thought about "small" auth systems.
+
+The original guestbook admin flow was built like a temporary feature. Then enough time passed that it quietly became
+infrastructure.
+
+</ContentLayout>
