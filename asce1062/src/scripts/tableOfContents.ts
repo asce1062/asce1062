@@ -71,6 +71,13 @@ const STICKY_TOP_PX = 5;
  */
 const ANCHOR_OFFSET_GAP_PX = 16;
 
+/**
+ * Extra room when returning from a footnote to an inline reference.
+ * The target line needs to sit below the sticky chrome instead of directly
+ * under it, otherwise the surrounding resource/citation text is obscured.
+ */
+const FOOTNOTE_RETURN_OFFSET_GAP_PX = 40;
+
 let _ac: AbortController | null = null;
 
 export function init(): void {
@@ -91,6 +98,7 @@ export function init(): void {
 	let isDetailsOpen = details?.open ?? false;
 	let lastScrollY = Math.max(0, window.scrollY);
 	let rafPending = false;
+	let suppressRevealUntilY: number | null = null;
 
 	// Only write to the DOM when state actually changes.
 	// Redundant writes to the same transform value re-evaluate the CSS
@@ -104,6 +112,9 @@ export function init(): void {
 	function updateAnchorOffset(): void {
 		const offset = Math.ceil(toc!.getBoundingClientRect().height + ANCHOR_OFFSET_GAP_PX);
 		document.documentElement.style.setProperty("--anchor-scroll-margin-top", `${offset}px`);
+
+		const footnoteOffset = Math.ceil(toc!.getBoundingClientRect().height + FOOTNOTE_RETURN_OFFSET_GAP_PX);
+		document.documentElement.style.setProperty("--footnote-return-scroll-margin-top", `${footnoteOffset}px`);
 	}
 
 	// ── details: track open state and close on link click ──
@@ -131,6 +142,25 @@ export function init(): void {
 	}
 
 	window.addEventListener("resize", updateAnchorOffset, { passive: true, signal });
+
+	document.addEventListener(
+		"click",
+		(event) => {
+			const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[data-footnote-backref]");
+			if (!link) return;
+
+			const targetId = link.hash.slice(1);
+			if (!targetId) return;
+
+			const target = document.getElementById(decodeURIComponent(targetId));
+			if (!target) return;
+
+			const marginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+			suppressRevealUntilY = Math.max(0, window.scrollY + target.getBoundingClientRect().top - marginTop);
+			setHidden(true);
+		},
+		{ signal }
+	);
 
 	// ── scroll: sticky detection + threshold dead zone + rAF ──
 	window.addEventListener(
@@ -165,6 +195,16 @@ export function init(): void {
 
 				const currentScrollY = Math.max(0, window.scrollY);
 				const delta = currentScrollY - lastScrollY;
+
+				if (suppressRevealUntilY !== null) {
+					if (Math.abs(currentScrollY - suppressRevealUntilY) < SCROLL_THRESHOLD) {
+						setHidden(true);
+						lastScrollY = currentScrollY;
+						return;
+					}
+
+					suppressRevealUntilY = null;
+				}
 
 				// Dead zone: sub-threshold movements do not update lastScrollY,
 				// so small oscillations accumulate toward the threshold rather

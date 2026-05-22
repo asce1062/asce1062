@@ -97,7 +97,7 @@ describe("verifyAdminToken", () => {
 	});
 
 	it("returns false when ADMIN_TOKEN_HASH is missing", async () => {
-		vi.unstubAllEnvs();
+		vi.stubEnv("ADMIN_TOKEN_HASH", undefined);
 		await expect(verifyAdminToken("valid-token")).resolves.toBe(false);
 		expect(verify).not.toHaveBeenCalled();
 	});
@@ -219,7 +219,7 @@ describe("checkAdminAuth", () => {
 	});
 
 	it("returns ok:false when ADMIN_TOKEN_HASH is missing", async () => {
-		vi.unstubAllEnvs();
+		vi.stubEnv("ADMIN_TOKEN_HASH", undefined);
 		const request = makeRequest(ADMIN_URL, { authorization: "Bearer valid-token" });
 		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
 	});

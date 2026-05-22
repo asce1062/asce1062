@@ -87,12 +87,6 @@ from = "/sitemap"
 to = "/sitemap-index.xml"
 status = 301
 
-# Resume Shortcut
-[[redirects]]
-from = "/resume"
-to = "/blog/2025-06-19-resume/"
-status = 301
-
 # Legacy asset paths. Redirect to canonical locations in downloads/
 [[redirects]]
 from = "/public.pgp"

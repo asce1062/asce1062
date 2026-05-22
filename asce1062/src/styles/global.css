@@ -173,6 +173,10 @@
 		scroll-margin-top: var(--anchor-scroll-margin-top);
 	}
 
+	[data-footnote-ref] {
+		scroll-margin-top: var(--footnote-return-scroll-margin-top, var(--anchor-scroll-margin-top));
+	}
+
 	h1,
 	h2,
 	h3 {
