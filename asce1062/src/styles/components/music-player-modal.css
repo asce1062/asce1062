@@ -27,6 +27,10 @@
 	--player-faint: color-mix(in oklab, var(--player-ink) 24%, transparent);
 	--player-inverse: var(--color-primary-content);
 	--player-alert: var(--color-accent);
+	--music-terminal-body-padding: clamp(0.875rem, 2.5vw, 1.25rem);
+	--music-terminal-stack-gap: 1rem;
+	--music-control-panel-block-size: 0px;
+	--music-control-sticky-top: calc(-1 * var(--music-terminal-body-padding));
 
 	position: fixed;
 	/* Above page content and route-transition snapshots while the dialog is open. */
@@ -149,14 +153,13 @@
 }
 
 .music-terminal-body {
-	display: grid;
-	grid-template-rows: max-content max-content max-content;
-	align-content: start;
+	display: flex;
+	flex-direction: column;
 	flex: 1 1 auto;
-	gap: 1rem;
+	gap: var(--music-terminal-stack-gap);
 	min-height: 0;
 	overflow: auto;
-	padding: clamp(0.875rem, 2.5vw, 1.25rem);
+	padding: var(--music-terminal-body-padding);
 	background: var(--player-bg);
 }
 
@@ -280,6 +283,9 @@
 }
 
 .music-control-panel {
+	position: sticky;
+	top: var(--music-control-sticky-top);
+	z-index: 2;
 	display: grid;
 	grid-template-columns: auto minmax(4rem, 1fr);
 	align-items: start;
@@ -415,8 +421,9 @@
 }
 
 .music-console-grid {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
+	display: flex;
+	flex-direction: column;
+	flex: 1 0 max-content;
 	gap: 1rem;
 	min-block-size: max-content;
 	overflow: visible;
@@ -424,10 +431,12 @@
 
 .music-panel {
 	min-width: 0;
-	display: grid;
-	grid-template-rows: max-content max-content max-content;
-	min-block-size: max-content;
+	display: flex;
+	flex-direction: column;
+	flex: 1 0 auto;
+	min-block-size: 100%;
 	overflow: visible;
+	padding-block-end: var(--music-terminal-body-padding);
 }
 
 .music-panel-heading {
@@ -438,6 +447,10 @@
 	padding: 0.55rem 0.75rem;
 	border-bottom: 1px solid var(--player-dim);
 	color: var(--player-alert);
+}
+
+.music-panel:has(.music-terminal-list.is-focused) .music-panel-heading {
+	display: none;
 }
 
 .music-panel-heading p,
@@ -457,7 +470,7 @@
 	gap: 0;
 	align-content: start;
 	min-block-size: max-content;
-	overflow: auto;
+	overflow: visible;
 }
 
 .music-playlist-entry {
@@ -475,6 +488,12 @@
 	min-block-size: max-content;
 }
 
+.music-terminal-list.is-focused .music-playlist-entry.is-expanded > .music-terminal-row[data-playlist-id] {
+	position: sticky;
+	top: calc(var(--music-control-sticky-top) + var(--music-control-panel-block-size));
+	z-index: 2;
+}
+
 .music-inline-queue {
 	display: grid;
 	align-content: start;
@@ -483,8 +502,7 @@
 	margin: 0;
 	list-style: none;
 	min-block-size: max-content;
-	max-block-size: min(22rem, 48dvh);
-	overflow: auto;
+	overflow: visible;
 }
 
 .music-inline-queue[hidden] {
@@ -793,6 +811,25 @@
 	.music-time-row {
 		justify-self: end;
 		width: 100%;
+	}
+}
+
+@media (width < 1024px) {
+	.music-dock-chip {
+		top: auto;
+		right: -14px;
+		bottom: calc(2.275rem + (2.75rem + 0.45rem) * var(--dock-mobile-stack-index, 0));
+		left: auto;
+		z-index: 107;
+		width: 1.5rem;
+		height: 2.75rem;
+		border-left: 1.875px solid color-mix(in oklab, var(--color-primary) 30%, var(--color-base-300));
+		border-right: none;
+	}
+
+	.music-dock-chip:hover,
+	.music-dock-chip:focus-visible {
+		transform: translateX(-14px);
 	}
 }
 

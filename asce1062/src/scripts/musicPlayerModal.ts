@@ -100,6 +100,7 @@ let refs: MusicPageRefs | null = null;
 let controlsAbortController: AbortController | null = null;
 let rootObserver: MutationObserver | null = null;
 let dockObserver: MutationObserver | null = null;
+let stickyMetricsObserver: ResizeObserver | null = null;
 let playlistsLoadPromise: Promise<void> | null = null;
 let activeFlavor: MusicPlayerFlavor = "DEFAULT";
 let playbackState: MusicPlaybackState<MusicTrack> = createMusicPlaybackState<MusicTrack>();
@@ -246,6 +247,12 @@ function getMusicBodyPaddingEnd() {
 	return Number.parseFloat(style.paddingBlockEnd || style.paddingBottom || "0") || 0;
 }
 
+function updateStickyMetrics() {
+	if (!refs?.terminal || !refs.controlPanel) return;
+	const controlPanelHeight = Math.ceil(refs.controlPanel.getBoundingClientRect().height);
+	refs.terminal.style.setProperty("--music-control-panel-block-size", `${controlPanelHeight}px`);
+}
+
 function getMusicBounds() {
 	const margin = getWindowMargin();
 	const mobile = isMobileMusicViewport();
@@ -331,7 +338,7 @@ function getMaximumMusicSize() {
 function getPreferredMusicRect() {
 	const bounds = getMusicBounds();
 	const mobile = isMobileMusicViewport();
-	const width = mobile ? bounds.width : Math.min(880, bounds.width);
+	const width = mobile ? bounds.width : Math.min(Math.max(880, bounds.width * 0.72), bounds.width);
 	const height = bounds.height;
 	return clampMusicRect({
 		x: bounds.left + (bounds.width - width) / 2,
@@ -399,6 +406,7 @@ function applyMusicWindowRect(options: { preferCollapsedMaxHeight?: boolean } = 
 	refs.terminal.style.top = `${rect.y}px`;
 	refs.terminal.style.width = `${rect.width}px`;
 	refs.terminal.style.height = `${rect.height}px`;
+	updateStickyMetrics();
 }
 
 function updateDockStack() {
@@ -863,11 +871,9 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 		return;
 	}
 
-	const listHeight = refs?.playlistsRoot?.getBoundingClientRect().height ?? 0;
 	collapseExpandedPlaylist();
 	expandedPlaylistId = id;
-	if (refs?.playlistsRoot && listHeight > 0) {
-		refs.playlistsRoot.style.blockSize = `${listHeight}px`;
+	if (refs?.playlistsRoot) {
 		refs.playlistsRoot.classList.add("is-focused");
 	}
 	setPlaylistEntryExpanded(entry, true);
@@ -1135,6 +1141,7 @@ function bindControls(signal: AbortSignal) {
 			if (!musicWindowRect) return;
 			applyMusicWindowRect();
 			updateDockStack();
+			updateStickyMetrics();
 		},
 		{ signal }
 	);
@@ -1214,6 +1221,11 @@ function bindControls(signal: AbortSignal) {
 				attributeFilter: ["hidden", "data-terminal-docked", "data-music-docked"],
 			});
 	}
+	if (refs?.controlPanel && "ResizeObserver" in window) {
+		stickyMetricsObserver = new ResizeObserver(updateStickyMetrics);
+		stickyMetricsObserver.observe(refs.controlPanel);
+		updateStickyMetrics();
+	}
 }
 
 function cleanupMusicPage() {
@@ -1223,6 +1235,8 @@ function cleanupMusicPage() {
 	rootObserver = null;
 	dockObserver?.disconnect();
 	dockObserver = null;
+	stickyMetricsObserver?.disconnect();
+	stickyMetricsObserver = null;
 	if (refs?.player instanceof HTMLAudioElement) {
 		refs.player.pause();
 		refs.player.removeAttribute("src");

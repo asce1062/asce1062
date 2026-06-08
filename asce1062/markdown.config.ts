@@ -1,5 +1,6 @@
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeExternalLinks from "rehype-external-links";
+import { unified } from "@astrojs/markdown-remark";
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
 import rehypeSlug from "rehype-slug";
 import extractToc from "@stefanprobst/rehype-extract-toc";
@@ -57,31 +58,33 @@ const prettyCodeOptions: RehypePrettyCodeOptions = {
 
 const markdownConfig: AstroUserConfig["markdown"] = {
 	syntaxHighlight: false, // Handled by rehype-pretty-code
-	remarkPlugins: [
-		remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
-	],
-	rehypePlugins: [
-		rehypeSlug, // Add id attrs to headings (must run before extractToc)
-		extractToc, // Attach TOC to vfile.data.toc (reads ids set by rehypeSlug)
-		[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
-		// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
-		// signature cast required. Tracked upstream in the plugin's type declarations.
-		rehypeAccessibleEmojis as any,
-		[
-			rehypeExternalLinks,
-			{
-				target: "_blank",
-				rel: ["noopener", "noreferrer"],
-				content: {
-					type: "element",
-					tagName: "i",
-					properties: { className: ["icon-box-arrow-up-right"], ariaHidden: "true" },
-					children: [],
-				},
-			},
+	processor: unified({
+		remarkPlugins: [
+			remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
 		],
-		[rehypePrettyCode, prettyCodeOptions],
-	],
+		rehypePlugins: [
+			rehypeSlug, // Add id attrs to headings (must run before extractToc)
+			extractToc, // Attach TOC to vfile.data.toc (reads ids set by rehypeSlug)
+			[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
+			// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
+			// signature cast required. Tracked upstream in the plugin's type declarations.
+			rehypeAccessibleEmojis as any,
+			[
+				rehypeExternalLinks,
+				{
+					target: "_blank",
+					rel: ["noopener", "noreferrer"],
+					content: {
+						type: "element",
+						tagName: "i",
+						properties: { className: ["icon-box-arrow-up-right"], ariaHidden: "true" },
+						children: [],
+					},
+				},
+			],
+			[rehypePrettyCode, prettyCodeOptions],
+		],
+	}),
 };
 
 export default markdownConfig;

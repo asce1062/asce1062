@@ -794,6 +794,33 @@
 	}
 }
 
+@media (max-width: 1023px) {
+	.terminal-dock-chip {
+		top: auto;
+		right: -14px;
+		bottom: calc(2.275rem + (2.75rem + 0.45rem) * var(--dock-mobile-stack-index, 0));
+		left: auto;
+		z-index: 107;
+		width: 1.5rem;
+		height: 2.75rem;
+		padding: 0;
+		border-left: 1.875px solid color-mix(in oklab, var(--color-secondary) 30%, var(--color-base-300));
+		border-right: none;
+		border-radius: 0;
+		box-shadow: var(--glow-identity);
+		cursor: pointer;
+	}
+
+	.terminal-dock-chip__label {
+		display: none;
+	}
+
+	.terminal-dock-chip:hover,
+	.terminal-dock-chip:focus-visible {
+		transform: translateX(-14px);
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.terminal-overlay,
 	.terminal-window,
