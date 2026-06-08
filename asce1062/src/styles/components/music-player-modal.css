@@ -547,6 +547,11 @@
 	color: var(--player-inverse);
 }
 
+.music-terminal-row.is-active :where(p, ul, span, div),
+.music-terminal-row.is-playing :where(p, ul, span, div) {
+	color: var(--player-inverse);
+}
+
 .music-track-row {
 	grid-template-columns: auto minmax(0, 1fr) auto;
 	border-bottom-color: color-mix(in oklab, var(--player-ink) 16%, transparent);
