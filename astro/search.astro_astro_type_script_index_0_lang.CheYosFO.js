@@ -1,0 +1,1 @@
+import{i as t,a as e}from"./keyboardShortcuts.Cx97laHI.js";const a=window;a.__searchPageShortcutCleanup?.();a.__searchPageSlashShortcutCleanup?.();a.__searchPageShortcutCleanup=t();a.__searchPageSlashShortcutCleanup=e(()=>{document.querySelector(".pagefind-ui__search-input")?.focus()});
