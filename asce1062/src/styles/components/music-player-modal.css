@@ -631,11 +631,17 @@
 	cursor: ns-resize;
 }
 
-.music-resize-handle--e,
 .music-resize-handle--w {
 	top: 2.8rem;
 	bottom: 0.9rem;
 	width: 0.7rem;
+	cursor: ew-resize;
+}
+
+.music-resize-handle--e {
+	top: 2.8rem;
+	bottom: 0.9rem;
+	width: 0.25rem;
 	cursor: ew-resize;
 }
 
