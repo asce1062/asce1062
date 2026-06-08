@@ -75,6 +75,12 @@
 	--color-guestbook-pattern-ink: oklch(81.8% 0.054 90.3);
 	/* Matrix rain glyphs. Stronger than atmosphere ink for low-brightness OLED visibility. */
 	--color-matrix-rain: oklch(70% 0.075 90);
+	/* Native scrollbar skin. Derived from theme colors so every flavor. */
+	--color-scrollbar-track: transparent;
+	--color-scrollbar-thumb: color-mix(in oklab, var(--color-primary), transparent 52%);
+	--color-scrollbar-thumb-border: var(--color-primary);
+	--color-scrollbar-thumb-hover: var(--color-primary);
+	--color-scrollbar-corner: transparent;
 
 	/*
 	============================================

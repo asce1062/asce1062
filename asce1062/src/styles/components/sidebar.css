@@ -283,8 +283,6 @@ body:has(#nav-toggle:checked) {
 	flex: 1;
 	overflow-y: auto;
 	padding: 0 0.25rem 0.5rem;
-	scrollbar-width: thin;
-	scrollbar-color: var(--color-base-300) transparent;
 }
 
 .nav-section {

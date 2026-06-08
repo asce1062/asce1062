@@ -27,6 +27,11 @@
 	--player-faint: color-mix(in oklab, var(--player-ink) 24%, transparent);
 	--player-inverse: var(--color-primary-content);
 	--player-alert: var(--color-accent);
+	--color-scrollbar-track: transparent;
+	--color-scrollbar-thumb: color-mix(in oklab, var(--player-ink), transparent 52%);
+	--color-scrollbar-thumb-border: var(--player-ink);
+	--color-scrollbar-thumb-hover: var(--player-ink);
+	--color-scrollbar-corner: transparent;
 	--music-terminal-body-padding: clamp(0.875rem, 2.5vw, 1.25rem);
 	--music-terminal-stack-gap: 1rem;
 	--music-control-panel-block-size: 0px;
