@@ -260,9 +260,14 @@ function stopAnimation(): void {
 // ── Enable / disable ────────────────────────────────────────────────────────
 
 function enable(): void {
-	document.documentElement.setAttribute(ACTIVE_ATTR, "");
+	stopAnimation();
 
-	if (!isOn404Page()) return;
+	if (!isOn404Page()) {
+		document.documentElement.removeAttribute(ACTIVE_ATTR);
+		return;
+	}
+
+	document.documentElement.setAttribute(ACTIVE_ATTR, "");
 
 	const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	if (!prefersReduced) {
