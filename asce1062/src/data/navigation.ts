@@ -357,6 +357,12 @@ export const sidebarOptions: SidebarOption[] = [
 		label: "Matrix",
 		description: "Hiragana rain falls behind the site. Enabling this turns off Stars.",
 	},
+	{
+		id: "burn404-toggle",
+		icon: "icon-stars",
+		label: "Burn 404",
+		description: "Lights a Doom-fire effect on the 404 page. Only visible when you actually hit a missing page.",
+	},
 ];
 
 /**
