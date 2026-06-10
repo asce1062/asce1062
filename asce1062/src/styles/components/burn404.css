@@ -1,0 +1,46 @@
+/* Burn 404 — fire canvas positioning and reduced-motion static fallback. */
+
+#burn404-canvas {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	pointer-events: none;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	display: none;
+}
+
+html[data-burn404-active] #burn404-canvas {
+	display: block;
+}
+
+/* Ensure main layout content sits above the fire canvas */
+html[data-burn404-active] body > :not(#burn404-canvas) {
+	position: relative;
+	z-index: 2;
+}
+
+/* Static gradient fallback for prefers-reduced-motion */
+.burn404-gradient {
+	display: none;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 45vh;
+	z-index: 1;
+	pointer-events: none;
+	background: linear-gradient(
+		to top,
+		color-mix(in oklch, var(--color-error) 60%, transparent) 0%,
+		color-mix(in oklch, var(--color-warning) 40%, transparent) 30%,
+		transparent 80%
+	);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html[data-burn404-active] .burn404-gradient {
+		display: block;
+	}
+}
