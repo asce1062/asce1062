@@ -45,7 +45,7 @@ This site does not:
 
 LOCAL STORAGE
 
-This site writes eleven values to your browser's localStorage:
+This site writes twelve values to your browser's localStorage:
 
 - "theme": "light" or "dark" - your chosen color scheme.
 - "match-device-theme": "1" when the "Match device" sidebar toggle is
@@ -58,6 +58,8 @@ This site writes eleven values to your browser's localStorage:
 - "matrix-bg": "1" when the Matrix rain canvas background is enabled via
   the "Matrix" sidebar toggle; absent otherwise. Mutually exclusive with
   stars-bg (enabling one disables the other).
+- "flourish-burn404": "0" when the Doom-fire canvas effect on the 404 page has
+  been disabled via the sidebar toggle; absent when enabled (on by default).
 - "avatar-state": your 8-bit avatar customisation (e.g.
   "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
   avatar builder at /8biticon; absent until you interact with it.
@@ -74,7 +76,7 @@ This site writes eleven values to your browser's localStorage:
   visit. Used to show how long it has been since your last visit in the
   sidebar sub-line. Absent until your first visit; never transmitted anywhere.
 
-All eleven values persist across browser restarts by design so your
+All twelve values persist across browser restarts by design so your
 preferences are remembered between visits. They never leave your device
 and are never transmitted to a server.
 
@@ -118,7 +120,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-04-16.
+This policy was last reviewed and reasserted on 2026-06-10.
 
 REFERENCE
 
