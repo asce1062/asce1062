@@ -132,6 +132,8 @@ const CANVAS_ID = "burn404-canvas";
 const PIXEL_SIZE = 4;
 const FIRE_HEIGHT_RATIO = 0.45;
 const FRAME_INTERVAL = 1000 / 30;
+// Cap the heat source below full-white to keep the flame amber/yellow at the base.
+const SOURCE_INTENSITY = 33;
 
 // ── Canvas / animation state ────────────────────────────────────────────────
 
@@ -201,7 +203,7 @@ function resizeCanvas(): void {
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
 
-	_buf = initFire(_fireW, _fireH);
+	_buf = initFire(_fireW, _fireH, SOURCE_INTENSITY);
 }
 
 function removeCanvas(): void {
@@ -225,7 +227,7 @@ function tick(now: number): void {
 
 	if (!_ctx || !_canvas || _fireW === 0 || _fireH === 0) return;
 
-	_buf = updateFire(_buf, _fireW, _fireH, MAX_INTENSITY, true);
+	_buf = updateFire(_buf, _fireW, _fireH, SOURCE_INTENSITY, true);
 
 	const img = _ctx.createImageData(_fireW, _fireH);
 	const data = img.data;
