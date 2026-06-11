@@ -119,6 +119,9 @@ const TORCH_PIXEL_SIZE = 4;
 const TORCH_SOURCE_INTENSITY = 33;
 const PAGE_SENTINEL = "data-page-404";
 const FRAME_INTERVAL = 1000 / 30;
+// Extra canvas rows for the detection pass (captures descenders that extend
+// slightly below window.innerHeight when content fills the full viewport i.e., y and g tails).
+const DETECT_OVERFLOW = TORCH_PIXEL_SIZE * 2;
 
 // ── Canvas / animation / interaction state ─────────────────────────────────
 
@@ -135,6 +138,8 @@ let _burningPixels: Set<string> = new Set();
 let _ac: AbortController | null = null;
 let _scrollTimer: ReturnType<typeof setTimeout> | null = null;
 let _torchExtinguishing = false;
+let _mutationObserver: MutationObserver | null = null;
+let _mutationTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── 404-page detection ─────────────────────────────────────────────────────
 
@@ -170,12 +175,12 @@ function detectFlammablePixels(): Set<string> {
 
 	const offscreen = document.createElement("canvas");
 	offscreen.width = cw;
-	offscreen.height = canvasH;
+	offscreen.height = canvasH + DETECT_OVERFLOW;
 	const ctx = offscreen.getContext("2d", { willReadFrequently: true });
 	if (!ctx) return new Set();
 
 	ctx.fillStyle = "#000000";
-	ctx.fillRect(0, 0, cw, canvasH);
+	ctx.fillRect(0, 0, cw, canvasH + DETECT_OVERFLOW);
 
 	// Render each text node at glyph level using canvas text APIs.
 	const walker = document.createTreeWalker(sentinel, NodeFilter.SHOW_TEXT);
@@ -215,7 +220,7 @@ function detectFlammablePixels(): Set<string> {
 				if (rects.length === 0) continue;
 				const r = rects[0];
 				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH) continue;
-				const baseline = r.top + r.height * 0.8;
+				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
 				if (useStroke) {
 					ctx.strokeText(char, r.left, baseline);
 				} else {
@@ -231,7 +236,7 @@ function detectFlammablePixels(): Set<string> {
 			for (let i = 0; i < Math.min(lines.length, lineRects.length); i++) {
 				const r = lineRects[i];
 				if (r.bottom < 0 || r.top > canvasH) continue;
-				const baseline = r.top + r.height * 0.8;
+				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
 				if (useStroke) {
 					ctx.strokeText(lines[i], r.left, baseline);
 				} else {
@@ -261,14 +266,16 @@ function detectFlammablePixels(): Set<string> {
 	}
 
 	// Map every lit pixel to its fire-buffer cell coordinate.
-	const pixels = ctx.getImageData(0, 0, cw, canvasH).data;
+	const pixels = ctx.getImageData(0, 0, cw, canvasH + DETECT_OVERFLOW).data;
 	const flammable = new Set<string>();
-	for (let y = 0; y < canvasH; y++) {
+	for (let y = 0; y < canvasH + DETECT_OVERFLOW; y++) {
 		for (let x = 0; x < cw; x++) {
 			if (pixels[(y * cw + x) * 4] > 64) {
 				const fx = Math.floor(x / TORCH_PIXEL_SIZE);
-				const fy = Math.floor(y / TORCH_PIXEL_SIZE);
-				if (fx < _fireW && fy < _fireH) {
+				// Clamp so descenders that extend past the canvas bottom map to the
+				// last row rather than being silently discarded.
+				const fy = Math.min(_fireH - 1, Math.floor(y / TORCH_PIXEL_SIZE));
+				if (fx < _fireW) {
 					flammable.add(`${fx},${fy}`);
 				}
 			}
@@ -417,6 +424,39 @@ function stopTorchAnimation(): void {
 	}
 }
 
+// ── Mutation watch ─────────────────────────────────────────────────────────
+
+function redetectAfterChange(): void {
+	_burningPixels = new Set();
+	document.fonts.ready.then(() => {
+		if (isOn404Page() && _fireW > 0) {
+			_flammablePixels = detectFlammablePixels();
+		}
+	});
+}
+
+function startMutationWatch(): void {
+	const sentinel = document.querySelector(`[${PAGE_SENTINEL}]`);
+	if (!sentinel || _mutationObserver) return;
+	_mutationObserver = new MutationObserver(() => {
+		if (_mutationTimer !== null) clearTimeout(_mutationTimer);
+		_mutationTimer = setTimeout(() => {
+			_mutationTimer = null;
+			redetectAfterChange();
+		}, 150);
+	});
+	_mutationObserver.observe(sentinel, { childList: true, subtree: true });
+}
+
+function stopMutationWatch(): void {
+	if (_mutationTimer !== null) {
+		clearTimeout(_mutationTimer);
+		_mutationTimer = null;
+	}
+	_mutationObserver?.disconnect();
+	_mutationObserver = null;
+}
+
 // ── Enable / disable ───────────────────────────────────────────────────────
 
 function enableTorch(): void {
@@ -429,6 +469,7 @@ function enableTorch(): void {
 	if (prefersReduced) return;
 
 	buildTorchCanvas();
+	startMutationWatch();
 
 	_ac?.abort();
 	_ac = new AbortController();
@@ -494,6 +535,7 @@ function enableTorch(): void {
 }
 
 function disableTorch(): void {
+	stopMutationWatch();
 	if (_scrollTimer !== null) {
 		clearTimeout(_scrollTimer);
 		_scrollTimer = null;
@@ -521,15 +563,24 @@ function applyTorchPref(): void {
 }
 
 function initTorch(): void {
-	// Reset per-visit state; re-detect flammable pixels now that DOM is rendered
+	// Reset per-visit state. Detection is deferred (see below).
 	_burningPixels = new Set();
 	_mouseFirePos = null;
+	_flammablePixels = new Set();
 
-	if (isOn404Page() && isActive() && _fireW > 0) {
-		_flammablePixels = detectFlammablePixels();
-	} else {
-		_flammablePixels = new Set();
-	}
+	if (!isOn404Page() || !isActive() || _fireW === 0) return;
+
+	// Defer detection until fonts are loaded and layout has settled.
+	// Without this, Range.getClientRects() returns intermediate positions
+	// during Astro view transitions, reloads, and back-navigation, causing
+	// flammable zones to be offset from where elements actually land.
+	document.fonts.ready.then(() => {
+		setTimeout(() => {
+			if (isOn404Page() && _fireW > 0) {
+				_flammablePixels = detectFlammablePixels();
+			}
+		}, 50);
+	});
 }
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
