@@ -18,7 +18,7 @@
  * BROWSER-ONLY. Import only from client-side <script> blocks.
  */
 
-import { PALETTE, MAX_INTENSITY } from "@/scripts/burn404";
+import { PALETTE, MAX_INTENSITY, BURN404_PREF_CHANGE } from "@/scripts/burn404";
 import { getPref, PREF_KEYS } from "@/lib/prefs";
 
 // ── Public constants (exported for tests) ──────────────────────────────────
@@ -131,6 +131,7 @@ let _flammablePixels: Set<string> = new Set();
 let _burningPixels: Set<string> = new Set();
 let _ac: AbortController | null = null;
 let _scrollTimer: ReturnType<typeof setTimeout> | null = null;
+let _torchExtinguishing = false;
 
 // ── 404-page detection ─────────────────────────────────────────────────────
 
@@ -296,8 +297,8 @@ function tickTorch(now: number): void {
 
 	if (!_ctx || !_canvas || _fireW === 0 || _fireH === 0) return;
 
-	// Permanently ignite any flammable pixel the cursor is touching
-	if (_mouseFirePos !== null) {
+	// While not extinguishing: ignite flammable pixels the cursor touches.
+	if (!_torchExtinguishing && _mouseFirePos !== null) {
 		const r = TORCH_FIRE_RADIUS;
 		for (let dy = -r; dy <= r; dy++) {
 			for (let dx = -r; dx <= r; dx++) {
@@ -317,9 +318,9 @@ function tickTorch(now: number): void {
 		_fireH,
 		TORCH_SOURCE_INTENSITY,
 		TORCH_DECAY,
-		_mouseFirePos,
+		_torchExtinguishing ? null : _mouseFirePos,
 		TORCH_FIRE_RADIUS,
-		_burningPixels
+		_torchExtinguishing ? new Set<string>() : _burningPixels
 	);
 
 	const img = _ctx.createImageData(_fireW, _fireH);
@@ -336,6 +337,15 @@ function tickTorch(now: number): void {
 	}
 
 	_ctx.putImageData(img, 0, 0);
+
+	// Once all embers are cold, clean up the torch canvas.
+	if (_torchExtinguishing && !_buf.some((v) => v > 0)) {
+		_rafId = null;
+		removeTorchCanvas();
+		_torchExtinguishing = false;
+		return;
+	}
+
 	_rafId = requestAnimationFrame(tickTorch);
 }
 
@@ -355,6 +365,7 @@ function stopTorchAnimation(): void {
 // ── Enable / disable ───────────────────────────────────────────────────────
 
 function enableTorch(): void {
+	_torchExtinguishing = false;
 	stopTorchAnimation();
 
 	if (!isOn404Page()) return;
@@ -435,7 +446,14 @@ function disableTorch(): void {
 	_ac?.abort();
 	_ac = null;
 	_mouseFirePos = null;
-	stopTorchAnimation();
+	_burningPixels = new Set(); // stop maintaining ignited pixels so they decay
+
+	if (_rafId !== null) {
+		// Fire is animating — let it die naturally.
+		_torchExtinguishing = true;
+		return;
+	}
+	// Not animating — immediate cleanup.
 	removeTorchCanvas();
 }
 
@@ -467,4 +485,14 @@ if (typeof document !== "undefined") {
 
 	document.addEventListener("astro:after-swap", applyTorchPref);
 	document.addEventListener("astro:page-load", initTorch);
+	// React to sidebar toggle changes so the torch extinguishes and re-ignites
+	// in sync with the bottom strip fire.
+	document.addEventListener(BURN404_PREF_CHANGE, (e) => {
+		const { active } = (e as CustomEvent<{ active: boolean }>).detail;
+		if (active) {
+			enableTorch();
+		} else {
+			disableTorch();
+		}
+	});
 }

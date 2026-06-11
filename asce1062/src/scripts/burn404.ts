@@ -19,6 +19,7 @@
  */
 
 import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
+import { buildPalette, getActiveColorStops } from "@/scripts/burn404palettes";
 
 // ── Public constants (exported for tests) ──────────────────────────────────
 
@@ -27,8 +28,12 @@ export const MAX_INTENSITY = 36;
 /**
  * 37-step Doom-fire palette. Index 0 = transparent (cold); index 36 = white (hottest).
  * Each entry: [r, g, b, a] (0–255).
+ *
+ * Mutable so rebuildPalette() can swap in a theme/flavor-aware version at runtime.
+ * The hardcoded array below serves as the static fallback for SSR, tests, and the
+ * initial paint before any theme event fires.
  */
-export const PALETTE: readonly [number, number, number, number][] = [
+export let PALETTE: readonly [number, number, number, number][] = [
 	[0, 0, 0, 0],
 	[7, 7, 7, 200],
 	[31, 7, 7, 230],
@@ -67,6 +72,18 @@ export const PALETTE: readonly [number, number, number, number][] = [
 	[255, 255, 207, 255],
 	[255, 255, 255, 255],
 ];
+
+// ── Palette rebuild ─────────────────────────────────────────────────────────
+
+/**
+ * Regenerate PALETTE from the currently active theme + flavor.
+ * No-ops in non-browser environments. Falls back to the hardcoded static
+ * palette when canvas is unavailable (e.g. tests, SSR).
+ */
+export function rebuildPalette(): void {
+	const built = buildPalette(getActiveColorStops());
+	if (built.length > 0) PALETTE = built;
+}
 
 // ── Pure fire algorithm (exported for tests) ────────────────────────────────
 
@@ -125,6 +142,9 @@ export function updateFire(
 
 // ── Module constants ────────────────────────────────────────────────────────
 
+/** Dispatched on document when the burn404 preference changes via the sidebar toggle. */
+export const BURN404_PREF_CHANGE = "burn404:pref-change";
+
 const TOGGLE_ID = "burn404-toggle";
 const ACTIVE_ATTR = "data-burn404-active";
 const PAGE_SENTINEL = "data-page-404";
@@ -144,6 +164,7 @@ let _fireW = 0;
 let _fireH = 0;
 let _rafId: number | null = null;
 let _lastFrame = 0;
+let _extinguishing = false;
 
 // ── 404-page detection ──────────────────────────────────────────────────────
 
@@ -227,7 +248,7 @@ function tick(now: number): void {
 
 	if (!_ctx || !_canvas || _fireW === 0 || _fireH === 0) return;
 
-	_buf = updateFire(_buf, _fireW, _fireH, SOURCE_INTENSITY, true);
+	_buf = updateFire(_buf, _fireW, _fireH, SOURCE_INTENSITY, !_extinguishing);
 
 	const img = _ctx.createImageData(_fireW, _fireH);
 	const data = img.data;
@@ -243,6 +264,16 @@ function tick(now: number): void {
 	}
 
 	_ctx.putImageData(img, 0, 0);
+
+	// Once the last ember dies, clean up and remove the active attribute.
+	if (_extinguishing && !_buf.some((v) => v > 0)) {
+		document.documentElement.removeAttribute(ACTIVE_ATTR);
+		_rafId = null;
+		removeCanvas();
+		_extinguishing = false;
+		return;
+	}
+
 	_rafId = requestAnimationFrame(tick);
 }
 
@@ -262,6 +293,7 @@ function stopAnimation(): void {
 // ── Enable / disable ────────────────────────────────────────────────────────
 
 function enable(): void {
+	_extinguishing = false;
 	stopAnimation();
 
 	if (!isOn404Page()) {
@@ -279,8 +311,13 @@ function enable(): void {
 }
 
 function disable(): void {
+	if (_rafId !== null) {
+		// Fire is animating — let it die naturally before cleaning up.
+		_extinguishing = true;
+		return;
+	}
+	// Not animating (reduced motion or never started) — immediate cleanup.
 	document.documentElement.removeAttribute(ACTIVE_ATTR);
-	stopAnimation();
 	removeCanvas();
 }
 
@@ -315,6 +352,7 @@ function init(): void {
 				removePref(PREF_KEYS.burn404);
 			}
 			applyPref();
+			document.dispatchEvent(new CustomEvent(BURN404_PREF_CHANGE, { detail: { active: toggle.checked } }));
 		},
 		{ signal }
 	);
@@ -323,11 +361,16 @@ function init(): void {
 // ── Lifecycle ───────────────────────────────────────────────────────────────
 
 if (typeof document !== "undefined") {
+	rebuildPalette();
 	applyPref();
 	init();
 
 	document.addEventListener("astro:after-swap", applyPref);
 	document.addEventListener("astro:page-load", init);
+	// Rebuild palette whenever the user switches theme or flavor so the fire
+	// instantly reflects their new color context.
+	document.addEventListener("set-theme", rebuildPalette);
+	document.addEventListener("flavor-change", rebuildPalette);
 
 	window.addEventListener("storage", (e) => {
 		if (e.key !== PREF_KEYS.burn404) return;
