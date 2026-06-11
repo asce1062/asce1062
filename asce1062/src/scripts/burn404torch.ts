@@ -312,10 +312,14 @@ function resizeTorchCanvas(): void {
 	const newFireW = Math.max(1, Math.ceil(displayW / TORCH_PIXEL_SIZE));
 	const newFireH = Math.max(1, Math.ceil(displayH / TORCH_PIXEL_SIZE));
 
+	// Mobile browser chrome show/hide only changes window.innerHeight; width
+	// stays constant. Skip those events so the torch canvas, fire buffer, and
+	// burning pixel state are all preserved without any bitmap clear.
+	// Width changes (device rotation, desktop resize) still update.
+	if (newFireW === _fireW) return;
+
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
-
-	if (newFireW === _fireW && newFireH === _fireH) return;
 
 	const oldW = _fireW;
 	const oldH = _fireH;
@@ -327,9 +331,6 @@ function resizeTorchCanvas(): void {
 	_canvas.width = _fireW;
 	_canvas.height = _fireH;
 
-	// Preserve running torch fire across dimension changes.
-	// Mobile browser chrome show/hide shifts viewport height, triggering this
-	// path frequently during scroll — a full reset would wipe burned text.
 	const newBuf = new Array<number>(_fireW * _fireH).fill(0);
 	if (oldW > 0 && oldH > 0) {
 		const copyW = Math.min(oldW, _fireW);
@@ -342,7 +343,6 @@ function resizeTorchCanvas(): void {
 	}
 	_buf = newBuf;
 
-	// Retain burning pixels still within the new bounds.
 	_burningPixels = new Set<string>();
 	for (const key of oldBurning) {
 		const comma = key.indexOf(",");
@@ -353,7 +353,6 @@ function resizeTorchCanvas(): void {
 		}
 	}
 
-	// Re-detect flammable pixels after the layout settles.
 	if (isOn404Page()) {
 		document.fonts.ready.then(() => {
 			if (isOn404Page() && _fireW > 0) _flammablePixels = detectFlammablePixels();

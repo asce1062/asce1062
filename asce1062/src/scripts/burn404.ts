@@ -220,10 +220,14 @@ function resizeCanvas(): void {
 	const newFireW = Math.max(1, Math.ceil(displayW / PIXEL_SIZE));
 	const newFireH = Math.max(1, Math.ceil(displayH / PIXEL_SIZE));
 
+	// Mobile browser chrome show/hide only changes window.innerHeight; the
+	// viewport width stays constant. Skip those events entirely so the canvas
+	// bitmap is never cleared and the fire keeps running uninterrupted.
+	// Width changes (device rotation, desktop window resize) still update.
+	if (newFireW === _fireW) return;
+
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
-
-	if (newFireW === _fireW && newFireH === _fireH) return;
 
 	const oldW = _fireW;
 	const oldH = _fireH;
@@ -234,9 +238,6 @@ function resizeCanvas(): void {
 	_canvas.width = _fireW;
 	_canvas.height = _fireH;
 
-	// Copy existing fire state into the new buffer instead of restarting.
-	// Mobile browser chrome show/hide changes viewport height by ~60px during
-	// scroll, which triggers this path and would otherwise reset the strip.
 	const newBuf = new Array<number>(_fireW * _fireH).fill(0);
 	if (oldW > 0 && oldH > 0) {
 		const copyW = Math.min(oldW, _fireW);
@@ -247,7 +248,6 @@ function resizeCanvas(): void {
 			}
 		}
 	}
-	// Always restore the source row regardless of copy coverage.
 	for (let x = 0; x < _fireW; x++) {
 		newBuf[(_fireH - 1) * _fireW + x] = SOURCE_INTENSITY;
 	}
