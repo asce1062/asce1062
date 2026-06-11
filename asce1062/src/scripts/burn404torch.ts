@@ -119,9 +119,11 @@ const TORCH_PIXEL_SIZE = 4;
 const TORCH_SOURCE_INTENSITY = 33;
 const PAGE_SENTINEL = "data-page-404";
 const FRAME_INTERVAL = 1000 / 30;
-// Extra canvas rows for the detection pass (captures descenders that extend
-// slightly below window.innerHeight when content fills the full viewport i.e., y and g tails).
-const DETECT_OVERFLOW = TORCH_PIXEL_SIZE * 2;
+// Extra canvas rows below the viewport for the detection pass.
+// Sized generously so content that is marginally below the fold on large
+// screens (e.g. the last paragraph on 2560×1440) still gets detected,
+// and descenders (y, g) near the viewport edge are fully captured.
+const DETECT_OVERFLOW = TORCH_PIXEL_SIZE * 16; // 64 px
 
 // ── Canvas / animation / interaction state ─────────────────────────────────
 
@@ -212,7 +214,7 @@ function detectFlammablePixels(): Set<string> {
 				const rects = charRange.getClientRects();
 				if (rects.length === 0) continue;
 				const r = rects[0];
-				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH) continue;
+				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH + DETECT_OVERFLOW) continue;
 				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
 				ctx.fillText(char, r.left, baseline);
 			}
@@ -224,7 +226,7 @@ function detectFlammablePixels(): Set<string> {
 			const lineRects = lineRange.getClientRects();
 			for (let i = 0; i < Math.min(lines.length, lineRects.length); i++) {
 				const r = lineRects[i];
-				if (r.bottom < 0 || r.top > canvasH) continue;
+				if (r.bottom < 0 || r.top > canvasH + DETECT_OVERFLOW) continue;
 				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
 				ctx.fillText(lines[i], r.left, baseline);
 			}
@@ -241,7 +243,7 @@ function detectFlammablePixels(): Set<string> {
 		if (style.display === "none" || style.visibility === "hidden") continue;
 		const rect = el.getBoundingClientRect();
 		if (rect.width <= 0 || rect.height <= 0) continue;
-		if (rect.bottom < 0 || rect.top > canvasH || rect.right < 0 || rect.left > cw) continue;
+		if (rect.bottom < 0 || rect.top > canvasH + DETECT_OVERFLOW || rect.right < 0 || rect.left > cw) continue;
 		ctx.fillRect(
 			Math.max(0, Math.floor(rect.left)),
 			Math.max(0, Math.floor(rect.top)),
@@ -307,17 +309,58 @@ function resizeTorchCanvas(): void {
 	const displayW = window.innerWidth;
 	const displayH = window.innerHeight;
 
-	_fireW = Math.max(1, Math.ceil(displayW / TORCH_PIXEL_SIZE));
-	_fireH = Math.max(1, Math.ceil(displayH / TORCH_PIXEL_SIZE));
+	const newFireW = Math.max(1, Math.ceil(displayW / TORCH_PIXEL_SIZE));
+	const newFireH = Math.max(1, Math.ceil(displayH / TORCH_PIXEL_SIZE));
 
-	_canvas.width = _fireW;
-	_canvas.height = _fireH;
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
 
-	_buf = initTorchFire(_fireW, _fireH);
-	_burningPixels = new Set();
-	_flammablePixels = isOn404Page() ? detectFlammablePixels() : new Set();
+	if (newFireW === _fireW && newFireH === _fireH) return;
+
+	const oldW = _fireW;
+	const oldH = _fireH;
+	const oldBuf = _buf;
+	const oldBurning = _burningPixels;
+
+	_fireW = newFireW;
+	_fireH = newFireH;
+	_canvas.width = _fireW;
+	_canvas.height = _fireH;
+
+	// Preserve running torch fire across dimension changes.
+	// Mobile browser chrome show/hide shifts viewport height, triggering this
+	// path frequently during scroll — a full reset would wipe burned text.
+	const newBuf = new Array<number>(_fireW * _fireH).fill(0);
+	if (oldW > 0 && oldH > 0) {
+		const copyW = Math.min(oldW, _fireW);
+		const copyH = Math.min(oldH, _fireH);
+		for (let y = 0; y < copyH; y++) {
+			for (let x = 0; x < copyW; x++) {
+				newBuf[y * _fireW + x] = oldBuf[y * oldW + x];
+			}
+		}
+	}
+	_buf = newBuf;
+
+	// Retain burning pixels still within the new bounds.
+	_burningPixels = new Set<string>();
+	for (const key of oldBurning) {
+		const comma = key.indexOf(",");
+		const fx = parseInt(key.slice(0, comma), 10);
+		const fy = parseInt(key.slice(comma + 1), 10);
+		if (fx < _fireW && fy < _fireH) {
+			_burningPixels.add(key);
+		}
+	}
+
+	// Re-detect flammable pixels after the layout settles.
+	if (isOn404Page()) {
+		document.fonts.ready.then(() => {
+			if (isOn404Page() && _fireW > 0) _flammablePixels = detectFlammablePixels();
+		});
+	} else {
+		_flammablePixels = new Set();
+	}
 }
 
 function removeTorchCanvas(): void {

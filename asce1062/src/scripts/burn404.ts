@@ -223,15 +223,35 @@ function resizeCanvas(): void {
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
 
-	// Skip buffer reinit when cell dimensions are unchanged — avoids resetting
-	// the fire animation when the mobile browser chrome hides/shows during scroll.
 	if (newFireW === _fireW && newFireH === _fireH) return;
+
+	const oldW = _fireW;
+	const oldH = _fireH;
+	const oldBuf = _buf;
 
 	_fireW = newFireW;
 	_fireH = newFireH;
 	_canvas.width = _fireW;
 	_canvas.height = _fireH;
-	_buf = initFire(_fireW, _fireH, SOURCE_INTENSITY);
+
+	// Copy existing fire state into the new buffer instead of restarting.
+	// Mobile browser chrome show/hide changes viewport height by ~60px during
+	// scroll, which triggers this path and would otherwise reset the strip.
+	const newBuf = new Array<number>(_fireW * _fireH).fill(0);
+	if (oldW > 0 && oldH > 0) {
+		const copyW = Math.min(oldW, _fireW);
+		const copyH = Math.min(oldH, _fireH);
+		for (let y = 0; y < copyH; y++) {
+			for (let x = 0; x < copyW; x++) {
+				newBuf[y * _fireW + x] = oldBuf[y * oldW + x];
+			}
+		}
+	}
+	// Always restore the source row regardless of copy coverage.
+	for (let x = 0; x < _fireW; x++) {
+		newBuf[(_fireH - 1) * _fireW + x] = SOURCE_INTENSITY;
+	}
+	_buf = newBuf;
 }
 
 function onResize(): void {
