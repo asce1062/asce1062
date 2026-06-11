@@ -32,6 +32,8 @@ export const PREF_KEYS = {
 	navBrandVisits: "nav-brand-visits",
 	/** Unix ms timestamp (as string) of the last page visit for navbrand sub-line. */
 	navBrandLastVisit: "nav-brand-last-visit",
+	/** Set to "0" when the Doom-fire burn effect is disabled; absent = enabled by default. */
+	burn404: "flourish-burn404",
 } as const;
 
 /** Safely read a preference. Returns null if unavailable or storage throws. */

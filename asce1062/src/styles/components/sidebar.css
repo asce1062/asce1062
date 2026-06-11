@@ -783,7 +783,7 @@ Nav Brand: Expanded / Collapsed header swap
 /*
 ============================================
 Collapsed header avatar widget
-Hide controls and actions — canvas only.
+Hide controls and actions (canvas only).
 ============================================
 */
 .nav-brand-collapsed-content .avatar-mini-controls,
@@ -820,7 +820,7 @@ Hide controls and actions — canvas only.
 }
 
 .nav-collapse-tab {
-	/* Hidden on mobile — shown only in the desktop @media block below */
+	/* Hidden on mobile (shown only in the desktop @media block below) */
 	display: none;
 }
 
@@ -1045,8 +1045,8 @@ All rules scoped to lg+ so mobile is completely unaffected.
 
 	/*
 	Header brand swap: opacity-only crossfade.
-	max-height switches instantly (0s) so there's no vertical wipe — only the
-	opacity fade is visible. Both sides fade simultaneously.
+	max-height switches instantly (0s) so there's no vertical wipe (only the
+	opacity fade is visible). Both sides fade simultaneously.
 	*/
 	.nav-brand-expanded-content {
 		overflow: hidden;

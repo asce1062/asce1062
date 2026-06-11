@@ -5,12 +5,12 @@
  * then restores the real title when they return.
  *
  * Messages are grouped into three tiers tied to idle duration:
- *   Tier 1 (0–10s)  — playful, warm, immediate
- *   Tier 2 (10–30s) — system / terminal, calm machine energy
- *   Tier 3 (30s+)   — cosmic / reflective, loops indefinitely
+ *   Tier 1 (0–10s)  - playful, warm, immediate
+ *   Tier 2 (10–30s) - system / terminal, calm machine energy
+ *   Tier 3 (30s+)   - cosmic / reflective, loops indefinitely
  *
  * Rotation: every 8s via setInterval. Tier transitions happen on the
- * next tick after the boundary — index resets to 0 on tier change.
+ * next tick after the boundary (index resets to 0 on tier change).
  *
  * OG / SEO safety: og:title and <title> in <head> are server-rendered at
  * build time. This script only mutates document.title client-side

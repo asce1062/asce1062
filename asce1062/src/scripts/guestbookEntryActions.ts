@@ -155,7 +155,7 @@ export function initEntryActions(): void {
 	_ac = new AbortController();
 	const { signal } = _ac;
 
-	// Menu triggers — per-element listeners, no AbortController needed (elements are replaced on nav)
+	// Menu triggers (per-element listeners), no AbortController needed (elements are replaced on nav)
 	document.querySelectorAll<HTMLButtonElement>(".entry-actions-trigger").forEach((trigger) => {
 		trigger.addEventListener("click", (e) => {
 			e.stopPropagation();

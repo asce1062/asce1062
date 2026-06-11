@@ -111,7 +111,7 @@ window.addEventListener("storage", (e) => {
 	}
 });
 
-// Mutual exclusion: matrix was activated in this tab — fully disable stars.
+// Mutual exclusion: matrix was activated in this tab (fully disable stars).
 document.addEventListener("background:activate", (e) => {
 	if ((e as CustomEvent).detail !== "matrix") return;
 	removePref(PREF_KEYS.starsBackground);
