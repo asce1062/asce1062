@@ -166,6 +166,7 @@ let _fireH = 0;
 let _rafId: number | null = null;
 let _lastFrame = 0;
 let _extinguishing = false;
+let _resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── 404-page detection ──────────────────────────────────────────────────────
 
@@ -196,7 +197,7 @@ function buildCanvas(): void {
 		_canvas = existing;
 		_ctx = existing.getContext("2d");
 		resizeCanvas();
-		window.addEventListener("resize", resizeCanvas);
+		window.addEventListener("resize", onResize);
 		return;
 	}
 
@@ -207,7 +208,7 @@ function buildCanvas(): void {
 	_ctx = canvas.getContext("2d");
 
 	resizeCanvas();
-	window.addEventListener("resize", resizeCanvas);
+	window.addEventListener("resize", onResize);
 }
 
 function resizeCanvas(): void {
@@ -216,20 +217,37 @@ function resizeCanvas(): void {
 	const displayW = window.innerWidth;
 	const displayH = Math.floor(window.innerHeight * FIRE_HEIGHT_RATIO);
 
-	_fireW = Math.max(1, Math.ceil(displayW / PIXEL_SIZE));
-	_fireH = Math.max(1, Math.ceil(displayH / PIXEL_SIZE));
-
-	_canvas.width = _fireW;
-	_canvas.height = _fireH;
+	const newFireW = Math.max(1, Math.ceil(displayW / PIXEL_SIZE));
+	const newFireH = Math.max(1, Math.ceil(displayH / PIXEL_SIZE));
 
 	_canvas.style.width = `${displayW}px`;
 	_canvas.style.height = `${displayH}px`;
 
+	// Skip buffer reinit when cell dimensions are unchanged — avoids resetting
+	// the fire animation when the mobile browser chrome hides/shows during scroll.
+	if (newFireW === _fireW && newFireH === _fireH) return;
+
+	_fireW = newFireW;
+	_fireH = newFireH;
+	_canvas.width = _fireW;
+	_canvas.height = _fireH;
 	_buf = initFire(_fireW, _fireH, SOURCE_INTENSITY);
 }
 
+function onResize(): void {
+	if (_resizeTimer !== null) clearTimeout(_resizeTimer);
+	_resizeTimer = setTimeout(() => {
+		_resizeTimer = null;
+		resizeCanvas();
+	}, 250);
+}
+
 function removeCanvas(): void {
-	window.removeEventListener("resize", resizeCanvas);
+	if (_resizeTimer !== null) {
+		clearTimeout(_resizeTimer);
+		_resizeTimer = null;
+	}
+	window.removeEventListener("resize", onResize);
 	_canvas?.remove();
 	_canvas = null;
 	_ctx = null;

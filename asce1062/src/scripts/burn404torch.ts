@@ -140,6 +140,7 @@ let _scrollTimer: ReturnType<typeof setTimeout> | null = null;
 let _torchExtinguishing = false;
 let _mutationObserver: MutationObserver | null = null;
 let _mutationTimer: ReturnType<typeof setTimeout> | null = null;
+let _sidebarObserver: MutationObserver | null = null;
 
 // ── 404-page detection ─────────────────────────────────────────────────────
 
@@ -197,15 +198,7 @@ function detectFlammablePixels(): Set<string> {
 		const fontSize = parseFloat(style.fontSize);
 		ctx.font = `${style.fontStyle} ${style.fontWeight} ${fontSize}px ${style.fontFamily}`;
 		ctx.textBaseline = "alphabetic";
-
-		// Large text uses stroke-only so fire traces the letter edge outline.
-		const useStroke = fontSize >= 24;
-		if (useStroke) {
-			ctx.strokeStyle = "#ffffff";
-			ctx.lineWidth = Math.max(1.5, fontSize * 0.07);
-		} else {
-			ctx.fillStyle = "#ffffff";
-		}
+		ctx.fillStyle = "#ffffff";
 
 		const CHAR_LIMIT = 200;
 		if (text.length <= CHAR_LIMIT) {
@@ -221,11 +214,7 @@ function detectFlammablePixels(): Set<string> {
 				const r = rects[0];
 				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH) continue;
 				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
-				if (useStroke) {
-					ctx.strokeText(char, r.left, baseline);
-				} else {
-					ctx.fillText(char, r.left, baseline);
-				}
+				ctx.fillText(char, r.left, baseline);
 			}
 		} else {
 			// Long text nodes (large pre blocks): line-by-line for performance.
@@ -237,11 +226,7 @@ function detectFlammablePixels(): Set<string> {
 				const r = lineRects[i];
 				if (r.bottom < 0 || r.top > canvasH) continue;
 				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
-				if (useStroke) {
-					ctx.strokeText(lines[i], r.left, baseline);
-				} else {
-					ctx.fillText(lines[i], r.left, baseline);
-				}
+				ctx.fillText(lines[i], r.left, baseline);
 			}
 		}
 	}
@@ -457,6 +442,28 @@ function stopMutationWatch(): void {
 	_mutationObserver = null;
 }
 
+function startSidebarWatch(): void {
+	if (_sidebarObserver) return;
+	_sidebarObserver = new MutationObserver(() => {
+		// Sidebar collapsed/expanded on desktop — main content shifts horizontally.
+		// Re-detect after the CSS transition completes so coordinates are correct.
+		if (_mutationTimer !== null) clearTimeout(_mutationTimer);
+		_mutationTimer = setTimeout(() => {
+			_mutationTimer = null;
+			redetectAfterChange();
+		}, 300);
+	});
+	_sidebarObserver.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["data-sidebar-collapsed"],
+	});
+}
+
+function stopSidebarWatch(): void {
+	_sidebarObserver?.disconnect();
+	_sidebarObserver = null;
+}
+
 // ── Enable / disable ───────────────────────────────────────────────────────
 
 function enableTorch(): void {
@@ -470,6 +477,7 @@ function enableTorch(): void {
 
 	buildTorchCanvas();
 	startMutationWatch();
+	startSidebarWatch();
 
 	_ac?.abort();
 	_ac = new AbortController();
@@ -536,6 +544,7 @@ function enableTorch(): void {
 
 function disableTorch(): void {
 	stopMutationWatch();
+	stopSidebarWatch();
 	if (_scrollTimer !== null) {
 		clearTimeout(_scrollTimer);
 		_scrollTimer = null;
