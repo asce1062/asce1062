@@ -1,5 +1,25 @@
 /* Burn 404 — fire canvas positioning and reduced-motion static fallback. */
 
+#burn404-torch {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	pointer-events: none;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	display: none;
+}
+
+html[data-burn404-active] #burn404-torch {
+	display: block;
+}
+
+/* Hide native cursor on 404 content area when torch is active — fire IS the cursor */
+html[data-burn404-active] main {
+	cursor: none;
+}
+
 #burn404-canvas {
 	position: fixed;
 	bottom: 0;
