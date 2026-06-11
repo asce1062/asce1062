@@ -24,7 +24,7 @@ describe("FIRE_COLOR_STOPS", () => {
 		}
 	});
 
-	it("second stop is also transparent — prevents cold-cell overlay on light backgrounds", () => {
+	it("second stop is also transparent (prevents cold-cell overlay on light backgrounds)", () => {
 		for (const [key, stops] of Object.entries(FIRE_COLOR_STOPS)) {
 			expect(stops[1], `${key}[1] must be transparent`).toMatch(/00$/i);
 		}

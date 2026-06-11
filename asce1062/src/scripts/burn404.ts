@@ -1,11 +1,12 @@
 /**
- * Burn 404 — Doom-fire flourish for the 404 page.
+ * Burn 404
+ * Doom-fire flourish for the 404 page.
  *
  * Canvas-based fire effect that rises from the bottom of the 404 route.
- * Effect is opt-in via the sidebar "Burn 404" toggle and only activates
- * when data-page-404 is present in the DOM (404.astro sentinel).
+ * Effect is on by default and can be disabled via the sidebar "Burn 404"
+ * toggle. Only activates when data-page-404 is present in the DOM (404.astro sentinel).
  *
- * localStorage key: "flourish-burn404" — "1" when enabled; absent otherwise.
+ * localStorage key: "flourish-burn404" - "0" when disabled; absent otherwise.
  *
  * Lifecycle pattern mirrors starsBackground.ts / matrixBackground.ts:
  *   Module load      → applyPref()
@@ -88,7 +89,7 @@ export function rebuildPalette(): void {
 // ── Pure fire algorithm (exported for tests) ────────────────────────────────
 
 /**
- * Initialise a flat fire buffer (width × height). Bottom row = `intensity`,
+ * Initialize a flat fire buffer (width × height). Bottom row = `intensity`,
  * all other cells = 0.
  */
 export function initFire(width: number, height: number, intensity: number = MAX_INTENSITY): number[] {
@@ -175,7 +176,7 @@ function isOn404Page(): boolean {
 // ── Pref ────────────────────────────────────────────────────────────────────
 
 function isActive(): boolean {
-	return getPref(PREF_KEYS.burn404) === "1";
+	return getPref(PREF_KEYS.burn404) !== "0";
 }
 
 // ── Canvas management ───────────────────────────────────────────────────────
@@ -312,11 +313,11 @@ function enable(): void {
 
 function disable(): void {
 	if (_rafId !== null) {
-		// Fire is animating — let it die naturally before cleaning up.
+		// Fire is animating, let it die naturally before cleaning up.
 		_extinguishing = true;
 		return;
 	}
-	// Not animating (reduced motion or never started) — immediate cleanup.
+	// Not animating (reduced motion or never started). immediate cleanup.
 	document.documentElement.removeAttribute(ACTIVE_ATTR);
 	removeCanvas();
 }
@@ -347,9 +348,9 @@ function init(): void {
 		"change",
 		() => {
 			if (toggle.checked) {
-				setPref(PREF_KEYS.burn404, "1");
-			} else {
 				removePref(PREF_KEYS.burn404);
+			} else {
+				setPref(PREF_KEYS.burn404, "0");
 			}
 			applyPref();
 			document.dispatchEvent(new CustomEvent(BURN404_PREF_CHANGE, { detail: { active: toggle.checked } }));

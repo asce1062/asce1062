@@ -2,16 +2,16 @@
  * Theme-aware fire palette definitions for the Burn 404 effect.
  *
  * Color stops are CSS hex strings. The first TWO stops are always transparent
- * so palette indices 0-5 are fully transparent — this is critical for light
+ * so palette indices 0-5 are fully transparent. This is critical for light
  * mode where semi-transparent dark pixels would create a visible grey overlay
  * over the page content. In dark mode those pixels blend invisibly into the
  * background, but in light mode they produce a noticeable translucent band.
  *
  * Naming convention:
- *   "dark"           — default dark fire (classic Doom PSX amber)
- *   "light"          — default light fire (same hues, transparent cold region)
- *   "<flavor>"       — flavor dark fire
- *   "<flavor>-light" — flavor light fire
+ *   "dark"           - default dark fire (classic Doom PSX amber)
+ *   "light"          - default light fire (same hues, transparent cold region)
+ *   "<flavor>"       - flavor dark fire
+ *   "<flavor>-light" - flavor light fire
  *
  * Flavors are dark-mode-native in CSS, but the fire reflects the user's
  * chosen flavor in both modes so the effect feels intentional.

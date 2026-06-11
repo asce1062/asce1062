@@ -1,15 +1,17 @@
 /**
- * Burn 404 Torch — full-viewport interactive fire cursor for the 404 page.
+ * Burn 404 Torch
+ * Full-viewport interactive fire cursor for the 404 page.
  *
  * Renders fire wherever the user moves their cursor or touches. Text content
- * on the 404 page is detected as "flammable" via Range.getClientRects() —
- * any fire-buffer cell that overlaps text becomes permanently ignited once
+ * on the 404 page is detected as "flammable" via Range.getClientRects().
+ * Any fire-buffer cell that overlaps text becomes permanently ignited once
  * the cursor passes over it.
  *
  * Works alongside burn404.ts (bottom strip). Both respond to the same
  * flourish-burn404 preference key.
  *
- * localStorage key: "flourish-burn404" — shared with bottom strip.
+ * localStorage key: "flourish-burn404" (shared with bottom strip).
+ *   "0" = user disabled; absent = enabled (on by default).
  *
  * Lifecycle mirrors burn404.ts:
  *   astro:after-swap → applyTorchPref()
@@ -23,14 +25,15 @@ import { getPref, PREF_KEYS } from "@/lib/prefs";
 
 // ── Public constants (exported for tests) ──────────────────────────────────
 
-export const TORCH_DECAY = 4;
-export const TORCH_FIRE_RADIUS = 7;
+export const TORCH_DECAY = 4; // higher = faster decay, more flickering
+export const TORCH_FIRE_RADIUS = 8; // visual fire injection radius (cells)
+export const TORCH_IGNITION_RADIUS = 2; // permanent ignition contact radius (cells, tighter than visual)
 
 // ── Pure torch fire algorithm (exported for tests) ─────────────────────────
 
 /**
- * Initialise an empty fire buffer for the torch.
- * Unlike the bottom strip, the torch has no persistent source row — all cells
+ * Initialize an empty fire buffer for the torch.
+ * Unlike the bottom strip, the torch has no persistent source row. All cells
  * start at 0 and fire is injected only via mouse/touch position.
  */
 export function initTorchFire(width: number, height: number): number[] {
@@ -69,7 +72,7 @@ export function updateTorchFire(
 		}
 	}
 
-	// Bottom row decays (no persistent source — torch only fires at cursor)
+	// Bottom row decays (no persistent source. Torch only fires at cursor)
 	for (let x = 0; x < width; x++) {
 		const i = (height - 1) * width + x;
 		next[i] = Math.max(0, buf[i] - Math.floor(Math.random() * decay));
@@ -140,48 +143,115 @@ function isOn404Page(): boolean {
 }
 
 function isActive(): boolean {
-	return getPref(PREF_KEYS.burn404) === "1";
+	return getPref(PREF_KEYS.burn404) !== "0";
 }
 
 // ── Flammable pixel detection ──────────────────────────────────────────────
 
 /**
- * Rasterise all visible elements on the 404 page to an offscreen canvas,
- * then pixel-scan to find which fire-buffer cells contain rendered content.
- * This is a bit expensive but only runs once per visit and allows the torch to
- * interact with any content on the page (including user-generated content in the
- * future) without manual configuration.
- * - Leaf elements (no child elements) are painted by bounding rect — covers
- *   icons, <hr>, <pre> ASCII art, inline spans, links, etc.
- * - Text nodes are also painted via Range.getClientRects() for per-line
- *   accuracy inside elements that DO have child elements.
- * - Any non-black pixel in the resulting canvas becomes a flammable cell.
+ * Rasterise page content to an offscreen canvas at glyph-pixel accuracy,
+ * then map each lit pixel to its fire-buffer cell.
+ *
+ * Text rendering strategy:
+ * - Large text (≥24 px): strokeText. Fire traces letter outlines rather than
+ *   flooding the entire filled glyph, allowing partial ignition of big letters.
+ * - Small text (<24 px): fillText. Glyphs are small enough that fill is fine.
+ * - Short text nodes (≤200 chars): character-by-character Range positioning for
+ *   maximum granularity (each ASCII art glyph is independently flammable).
+ * - Long text nodes: line-by-line fallback to keep detection fast.
+ * Non-text leaf elements (icon pseudo-elements, HR, etc.) fall back to bounding rects.
  */
 function detectFlammablePixels(): Set<string> {
 	const sentinel = document.querySelector(`[${PAGE_SENTINEL}]`);
 	if (!sentinel || _fireW === 0 || _fireH === 0) return new Set();
 
 	const cw = _fireW * TORCH_PIXEL_SIZE;
-	const ch = _fireH * TORCH_PIXEL_SIZE;
+	const canvasH = _fireH * TORCH_PIXEL_SIZE;
 
 	const offscreen = document.createElement("canvas");
 	offscreen.width = cw;
-	offscreen.height = ch;
+	offscreen.height = canvasH;
 	const ctx = offscreen.getContext("2d", { willReadFrequently: true });
 	if (!ctx) return new Set();
 
 	ctx.fillStyle = "#000000";
-	ctx.fillRect(0, 0, cw, ch);
-	ctx.fillStyle = "#ffffff";
+	ctx.fillRect(0, 0, cw, canvasH);
 
-	// Paint all visible leaf elements (no child elements = actually rendered content)
+	// Render each text node at glyph level using canvas text APIs.
+	const walker = document.createTreeWalker(sentinel, NodeFilter.SHOW_TEXT);
+	let node: Node | null;
+	while ((node = walker.nextNode())) {
+		const parent = node.parentElement;
+		if (!parent) continue;
+		const style = window.getComputedStyle(parent);
+		if (style.display === "none" || style.visibility === "hidden") continue;
+
+		const text = node.textContent ?? "";
+		if (!text.trim()) continue;
+
+		const fontSize = parseFloat(style.fontSize);
+		ctx.font = `${style.fontStyle} ${style.fontWeight} ${fontSize}px ${style.fontFamily}`;
+		ctx.textBaseline = "alphabetic";
+
+		// Large text uses stroke-only so fire traces the letter edge outline.
+		const useStroke = fontSize >= 24;
+		if (useStroke) {
+			ctx.strokeStyle = "#ffffff";
+			ctx.lineWidth = Math.max(1.5, fontSize * 0.07);
+		} else {
+			ctx.fillStyle = "#ffffff";
+		}
+
+		const CHAR_LIMIT = 200;
+		if (text.length <= CHAR_LIMIT) {
+			// Character-by-character: each glyph gets its own fire cell footprint.
+			for (let i = 0; i < text.length; i++) {
+				const char = text[i];
+				if (!char.trim()) continue;
+				const charRange = document.createRange();
+				charRange.setStart(node, i);
+				charRange.setEnd(node, i + 1);
+				const rects = charRange.getClientRects();
+				if (rects.length === 0) continue;
+				const r = rects[0];
+				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH) continue;
+				const baseline = r.top + r.height * 0.8;
+				if (useStroke) {
+					ctx.strokeText(char, r.left, baseline);
+				} else {
+					ctx.fillText(char, r.left, baseline);
+				}
+			}
+		} else {
+			// Long text nodes (large pre blocks): line-by-line for performance.
+			const lineRange = document.createRange();
+			lineRange.selectNodeContents(node);
+			const lines = text.split("\n");
+			const lineRects = lineRange.getClientRects();
+			for (let i = 0; i < Math.min(lines.length, lineRects.length); i++) {
+				const r = lineRects[i];
+				if (r.bottom < 0 || r.top > canvasH) continue;
+				const baseline = r.top + r.height * 0.8;
+				if (useStroke) {
+					ctx.strokeText(lines[i], r.left, baseline);
+				} else {
+					ctx.fillText(lines[i], r.left, baseline);
+				}
+			}
+		}
+	}
+
+	// Non-text leaf elements (icon glyphs via :before, HR, images, etc.)
+	// No text node to render, so fall back to bounding rect.
+	ctx.fillStyle = "#ffffff";
 	for (const el of sentinel.querySelectorAll<HTMLElement>("*")) {
-		if (el.children.length > 0) continue; // skip structural containers
+		if (el.children.length > 0) continue;
+		if (Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) continue;
 		const style = window.getComputedStyle(el);
 		if (style.display === "none" || style.visibility === "hidden") continue;
 		const rect = el.getBoundingClientRect();
 		if (rect.width <= 0 || rect.height <= 0) continue;
-		if (rect.bottom < 0 || rect.top > ch || rect.right < 0 || rect.left > cw) continue;
+		if (rect.bottom < 0 || rect.top > canvasH || rect.right < 0 || rect.left > cw) continue;
 		ctx.fillRect(
 			Math.max(0, Math.floor(rect.left)),
 			Math.max(0, Math.floor(rect.top)),
@@ -190,34 +260,17 @@ function detectFlammablePixels(): Set<string> {
 		);
 	}
 
-	// Also paint text nodes via Range rects for per-line accuracy in compound elements
-	const walker = document.createTreeWalker(sentinel, NodeFilter.SHOW_TEXT);
-	let node: Node | null;
-	while ((node = walker.nextNode())) {
-		const parent = node.parentElement;
-		if (!parent) continue;
-		const style = window.getComputedStyle(parent);
-		if (style.display === "none" || style.visibility === "hidden") continue;
-		const range = document.createRange();
-		range.selectNodeContents(node);
-		for (const rect of range.getClientRects()) {
-			if (rect.width <= 0 || rect.height <= 0) continue;
-			ctx.fillRect(
-				Math.max(0, Math.floor(rect.left)),
-				Math.max(0, Math.floor(rect.top)),
-				Math.ceil(rect.width),
-				Math.ceil(rect.height)
-			);
-		}
-	}
-
-	// Pixel scan: any white pixel → flammable fire-buffer cell
-	const pixels = ctx.getImageData(0, 0, cw, ch).data;
+	// Map every lit pixel to its fire-buffer cell coordinate.
+	const pixels = ctx.getImageData(0, 0, cw, canvasH).data;
 	const flammable = new Set<string>();
-	for (let y = 0; y < ch; y++) {
+	for (let y = 0; y < canvasH; y++) {
 		for (let x = 0; x < cw; x++) {
-			if (pixels[(y * cw + x) * 4] > 128) {
-				flammable.add(`${Math.floor(x / TORCH_PIXEL_SIZE)},${Math.floor(y / TORCH_PIXEL_SIZE)}`);
+			if (pixels[(y * cw + x) * 4] > 64) {
+				const fx = Math.floor(x / TORCH_PIXEL_SIZE);
+				const fy = Math.floor(y / TORCH_PIXEL_SIZE);
+				if (fx < _fireW && fy < _fireH) {
+					flammable.add(`${fx},${fy}`);
+				}
 			}
 		}
 	}
@@ -298,8 +351,10 @@ function tickTorch(now: number): void {
 	if (!_ctx || !_canvas || _fireW === 0 || _fireH === 0) return;
 
 	// While not extinguishing: ignite flammable pixels the cursor touches.
+	// Uses TORCH_IGNITION_RADIUS (tighter than visual fire radius) so only pixels
+	// directly under the torch core are permanently lit, not its full flame spread.
 	if (!_torchExtinguishing && _mouseFirePos !== null) {
-		const r = TORCH_FIRE_RADIUS;
+		const r = TORCH_IGNITION_RADIUS;
 		for (let dy = -r; dy <= r; dy++) {
 			for (let dx = -r; dx <= r; dx++) {
 				if (Math.sqrt(dx * dx + dy * dy) <= r) {
@@ -449,11 +504,11 @@ function disableTorch(): void {
 	_burningPixels = new Set(); // stop maintaining ignited pixels so they decay
 
 	if (_rafId !== null) {
-		// Fire is animating — let it die naturally.
+		// Fire is animating (let it die naturally).
 		_torchExtinguishing = true;
 		return;
 	}
-	// Not animating — immediate cleanup.
+	// Not animating (immediate cleanup).
 	removeTorchCanvas();
 }
 

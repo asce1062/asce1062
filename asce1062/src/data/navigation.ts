@@ -359,7 +359,7 @@ export const sidebarOptions: SidebarOption[] = [
 	},
 	{
 		id: "burn404-toggle",
-		icon: "icon-stars",
+		icon: "icon-fire",
 		label: "Burn 404",
 		description: "Lights a Doom-fire effect on the 404 page. Only visible when you actually hit a missing page.",
 	},

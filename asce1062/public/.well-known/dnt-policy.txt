@@ -58,8 +58,8 @@ This site writes twelve values to your browser's localStorage:
 - "matrix-bg": "1" when the Matrix rain canvas background is enabled via
   the "Matrix" sidebar toggle; absent otherwise. Mutually exclusive with
   stars-bg (enabling one disables the other).
-- "flourish-burn404": "1" when the Doom-fire canvas effect on the 404 page is
-  enabled via the sidebar toggle; absent when disabled.
+- "flourish-burn404": "0" when the Doom-fire canvas effect on the 404 page has
+  been disabled via the sidebar toggle; absent when enabled (on by default).
 - "avatar-state": your 8-bit avatar customisation (e.g.
   "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
   avatar builder at /8biticon; absent until you interact with it.

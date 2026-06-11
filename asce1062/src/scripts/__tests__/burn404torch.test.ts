@@ -7,13 +7,13 @@ const H = 15;
 const EMPTY = new Set<string>();
 
 describe("initTorchFire", () => {
-	it("returns a buffer of width × height filled with zeros", () => {
+	it("returns a buffer of width x height filled with zeros", () => {
 		const buf = initTorchFire(W, H);
 		expect(buf).toHaveLength(W * H);
 		expect(buf.every((v) => v === 0)).toBe(true);
 	});
 
-	it("bottom row is zero — torch has no persistent source row", () => {
+	it("bottom row is zero (torch has no persistent source row)", () => {
 		const buf = initTorchFire(W, H);
 		for (let x = 0; x < W; x++) {
 			expect(buf[(H - 1) * W + x]).toBe(0);
@@ -40,7 +40,7 @@ describe("updateTorchFire", () => {
 		expect(next.every((v) => v <= MAX_INTENSITY)).toBe(true);
 	});
 
-	it("bottom row decays — no persistent source unlike bottom strip", () => {
+	it("bottom row decays (no persistent source unlike bottom strip)", () => {
 		let buf = Array<number>(W * H).fill(MAX_INTENSITY);
 		for (let i = 0; i < 50; i++) {
 			buf = updateTorchFire(buf, W, H, MAX_INTENSITY, TORCH_DECAY, null, TORCH_FIRE_RADIUS, EMPTY);
@@ -64,7 +64,7 @@ describe("updateTorchFire", () => {
 		expect(next[7 * W + 10]).toBeGreaterThan(0);
 	});
 
-	it("null mousePos injects no fire — all-zero buffer stays zero", () => {
+	it("null mousePos injects no fire (all-zero buffer stays zero)", () => {
 		const buf = Array<number>(W * H).fill(0);
 		const next = updateTorchFire(buf, W, H, MAX_INTENSITY, TORCH_DECAY, null, TORCH_FIRE_RADIUS, EMPTY);
 		expect(next.every((v) => v === 0)).toBe(true);

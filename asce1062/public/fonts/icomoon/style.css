@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?pl50vg');
-  src:  url('fonts/icomoon.eot?pl50vg#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.woff?pl50vg') format('woff'),
-    url('fonts/icomoon.ttf?pl50vg') format('truetype'),
-    url('fonts/icomoon.svg?pl50vg#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?go71d9');
+  src:  url('fonts/icomoon.eot?go71d9#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.woff?go71d9') format('woff'),
+    url('fonts/icomoon.ttf?go71d9') format('truetype'),
+    url('fonts/icomoon.svg?go71d9#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -126,6 +126,18 @@
 }
 .icon-git-commit:before {
   content: "\e991";
+}
+.icon-droplet:before {
+  content: "\e9de";
+}
+.icon-droplet-half:before {
+  content: "\e9df";
+}
+.icon-droplet-fill:before {
+  content: "\e9e0";
+}
+.icon-fire:before {
+  content: "\e9e1";
 }
 .icon-stop-fill:before {
   content: "\e9dd";
