@@ -130,6 +130,7 @@ let _mouseFirePos: { x: number; y: number } | null = null;
 let _flammablePixels: Set<string> = new Set();
 let _burningPixels: Set<string> = new Set();
 let _ac: AbortController | null = null;
+let _scrollTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── 404-page detection ─────────────────────────────────────────────────────
 
@@ -144,40 +145,78 @@ function isActive(): boolean {
 // ── Flammable pixel detection ──────────────────────────────────────────────
 
 /**
- * Walk the 404 page content and return the set of fire-buffer coordinates
- * that contain text. Uses Range.getClientRects() for per-line accuracy —
- * no canvas pixel scanning needed.
+ * Rasterise all visible elements on the 404 page to an offscreen canvas,
+ * then pixel-scan to find which fire-buffer cells contain rendered content.
+ * This is a bit expensive but only runs once per visit and allows the torch to
+ * interact with any content on the page (including user-generated content in the
+ * future) without manual configuration.
+ * - Leaf elements (no child elements) are painted by bounding rect — covers
+ *   icons, <hr>, <pre> ASCII art, inline spans, links, etc.
+ * - Text nodes are also painted via Range.getClientRects() for per-line
+ *   accuracy inside elements that DO have child elements.
+ * - Any non-black pixel in the resulting canvas becomes a flammable cell.
  */
 function detectFlammablePixels(): Set<string> {
 	const sentinel = document.querySelector(`[${PAGE_SENTINEL}]`);
 	if (!sentinel || _fireW === 0 || _fireH === 0) return new Set();
 
-	const flammable = new Set<string>();
+	const cw = _fireW * TORCH_PIXEL_SIZE;
+	const ch = _fireH * TORCH_PIXEL_SIZE;
+
+	const offscreen = document.createElement("canvas");
+	offscreen.width = cw;
+	offscreen.height = ch;
+	const ctx = offscreen.getContext("2d", { willReadFrequently: true });
+	if (!ctx) return new Set();
+
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(0, 0, cw, ch);
+	ctx.fillStyle = "#ffffff";
+
+	// Paint all visible leaf elements (no child elements = actually rendered content)
+	for (const el of sentinel.querySelectorAll<HTMLElement>("*")) {
+		if (el.children.length > 0) continue; // skip structural containers
+		const style = window.getComputedStyle(el);
+		if (style.display === "none" || style.visibility === "hidden") continue;
+		const rect = el.getBoundingClientRect();
+		if (rect.width <= 0 || rect.height <= 0) continue;
+		if (rect.bottom < 0 || rect.top > ch || rect.right < 0 || rect.left > cw) continue;
+		ctx.fillRect(
+			Math.max(0, Math.floor(rect.left)),
+			Math.max(0, Math.floor(rect.top)),
+			Math.ceil(rect.width),
+			Math.ceil(rect.height)
+		);
+	}
+
+	// Also paint text nodes via Range rects for per-line accuracy in compound elements
 	const walker = document.createTreeWalker(sentinel, NodeFilter.SHOW_TEXT);
 	let node: Node | null;
-
 	while ((node = walker.nextNode())) {
 		const parent = node.parentElement;
 		if (!parent) continue;
 		const style = window.getComputedStyle(parent);
 		if (style.display === "none" || style.visibility === "hidden") continue;
-
 		const range = document.createRange();
 		range.selectNodeContents(node);
-		const rects = range.getClientRects();
-
-		for (const rect of rects) {
+		for (const rect of range.getClientRects()) {
 			if (rect.width <= 0 || rect.height <= 0) continue;
+			ctx.fillRect(
+				Math.max(0, Math.floor(rect.left)),
+				Math.max(0, Math.floor(rect.top)),
+				Math.ceil(rect.width),
+				Math.ceil(rect.height)
+			);
+		}
+	}
 
-			const x0 = Math.max(0, Math.floor(rect.left / TORCH_PIXEL_SIZE));
-			const y0 = Math.max(0, Math.floor(rect.top / TORCH_PIXEL_SIZE));
-			const x1 = Math.min(_fireW - 1, Math.ceil((rect.left + rect.width) / TORCH_PIXEL_SIZE));
-			const y1 = Math.min(_fireH - 1, Math.ceil((rect.top + rect.height) / TORCH_PIXEL_SIZE));
-
-			for (let y = y0; y <= y1; y++) {
-				for (let x = x0; x <= x1; x++) {
-					flammable.add(`${x},${y}`);
-				}
+	// Pixel scan: any white pixel → flammable fire-buffer cell
+	const pixels = ctx.getImageData(0, 0, cw, ch).data;
+	const flammable = new Set<string>();
+	for (let y = 0; y < ch; y++) {
+		for (let x = 0; x < cw; x++) {
+			if (pixels[(y * cw + x) * 4] > 128) {
+				flammable.add(`${Math.floor(x / TORCH_PIXEL_SIZE)},${Math.floor(y / TORCH_PIXEL_SIZE)}`);
 			}
 		}
 	}
@@ -370,10 +409,29 @@ function enableTorch(): void {
 		{ signal }
 	);
 
+	// On scroll: extinguish burning pixels immediately; re-detect flammable
+	// positions after scrolling stops so coords stay aligned with the viewport.
+	document.addEventListener(
+		"scroll",
+		() => {
+			_burningPixels = new Set();
+			if (_scrollTimer !== null) clearTimeout(_scrollTimer);
+			_scrollTimer = setTimeout(() => {
+				_scrollTimer = null;
+				if (_canvas) _flammablePixels = detectFlammablePixels();
+			}, 200);
+		},
+		{ signal, passive: true }
+	);
+
 	startTorchAnimation();
 }
 
 function disableTorch(): void {
+	if (_scrollTimer !== null) {
+		clearTimeout(_scrollTimer);
+		_scrollTimer = null;
+	}
 	_ac?.abort();
 	_ac = null;
 	_mouseFirePos = null;
