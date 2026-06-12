@@ -35,7 +35,7 @@ import {
 	type MusicQueueResult,
 	type MusicPlayerFlavor,
 } from "@/lib/musicPlayer";
-import { resetTerminalTextEffect } from "@/lib/textEffects/terminalTextEffect";
+import { resetTextEffect } from "@/lib/textEffects/textEffect";
 import {
 	resizeTerminalWindowRectFromEdge,
 	shouldTreatTerminalHandleTapAsDoubleTap,
@@ -560,7 +560,7 @@ function updateWindowTitle() {
 function setSignal(message: string, _mode?: string) {
 	if (refs?.signalLabel) {
 		refs.signalLabel.dataset.textEffectStableText = message;
-		resetTerminalTextEffect(refs.signalLabel);
+		resetTextEffect(refs.signalLabel);
 		refs.signalLabel.textContent = message;
 	}
 }

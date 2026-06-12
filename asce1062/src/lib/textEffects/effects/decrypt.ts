@@ -1,10 +1,10 @@
 import type { EffectRendererHandle } from "../types";
 import { DECRYPT_CHARS, DEFAULT_DECRYPT_TOTAL_FRAMES } from "../constants";
-import { resolveTerminalTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs } from "../utils";
 
 export function runDecryptEnterRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_DECRYPT_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("decrypt", text);
+	const totalDuration = durationMs ?? resolveTextEffectDurationMs("decrypt", text);
 	const frameInterval = totalDuration / totalFrames;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};

@@ -1,14 +1,17 @@
 import type {
-	TerminalTextEffectKind,
-	TerminalTextEffectState,
-	TerminalTextEffectOptions,
-	TerminalTextTransitionOptions,
+	TextEffectKind,
+	TextEffectState,
+	TextEffectOptions,
+	TextTransitionOptions,
 	ActiveEffectHandle,
 	EffectRendererHandle,
+	TypingEffectOptions,
+	GlitchEffectOptions,
+	SignalLossEffectOptions,
 } from "./types";
-import { TERMINAL_TEXT_EFFECTS } from "./types";
-import { DEFAULT_TRANSITION_HOLD_MS, DEFAULT_TYPING_STEP_MS, DEFAULT_BACKSPACE_STEP_MS } from "./constants";
-import { getPairedTerminalTextEffect } from "./utils";
+import { TEXT_EFFECTS } from "./types";
+import { DEFAULT_TRANSITION_HOLD_MS } from "./constants";
+import { getPairedTextEffect } from "./utils";
 import { runTypingEnterRenderer } from "./effects/typing";
 import { runBackspaceExitRenderer } from "./effects/backspace";
 import { runDecryptEnterRenderer } from "./effects/decrypt";
@@ -20,7 +23,7 @@ import { activeEffects, clearActiveEffect } from "./activeEffects";
 /** Optional root dataset hook so consumers can style active effects in CSS. */
 function setRootEffect(
 	rootEl: HTMLElement | null | undefined,
-	effect: TerminalTextEffectState,
+	effect: TextEffectState,
 	rootEffectDataset = "navbrandEffect"
 ): void {
 	if (!rootEl) return;
@@ -29,24 +32,39 @@ function setRootEffect(
 
 function runPhaseRenderer(options: {
 	el: HTMLElement;
-	effect: TerminalTextEffectKind;
+	effect: TextEffectKind;
 	text: string;
 	durationMs?: number;
 	typingStepMs?: number;
+	typingOptions?: TypingEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	signalLossOptions?: SignalLossEffectOptions;
 }): EffectRendererHandle {
 	switch (options.effect) {
 		case "typing":
-			return runTypingEnterRenderer(options.el, options.text, options.typingStepMs ?? DEFAULT_TYPING_STEP_MS);
+			return runTypingEnterRenderer(options.el, options.text, {
+				stepMs: options.typingStepMs,
+				...options.typingOptions,
+			});
 		case "backspace":
-			return runBackspaceExitRenderer(options.el, options.text, options.typingStepMs ?? DEFAULT_BACKSPACE_STEP_MS);
+			return runBackspaceExitRenderer(options.el, options.text, {
+				stepMs: options.typingStepMs,
+				...options.typingOptions,
+			});
 		case "decrypt":
 			return runDecryptEnterRenderer(options.el, options.text, options.durationMs);
 		case "entropy":
 			return runEntropyExitRenderer(options.el, options.text, options.durationMs);
 		case "glitch-lock-on":
-			return runGlitchLockOnEnterRenderer(options.el, options.text, options.durationMs);
+			return runGlitchLockOnEnterRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.glitchOptions,
+			});
 		case "signal-loss":
-			return runSignalLossExitRenderer(options.el, options.text, options.durationMs);
+			return runSignalLossExitRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.signalLossOptions,
+			});
 	}
 }
 
@@ -66,26 +84,26 @@ function applyReducedMotionFallback(el: HTMLElement, stableText: string): void {
 }
 
 function resolveReducedMotionText(options: {
-	mode: NonNullable<TerminalTextTransitionOptions["mode"]>;
+	mode: NonNullable<TextTransitionOptions["mode"]>;
 	fromText: string;
 	toText: string;
-	enterEffect: TerminalTextEffectKind | "none";
-	exitEffect: TerminalTextEffectKind | "none";
+	enterEffect: TextEffectKind | "none";
+	exitEffect: TextEffectKind | "none";
 }): string {
 	const activeEffect = options.exitEffect !== "none" ? options.exitEffect : options.enterEffect;
-	const strategy = activeEffect !== "none" ? TERMINAL_TEXT_EFFECTS[activeEffect].reducedMotion : "instant-target";
+	const strategy = activeEffect !== "none" ? TEXT_EFFECTS[activeEffect].reducedMotion : "instant-target";
 
 	if (strategy === "instant-clear") return "";
 	if (strategy === "instant-restore" && options.mode === "standalone") return options.fromText || options.toText;
 	return options.toText;
 }
 
-function resolveTransitionEffects(options: TerminalTextTransitionOptions): {
-	enterEffect: TerminalTextEffectKind | "none";
-	exitEffect: TerminalTextEffectKind | "none";
+function resolveTransitionEffects(options: TextTransitionOptions): {
+	enterEffect: TextEffectKind | "none";
+	exitEffect: TextEffectKind | "none";
 } {
 	const effect = options.effect ?? "none";
-	const metadata = effect !== "none" ? TERMINAL_TEXT_EFFECTS[effect] : null;
+	const metadata = effect !== "none" ? TEXT_EFFECTS[effect] : null;
 	return {
 		enterEffect:
 			options.enterEffect ?? (metadata?.role === "enter" || metadata?.role === "standalone" ? effect : "none"),
@@ -94,9 +112,9 @@ function resolveTransitionEffects(options: TerminalTextTransitionOptions): {
 }
 
 /** Stop any in-progress effect and restore the stable text immediately. */
-export function resetTerminalTextEffect(
+export function resetTextEffect(
 	el: HTMLElement | null,
-	options: Pick<TerminalTextEffectOptions, "rootEl" | "rootEffectDataset"> = {}
+	options: Pick<TextEffectOptions, "rootEl" | "rootEffectDataset"> = {}
 ): void {
 	if (!el) return;
 	clearActiveEffect(el);
@@ -106,8 +124,19 @@ export function resetTerminalTextEffect(
 	el.textContent = target;
 }
 
-export async function runTerminalTextTransition(options: TerminalTextTransitionOptions): Promise<boolean> {
-	const { el, rootEl, rootEffectDataset, onComplete, reducedMotion, durationMs, typingStepMs } = options;
+export async function runTextTransition(options: TextTransitionOptions): Promise<boolean> {
+	const {
+		el,
+		rootEl,
+		rootEffectDataset,
+		onComplete,
+		reducedMotion,
+		durationMs,
+		typingStepMs,
+		typingOptions,
+		glitchOptions,
+		signalLossOptions,
+	} = options;
 	if (!el) return false;
 
 	clearActiveEffect(el);
@@ -148,10 +177,19 @@ export async function runTerminalTextTransition(options: TerminalTextTransitionO
 		},
 	};
 	const transitionDone = (async () => {
-		const runPhase = async (effect: TerminalTextEffectKind | "none", text: string) => {
+		const runPhase = async (effect: TextEffectKind | "none", text: string) => {
 			if (cancelled || effect === "none") return;
 			setRootEffect(rootEl, effect, rootEffectDataset);
-			activeRenderer = runPhaseRenderer({ el, effect, text, durationMs, typingStepMs });
+			activeRenderer = runPhaseRenderer({
+				el,
+				effect,
+				text,
+				durationMs,
+				typingStepMs,
+				typingOptions,
+				glitchOptions,
+				signalLossOptions,
+			});
 			await activeRenderer.promise;
 			activeRenderer = null;
 		};
@@ -213,20 +251,20 @@ export async function runTerminalTextTransition(options: TerminalTextTransitionO
  *
  * Example:
  *   current stable text: "alex"
- *   playTerminalTextEffect({ effect: "typing", text: "engineer" })
+ *   playTextEffect({ effect: "typing", text: "engineer" })
  *   result: "alex" backspaces out, then "engineer" types in
  *
  * If the stable text has not changed, this imperative API remains enter-only.
  * Declarative replay triggers such as hover/random-time use
- * `bindTerminalTextEffectTriggers()` to run the full family loop instead.
+ * `bindTextEffectTriggers()` to run the full family loop instead.
  *
  * Those decisions belong to concrete callers. Trigger-driven surfaces should
- * prefer `bindTerminalTextEffectTriggers()` via `src/scripts/textEffectRegistry.ts`
+ * prefer `bindTextEffectTriggers()` via `src/scripts/textEffectRegistry.ts`
  * so timing stays declarative in markup.
  */
-export function playTerminalTextEffect(options: {
+export function playTextEffect(options: {
 	el: HTMLElement | null;
-	effect: TerminalTextEffectKind | "none";
+	effect: TextEffectKind | "none";
 	text: string;
 	durationMs?: number;
 	typingStepMs?: number;
@@ -234,9 +272,12 @@ export function playTerminalTextEffect(options: {
 	rootEffectDataset?: string;
 	onComplete?: () => void;
 	reducedMotion?: boolean;
+	typingOptions?: TypingEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	signalLossOptions?: SignalLossEffectOptions;
 }): boolean {
 	if (!options.el) return false;
-	const metadata = options.effect !== "none" ? TERMINAL_TEXT_EFFECTS[options.effect] : null;
+	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;
 	const fromText =
 		options.el.dataset.textEffectStableText ??
 		options.el.dataset.greetingTarget ??
@@ -244,15 +285,13 @@ export function playTerminalTextEffect(options: {
 		options.text;
 	const hasChangedStableText = Boolean(metadata && metadata.role === "enter" && fromText && fromText !== options.text);
 	const mode = metadata?.role === "exit" ? "standalone" : hasChangedStableText ? "full-transition" : "enter-only";
-	void runTerminalTextTransition({
+	void runTextTransition({
 		...options,
 		toText: options.text,
 		fromText,
 		mode,
 		enterEffect: metadata?.role === "enter" ? options.effect : undefined,
-		exitEffect: hasChangedStableText
-			? getPairedTerminalTextEffect(options.effect as TerminalTextEffectKind, "exit")
-			: undefined,
+		exitEffect: hasChangedStableText ? getPairedTextEffect(options.effect as TextEffectKind, "exit") : undefined,
 		effect: options.effect,
 	});
 	return options.effect !== "none" && !isReducedMotionRequested(options.reducedMotion);

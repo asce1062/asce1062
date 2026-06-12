@@ -8,7 +8,7 @@
  * Why this exists:
  *   We do not want one-off scripts that each:
  *   - query a single element
- *   - call bindTerminalTextEffectTriggers(...)
+ *   - call bindTextEffectTriggers(...)
  *   - re-register on every astro:page-load
  *
  * Instead, trigger-driven decorative surfaces opt in declaratively and this
@@ -65,7 +65,7 @@
  *   - First page-load plays `load`; later Astro page-loads are treated as the
  *     visible `route-enter` moment for newly swapped DOM nodes.
  *   - Re-binds safely after Astro soft navigation replaces DOM nodes
- *   - Delegates parsing/binding details to `terminalTextEffect.ts`
+ *   - Delegates parsing/binding details to `textEffect.ts`
  *
  * Adding a new flourish target:
  *   1. Add the `data-text-effect*` attributes to the element in markup.
@@ -75,9 +75,9 @@
  */
 import {
 	DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
-	bindTerminalTextEffectTriggers,
-	readTerminalTextEffectConfig,
-} from "@/lib/textEffects/terminalTextEffect";
+	bindTextEffectTriggers,
+	readTextEffectConfig,
+} from "@/lib/textEffects/textEffect";
 
 let hasInitializedTextEffectRegistry = false;
 
@@ -89,16 +89,19 @@ function initTextEffectRegistry(): void {
 	);
 
 	for (const el of elements) {
-		const config = readTerminalTextEffectConfig(el);
+		const config = readTextEffectConfig(el);
 		if (!config) continue;
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: config.effects,
 			triggers: config.triggers,
 			initialTrigger,
 			initialDelayMs: DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
 			randomIntervalMs: config.randomIntervalMs,
+			typingOptions: config.typingOptions,
+			glitchOptions: config.glitchOptions,
+			signalLossOptions: config.signalLossOptions,
 		});
 	}
 }

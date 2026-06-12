@@ -1,4 +1,4 @@
-import type { TerminalTextEffectKind, TerminalTextEffectTrigger } from "./types";
+import type { TextEffectKind, TextEffectTrigger } from "./types";
 
 /**
  * Default trigger set for generic decorative text.
@@ -6,7 +6,7 @@ import type { TerminalTextEffectKind, TerminalTextEffectTrigger } from "./types"
  * Consumers can stack extra triggers such as `random-effect` / `random-time`
  * without losing the base load/hover/tap/click behavior.
  */
-export const DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS: TerminalTextEffectTrigger[] = ["load", "hover", "tap", "click"];
+export const DEFAULT_TEXT_EFFECT_TRIGGERS: TextEffectTrigger[] = ["load", "hover", "tap", "click"];
 export const DEFAULT_RANDOM_INTERVAL_MS = 20_000;
 export const DEFAULT_IDLE_RETURN_DELAY_MS = 45_000;
 
@@ -35,9 +35,12 @@ export const DEFAULT_TRANSITION_HOLD_MS = 80;
 export const DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS = 1062;
 export const TERMINAL_BLOCK_CURSOR = "█";
 export const SIGNAL_ARTIFACTS = [" ", "_", "-", "|", "/", "\\"] as const;
+export const GLITCH_CHARSET_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+export const GLITCH_CHARSET_BINARY = "01";
+export const DEFAULT_SIGNAL_DROPOUT_CHAR = "_";
 
 export const EFFECT_DURATION_PROFILES: Record<
-	TerminalTextEffectKind,
+	TextEffectKind,
 	{
 		minMs: number;
 		maxMs: number;

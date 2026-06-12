@@ -9,13 +9,13 @@
  * It supports two integration styles:
  *
  * 1. Trigger-driven consumers
- *    Use `readTerminalTextEffectConfig` + `bindTerminalTextEffectTriggers`
+ *    Use `readTextEffectConfig` + `bindTextEffectTriggers`
  *    through `initTextEffectRegistry()` in `src/scripts/textEffectRegistry.ts`.
  *    Best for site greeting/tagline-style embellishments that should react to
  *    load/hover/tap/click/random timing.
  *
  * 2. State-driven consumers
- *    Call `playTerminalTextEffect` / `resetTerminalTextEffect` directly.
+ *    Call `playTextEffect` / `resetTextEffect` directly.
  *    Best for features where a coordinator/state machine decides exactly when
  *    an effect should run and which effect should be used.
  *
@@ -36,7 +36,7 @@
  *     same text; `typing` is not used for random standalone selection because
  *     it reads more clearly as an enter/reveal phase.
  *
- * New effects should be registered in `TERMINAL_TEXT_EFFECTS` with family,
+ * New effects should be registered in `TEXT_EFFECTS` with family,
  * lifecycle role, standalone eligibility, and reduced-motion strategy before
  * adding a renderer. The transition coordinator uses that metadata to keep
  * randomization, standalone flourishes, and reduced-motion behavior coherent.
@@ -78,6 +78,27 @@
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
  *
+ * Per-effect tunable attributes (all optional, all backward-compatible):
+ *
+ *   Typing / backspace:
+ *   data-text-effect-typing-cursor-char="▌"          // cursor character (default "█")
+ *   data-text-effect-typing-cursor-blink-ms="400"    // cursor blink interval in ms (default 500)
+ *   data-text-effect-typing-end-blink-count="5"      // trailing blinks after last char (default 3)
+ *   data-text-effect-typing-lead-in-ms="200"         // pre-type pause in ms (default 120)
+ *   data-text-effect-typing-stutter-chance="0.2"     // 0–1 probability of stutter pause (default 0.12)
+ *   data-text-effect-typing-stutter-max-ms="600"     // max stutter pause in ms (default 420)
+ *
+ *   Glitch-lock-on:
+ *   data-text-effect-glitch-charset="letters"        // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-glitch-reverse                  // presence attribute — reverses lock-in direction (right→left)
+ *   data-text-effect-glitch-frames="10"              // frame count (default 6, min 3)
+ *   data-text-effect-glitch-intensity="0.5"          // scramble intensity 0–1 (default 1.0)
+ *
+ *   Signal-loss:
+ *   data-text-effect-signal-dropout-char="░"         // character for dropped-out positions (default "_")
+ *   data-text-effect-signal-blackout-ms="400"        // blackout hold duration in ms (default 760)
+ *   data-text-effect-signal-false-recovery           // presence attribute — disables the mid-animation false-recovery flash
+ *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.
  *   - Keep trigger logic generic so new flourish targets do not need bespoke
@@ -88,7 +109,7 @@
  *     plays effects.
  */
 export * from "./types";
-export { DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS, DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS } from "./constants";
+export { DEFAULT_TEXT_EFFECT_TRIGGERS, DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS } from "./constants";
 export * from "./utils";
 export * from "./config";
 export * from "./transition";

@@ -1,10 +1,10 @@
 import type { EffectRendererHandle } from "../types";
 import { DECRYPT_CHARS, DEFAULT_ENTROPY_TOTAL_FRAMES } from "../constants";
-import { resolveTerminalTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs } from "../utils";
 
 export function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_ENTROPY_TOTAL_FRAMES;
-	const totalDuration = durationMs ?? resolveTerminalTextEffectDurationMs("entropy", text);
+	const totalDuration = durationMs ?? resolveTextEffectDurationMs("entropy", text);
 	const frameInterval = totalDuration / totalFrames;
 	let frame = 0;
 	let resolvePromise: () => void = () => {};

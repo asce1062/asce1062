@@ -1,21 +1,21 @@
-export type TerminalTextEffectFamily = "type" | "cipher" | "rare";
-export type TerminalTextEffectRole = "enter" | "exit" | "standalone";
-export type TerminalTextEffectKind = "typing" | "backspace" | "decrypt" | "entropy" | "glitch-lock-on" | "signal-loss";
-export type TerminalTextEffectState = "none" | TerminalTextEffectKind;
-export type TerminalTextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
+export type TextEffectFamily = "type" | "cipher" | "rare";
+export type TextEffectRole = "enter" | "exit" | "standalone";
+export type TextEffectKind = "typing" | "backspace" | "decrypt" | "entropy" | "glitch-lock-on" | "signal-loss";
+export type TextEffectState = "none" | TextEffectKind;
+export type TextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
-export type TerminalTextEffectMetadata = {
+export type TextEffectMetadata = {
 	/** Internal grouping used to infer enter/exit pairs without hardcoding pairs at callsites. */
-	family: TerminalTextEffectFamily;
+	family: TextEffectFamily;
 	/** Direction of travel for transition sequencing. */
-	role: TerminalTextEffectRole;
+	role: TextEffectRole;
 	/** Whether this effect can run alone and restore/settle without implying a content change. */
 	standaloneSafe: boolean;
 	/** Central reduced-motion fallback for this effect when animation is disabled. */
-	reducedMotion: TerminalTextEffectReducedMotionStrategy;
+	reducedMotion: TextEffectReducedMotionStrategy;
 };
 
-export const TERMINAL_TEXT_EFFECTS: Record<TerminalTextEffectKind, TerminalTextEffectMetadata> = {
+export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 	typing: {
 		family: "type",
 		role: "enter",
@@ -54,7 +54,7 @@ export const TERMINAL_TEXT_EFFECTS: Record<TerminalTextEffectKind, TerminalTextE
 	},
 };
 
-export type TerminalTextEffectTrigger =
+export type TextEffectTrigger =
 	| "load"
 	| "hover"
 	| "focus"
@@ -70,31 +70,70 @@ export type TerminalTextEffectTrigger =
 	| "random-effect"
 	| "random-time";
 
-export type TerminalTextEffectConfig = {
-	effects: TerminalTextEffectKind[];
-	triggers: TerminalTextEffectTrigger[];
-	randomIntervalMs?: number;
+/** Charset for glitch-lock-on artifact characters. Named presets or any custom string. */
+export type GlitchCharset = "blocks" | "letters" | "binary" | (string & {});
+
+/** Per-effect customization for typing and backspace renderers. */
+export type TypingEffectOptions = {
+	stepMs?: number;
+	cursorChar?: string;
+	cursorBlinkIntervalMs?: number;
+	endBlinkCount?: number;
+	leadInMs?: number;
+	stutterChance?: number;
+	stutterMaxMs?: number;
+	punctuationPauseMultiplier?: number;
 };
 
-export type TerminalTextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
+/** Per-effect customization for glitch-lock-on renderer. */
+export type GlitchEffectOptions = {
+	charset?: GlitchCharset;
+	reverse?: boolean;
+	frameCount?: number;
+	intensity?: number;
+	durationMs?: number;
+};
 
-export type TerminalTextEffectOptions = {
+/** Per-effect customization for signal-loss renderer. */
+export type SignalLossEffectOptions = {
+	dropoutChar?: string;
+	blackoutHoldMs?: number;
+	/** Pass false to disable the mid-animation false-recovery flash. Defaults to true. */
+	falseRecovery?: boolean;
+	durationMs?: number;
+};
+
+export type TextEffectConfig = {
+	effects: TextEffectKind[];
+	triggers: TextEffectTrigger[];
+	randomIntervalMs?: number;
+	typingOptions?: TypingEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	signalLossOptions?: SignalLossEffectOptions;
+};
+
+export type TextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
+
+export type TextEffectOptions = {
 	durationMs?: number;
 	typingStepMs?: number;
 	rootEl?: HTMLElement | null;
 	rootEffectDataset?: string;
 	onComplete?: () => void;
 	reducedMotion?: boolean;
+	typingOptions?: TypingEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	signalLossOptions?: SignalLossEffectOptions;
 };
 
-export type TerminalTextTransitionOptions = TerminalTextEffectOptions & {
+export type TextTransitionOptions = TextEffectOptions & {
 	el: HTMLElement | null;
 	fromText?: string;
 	toText: string;
-	mode?: TerminalTextTransitionMode;
-	enterEffect?: TerminalTextEffectKind | "none";
-	exitEffect?: TerminalTextEffectKind | "none";
-	effect?: TerminalTextEffectKind | "none";
+	mode?: TextTransitionMode;
+	enterEffect?: TextEffectKind | "none";
+	exitEffect?: TextEffectKind | "none";
+	effect?: TextEffectKind | "none";
 	holdMs?: number;
 	reason?: string;
 };
@@ -106,8 +145,8 @@ export type TerminalTextTransitionOptions = TerminalTextEffectOptions & {
  * changed stable text should first leave with `backspace`. The same rule applies
  * to `decrypt -> entropy` and `glitch-lock-on -> signal-loss`.
  */
-export const TERMINAL_TEXT_EFFECT_FAMILY_PAIRS: Partial<
-	Record<TerminalTextEffectFamily, { enter: TerminalTextEffectKind; exit: TerminalTextEffectKind }>
+export const TEXT_EFFECT_FAMILY_PAIRS: Partial<
+	Record<TextEffectFamily, { enter: TextEffectKind; exit: TextEffectKind }>
 > = {
 	type: { enter: "typing", exit: "backspace" },
 	cipher: { enter: "decrypt", exit: "entropy" },

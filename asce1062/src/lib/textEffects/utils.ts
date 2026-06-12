@@ -1,12 +1,12 @@
 import type {
-	TerminalTextEffectKind,
-	TerminalTextEffectRole,
-	TerminalTextTransitionMode,
-	TerminalTextEffectMetadata,
+	TextEffectKind,
+	TextEffectRole,
+	TextTransitionMode,
+	TextEffectMetadata,
 	EffectRendererHandle,
 	TimeoutHandle,
 } from "./types";
-import { TERMINAL_TEXT_EFFECTS, TERMINAL_TEXT_EFFECT_FAMILY_PAIRS } from "./types";
+import { TEXT_EFFECTS, TEXT_EFFECT_FAMILY_PAIRS } from "./types";
 import {
 	EFFECT_DURATION_PROFILES,
 	DEFAULT_TYPING_STEP_MS,
@@ -26,15 +26,25 @@ export function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
-export function renderTypingFrame(text: string, visibleLength: number, showCursor: boolean): string {
+export function renderTypingFrame(
+	text: string,
+	visibleLength: number,
+	showCursor: boolean,
+	cursorChar = TERMINAL_BLOCK_CURSOR
+): string {
 	const resolvedText = text.slice(0, visibleLength);
-	return showCursor ? `${resolvedText}${TERMINAL_BLOCK_CURSOR}` : resolvedText;
+	return showCursor ? `${resolvedText}${cursorChar}` : resolvedText;
 }
 
-export function resolveHumanPauseMs(averageStepMs: number): number {
-	if (Math.random() <= 1 - DEFAULT_HUMAN_PAUSE_CHANCE) return 0;
-	const pauseWindow = DEFAULT_HUMAN_PAUSE_MAX_MS - DEFAULT_HUMAN_PAUSE_MIN_MS;
-	return DEFAULT_HUMAN_PAUSE_MIN_MS + Math.random() * Math.max(pauseWindow, averageStepMs);
+export function resolveHumanPauseMs(
+	averageStepMs: number,
+	chance = DEFAULT_HUMAN_PAUSE_CHANCE,
+	minMs = DEFAULT_HUMAN_PAUSE_MIN_MS,
+	maxMs = DEFAULT_HUMAN_PAUSE_MAX_MS
+): number {
+	if (Math.random() <= 1 - chance) return 0;
+	const pauseWindow = Math.max(0, maxMs - minMs);
+	return minMs + Math.random() * Math.max(pauseWindow, averageStepMs);
 }
 
 export function createTimeoutRenderer(
@@ -69,17 +79,14 @@ export function createTimeoutRenderer(
 	};
 }
 
-export function getTerminalTextEffectMetadata(effect: TerminalTextEffectKind): TerminalTextEffectMetadata {
-	return TERMINAL_TEXT_EFFECTS[effect];
+export function getTextEffectMetadata(effect: TextEffectKind): TextEffectMetadata {
+	return TEXT_EFFECTS[effect];
 }
 
 /** Resolve the opposite directional phase inside an effect's family. */
-export function getPairedTerminalTextEffect(
-	effect: TerminalTextEffectKind,
-	role: TerminalTextEffectRole
-): TerminalTextEffectKind | "none" {
-	const metadata = TERMINAL_TEXT_EFFECTS[effect];
-	const pair = TERMINAL_TEXT_EFFECT_FAMILY_PAIRS[metadata.family];
+export function getPairedTextEffect(effect: TextEffectKind, role: TextEffectRole): TextEffectKind | "none" {
+	const metadata = TEXT_EFFECTS[effect];
+	const pair = TEXT_EFFECT_FAMILY_PAIRS[metadata.family];
 	if (!pair || role === "standalone") return "none";
 	return pair[role];
 }
@@ -102,7 +109,7 @@ export function resolveTypingDurationMs(text: string, typingStepMs = DEFAULT_TYP
 	return clamp(duration, DEFAULT_TYPING_MIN_DURATION_MS, DEFAULT_TYPING_MAX_DURATION_MS);
 }
 
-export function resolveTerminalTextEffectDurationMs(effect: TerminalTextEffectKind, text: string): number {
+export function resolveTextEffectDurationMs(effect: TextEffectKind, text: string): number {
 	if (effect === "typing") return resolveTypingDurationMs(text);
 
 	const profile = EFFECT_DURATION_PROFILES[effect];
@@ -110,16 +117,16 @@ export function resolveTerminalTextEffectDurationMs(effect: TerminalTextEffectKi
 	return clamp(profile.baseMs + length * profile.perCharMs, profile.minMs, profile.maxMs);
 }
 
-export function resolveTerminalTextEffectKind(
-	effects: TerminalTextEffectKind[],
+export function resolveTextEffectKind(
+	effects: TextEffectKind[],
 	useRandomEffect: boolean,
 	randomValue: number,
-	options: { mode?: TerminalTextTransitionMode } = {}
-): TerminalTextEffectKind {
+	options: { mode?: TextTransitionMode } = {}
+): TextEffectKind {
 	const normalizedEffects = [...new Set(effects)].filter((effect) => {
 		// Standalone randomization should only choose effects that make sense
 		// without changing the element's stable text.
-		if (options.mode === "standalone") return TERMINAL_TEXT_EFFECTS[effect].standaloneSafe;
+		if (options.mode === "standalone") return TEXT_EFFECTS[effect].standaloneSafe;
 		return true;
 	});
 	const fallbackEffect = normalizedEffects[0] ?? "typing";

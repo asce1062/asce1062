@@ -1,19 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-	DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS,
+	DEFAULT_TEXT_EFFECT_TRIGGERS,
 	DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
-	TERMINAL_TEXT_EFFECTS,
-	bindTerminalTextEffectTriggers,
-	getTerminalTextEffectMetadata,
-	normalizeTerminalTextEffectTriggers,
-	playTerminalTextEffect,
-	readTerminalTextEffectConfig,
-	runTerminalTextTransition,
-	resolveTerminalTextEffectDurationMs,
+	TEXT_EFFECTS,
+	bindTextEffectTriggers,
+	getTextEffectMetadata,
+	normalizeTextEffectTriggers,
+	playTextEffect,
+	readTextEffectConfig,
+	runTextTransition,
+	resolveTextEffectDurationMs,
 	resolveTypingDurationMs,
-	resolveTerminalTextEffectKind,
-	shouldHandleTerminalTextEffectTrigger,
-} from "@/lib/textEffects/terminalTextEffect";
+	resolveTextEffectKind,
+	shouldHandleTextEffectTrigger,
+} from "@/lib/textEffects/textEffect";
 
 const SIGNAL_ARTIFACT_PATTERN = /[_\-/\\|\s]/;
 
@@ -43,22 +43,18 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe("normalizeTerminalTextEffectTriggers", () => {
+describe("normalizeTextEffectTriggers", () => {
 	it("uses the default triggers when none are provided", () => {
-		expect(normalizeTerminalTextEffectTriggers()).toEqual(DEFAULT_TERMINAL_TEXT_EFFECT_TRIGGERS);
+		expect(normalizeTextEffectTriggers()).toEqual(DEFAULT_TEXT_EFFECT_TRIGGERS);
 	});
 
 	it("deduplicates triggers while preserving order", () => {
-		expect(normalizeTerminalTextEffectTriggers(["hover", "tap", "hover", "manual"])).toEqual([
-			"hover",
-			"tap",
-			"manual",
-		]);
+		expect(normalizeTextEffectTriggers(["hover", "tap", "hover", "manual"])).toEqual(["hover", "tap", "manual"]);
 	});
 
 	it("supports the expanded trigger vocabulary", () => {
 		expect(
-			normalizeTerminalTextEffectTriggers([
+			normalizeTextEffectTriggers([
 				"load",
 				"activate",
 				"click",
@@ -90,36 +86,36 @@ describe("normalizeTerminalTextEffectTriggers", () => {
 	});
 });
 
-describe("shouldHandleTerminalTextEffectTrigger", () => {
+describe("shouldHandleTextEffectTrigger", () => {
 	it("matches configured triggers", () => {
-		expect(shouldHandleTerminalTextEffectTrigger(["load", "hover"], "hover")).toBe(true);
-		expect(shouldHandleTerminalTextEffectTrigger(["load", "hover"], "tap")).toBe(false);
+		expect(shouldHandleTextEffectTrigger(["load", "hover"], "hover")).toBe(true);
+		expect(shouldHandleTextEffectTrigger(["load", "hover"], "tap")).toBe(false);
 	});
 });
 
-describe("resolveTerminalTextEffectKind", () => {
+describe("resolveTextEffectKind", () => {
 	it("exposes effect metadata for reversible families", () => {
-		expect(TERMINAL_TEXT_EFFECTS.typing).toMatchObject({
+		expect(TEXT_EFFECTS.typing).toMatchObject({
 			family: "type",
 			role: "enter",
 			standaloneSafe: false,
 		});
-		expect(TERMINAL_TEXT_EFFECTS.backspace).toMatchObject({
+		expect(TEXT_EFFECTS.backspace).toMatchObject({
 			family: "type",
 			role: "exit",
 			standaloneSafe: true,
 		});
-		expect(getTerminalTextEffectMetadata("entropy")).toMatchObject({
+		expect(getTextEffectMetadata("entropy")).toMatchObject({
 			family: "cipher",
 			role: "exit",
 			standaloneSafe: true,
 		});
-		expect(getTerminalTextEffectMetadata("glitch-lock-on")).toMatchObject({
+		expect(getTextEffectMetadata("glitch-lock-on")).toMatchObject({
 			family: "rare",
 			role: "enter",
 			standaloneSafe: true,
 		});
-		expect(getTerminalTextEffectMetadata("signal-loss")).toMatchObject({
+		expect(getTextEffectMetadata("signal-loss")).toMatchObject({
 			family: "rare",
 			role: "exit",
 			standaloneSafe: true,
@@ -127,28 +123,28 @@ describe("resolveTerminalTextEffectKind", () => {
 	});
 
 	it("returns the first declared effect when not using random-effect", () => {
-		expect(resolveTerminalTextEffectKind(["decrypt"], false, 0.9)).toBe("decrypt");
-		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], false, 0.1)).toBe("typing");
+		expect(resolveTextEffectKind(["decrypt"], false, 0.9)).toBe("decrypt");
+		expect(resolveTextEffectKind(["typing", "decrypt"], false, 0.1)).toBe("typing");
 	});
 
 	it("randomizes across the declared effect list when random-effect is enabled", () => {
-		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], true, 0.1)).toBe("typing");
-		expect(resolveTerminalTextEffectKind(["typing", "decrypt"], true, 0.9)).toBe("decrypt");
+		expect(resolveTextEffectKind(["typing", "decrypt"], true, 0.1)).toBe("typing");
+		expect(resolveTextEffectKind(["typing", "decrypt"], true, 0.9)).toBe("decrypt");
 	});
 
 	it("falls back to the first effect when random-effect has only one candidate", () => {
-		expect(resolveTerminalTextEffectKind(["decrypt"], true, 0.9)).toBe("decrypt");
+		expect(resolveTextEffectKind(["decrypt"], true, 0.9)).toBe("decrypt");
 	});
 
 	it("filters random standalone flourish choices to standalone-safe effects", () => {
-		expect(resolveTerminalTextEffectKind(["typing", "backspace"], true, 0.1, { mode: "standalone" })).toBe("backspace");
-		expect(resolveTerminalTextEffectKind(["typing", "backspace", "entropy"], true, 0.9, { mode: "standalone" })).toBe(
+		expect(resolveTextEffectKind(["typing", "backspace"], true, 0.1, { mode: "standalone" })).toBe("backspace");
+		expect(resolveTextEffectKind(["typing", "backspace", "entropy"], true, 0.9, { mode: "standalone" })).toBe(
 			"entropy"
 		);
 	});
 });
 
-describe("readTerminalTextEffectConfig", () => {
+describe("readTextEffectConfig", () => {
 	it("parses effect config from dataset attributes", () => {
 		const el = {
 			dataset: {
@@ -159,7 +155,7 @@ describe("readTerminalTextEffectConfig", () => {
 			},
 		} as unknown as HTMLElement;
 
-		expect(readTerminalTextEffectConfig(el)).toEqual({
+		expect(readTextEffectConfig(el)).toEqual({
 			effects: ["typing", "decrypt", "backspace", "entropy", "glitch-lock-on", "signal-loss"],
 			triggers: [
 				"load",
@@ -182,18 +178,18 @@ describe("readTerminalTextEffectConfig", () => {
 			dataset: {},
 		} as unknown as HTMLElement;
 
-		expect(readTerminalTextEffectConfig(el)).toBeNull();
+		expect(readTextEffectConfig(el)).toBeNull();
 	});
 });
 
-describe("playTerminalTextEffect", () => {
+describe("playTextEffect", () => {
 	it("types text out once and settles on the final string", () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement();
 
 		expect(
-			playTerminalTextEffect({
+			playTextEffect({
 				el,
 				effect: "typing",
 				text: "hello",
@@ -209,7 +205,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement();
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "typing",
 			text: "Alex",
@@ -229,7 +225,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement();
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "typing",
 			text: "A",
@@ -248,7 +244,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("A");
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "backspace",
 			text: "A",
@@ -270,7 +266,7 @@ describe("playTerminalTextEffect", () => {
 		const el = createMockEffectElement("old");
 
 		expect(
-			playTerminalTextEffect({
+			playTextEffect({
 				el,
 				effect: "typing",
 				text: "new",
@@ -289,7 +285,7 @@ describe("playTerminalTextEffect", () => {
 		const el = createMockEffectElement("signal");
 
 		expect(
-			playTerminalTextEffect({
+			playTextEffect({
 				el,
 				effect: "backspace",
 				text: "signal",
@@ -309,7 +305,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("alex");
 
-		const transition = runTerminalTextTransition({
+		const transition = runTextTransition({
 			el,
 			fromText: "alex",
 			toText: "engineer",
@@ -333,7 +329,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("alex");
 
-		const first = runTerminalTextTransition({
+		const first = runTextTransition({
 			el,
 			fromText: "alex",
 			toText: "engineer",
@@ -343,7 +339,7 @@ describe("playTerminalTextEffect", () => {
 		});
 		vi.advanceTimersByTime(180);
 
-		const second = runTerminalTextTransition({
+		const second = runTextTransition({
 			el,
 			fromText: el.textContent ?? "",
 			toText: "writer",
@@ -363,7 +359,7 @@ describe("playTerminalTextEffect", () => {
 		const el = createMockEffectElement("signal");
 
 		expect(
-			playTerminalTextEffect({
+			playTextEffect({
 				el,
 				effect: "entropy",
 				text: "signal",
@@ -382,7 +378,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("asce1062");
 
-		const transition = runTerminalTextTransition({
+		const transition = runTextTransition({
 			el,
 			fromText: "asce1062",
 			toText: "alex",
@@ -403,7 +399,7 @@ describe("playTerminalTextEffect", () => {
 		resetElementText(el, "alex");
 
 		expect(
-			playTerminalTextEffect({
+			playTextEffect({
 				el,
 				effect: "typing",
 				text: "engineer",
@@ -423,7 +419,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("asce1062");
 
-		const transition = runTerminalTextTransition({
+		const transition = runTextTransition({
 			el,
 			fromText: "asce1062",
 			toText: "alex",
@@ -442,7 +438,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement();
 
-		const transition = runTerminalTextTransition({
+		const transition = runTextTransition({
 			el,
 			fromText: "",
 			toText: "alex",
@@ -465,7 +461,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("alexmbugua");
 
-		const transition = runTerminalTextTransition({
+		const transition = runTextTransition({
 			el,
 			fromText: "alexmbugua",
 			toText: "",
@@ -488,7 +484,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "signal-loss",
 			text: "signal",
@@ -508,7 +504,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal lost");
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "signal-loss",
 			text: "signal lost",
@@ -526,7 +522,7 @@ describe("playTerminalTextEffect", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal lost");
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect: "signal-loss",
 			text: "signal lost",
@@ -555,36 +551,36 @@ describe("resolveTypingDurationMs", () => {
 	});
 });
 
-describe("resolveTerminalTextEffectDurationMs", () => {
+describe("resolveTextEffectDurationMs", () => {
 	it("gives every effect a deliberate dwell for short text", () => {
-		expect(resolveTerminalTextEffectDurationMs("typing", "Alex")).toBeGreaterThanOrEqual(780);
-		expect(resolveTerminalTextEffectDurationMs("backspace", "Alex")).toBeGreaterThanOrEqual(620);
-		expect(resolveTerminalTextEffectDurationMs("decrypt", "Alex")).toBeGreaterThanOrEqual(760);
-		expect(resolveTerminalTextEffectDurationMs("entropy", "Alex")).toBeGreaterThanOrEqual(620);
-		expect(resolveTerminalTextEffectDurationMs("glitch-lock-on", "Alex")).toBeGreaterThanOrEqual(420);
-		expect(resolveTerminalTextEffectDurationMs("signal-loss", "Alex")).toBeGreaterThanOrEqual(420);
+		expect(resolveTextEffectDurationMs("typing", "Alex")).toBeGreaterThanOrEqual(780);
+		expect(resolveTextEffectDurationMs("backspace", "Alex")).toBeGreaterThanOrEqual(620);
+		expect(resolveTextEffectDurationMs("decrypt", "Alex")).toBeGreaterThanOrEqual(760);
+		expect(resolveTextEffectDurationMs("entropy", "Alex")).toBeGreaterThanOrEqual(620);
+		expect(resolveTextEffectDurationMs("glitch-lock-on", "Alex")).toBeGreaterThanOrEqual(420);
+		expect(resolveTextEffectDurationMs("signal-loss", "Alex")).toBeGreaterThanOrEqual(420);
 	});
 
 	it("caps every effect so long text does not overstay", () => {
 		const longText = "incoming transmission from the outer console perimeter";
 
-		expect(resolveTerminalTextEffectDurationMs("typing", longText)).toBeLessThanOrEqual(2_400);
-		expect(resolveTerminalTextEffectDurationMs("backspace", longText)).toBeLessThanOrEqual(1_600);
-		expect(resolveTerminalTextEffectDurationMs("decrypt", longText)).toBeLessThanOrEqual(1_400);
-		expect(resolveTerminalTextEffectDurationMs("entropy", longText)).toBeLessThanOrEqual(1_200);
-		expect(resolveTerminalTextEffectDurationMs("glitch-lock-on", longText)).toBeLessThanOrEqual(760);
-		expect(resolveTerminalTextEffectDurationMs("signal-loss", longText)).toBeLessThanOrEqual(820);
+		expect(resolveTextEffectDurationMs("typing", longText)).toBeLessThanOrEqual(2_400);
+		expect(resolveTextEffectDurationMs("backspace", longText)).toBeLessThanOrEqual(1_600);
+		expect(resolveTextEffectDurationMs("decrypt", longText)).toBeLessThanOrEqual(1_400);
+		expect(resolveTextEffectDurationMs("entropy", longText)).toBeLessThanOrEqual(1_200);
+		expect(resolveTextEffectDurationMs("glitch-lock-on", longText)).toBeLessThanOrEqual(760);
+		expect(resolveTextEffectDurationMs("signal-loss", longText)).toBeLessThanOrEqual(820);
 	});
 });
 
-describe("bindTerminalTextEffectTriggers", () => {
+describe("bindTextEffectTriggers", () => {
 	it("binds activate to both click and touchstart", async () => {
 		vi.useFakeTimers();
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
 		vi.stubGlobal("document", createMockDocument());
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["activate"],
@@ -606,7 +602,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const el = createMockEffectElement("signal");
 		vi.stubGlobal("document", createMockDocument());
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["load", "hover"],
@@ -629,7 +625,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["decrypt"],
 			triggers: ["hover"],
@@ -648,7 +644,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		vi.spyOn(Math, "random").mockReturnValue(0);
 		const el = createMockEffectElement("signal");
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["glitch-lock-on"],
 			triggers: ["hover"],
@@ -681,7 +677,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 
 		vi.stubGlobal("MutationObserver", MockMutationObserver);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["content-change"],
@@ -703,7 +699,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const mockDocument = createMockDocument("hidden");
 		vi.stubGlobal("document", mockDocument);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["focus", "resume"],
@@ -731,7 +727,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const mockDocument = createMockDocument();
 		vi.stubGlobal("document", mockDocument);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["route-enter"],
@@ -752,7 +748,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const el = createMockEffectElement("signal");
 		vi.stubGlobal("document", createMockDocument());
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["load", "route-enter"],
@@ -774,7 +770,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const el = createMockEffectElement("signal");
 		vi.stubGlobal("document", createMockDocument());
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["load"],
@@ -814,7 +810,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 
 		vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["load", "intersection"],
@@ -858,7 +854,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 
 		vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["intersection"],
@@ -879,7 +875,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const mockDocument = createMockDocument();
 		vi.stubGlobal("document", mockDocument);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["idle-return"],
@@ -898,7 +894,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const el = createMockEffectElement("signal");
 		const seenTriggers: string[] = [];
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["hover"],
@@ -928,7 +924,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const seenTriggers: string[] = [];
 		vi.stubGlobal("document", mockDocument);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["entropy"],
 			triggers: ["hover"],
@@ -962,7 +958,7 @@ describe("bindTerminalTextEffectTriggers", () => {
 		const seenTriggers: string[] = [];
 		vi.stubGlobal("document", mockDocument);
 
-		bindTerminalTextEffectTriggers({
+		bindTextEffectTriggers({
 			el,
 			effects: ["typing"],
 			triggers: ["resume", "random-time"],
