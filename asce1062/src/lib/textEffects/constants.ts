@@ -38,6 +38,12 @@ export const SIGNAL_ARTIFACTS = [" ", "_", "-", "|", "/", "\\"] as const;
 export const GLITCH_CHARSET_LETTERS = "abcdefghijklmnopqrstuvwxyz";
 export const GLITCH_CHARSET_BINARY = "01";
 export const DEFAULT_SIGNAL_DROPOUT_CHAR = "_";
+export const DEFAULT_CENSOR_CHAR = "█";
+export const DEFAULT_GLITCH_BURST_TOTAL_FRAMES = 10;
+export const DEFAULT_GLITCH_BURST_INTENSITY = 0.5;
+export const DEFAULT_SCRAMBLE_COUNT = 20;
+export const DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR = 3;
+export const DEFAULT_SHUFFLE_COUNT = 20;
 
 export const EFFECT_DURATION_PROFILES: Record<
 	TextEffectKind,
@@ -83,5 +89,41 @@ export const EFFECT_DURATION_PROFILES: Record<
 		maxMs: 820,
 		perCharMs: 10,
 		baseMs: 360,
+	},
+	glitch: {
+		minMs: 280,
+		maxMs: 560,
+		perCharMs: 2,
+		baseMs: 280,
+	},
+	censor: {
+		minMs: 360,
+		maxMs: 740,
+		perCharMs: 12,
+		baseMs: 280,
+	},
+	uncensor: {
+		minMs: 360,
+		maxMs: 740,
+		perCharMs: 12,
+		baseMs: 280,
+	},
+	scramble: {
+		minMs: 380,
+		maxMs: 860,
+		perCharMs: 8,
+		baseMs: 300,
+	},
+	"slow-reveal": {
+		minMs: 620,
+		maxMs: 1_600,
+		perCharMs: 20,
+		baseMs: 440,
+	},
+	shuffle: {
+		minMs: 380,
+		maxMs: 860,
+		perCharMs: 8,
+		baseMs: 300,
 	},
 };

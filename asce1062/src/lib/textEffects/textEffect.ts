@@ -22,15 +22,19 @@
  * Motion vocabulary:
  *   - Effect names are the public/declarative values:
  *     `typing`, `backspace`, `decrypt`, `entropy`, `glitch-lock-on`,
- *     `signal-loss`.
+ *     `signal-loss`, `glitch`, `censor`, `uncensor`, `scramble`,
+ *     `slow-reveal`, `shuffle`.
  *   - Families are internal pairing groups:
  *     `type` pairs `typing` with `backspace`
  *     `cipher` pairs `decrypt` with `entropy`
- *     `rare` pairs `glitch-lock-on` with `signal-loss`
+ *     `rare` pairs `glitch-lock-on` with `signal-loss`;
+ *     standalone effects (glitch, censor, uncensor, scramble, slow-reveal,
+ *     shuffle) also live in `rare` but run without a paired phase
  *   - Roles describe lifecycle direction:
  *     `enter` effects reveal or resolve text into place
  *     `exit` effects remove or destabilize text before handoff
- *     `standalone` is reserved for future effects that are neither directional
+ *     `standalone` effects run as self-contained flourishes, restoring
+ *     the stable text on completion
  *   - `standaloneSafe` means an effect may run as a flourish without changing
  *     the stable text. Example: `backspace` can delete and then restore the
  *     same text; `typing` is not used for random standalone selection because
@@ -73,7 +77,9 @@
  * Declarative markup contract:
  *   data-text-effect="typing"
  *   data-text-effect="decrypt, entropy, typing, backspace, glitch-lock-on, signal-loss"
- *   data-text-effect="glitch-lock-on, signal-loss" // rare, explicit opt-in
+ *   data-text-effect="glitch-lock-on, signal-loss"   // rare paired, explicit opt-in
+ *   data-text-effect="glitch"                        // standalone burst
+ *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
@@ -89,15 +95,38 @@
  *   data-text-effect-typing-stutter-max-ms="600"     // max stutter pause in ms (default 420)
  *
  *   Glitch-lock-on:
- *   data-text-effect-glitch-charset="letters"        // "blocks" | "letters" | "binary" | any string (default "blocks")
- *   data-text-effect-glitch-reverse                  // presence attribute — reverses lock-in direction (right→left)
- *   data-text-effect-glitch-frames="10"              // frame count (default 6, min 3)
- *   data-text-effect-glitch-intensity="0.5"          // scramble intensity 0–1 (default 1.0)
+ *   data-text-effect-glitch-lock-charset="letters"   // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-glitch-lock-reverse             // presence attribute — reverses lock-in direction (right→left)
+ *   data-text-effect-glitch-lock-frames="10"         // frame count (default 6, min 3)
+ *   data-text-effect-glitch-lock-intensity="0.5"     // scramble intensity 0–1 (default 1.0)
  *
  *   Signal-loss:
  *   data-text-effect-signal-dropout-char="░"         // character for dropped-out positions (default "_")
  *   data-text-effect-signal-blackout-ms="400"        // blackout hold duration in ms (default 760)
  *   data-text-effect-signal-false-recovery           // presence attribute — disables the mid-animation false-recovery flash
+ *
+ *   Glitch (standalone burst):
+ *   data-text-effect-glitch-charset="letters"        // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-glitch-frames="10"              // frame count (default 10, min 3)
+ *   data-text-effect-glitch-intensity="0.5"          // fraction of chars corrupted per frame, 0–1 (default 0.5)
+ *
+ *   Censor:
+ *   data-text-effect-censor-fill-char="░"            // masking character (default "█")
+ *   data-text-effect-censor-restore="false"          // "false" to stay censored after fill; default true (restore)
+ *
+ *   Uncensor:
+ *   data-text-effect-uncensor-fill-char="░"          // masking character (default "█")
+ *
+ *   Scramble:
+ *   data-text-effect-scramble-count="20"             // noise iterations (default 20)
+ *   data-text-effect-scramble-charset="letters"      // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *
+ *   Slow-reveal:
+ *   data-text-effect-slow-reveal-cycles="3"          // slot-machine cycles before each char locks in (default 3)
+ *   data-text-effect-slow-reveal-charset="letters"   // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *
+ *   Shuffle:
+ *   data-text-effect-shuffle-count="20"              // anagram-shuffle frames (default 20)
  *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.

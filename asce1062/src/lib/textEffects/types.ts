@@ -1,6 +1,18 @@
 export type TextEffectFamily = "type" | "cipher" | "rare";
 export type TextEffectRole = "enter" | "exit" | "standalone";
-export type TextEffectKind = "typing" | "backspace" | "decrypt" | "entropy" | "glitch-lock-on" | "signal-loss";
+export type TextEffectKind =
+	| "typing"
+	| "backspace"
+	| "decrypt"
+	| "entropy"
+	| "glitch-lock-on"
+	| "signal-loss"
+	| "glitch"
+	| "censor"
+	| "uncensor"
+	| "scramble"
+	| "slow-reveal"
+	| "shuffle";
 export type TextEffectState = "none" | TextEffectKind;
 export type TextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
@@ -49,6 +61,42 @@ export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 	"signal-loss": {
 		family: "rare",
 		role: "exit",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	glitch: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	censor: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	uncensor: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	scramble: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	"slow-reveal": {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	shuffle: {
+		family: "rare",
+		role: "standalone",
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
 	},
@@ -103,6 +151,58 @@ export type SignalLossEffectOptions = {
 	durationMs?: number;
 };
 
+/** Per-effect customization for standalone glitch burst renderer. */
+export type GlitchBurstEffectOptions = {
+	/** 0–1 fraction of chars corrupted per frame. Default 0.5. */
+	intensity?: number;
+	/** Number of glitch frames. Default 10. */
+	frameCount?: number;
+	/** Noise charset. Default "blocks". */
+	charset?: GlitchCharset;
+	durationMs?: number;
+};
+
+/** Per-effect customization for censor (L-to-R fill) renderer. */
+export type CensorEffectOptions = {
+	/** Masking character or array of chars to pick randomly. Default "█". */
+	fillChar?: string | string[];
+	/** Restore original text after censoring. Default true. */
+	restore?: boolean;
+	durationMs?: number;
+};
+
+/** Per-effect customization for uncensor (reveal from fully censored) renderer. */
+export type UncensorEffectOptions = {
+	/** Masking character. Default "█". */
+	fillChar?: string;
+	durationMs?: number;
+};
+
+/** Per-effect customization for scramble (progressive random noise accumulation) renderer. */
+export type ScrambleEffectOptions = {
+	/** Number of scramble iterations. Default 20. */
+	count?: number;
+	/** Noise charset. Default "blocks". */
+	charset?: GlitchCharset;
+	durationMs?: number;
+};
+
+/** Per-effect customization for slow-reveal (per-char slot-machine lock-in) renderer. */
+export type SlowRevealEffectOptions = {
+	/** Number of noise cycles each char spins through before locking in. Default 3. */
+	cyclesPerChar?: number;
+	/** Noise charset. Default "blocks". */
+	charset?: GlitchCharset;
+	durationMs?: number;
+};
+
+/** Per-effect customization for shuffle (anagram frame) renderer. */
+export type ShuffleEffectOptions = {
+	/** Number of shuffle frames. Default 20. */
+	count?: number;
+	durationMs?: number;
+};
+
 export type TextEffectConfig = {
 	effects: TextEffectKind[];
 	triggers: TextEffectTrigger[];
@@ -110,6 +210,12 @@ export type TextEffectConfig = {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
+	glitchBurstOptions?: GlitchBurstEffectOptions;
+	censorOptions?: CensorEffectOptions;
+	uncensorOptions?: UncensorEffectOptions;
+	scrambleOptions?: ScrambleEffectOptions;
+	slowRevealOptions?: SlowRevealEffectOptions;
+	shuffleOptions?: ShuffleEffectOptions;
 };
 
 export type TextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
@@ -124,6 +230,12 @@ export type TextEffectOptions = {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
+	glitchBurstOptions?: GlitchBurstEffectOptions;
+	censorOptions?: CensorEffectOptions;
+	uncensorOptions?: UncensorEffectOptions;
+	scrambleOptions?: ScrambleEffectOptions;
+	slowRevealOptions?: SlowRevealEffectOptions;
+	shuffleOptions?: ShuffleEffectOptions;
 };
 
 export type TextTransitionOptions = TextEffectOptions & {

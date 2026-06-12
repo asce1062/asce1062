@@ -1,24 +1,6 @@
 import type { EffectRendererHandle, GlitchEffectOptions } from "../types";
-import {
-	SIGNAL_ARTIFACTS,
-	DEFAULT_GLITCH_LOCK_TOTAL_FRAMES,
-	GLITCH_CHARSET_LETTERS,
-	GLITCH_CHARSET_BINARY,
-} from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
-
-function resolveGlitchCharsetStr(charset: string | undefined): string {
-	switch (charset ?? "blocks") {
-		case "blocks":
-			return SIGNAL_ARTIFACTS.join("");
-		case "letters":
-			return GLITCH_CHARSET_LETTERS;
-		case "binary":
-			return GLITCH_CHARSET_BINARY;
-		default:
-			return charset!;
-	}
-}
+import { DEFAULT_GLITCH_LOCK_TOTAL_FRAMES } from "../constants";
+import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
 
 function pickGlitchChar(charsetStr: string, seed: number, useRandom: boolean): string {
 	if (useRandom) return charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? "_";

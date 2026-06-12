@@ -5,6 +5,12 @@ import type {
 	TypingEffectOptions,
 	GlitchEffectOptions,
 	SignalLossEffectOptions,
+	GlitchBurstEffectOptions,
+	CensorEffectOptions,
+	UncensorEffectOptions,
+	ScrambleEffectOptions,
+	SlowRevealEffectOptions,
+	ShuffleEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import {
@@ -59,6 +65,12 @@ export function bindTextEffectTriggers(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
+	glitchBurstOptions?: GlitchBurstEffectOptions;
+	censorOptions?: CensorEffectOptions;
+	uncensorOptions?: UncensorEffectOptions;
+	scrambleOptions?: ScrambleEffectOptions;
+	slowRevealOptions?: SlowRevealEffectOptions;
+	shuffleOptions?: ShuffleEffectOptions;
 }): void {
 	const {
 		el,
@@ -74,6 +86,12 @@ export function bindTextEffectTriggers(options: {
 		typingOptions,
 		glitchOptions,
 		signalLossOptions,
+		glitchBurstOptions,
+		censorOptions,
+		uncensorOptions,
+		scrambleOptions,
+		slowRevealOptions,
+		shuffleOptions,
 	} = options;
 	if (!el) return;
 
@@ -130,6 +148,12 @@ export function bindTextEffectTriggers(options: {
 				typingOptions,
 				glitchOptions,
 				signalLossOptions,
+				glitchBurstOptions,
+				censorOptions,
+				uncensorOptions,
+				scrambleOptions,
+				slowRevealOptions,
+				shuffleOptions,
 			});
 			return;
 		}
@@ -143,6 +167,12 @@ export function bindTextEffectTriggers(options: {
 			typingOptions,
 			glitchOptions,
 			signalLossOptions,
+			glitchBurstOptions,
+			censorOptions,
+			uncensorOptions,
+			scrambleOptions,
+			slowRevealOptions,
+			shuffleOptions,
 		});
 	};
 

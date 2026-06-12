@@ -102,6 +102,12 @@ function initTextEffectRegistry(): void {
 			typingOptions: config.typingOptions,
 			glitchOptions: config.glitchOptions,
 			signalLossOptions: config.signalLossOptions,
+			glitchBurstOptions: config.glitchBurstOptions,
+			censorOptions: config.censorOptions,
+			uncensorOptions: config.uncensorOptions,
+			scrambleOptions: config.scrambleOptions,
+			slowRevealOptions: config.slowRevealOptions,
+			shuffleOptions: config.shuffleOptions,
 		});
 	}
 }

@@ -8,6 +8,12 @@ import type {
 	TypingEffectOptions,
 	GlitchEffectOptions,
 	SignalLossEffectOptions,
+	GlitchBurstEffectOptions,
+	CensorEffectOptions,
+	UncensorEffectOptions,
+	ScrambleEffectOptions,
+	SlowRevealEffectOptions,
+	ShuffleEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TRANSITION_HOLD_MS } from "./constants";
@@ -18,6 +24,12 @@ import { runDecryptEnterRenderer } from "./effects/decrypt";
 import { runEntropyExitRenderer } from "./effects/entropy";
 import { runGlitchLockOnEnterRenderer } from "./effects/glitchLockOn";
 import { runSignalLossExitRenderer } from "./effects/signalLoss";
+import { runGlitchRenderer } from "./effects/glitch";
+import { runCensorRenderer } from "./effects/censor";
+import { runUncensorRenderer } from "./effects/uncensor";
+import { runScrambleRenderer } from "./effects/scramble";
+import { runSlowRevealRenderer } from "./effects/slowReveal";
+import { runShuffleRenderer } from "./effects/shuffle";
 import { activeEffects, clearActiveEffect } from "./activeEffects";
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
@@ -39,6 +51,12 @@ function runPhaseRenderer(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
+	glitchBurstOptions?: GlitchBurstEffectOptions;
+	censorOptions?: CensorEffectOptions;
+	uncensorOptions?: UncensorEffectOptions;
+	scrambleOptions?: ScrambleEffectOptions;
+	slowRevealOptions?: SlowRevealEffectOptions;
+	shuffleOptions?: ShuffleEffectOptions;
 }): EffectRendererHandle {
 	switch (options.effect) {
 		case "typing":
@@ -64,6 +82,36 @@ function runPhaseRenderer(options: {
 			return runSignalLossExitRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
 				...options.signalLossOptions,
+			});
+		case "glitch":
+			return runGlitchRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.glitchBurstOptions,
+			});
+		case "censor":
+			return runCensorRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.censorOptions,
+			});
+		case "uncensor":
+			return runUncensorRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.uncensorOptions,
+			});
+		case "scramble":
+			return runScrambleRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.scrambleOptions,
+			});
+		case "slow-reveal":
+			return runSlowRevealRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.slowRevealOptions,
+			});
+		case "shuffle":
+			return runShuffleRenderer(options.el, options.text, {
+				durationMs: options.durationMs,
+				...options.shuffleOptions,
 			});
 	}
 }
@@ -136,6 +184,12 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		typingOptions,
 		glitchOptions,
 		signalLossOptions,
+		glitchBurstOptions,
+		censorOptions,
+		uncensorOptions,
+		scrambleOptions,
+		slowRevealOptions,
+		shuffleOptions,
 	} = options;
 	if (!el) return false;
 
@@ -189,6 +243,12 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				typingOptions,
 				glitchOptions,
 				signalLossOptions,
+				glitchBurstOptions,
+				censorOptions,
+				uncensorOptions,
+				scrambleOptions,
+				slowRevealOptions,
+				shuffleOptions,
 			});
 			await activeRenderer.promise;
 			activeRenderer = null;
@@ -275,6 +335,12 @@ export function playTextEffect(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
+	glitchBurstOptions?: GlitchBurstEffectOptions;
+	censorOptions?: CensorEffectOptions;
+	uncensorOptions?: UncensorEffectOptions;
+	scrambleOptions?: ScrambleEffectOptions;
+	slowRevealOptions?: SlowRevealEffectOptions;
+	shuffleOptions?: ShuffleEffectOptions;
 }): boolean {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;
@@ -284,7 +350,12 @@ export function playTextEffect(options: {
 		options.el.textContent ??
 		options.text;
 	const hasChangedStableText = Boolean(metadata && metadata.role === "enter" && fromText && fromText !== options.text);
-	const mode = metadata?.role === "exit" ? "standalone" : hasChangedStableText ? "full-transition" : "enter-only";
+	const mode =
+		metadata?.role === "exit" || metadata?.role === "standalone"
+			? "standalone"
+			: hasChangedStableText
+				? "full-transition"
+				: "enter-only";
 	void runTextTransition({
 		...options,
 		toText: options.text,

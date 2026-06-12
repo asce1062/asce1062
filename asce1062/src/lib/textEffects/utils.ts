@@ -5,6 +5,7 @@ import type {
 	TextEffectMetadata,
 	EffectRendererHandle,
 	TimeoutHandle,
+	GlitchCharset,
 } from "./types";
 import { TEXT_EFFECTS, TEXT_EFFECT_FAMILY_PAIRS } from "./types";
 import {
@@ -20,7 +21,23 @@ import {
 	DEFAULT_HUMAN_PAUSE_MIN_MS,
 	DEFAULT_HUMAN_PAUSE_MAX_MS,
 	TERMINAL_BLOCK_CURSOR,
+	SIGNAL_ARTIFACTS,
+	GLITCH_CHARSET_LETTERS,
+	GLITCH_CHARSET_BINARY,
 } from "./constants";
+
+export function resolveGlitchCharsetStr(charset: GlitchCharset | undefined): string {
+	switch (charset ?? "blocks") {
+		case "blocks":
+			return SIGNAL_ARTIFACTS.join("");
+		case "letters":
+			return GLITCH_CHARSET_LETTERS;
+		case "binary":
+			return GLITCH_CHARSET_BINARY;
+		default:
+			return charset as string;
+	}
+}
 
 export function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
