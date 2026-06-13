@@ -26,8 +26,8 @@
  *   See src/lib/magicalText/adornments.ts for step-by-step instructions.
  */
 
-import type { AdornmentKind, AnimationType, MagicalTextOptions } from "@/lib/magicalText/types";
-import { bindMagicalText } from "@/lib/magicalText/controller";
+import type { AdornmentKind, AnimationType, MagicalTextOptions } from "@/lib/magicalText";
+import { bindMagicalText } from "@/lib/magicalText";
 
 function readMagicalTextConfig(el: HTMLElement): MagicalTextOptions {
 	const opts: MagicalTextOptions = {};

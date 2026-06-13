@@ -1,5 +1,6 @@
 import type { RGBColor } from "./types";
 
+/** Parse 3- or 6-digit hex color strings (with or without leading `#`). */
 function hexToRgb(hex: string): RGBColor | null {
 	const long = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	if (long) {
@@ -20,10 +21,87 @@ function hexToRgb(hex: string): RGBColor | null {
 	return null;
 }
 
+/** Parse `rgb(R, G, B)` — comma-separated, integer channel values. */
 function rgbStringToRgb(str: string): RGBColor | null {
 	const m = str.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
 	if (m) return { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]) };
 	return null;
+}
+
+/** HSL hue-sector helper used by `hslStringToRgb`. */
+function hue2rgb(p: number, q: number, t: number): number {
+	let h = t;
+	if (h < 0) h += 1;
+	if (h > 1) h -= 1;
+	if (h < 1 / 6) return p + (q - p) * 6 * h;
+	if (h < 1 / 2) return q;
+	if (h < 2 / 3) return p + (q - p) * (2 / 3 - h) * 6;
+	return p;
+}
+
+/**
+ * Parse hsl() / hsla() (both comma and space-separated syntaxes).
+ * Examples: hsl(200, 80%, 50%), hsl(200deg 80% 50%), hsla(200, 80%, 50%, 0.5)
+ */
+function hslStringToRgb(str: string): RGBColor | null {
+	const m = str.match(/^hsla?\(\s*([\d.]+)(?:deg)?\s*[,\s]\s*([\d.]+)%\s*[,\s]\s*([\d.]+)%/i);
+	if (!m) return null;
+
+	const h = Number(m[1]) / 360;
+	const s = Number(m[2]) / 100;
+	const l = Number(m[3]) / 100;
+
+	if (s === 0) {
+		const v = Math.round(l * 255);
+		return { r: v, g: v, b: v };
+	}
+
+	const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+	const p = 2 * l - q;
+	return {
+		r: Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+		g: Math.round(hue2rgb(p, q, h) * 255),
+		b: Math.round(hue2rgb(p, q, h - 1 / 3) * 255),
+	};
+}
+
+function linearToGamma(c: number): number {
+	const v = Math.max(0, c);
+	return v >= 0.0031308 ? 1.055 * Math.pow(v, 1 / 2.4) - 0.055 : 12.92 * v;
+}
+
+/**
+ * Parse oklch().
+ * Examples: oklch(0.7 0.15 200), oklch(70% 0.15 200deg)
+ * L: 0–1 (or 0–100%); C: chroma >= 0; H: hue in degrees.
+ */
+function oklchStringToRgb(str: string): RGBColor | null {
+	const m = str.match(/^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:deg)?/i);
+	if (!m) return null;
+
+	const rawL = Number(m[1]);
+	const L = m[2] === "%" ? rawL / 100 : rawL;
+	const C = Number(m[3]);
+	const H = (Number(m[4]) * Math.PI) / 180;
+
+	// OKLCH -> OKLab
+	const a = C * Math.cos(H);
+	const b = C * Math.sin(H);
+
+	// OKLab -> linear sRGB (Ottosson 2020 coefficients)
+	const l_ = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+	const m_ = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+	const s_ = Math.pow(L - 0.0894841775 * a - 1.291485548 * b, 3);
+
+	const rLin = 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_;
+	const gLin = -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_;
+	const bLin = -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_;
+
+	return {
+		r: Math.round(Math.min(1, linearToGamma(rLin)) * 255),
+		g: Math.round(Math.min(1, linearToGamma(gLin)) * 255),
+		b: Math.round(Math.min(1, linearToGamma(bLin)) * 255),
+	};
 }
 
 /**
@@ -38,6 +116,12 @@ export function parseCSSColor(color: string): RGBColor {
 
 	const rgb = rgbStringToRgb(trimmed.toLowerCase());
 	if (rgb) return rgb;
+
+	const hsl = hslStringToRgb(trimmed);
+	if (hsl) return hsl;
+
+	const oklch = oklchStringToRgb(trimmed);
+	if (oklch) return oklch;
 
 	if (typeof document !== "undefined") {
 		const canvas = document.createElement("canvas");
