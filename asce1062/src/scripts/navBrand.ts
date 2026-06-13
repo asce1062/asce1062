@@ -39,11 +39,7 @@ import {
 	type NavBrandState,
 } from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
-import {
-	playTerminalTextEffect,
-	readTerminalTextEffectConfig,
-	resolveTerminalTextEffectKind,
-} from "@/lib/textEffects/terminalTextEffect";
+import { playTextEffect, readTextEffectConfig, resolveTextEffectKind } from "@/lib/textEffects/textEffect";
 import { copyToClipboard, initShareNotification } from "@/scripts/feedbackManager";
 
 const SESSION_KEY = "nav-brand-visited";
@@ -210,12 +206,12 @@ function setAnimatedText(el: HTMLElement, text: string, onComplete?: () => void)
 	}
 
 	if (el.dataset.textEffect) {
-		const config = readTerminalTextEffectConfig(el);
+		const config = readTextEffectConfig(el);
 		const effect = config
-			? resolveTerminalTextEffectKind(config.effects, config.triggers.includes("random-effect"), Math.random())
+			? resolveTextEffectKind(config.effects, config.triggers.includes("random-effect"), Math.random())
 			: "typing";
 
-		playTerminalTextEffect({
+		playTextEffect({
 			el,
 			effect,
 			text,

@@ -1,0 +1,102 @@
+/* MagicalText 
+ * Gradient sweep text with floating adornments.
+ *
+ * The gradient animation is pure CSS. Adornment positioning and color
+ * tracking are handled by src/lib/magicalText/controller.ts via rAF.
+ *
+ * CSS custom properties (set inline by controller.ts):
+ *   --mt-colors          : comma-separated gradient color list
+ *   --mt-time            : gradient sweep duration (e.g. 10s)
+ *   --mt-sparkle-duration: adornment cycle duration (e.g. 1.25s)
+ */
+
+.magical-text-container {
+	position: relative;
+	display: inline-block;
+}
+
+.magical-text-inner {
+	display: inline;
+	background-image: linear-gradient(90deg, var(--mt-colors));
+	background-size: 200% auto;
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	color: transparent;
+	animation: magical-text-gradient var(--mt-time, 10s) linear infinite;
+}
+
+@keyframes magical-text-gradient {
+	from {
+		background-position: 0% center;
+	}
+	to {
+		background-position: -200% center;
+	}
+}
+
+/* Adornment container sits over the text, pointer-events off */
+.magical-text-adornments {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: visible;
+}
+
+/* Individual sparkle wrapper (positioned absolutely by JS) */
+.magical-text-sparkle {
+	position: absolute;
+	display: block;
+	will-change: transform;
+	transform-origin: center center;
+}
+
+.magical-text-sparkle svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+/* Sparkle animation: rotate + scale (star, heart) */
+.magical-text-sparkle[data-animation="sparkle"] {
+	animation: magical-text-sparkle var(--mt-sparkle-duration, 1.25s) ease-in-out infinite;
+}
+
+/* Scale animation: scale only (ghost, ghost-alt) */
+.magical-text-sparkle[data-animation="scale"] {
+	animation: magical-text-scale var(--mt-sparkle-duration, 1.25s) ease-in-out infinite;
+}
+
+@keyframes magical-text-sparkle {
+	0% {
+		transform: scale(0) rotate(0deg);
+	}
+	50% {
+		transform: scale(1) rotate(90deg);
+	}
+	100% {
+		transform: scale(0) rotate(180deg);
+	}
+}
+
+@keyframes magical-text-scale {
+	0%,
+	100% {
+		transform: scale(0);
+	}
+	50% {
+		transform: scale(1);
+	}
+}
+
+/* Reduced motion: freeze gradient, hide adornments */
+@media (prefers-reduced-motion: reduce) {
+	.magical-text-inner {
+		animation: none;
+		background-position: 0% center;
+	}
+
+	.magical-text-sparkle {
+		display: none;
+	}
+}

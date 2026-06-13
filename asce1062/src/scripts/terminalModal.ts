@@ -76,11 +76,11 @@ import {
 } from "@/lib/navBrand/state";
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 import {
-	bindTerminalTextEffectTriggers,
-	playTerminalTextEffect,
-	readTerminalTextEffectConfig,
-	resetTerminalTextEffect,
-} from "@/lib/textEffects/terminalTextEffect";
+	bindTextEffectTriggers,
+	playTextEffect,
+	readTextEffectConfig,
+	resetTextEffect,
+} from "@/lib/textEffects/textEffect";
 import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 type TerminalModalElements = {
@@ -667,7 +667,7 @@ function renderTerminalAtmosphere(reason: TerminalAtmosphereReason): void {
 	if (!elements.atmosphere) return;
 
 	const text = resolveTerminalAtmosphere(reason);
-	playTerminalTextEffect({
+	playTextEffect({
 		el: elements.atmosphere,
 		effect: Math.random() < 0.32 ? "decrypt" : "typing",
 		text,
@@ -750,7 +750,7 @@ function resetTerminalRuntime(elements: TerminalModalElements): void {
 	}
 
 	if (elements.atmosphere) {
-		resetTerminalTextEffect(elements.atmosphere);
+		resetTextEffect(elements.atmosphere);
 		elements.atmosphere.textContent = "restoring context";
 		elements.atmosphere.dataset.textEffectStableText = "restoring context";
 		elements.atmosphere.dataset.greetingTarget = "restoring context";
@@ -790,7 +790,7 @@ function resetTerminalSession(elements: TerminalModalElements): void {
 	}
 
 	if (elements.atmosphere) {
-		resetTerminalTextEffect(elements.atmosphere);
+		resetTextEffect(elements.atmosphere);
 		elements.atmosphere.textContent = "restoring context";
 		elements.atmosphere.dataset.textEffectStableText = "restoring context";
 		elements.atmosphere.dataset.greetingTarget = "restoring context";
@@ -961,7 +961,7 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 	if (!elements.log) return;
 
 	for (const el of elements.log.querySelectorAll<HTMLElement>("[data-terminal-entry-text]")) {
-		resetTerminalTextEffect(el);
+		resetTextEffect(el);
 	}
 
 	elements.log.innerHTML = "";
@@ -981,7 +981,7 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 				if (!effect) return;
 
 				window.setTimeout(() => {
-					playTerminalTextEffect({
+					playTextEffect({
 						el: target,
 						effect,
 						text: target.textContent ?? "",
@@ -1004,7 +1004,7 @@ function appendRenderedEntry(elements: TerminalModalElements, entry: TerminalEnt
 		const target = node.querySelector<HTMLElement>("[data-terminal-entry-text]");
 		const effect = "effect" in entry ? (entry.effect ?? null) : null;
 		if (target && effect) {
-			playTerminalTextEffect({
+			playTextEffect({
 				el: target,
 				effect,
 				text: target.textContent ?? "",
@@ -1669,10 +1669,10 @@ function onWindowAction(action: WindowAction): void {
 function bindTerminalAtmosphereEffects(elements: TerminalModalElements): void {
 	if (!elements.atmosphere) return;
 
-	const config = readTerminalTextEffectConfig(elements.atmosphere);
+	const config = readTextEffectConfig(elements.atmosphere);
 	if (!config) return;
 
-	bindTerminalTextEffectTriggers({
+	bindTextEffectTriggers({
 		el: elements.atmosphere,
 		effects: config.effects,
 		triggers: config.triggers,
