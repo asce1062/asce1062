@@ -1,0 +1,95 @@
+---
+/**
+ * MagicalText
+ * Gradient-sweep text with optional floating sparkle adornments.
+ *
+ * Props:
+ *   text             Text to display. Required.
+ *   colors           Array of CSS colors for the gradient. Default: ['darkorange','purple'].
+ *   animationTime    Gradient sweep cycle duration in seconds. Default: 10.
+ *   adornment        Which SVG shape to use: 'star' | 'heart' | 'ghost' | 'ghost-alt'.
+ *                    Default: 'star'.
+ *   showAdornments   Set false to disable floating sparkles entirely. Default: true.
+ *   adornmentCount   Number of sparkles. Default: 3.
+ *   adornmentSize    Adornment width and height in px. Default: 16.
+ *   adornmentOpacity Adornment opacity 0–1. Default: 0.7.
+ *   adornmentDuration Sparkle animation cycle in seconds. Default: 1.25.
+ *   animationType    'sparkle' (rotate+scale) or 'scale' (scale only).
+ *                    Default: per-adornment (star/heart → sparkle; ghost/* → scale).
+ *   tag              HTML tag to use. Default: 'span'.
+ *   class            Extra CSS class(es) forwarded to the root element.
+ *
+ * Usage:
+ *   import MagicalText from '@/components/MagicalText.astro';
+ *
+ *   <MagicalText text="Hello World" />
+ *   <MagicalText text="Spooky" colors={['#ff6b35','#7b2d8b','#00b4d8']} adornment="ghost" />
+ *   <MagicalText text="Love" adornment="heart" adornmentCount={5} animationTime={6} />
+ *
+ * Adding a new adornment type:
+ *   1. Add the key to `AdornmentKind` in src/lib/magicalText/types.ts.
+ *   2. Add an `AdornmentConfig` entry to `ADORNMENTS` in src/lib/magicalText/adornments.ts.
+ *      See the JSDoc comment at the top of that file for field descriptions.
+ *   3. Use it: <MagicalText adornment="my-new-shape" ... />
+ *
+ * Notes:
+ *   - The gradient animation is driven by CSS @keyframes; no JS required for
+ *     the text color sweep itself.
+ *   - Adornment color tracking (star, heart) uses requestAnimationFrame to
+ *     synchronise sparkle fill with the gradient's current position.
+ *   - Reduced motion: gradient freezes at start position; adornments are hidden.
+ */
+
+import type { AdornmentKind, AnimationType } from "@/lib/magicalText/types";
+import "@/styles/components/magical-text.css";
+
+interface Props {
+	text: string;
+	colors?: string[];
+	animationTime?: number;
+	adornment?: AdornmentKind;
+	showAdornments?: boolean;
+	adornmentCount?: number;
+	adornmentSize?: number;
+	adornmentOpacity?: number;
+	adornmentDuration?: number;
+	animationType?: AnimationType;
+	tag?: "span" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "label";
+	class?: string;
+}
+
+const {
+	text,
+	colors,
+	animationTime,
+	adornment,
+	showAdornments,
+	adornmentCount,
+	adornmentSize,
+	adornmentOpacity,
+	adornmentDuration,
+	animationType,
+	tag: Tag = "span",
+	class: className,
+} = Astro.props;
+
+// Build data attributes for registry pickup
+const dataAttrs: Record<string, string> = {
+	"data-magical-text": "",
+};
+if (colors && colors.length > 0) dataAttrs["data-magical-text-colors"] = colors.join(",");
+if (animationTime !== undefined) dataAttrs["data-magical-text-animation-time"] = String(animationTime);
+if (adornment) dataAttrs["data-magical-text-adornment"] = adornment;
+if (showAdornments === false) dataAttrs["data-magical-text-no-adornments"] = "";
+if (adornmentCount !== undefined) dataAttrs["data-magical-text-adornment-count"] = String(adornmentCount);
+if (adornmentSize !== undefined) dataAttrs["data-magical-text-adornment-size"] = String(adornmentSize);
+if (adornmentOpacity !== undefined) dataAttrs["data-magical-text-adornment-opacity"] = String(adornmentOpacity);
+if (adornmentDuration !== undefined) dataAttrs["data-magical-text-adornment-duration"] = String(adornmentDuration);
+if (animationType) dataAttrs["data-magical-text-animation-type"] = animationType;
+---
+
+<Tag class={className} {...dataAttrs}>{text}</Tag>
+
+<script>
+	import "@/scripts/magicalTextRegistry";
+</script>
