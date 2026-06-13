@@ -1,4 +1,4 @@
-import type { RGBColor } from "./types";
+export type RGBColor = { r: number; g: number; b: number };
 
 /** Parse 3- or 6-digit hex color strings (with or without leading `#`). */
 function hexToRgb(hex: string): RGBColor | null {
@@ -106,7 +106,7 @@ function oklchStringToRgb(str: string): RGBColor | null {
 
 /**
  * Parse any CSS color string into an RGB triplet.
- * Handles hex, rgb(), and named colors (via canvas fallback).
+ * Handles hex, rgb(), hsl(), oklch(), and named colors (via canvas fallback).
  */
 export function parseCSSColor(color: string): RGBColor {
 	const trimmed = color.trim();
@@ -139,10 +139,10 @@ export function parseCSSColor(color: string): RGBColor {
 }
 
 /**
- * Build a 200-step color table by interpolating through all supplied colors.
- * Step 0 = colors[0], step 199 = colors[N-1].
+ * Build an N-step color table by interpolating through all supplied colors.
+ * Step 0 = colors[0], step N-1 = colors[last].
  *
- * Used for exact gradient-position color matching on sparkle adornments
+ * Used for exact gradient-position color matching on sparkle adornments.
  */
 export function multiColorFade(colors: string[], steps: number): RGBColor[] {
 	if (colors.length === 0) return Array(steps).fill({ r: 128, g: 128, b: 128 }) as RGBColor[];

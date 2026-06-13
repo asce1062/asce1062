@@ -1,0 +1,101 @@
+---
+/**
+ * Haunted
+ * A container whose children glow on hover and emit flying creatures.
+ *
+ * Props:
+ *   creature          SVG creature to use: 'ghost' | 'ghost-alt' | 'heart' | 'star'.
+ *                     Default: 'ghost'.
+ *   creatureOptions   Fine-tune the fly-out behaviour:
+ *     animationTime   Fly duration in seconds. Default: 1.5
+ *     numberOf        Number of creatures. Default: 6
+ *     distance        Travel distance in px. Default: 200
+ *     repeat          false = one-shot per page load. Default: true
+ *     dimensions      { width, height } of each creature in px. Default: { 44, 44 }
+ *   disableFun        true to disable all effects. Default: false
+ *   glowOptions       Fine-tune the box-shadow glow:
+ *     animationTime   Glow pulse cycle in seconds. Default: 3
+ *     boxShadowOff    box-shadow CSS value at glow low point.
+ *                     Default: '0px 0px 0px rgba(255,0,0,0)'
+ *     boxShadowOn     box-shadow CSS value at glow high point.
+ *                     Default: '0px 0px 40px rgba(255,0,0,1)'
+ *   style             Flat camelCase style object spread as inline style onto the
+ *                     container (e.g. { borderRadius: '8px', padding: '1rem' }).
+ *   class             Extra CSS class(es) applied to the container.
+ *
+ * Usage:
+ *   import Haunted from '@/components/Haunted.astro';
+ *
+ *   <Haunted>Hover me</Haunted>
+ *   <Haunted creature="heart" creatureOptions={{ numberOf: 8, distance: 300 }}>
+ *     Love it
+ *   </Haunted>
+ *   <Haunted glowOptions={{ boxShadowOn: '0px 0px 40px rgba(0,200,255,1)' }}
+ *            style={{ borderRadius: '12px', padding: '1rem 2rem' }}>
+ *     Cyan glow
+ *   </Haunted>
+ *
+ * Adding a new creature shape:
+ *   1. Add the key to `AdornmentKind` in src/lib/shared/adornments.ts.
+ *   2. Add SVG string + AdornmentConfig entry to ADORNMENTS there.
+ *   3. Add the key → svg mapping in src/lib/haunted/creatures.ts.
+ *   4. Use it: <Haunted creature="my-shape" />
+ *
+ * Notes:
+ *   - Creatures are injected by JS; the component renders only a content wrapper.
+ *   - Glow and creature animations use the Web Animations API.
+ *   - Both effects are skipped when prefers-reduced-motion is set.
+ *   - Nested CSS (pseudo-selectors, media queries) is not possible via the style
+ *     prop — use the class prop and a stylesheet for those cases.
+ */
+
+import type { CreatureKind, HauntedCreatureOptions, HauntedGlowOptions } from "@/lib/haunted";
+import "@/styles/components/haunted.css";
+
+interface Props {
+	creature?: CreatureKind;
+	creatureOptions?: HauntedCreatureOptions;
+	disableFun?: boolean;
+	glowOptions?: HauntedGlowOptions;
+	style?: Record<string, string>;
+	class?: string;
+}
+
+const { creature, creatureOptions, disableFun, glowOptions, style, class: className } = Astro.props;
+
+function serializeStyle(s: Record<string, string>): string {
+	return Object.entries(s)
+		.map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}: ${v}`)
+		.join("; ");
+}
+
+const baseStyle = "display: inline-block; position: relative";
+const inlineStyle = style ? `${baseStyle}; ${serializeStyle(style)}` : baseStyle;
+
+const dataAttrs: Record<string, string> = { "data-haunted": "" };
+if (creature) dataAttrs["data-haunted-creature"] = creature;
+if (disableFun) dataAttrs["data-haunted-disable-fun"] = "";
+if (creatureOptions?.animationTime !== undefined)
+	dataAttrs["data-haunted-animation-time"] = String(creatureOptions.animationTime);
+if (creatureOptions?.numberOf !== undefined) dataAttrs["data-haunted-number-of"] = String(creatureOptions.numberOf);
+if (creatureOptions?.distance !== undefined) dataAttrs["data-haunted-distance"] = String(creatureOptions.distance);
+if (creatureOptions?.repeat === false) dataAttrs["data-haunted-no-repeat"] = "";
+if (creatureOptions?.dimensions?.width !== undefined)
+	dataAttrs["data-haunted-width"] = String(creatureOptions.dimensions.width);
+if (creatureOptions?.dimensions?.height !== undefined)
+	dataAttrs["data-haunted-height"] = String(creatureOptions.dimensions.height);
+if (glowOptions?.animationTime !== undefined)
+	dataAttrs["data-haunted-glow-animation-time"] = String(glowOptions.animationTime);
+if (glowOptions?.boxShadowOff !== undefined) dataAttrs["data-haunted-glow-off"] = glowOptions.boxShadowOff;
+if (glowOptions?.boxShadowOn !== undefined) dataAttrs["data-haunted-glow-on"] = glowOptions.boxShadowOn;
+---
+
+<div class={className} style={inlineStyle} {...dataAttrs}>
+	<div class="haunted-content">
+		<slot />
+	</div>
+</div>
+
+<script>
+	import "@/scripts/hauntedRegistry";
+</script>

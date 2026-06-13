@@ -1,6 +1,8 @@
-import type { MagicalTextOptions, AdornmentKind, RGBColor } from "./types";
-import { ADORNMENTS } from "./adornments";
-import { multiColorFade } from "./colorUtils";
+import type { MagicalTextOptions } from "./types";
+import type { AdornmentKind } from "../shared/adornments";
+import type { RGBColor } from "../shared/colorUtils";
+import { ADORNMENTS } from "../shared/adornments";
+import { multiColorFade } from "../shared/colorUtils";
 
 const DEFAULT_COLORS = ["darkorange", "purple"];
 const DEFAULT_ANIMATION_TIME = 10;

@@ -1,0 +1,31 @@
+.haunted-creatures {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.haunted-creature-wrap {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+	transform-origin: center;
+	pointer-events: none;
+	user-select: none;
+}
+
+.haunted-creature-fly {
+	opacity: 0;
+}
+
+.haunted-creature-wave {
+	display: flex;
+}
+
+.haunted-content {
+	position: relative;
+	z-index: 1;
+}

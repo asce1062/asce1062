@@ -1,7 +1,5 @@
-export type AdornmentKind = "star" | "heart" | "ghost" | "ghost-alt";
-export type AnimationType = "sparkle" | "scale";
-
-export type RGBColor = { r: number; g: number; b: number };
+export type { AdornmentKind, AnimationType } from "../shared/adornments";
+export type { RGBColor } from "../shared/colorUtils";
 
 export type MagicalTextOptions = {
 	/** CSS color strings. Default: ['darkorange', 'purple'] */
@@ -11,7 +9,7 @@ export type MagicalTextOptions = {
 	/** Show floating adornments. Default: true */
 	showAdornments?: boolean;
 	/** Which SVG adornment to use. Default: 'star' */
-	adornment?: AdornmentKind;
+	adornment?: import("../shared/adornments").AdornmentKind;
 	/** Number of adornments. Default: 3 */
 	adornmentCount?: number;
 	/** Adornment width and height in px. Default: 16 */
@@ -24,5 +22,5 @@ export type MagicalTextOptions = {
 	 * Animation style. 'sparkle' rotates while scaling; 'scale' only scales.
 	 * Defaults: star/heart → 'sparkle'; ghost/ghost-alt → 'scale'.
 	 */
-	animationType?: AnimationType;
+	animationType?: import("../shared/adornments").AnimationType;
 };
