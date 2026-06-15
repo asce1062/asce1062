@@ -135,7 +135,7 @@ export type TypingEffectOptions = {
 };
 
 /** Per-effect customization for glitch-lock-on renderer. */
-export type GlitchEffectOptions = {
+export type GlitchLockOnEffectOptions = {
 	charset?: GlitchCharset;
 	reverse?: boolean;
 	frameCount?: number;
@@ -235,7 +235,7 @@ export type TextEffectConfig = {
 	triggers: TextEffectTrigger[];
 	randomIntervalMs?: number;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
 	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
@@ -255,7 +255,7 @@ export type TextEffectOptions = {
 	onComplete?: () => void;
 	reducedMotion?: boolean;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
 	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;

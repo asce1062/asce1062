@@ -1,4 +1,4 @@
-import type { EffectRendererHandle, GlitchEffectOptions } from "../types";
+import type { EffectRendererHandle, GlitchLockOnEffectOptions } from "../types";
 import { DEFAULT_GLITCH_LOCK_TOTAL_FRAMES } from "../constants";
 import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
 
@@ -51,7 +51,7 @@ function renderGlitchLockFrame(
 export function runGlitchLockOnEnterRenderer(
 	el: HTMLElement,
 	text: string,
-	options: GlitchEffectOptions = {}
+	options: GlitchLockOnEffectOptions = {}
 ): EffectRendererHandle {
 	const {
 		charset = "blocks",

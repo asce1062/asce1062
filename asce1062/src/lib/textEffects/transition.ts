@@ -6,7 +6,7 @@ import type {
 	ActiveEffectHandle,
 	EffectRendererHandle,
 	TypingEffectOptions,
-	GlitchEffectOptions,
+	GlitchLockOnEffectOptions,
 	SignalLossEffectOptions,
 	CorruptionEffectOptions,
 	CensorEffectOptions,
@@ -49,7 +49,7 @@ function runPhaseRenderer(options: {
 	durationMs?: number;
 	typingStepMs?: number;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
 	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
@@ -76,7 +76,7 @@ function runPhaseRenderer(options: {
 		case "glitch-lock-on":
 			return runGlitchLockOnEnterRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
-				...options.glitchOptions,
+				...options.glitchLockOnOptions,
 			});
 		case "signal-loss":
 			return runSignalLossExitRenderer(options.el, options.text, {
@@ -182,7 +182,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		durationMs,
 		typingStepMs,
 		typingOptions,
-		glitchOptions,
+		glitchLockOnOptions,
 		signalLossOptions,
 		corruptionOptions,
 		censorOptions,
@@ -250,7 +250,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				durationMs,
 				typingStepMs,
 				typingOptions,
-				glitchOptions,
+				glitchLockOnOptions,
 				signalLossOptions,
 				corruptionOptions,
 				censorOptions,
@@ -341,7 +341,7 @@ export function playTextEffect(options: {
 	onComplete?: () => void;
 	reducedMotion?: boolean;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
 	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;

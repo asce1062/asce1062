@@ -100,7 +100,7 @@ function initTextEffectRegistry(): void {
 			initialDelayMs: DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
 			randomIntervalMs: config.randomIntervalMs,
 			typingOptions: config.typingOptions,
-			glitchOptions: config.glitchOptions,
+			glitchLockOnOptions: config.glitchLockOnOptions,
 			signalLossOptions: config.signalLossOptions,
 			corruptionOptions: config.corruptionOptions,
 			censorOptions: config.censorOptions,

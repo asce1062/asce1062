@@ -3,7 +3,7 @@ import type {
 	TextEffectTrigger,
 	TextEffectConfig,
 	TypingEffectOptions,
-	GlitchEffectOptions,
+	GlitchLockOnEffectOptions,
 	SignalLossEffectOptions,
 	CorruptionEffectOptions,
 	CensorEffectOptions,
@@ -136,18 +136,19 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 	const typingOptions = Object.keys(typingOpts).length > 0 ? typingOpts : undefined;
 
 	// --- glitch-lock-on options ---
-	const glitchOpts: GlitchEffectOptions = {};
-	if (el.dataset.textEffectGlitchLockCharset !== undefined) glitchOpts.charset = el.dataset.textEffectGlitchLockCharset;
-	if (el.dataset.textEffectGlitchLockReverse !== undefined) glitchOpts.reverse = true;
+	const glitchLockOnOpts: GlitchLockOnEffectOptions = {};
+	if (el.dataset.textEffectGlitchLockCharset !== undefined)
+		glitchLockOnOpts.charset = el.dataset.textEffectGlitchLockCharset;
+	if (el.dataset.textEffectGlitchLockReverse !== undefined) glitchLockOnOpts.reverse = true;
 	const glitchLockFrames = el.dataset.textEffectGlitchLockFrames
 		? Number.parseInt(el.dataset.textEffectGlitchLockFrames, 10)
 		: NaN;
-	if (Number.isFinite(glitchLockFrames)) glitchOpts.frameCount = glitchLockFrames;
+	if (Number.isFinite(glitchLockFrames)) glitchLockOnOpts.frameCount = glitchLockFrames;
 	const glitchLockIntensity = el.dataset.textEffectGlitchLockIntensity
 		? Number.parseFloat(el.dataset.textEffectGlitchLockIntensity)
 		: NaN;
-	if (Number.isFinite(glitchLockIntensity)) glitchOpts.intensity = Math.min(1, Math.max(0, glitchLockIntensity));
-	const glitchOptions = Object.keys(glitchOpts).length > 0 ? glitchOpts : undefined;
+	if (Number.isFinite(glitchLockIntensity)) glitchLockOnOpts.intensity = Math.min(1, Math.max(0, glitchLockIntensity));
+	const glitchLockOnOptions = Object.keys(glitchLockOnOpts).length > 0 ? glitchLockOnOpts : undefined;
 
 	// --- signal-loss options ---
 	const signalOpts: SignalLossEffectOptions = {};
@@ -270,7 +271,7 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		triggers: normalizeTextEffectTriggers(rawTriggers),
 		randomIntervalMs: Number.isFinite(intervalValue) ? intervalValue : undefined,
 		typingOptions,
-		glitchOptions,
+		glitchLockOnOptions,
 		signalLossOptions,
 		corruptionOptions,
 		censorOptions,

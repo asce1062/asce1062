@@ -3,7 +3,7 @@ import type {
 	TextEffectTrigger,
 	TimeoutHandle,
 	TypingEffectOptions,
-	GlitchEffectOptions,
+	GlitchLockOnEffectOptions,
 	SignalLossEffectOptions,
 	CorruptionEffectOptions,
 	CensorEffectOptions,
@@ -63,7 +63,7 @@ export function bindTextEffectTriggers(options: {
 	typingStepMs?: number;
 	randomIntervalMs?: number;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
 	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
@@ -84,7 +84,7 @@ export function bindTextEffectTriggers(options: {
 		typingStepMs,
 		randomIntervalMs = DEFAULT_RANDOM_INTERVAL_MS,
 		typingOptions,
-		glitchOptions,
+		glitchLockOnOptions,
 		signalLossOptions,
 		corruptionOptions,
 		censorOptions,
@@ -147,7 +147,7 @@ export function bindTextEffectTriggers(options: {
 				durationMs,
 				typingStepMs,
 				typingOptions,
-				glitchOptions,
+				glitchLockOnOptions,
 				signalLossOptions,
 				corruptionOptions,
 				censorOptions,
@@ -166,7 +166,7 @@ export function bindTextEffectTriggers(options: {
 			durationMs,
 			typingStepMs,
 			typingOptions,
-			glitchOptions,
+			glitchLockOnOptions,
 			signalLossOptions,
 			corruptionOptions,
 			censorOptions,
