@@ -39,9 +39,40 @@ export const GLITCH_CHARSET_LETTERS = "abcdefghijklmnopqrstuvwxyz";
 export const GLITCH_CHARSET_BINARY = "01";
 export const DEFAULT_SIGNAL_DROPOUT_CHAR = "_";
 export const DEFAULT_CENSOR_CHAR = "█";
-export const DEFAULT_GLITCH_BURST_TOTAL_FRAMES = 10;
-export const DEFAULT_GLITCH_BURST_INTENSITY = 0.5;
+export const DEFAULT_CORRUPTION_COUNT = 10;
+export const DEFAULT_CORRUPTION_INTENSITY = 0.5;
+export const DEFAULT_CORRUPTION_ITEMS = [
+	"̴",
+	"̵",
+	"̶",
+	"̷",
+	"̸",
+	"▓",
+	"░",
+	"▒",
+	"⌗",
+	"⌖",
+	"⌘",
+	"⌛",
+	"⍨",
+	"⌂",
+	"#",
+	"!",
+	"@",
+	"$",
+	"%",
+	"^",
+	"&",
+	"*",
+	"~",
+	"|",
+	"/",
+	"\\",
+	"<",
+	">",
+] as const;
 export const DEFAULT_SCRAMBLE_COUNT = 20;
+export const DEFAULT_SCRAMBLE_ITEMS = ["#", "!", "@", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="] as const;
 export const DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR = 3;
 export const DEFAULT_SHUFFLE_COUNT = 20;
 
@@ -90,7 +121,7 @@ export const EFFECT_DURATION_PROFILES: Record<
 		perCharMs: 10,
 		baseMs: 360,
 	},
-	glitch: {
+	corruption: {
 		minMs: 280,
 		maxMs: 560,
 		perCharMs: 2,

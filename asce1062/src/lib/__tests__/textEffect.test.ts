@@ -979,8 +979,7 @@ describe("bindTextEffectTriggers", () => {
 		expect(seenTriggers).toContain("resume");
 		expect(el.textContent).toBe("signal-resume");
 
-		await vi.advanceTimersByTimeAsync(18_000);
-		await vi.advanceTimersByTimeAsync(5_000);
+		await vi.advanceTimersByTimeAsync(21_000);
 		expect(seenTriggers).toContain("random-time");
 		expect(el.textContent).toBe("signal-random-time");
 	});

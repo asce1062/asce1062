@@ -1,23 +1,30 @@
-import type { EffectRendererHandle, GlitchBurstEffectOptions } from "../types";
-import { DEFAULT_GLITCH_BURST_TOTAL_FRAMES, DEFAULT_GLITCH_BURST_INTENSITY } from "../constants";
+import type { EffectRendererHandle, CorruptionEffectOptions } from "../types";
+import { DEFAULT_CORRUPTION_COUNT, DEFAULT_CORRUPTION_INTENSITY, DEFAULT_CORRUPTION_ITEMS } from "../constants";
 import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
 
-export function runGlitchRenderer(
+export function runCorruptionRenderer(
 	el: HTMLElement,
 	text: string,
-	options: GlitchBurstEffectOptions = {}
+	options: CorruptionEffectOptions = {}
 ): EffectRendererHandle {
 	const {
-		intensity = DEFAULT_GLITCH_BURST_INTENSITY,
-		frameCount = DEFAULT_GLITCH_BURST_TOTAL_FRAMES,
+		intensity = DEFAULT_CORRUPTION_INTENSITY,
+		count = DEFAULT_CORRUPTION_COUNT,
 		charset = "blocks",
+		items,
+		delayMs,
+		restore = true,
 		durationMs,
 	} = options;
 
-	const charsetStr = resolveGlitchCharsetStr(charset);
-	const totalFrames = Math.max(3, frameCount);
-	const totalDuration = durationMs ?? resolveTextEffectDurationMs("glitch", text);
-	const frameInterval = totalDuration / totalFrames;
+	const charsetStr = items
+		? items.join("")
+		: charset === "blocks"
+			? DEFAULT_CORRUPTION_ITEMS.join("")
+			: resolveGlitchCharsetStr(charset);
+	const totalCount = Math.max(3, count);
+	const totalDuration = durationMs ?? resolveTextEffectDurationMs("corruption", text);
+	const stepMs = delayMs ?? totalDuration / totalCount;
 	const clampedIntensity = Math.min(1, Math.max(0, intensity));
 
 	let frame = 0;
@@ -40,14 +47,14 @@ export function runGlitchRenderer(
 
 		frame += 1;
 
-		if (frame >= totalFrames) {
+		if (frame >= totalCount) {
 			globalThis.clearInterval(intervalId);
 			if (settled) return;
 			settled = true;
-			el.textContent = text;
+			if (restore) el.textContent = text;
 			resolvePromise();
 		}
-	}, frameInterval);
+	}, stepMs);
 
 	return {
 		promise,

@@ -5,7 +5,7 @@ import type {
 	TypingEffectOptions,
 	GlitchEffectOptions,
 	SignalLossEffectOptions,
-	GlitchBurstEffectOptions,
+	CorruptionEffectOptions,
 	CensorEffectOptions,
 	UncensorEffectOptions,
 	ScrambleEffectOptions,
@@ -65,7 +65,7 @@ export function bindTextEffectTriggers(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
@@ -86,7 +86,7 @@ export function bindTextEffectTriggers(options: {
 		typingOptions,
 		glitchOptions,
 		signalLossOptions,
-		glitchBurstOptions,
+		corruptionOptions,
 		censorOptions,
 		uncensorOptions,
 		scrambleOptions,
@@ -115,6 +115,7 @@ export function bindTextEffectTriggers(options: {
 		"intersection",
 		"idle-return",
 		"random-time",
+		"random-interval",
 	]);
 
 	const play = (
@@ -148,7 +149,7 @@ export function bindTextEffectTriggers(options: {
 				typingOptions,
 				glitchOptions,
 				signalLossOptions,
-				glitchBurstOptions,
+				corruptionOptions,
 				censorOptions,
 				uncensorOptions,
 				scrambleOptions,
@@ -167,7 +168,7 @@ export function bindTextEffectTriggers(options: {
 			typingOptions,
 			glitchOptions,
 			signalLossOptions,
-			glitchBurstOptions,
+			corruptionOptions,
 			censorOptions,
 			uncensorOptions,
 			scrambleOptions,
@@ -329,12 +330,36 @@ export function bindTextEffectTriggers(options: {
 		registerTriggerCleanup(el, () => observer.disconnect());
 	}
 
-	if (shouldHandleTextEffectTrigger(normalizedTriggers, "random-time")) {
-		// Random-time intentionally means "replay on a timer" rather than "random delay once".
-		// The effect kind may also randomize independently via the `random-effect` trigger.
+	if (shouldHandleTextEffectTrigger(normalizedTriggers, "random-interval")) {
+		// Fires at a fixed, predictable cadence — like a heartbeat.
 		const intervalId = globalThis.setInterval(() => {
-			play("random-time");
+			play("random-interval");
 		}, randomIntervalMs);
 		randomTimers.set(el, intervalId);
+	}
+
+	if (shouldHandleTextEffectTrigger(normalizedTriggers, "random-time")) {
+		// Fires at unpredictable times — organic liveness. Uses randomIntervalMs as the
+		// center of the window (default 20 000 ms); each delay is randomized in [0.5×, 1.5×]
+		// of that value. Set data-text-effect-interval-ms to tune how fast or slow it fires.
+		let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
+		let cancelled = false;
+
+		const scheduleNext = () => {
+			if (cancelled) return;
+			const delay = randomIntervalMs * 0.5 + Math.random() * randomIntervalMs;
+			timeoutId = globalThis.setTimeout(() => {
+				if (cancelled) return;
+				timeoutId = null;
+				play("random-time");
+				scheduleNext();
+			}, delay);
+		};
+
+		scheduleNext();
+		registerTriggerCleanup(el, () => {
+			cancelled = true;
+			if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+		});
 	}
 }

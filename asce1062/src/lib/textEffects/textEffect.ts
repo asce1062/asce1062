@@ -22,13 +22,13 @@
  * Motion vocabulary:
  *   - Effect names are the public/declarative values:
  *     `typing`, `backspace`, `decrypt`, `entropy`, `glitch-lock-on`,
- *     `signal-loss`, `glitch`, `censor`, `uncensor`, `scramble`,
+ *     `signal-loss`, `corruption`, `censor`, `uncensor`, `scramble`,
  *     `slow-reveal`, `shuffle`.
  *   - Families are internal pairing groups:
  *     `type` pairs `typing` with `backspace`
  *     `cipher` pairs `decrypt` with `entropy`
  *     `rare` pairs `glitch-lock-on` with `signal-loss`;
- *     standalone effects (glitch, censor, uncensor, scramble, slow-reveal,
+ *     standalone effects (corruption, censor, uncensor, scramble, slow-reveal,
  *     shuffle) also live in `rare` but run without a paired phase
  *   - Roles describe lifecycle direction:
  *     `enter` effects reveal or resolve text into place
@@ -71,16 +71,17 @@
  *   - `idle-return`   : play when the user returns after inactivity
  *   - `content-change`: play when the element's observed content changes
  *   - `manual`        : reserved for explicit external triggering
- *   - `random-effect` : randomize across the element's declared effect list
- *   - `random-time`   : replay on an interval
+ *   - `random-effect`    : randomize across the element's declared effect list
+ *   - `random-time`     : replay at unpredictable times (delay randomized each fire)
+ *   - `random-interval` : replay on a fixed, predictable interval
  *
  * Declarative markup contract:
  *   data-text-effect="typing"
  *   data-text-effect="decrypt, entropy, typing, backspace, glitch-lock-on, signal-loss"
  *   data-text-effect="glitch-lock-on, signal-loss"   // rare paired, explicit opt-in
- *   data-text-effect="glitch"                        // standalone burst
+ *   data-text-effect="corruption"                    // standalone corruption burst
  *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle"
- *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time"
+ *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time, random-interval"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
  *
@@ -105,28 +106,47 @@
  *   data-text-effect-signal-blackout-ms="400"        // blackout hold duration in ms (default 760)
  *   data-text-effect-signal-false-recovery           // presence attribute — disables the mid-animation false-recovery flash
  *
- *   Glitch (standalone burst):
- *   data-text-effect-glitch-charset="letters"        // "blocks" | "letters" | "binary" | any string (default "blocks")
- *   data-text-effect-glitch-frames="10"              // frame count (default 10, min 3)
- *   data-text-effect-glitch-intensity="0.5"          // fraction of chars corrupted per frame, 0–1 (default 0.5)
+ *   Corruption (standalone burst):
+ *   data-text-effect-corruption-charset="letters"    // "blocks" | "letters" | "binary" | any string (default "blocks" → corruption symbols)
+ *   data-text-effect-corruption-delay-ms="55"        // ms between each frame (overrides durationMs)
+ *   data-text-effect-corruption-count="14"           // frame count (default 10, min 3)
+ *   data-text-effect-corruption-intensity="0.5"      // fraction of chars corrupted per frame, 0–1 (default 0.5)
+ *   data-text-effect-corruption-restore="false"      // "false" to leave the final corrupted frame; default true (restore)
+ *   data-text-effect-corruption-items="▓,░,#,!"      // comma-separated corruption chars; takes precedence over charset
  *
  *   Censor:
+ *   data-text-effect-censor-delay-ms="150"           // ms between each letter replacement (overrides durationMs)
  *   data-text-effect-censor-fill-char="░"            // masking character (default "█")
  *   data-text-effect-censor-restore="false"          // "false" to stay censored after fill; default true (restore)
+ *   data-text-effect-censor-hold-ms="800"            // ms to hold censored state before restoring (default 0)
+ *
+ *   Note - Per-letter visual gaps between █ blocks:
+ *   The renderer writes plain text. Apply `letter-spacing`
+ *   to the element to create visible separation between fill characters:
+ *     .your-element { letter-spacing: 0.04em; }
+ *     or style="letter-spacing: 0.04em"
  *
  *   Uncensor:
  *   data-text-effect-uncensor-fill-char="░"          // masking character (default "█")
+ *   data-text-effect-uncensor-delay-ms="18"         // ms between each letter reveal (overrides durationMs)
  *
  *   Scramble:
- *   data-text-effect-scramble-count="20"             // noise iterations (default 20)
- *   data-text-effect-scramble-charset="letters"      // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-scramble-delay-ms="75"         // ms between each scramble tick (overrides durationMs)
+ *   data-text-effect-scramble-count="28"             // noise iterations (default 20)
+ *   data-text-effect-scramble-charset="letters"      // "blocks" | "letters" | "binary" | any string (default "blocks" → #!@$%^&*()-_+=)
+ *   data-text-effect-scramble-restore="false"        // "false" to leave the final scrambled state; default true
+ *   data-text-effect-scramble-items="#,@,$,!"        // comma-separated scramble chars; takes precedence over charset
  *
  *   Slow-reveal:
+ *   data-text-effect-slow-reveal-delay-ms="55"      // ms between each step (overrides durationMs)
  *   data-text-effect-slow-reveal-cycles="3"          // slot-machine cycles before each char locks in (default 3)
- *   data-text-effect-slow-reveal-charset="letters"   // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-slow-reveal-charset="letters"   // "blocks" | "letters" | "binary" | any string (default "blocks" → #!@$%^&*()-_+=)
+ *   data-text-effect-slow-reveal-items="#,@,$,!"     // comma-separated slot-machine chars; takes precedence over charset
  *
  *   Shuffle:
- *   data-text-effect-shuffle-count="20"              // anagram-shuffle frames (default 20)
+ *   data-text-effect-shuffle-delay-ms="110"          // ms between each shuffle frame (overrides durationMs)
+ *   data-text-effect-shuffle-count="14"              // anagram-shuffle frames (default 20)
+ *   data-text-effect-shuffle-restore="false"         // "false" to leave the final shuffled frame; default true
  *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.

@@ -102,7 +102,7 @@ function initTextEffectRegistry(): void {
 			typingOptions: config.typingOptions,
 			glitchOptions: config.glitchOptions,
 			signalLossOptions: config.signalLossOptions,
-			glitchBurstOptions: config.glitchBurstOptions,
+			corruptionOptions: config.corruptionOptions,
 			censorOptions: config.censorOptions,
 			uncensorOptions: config.uncensorOptions,
 			scrambleOptions: config.scrambleOptions,

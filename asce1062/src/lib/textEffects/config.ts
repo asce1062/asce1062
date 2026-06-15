@@ -5,7 +5,7 @@ import type {
 	TypingEffectOptions,
 	GlitchEffectOptions,
 	SignalLossEffectOptions,
-	GlitchBurstEffectOptions,
+	CorruptionEffectOptions,
 	CensorEffectOptions,
 	UncensorEffectOptions,
 	ScrambleEffectOptions,
@@ -37,7 +37,7 @@ export function shouldHandleTextEffectTrigger(
  *
  * Supported attributes:
  * - `data-text-effect="typing"` or `data-text-effect="typing, decrypt, backspace, entropy"`
- * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time"`
+ * - `data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time, random-interval"`
  * - `data-text-effect-interval-ms="18000"`
  * - `data-text-effect-managed="manual"` to opt out of the declarative registry
  *
@@ -55,17 +55,29 @@ export function shouldHandleTextEffectTrigger(
  * - `data-text-effect-signal-dropout-char`     — character to show for dropped-out positions (default "_")
  * - `data-text-effect-signal-blackout-ms`      — blackout hold duration in ms (default 760)
  * - `data-text-effect-signal-false-recovery`   — presence attribute; disables mid-animation false-recovery flash
- * - `data-text-effect-glitch-charset`          — "blocks" | "letters" | "binary" | any custom string (glitch burst)
- * - `data-text-effect-glitch-frames`           — frame count (default 10) (glitch burst)
- * - `data-text-effect-glitch-intensity`        — fraction corrupted per frame 0–1 (default 0.5) (glitch burst)
+ * - `data-text-effect-corruption-charset`      — "blocks" | "letters" | "binary" | any custom string (corruption burst)
+ * - `data-text-effect-corruption-frames`       — frame count (default 10) (corruption burst)
+ * - `data-text-effect-corruption-intensity`    — fraction corrupted per frame 0–1 (default 0.5) (corruption burst)
+ * - `data-text-effect-corruption-restore`      — "false" to leave final corrupted frame; default true (corruption burst)
+ * - `data-text-effect-corruption-items`        — comma-separated corruption chars; takes precedence over charset (corruption burst)
  * - `data-text-effect-censor-fill-char`        — masking character (default "█")
  * - `data-text-effect-censor-restore`          — "false" to stay censored; default true (restore)
+ * - `data-text-effect-censor-delay-ms`         — ms between each letter replacement (overrides durationMs)
+ * - `data-text-effect-censor-hold-ms`          — ms to hold censored state before restoring (default 0)
  * - `data-text-effect-uncensor-fill-char`      — masking character (default "█")
+ * - `data-text-effect-uncensor-delay-ms`      — ms between each letter reveal (overrides durationMs)
  * - `data-text-effect-scramble-count`          — noise iterations (default 20)
  * - `data-text-effect-scramble-charset`        — "blocks" | "letters" | "binary" | any custom string
+ * - `data-text-effect-scramble-delay-ms`       — ms between each scramble tick (overrides durationMs)
+ * - `data-text-effect-scramble-restore`        — "false" to leave the final scrambled state; default true
+ * - `data-text-effect-scramble-items`          — comma-separated scramble chars; takes precedence over charset
  * - `data-text-effect-slow-reveal-cycles`      — slot-machine cycles per char (default 3)
  * - `data-text-effect-slow-reveal-charset`     — "blocks" | "letters" | "binary" | any custom string
+ * - `data-text-effect-slow-reveal-delay-ms`    — ms between each step (overrides durationMs)
+ * - `data-text-effect-slow-reveal-items`       — comma-separated slot-machine chars; takes precedence over charset
  * - `data-text-effect-shuffle-count`           — anagram-shuffle frames (default 20)
+ * - `data-text-effect-shuffle-delay-ms`        — ms between each shuffle frame (overrides durationMs)
+ * - `data-text-effect-shuffle-restore`         — "false" to leave the final shuffled frame; default true
  *
  * Parsing is intentionally strict:
  * - unknown effects are ignored; if nothing valid remains, the registry skips the element
@@ -148,30 +160,54 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 	if (el.dataset.textEffectSignalFalseRecovery !== undefined) signalOpts.falseRecovery = false;
 	const signalLossOptions = Object.keys(signalOpts).length > 0 ? signalOpts : undefined;
 
-	// --- glitch (standalone burst) options ---
-	const glitchBurstOpts: GlitchBurstEffectOptions = {};
-	if (el.dataset.textEffectGlitchCharset !== undefined) glitchBurstOpts.charset = el.dataset.textEffectGlitchCharset;
-	const glitchBurstFrames = el.dataset.textEffectGlitchFrames
-		? Number.parseInt(el.dataset.textEffectGlitchFrames, 10)
+	// --- corruption options ---
+	const corruptionOpts: CorruptionEffectOptions = {};
+	if (el.dataset.textEffectCorruptionCharset !== undefined)
+		corruptionOpts.charset = el.dataset.textEffectCorruptionCharset;
+	const corruptionCount = el.dataset.textEffectCorruptionCount
+		? Number.parseInt(el.dataset.textEffectCorruptionCount, 10)
 		: NaN;
-	if (Number.isFinite(glitchBurstFrames)) glitchBurstOpts.frameCount = glitchBurstFrames;
-	const glitchBurstIntensity = el.dataset.textEffectGlitchIntensity
-		? Number.parseFloat(el.dataset.textEffectGlitchIntensity)
+	if (Number.isFinite(corruptionCount)) corruptionOpts.count = corruptionCount;
+	const corruptionDelayMs = el.dataset.textEffectCorruptionDelayMs
+		? Number.parseInt(el.dataset.textEffectCorruptionDelayMs, 10)
 		: NaN;
-	if (Number.isFinite(glitchBurstIntensity)) glitchBurstOpts.intensity = Math.min(1, Math.max(0, glitchBurstIntensity));
-	const glitchBurstOptions = Object.keys(glitchBurstOpts).length > 0 ? glitchBurstOpts : undefined;
+	if (Number.isFinite(corruptionDelayMs)) corruptionOpts.delayMs = corruptionDelayMs;
+	const corruptionIntensity = el.dataset.textEffectCorruptionIntensity
+		? Number.parseFloat(el.dataset.textEffectCorruptionIntensity)
+		: NaN;
+	if (Number.isFinite(corruptionIntensity)) corruptionOpts.intensity = Math.min(1, Math.max(0, corruptionIntensity));
+	if (el.dataset.textEffectCorruptionRestore !== undefined)
+		corruptionOpts.restore = el.dataset.textEffectCorruptionRestore !== "false";
+	if (el.dataset.textEffectCorruptionItems !== undefined) {
+		const parsed = el.dataset.textEffectCorruptionItems
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (parsed.length > 0) corruptionOpts.items = parsed;
+	}
+	const corruptionOptions = Object.keys(corruptionOpts).length > 0 ? corruptionOpts : undefined;
 
 	// --- censor options ---
 	const censorOpts: CensorEffectOptions = {};
 	if (el.dataset.textEffectCensorFillChar !== undefined) censorOpts.fillChar = el.dataset.textEffectCensorFillChar;
 	if (el.dataset.textEffectCensorRestore !== undefined)
 		censorOpts.restore = el.dataset.textEffectCensorRestore !== "false";
+	const censorDelayMs = el.dataset.textEffectCensorDelayMs
+		? Number.parseInt(el.dataset.textEffectCensorDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(censorDelayMs)) censorOpts.delayMs = censorDelayMs;
+	const censorHoldMs = el.dataset.textEffectCensorHoldMs ? Number.parseInt(el.dataset.textEffectCensorHoldMs, 10) : NaN;
+	if (Number.isFinite(censorHoldMs)) censorOpts.holdMs = censorHoldMs;
 	const censorOptions = Object.keys(censorOpts).length > 0 ? censorOpts : undefined;
 
 	// --- uncensor options ---
 	const uncensorOpts: UncensorEffectOptions = {};
 	if (el.dataset.textEffectUncensorFillChar !== undefined)
 		uncensorOpts.fillChar = el.dataset.textEffectUncensorFillChar;
+	const uncensorDelayMs = el.dataset.textEffectUncensorDelayMs
+		? Number.parseInt(el.dataset.textEffectUncensorDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(uncensorDelayMs)) uncensorOpts.delayMs = uncensorDelayMs;
 	const uncensorOptions = Object.keys(uncensorOpts).length > 0 ? uncensorOpts : undefined;
 
 	// --- scramble options ---
@@ -181,6 +217,19 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		? Number.parseInt(el.dataset.textEffectScrambleCount, 10)
 		: NaN;
 	if (Number.isFinite(scrambleCount)) scrambleOpts.count = scrambleCount;
+	const scrambleDelayMs = el.dataset.textEffectScrambleDelayMs
+		? Number.parseInt(el.dataset.textEffectScrambleDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(scrambleDelayMs)) scrambleOpts.delayMs = scrambleDelayMs;
+	if (el.dataset.textEffectScrambleRestore !== undefined)
+		scrambleOpts.restore = el.dataset.textEffectScrambleRestore !== "false";
+	if (el.dataset.textEffectScrambleItems !== undefined) {
+		const parsed = el.dataset.textEffectScrambleItems
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (parsed.length > 0) scrambleOpts.items = parsed;
+	}
 	const scrambleOptions = Object.keys(scrambleOpts).length > 0 ? scrambleOpts : undefined;
 
 	// --- slow-reveal options ---
@@ -191,12 +240,29 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		? Number.parseInt(el.dataset.textEffectSlowRevealCycles, 10)
 		: NaN;
 	if (Number.isFinite(slowRevealCycles)) slowRevealOpts.cyclesPerChar = slowRevealCycles;
+	const slowRevealDelayMs = el.dataset.textEffectSlowRevealDelayMs
+		? Number.parseInt(el.dataset.textEffectSlowRevealDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(slowRevealDelayMs)) slowRevealOpts.delayMs = slowRevealDelayMs;
+	if (el.dataset.textEffectSlowRevealItems !== undefined) {
+		const parsed = el.dataset.textEffectSlowRevealItems
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (parsed.length > 0) slowRevealOpts.items = parsed;
+	}
 	const slowRevealOptions = Object.keys(slowRevealOpts).length > 0 ? slowRevealOpts : undefined;
 
 	// --- shuffle options ---
 	const shuffleOpts: ShuffleEffectOptions = {};
 	const shuffleCount = el.dataset.textEffectShuffleCount ? Number.parseInt(el.dataset.textEffectShuffleCount, 10) : NaN;
 	if (Number.isFinite(shuffleCount)) shuffleOpts.count = shuffleCount;
+	const shuffleDelayMs = el.dataset.textEffectShuffleDelayMs
+		? Number.parseInt(el.dataset.textEffectShuffleDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(shuffleDelayMs)) shuffleOpts.delayMs = shuffleDelayMs;
+	if (el.dataset.textEffectShuffleRestore !== undefined)
+		shuffleOpts.restore = el.dataset.textEffectShuffleRestore !== "false";
 	const shuffleOptions = Object.keys(shuffleOpts).length > 0 ? shuffleOpts : undefined;
 
 	return {
@@ -206,7 +272,7 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		typingOptions,
 		glitchOptions,
 		signalLossOptions,
-		glitchBurstOptions,
+		corruptionOptions,
 		censorOptions,
 		uncensorOptions,
 		scrambleOptions,

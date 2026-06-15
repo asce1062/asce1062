@@ -8,7 +8,7 @@ import type {
 	TypingEffectOptions,
 	GlitchEffectOptions,
 	SignalLossEffectOptions,
-	GlitchBurstEffectOptions,
+	CorruptionEffectOptions,
 	CensorEffectOptions,
 	UncensorEffectOptions,
 	ScrambleEffectOptions,
@@ -24,7 +24,7 @@ import { runDecryptEnterRenderer } from "./effects/decrypt";
 import { runEntropyExitRenderer } from "./effects/entropy";
 import { runGlitchLockOnEnterRenderer } from "./effects/glitchLockOn";
 import { runSignalLossExitRenderer } from "./effects/signalLoss";
-import { runGlitchRenderer } from "./effects/glitch";
+import { runCorruptionRenderer } from "./effects/corruption";
 import { runCensorRenderer } from "./effects/censor";
 import { runUncensorRenderer } from "./effects/uncensor";
 import { runScrambleRenderer } from "./effects/scramble";
@@ -51,7 +51,7 @@ function runPhaseRenderer(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
@@ -83,10 +83,10 @@ function runPhaseRenderer(options: {
 				durationMs: options.durationMs,
 				...options.signalLossOptions,
 			});
-		case "glitch":
-			return runGlitchRenderer(options.el, options.text, {
+		case "corruption":
+			return runCorruptionRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
-				...options.glitchBurstOptions,
+				...options.corruptionOptions,
 			});
 		case "censor":
 			return runCensorRenderer(options.el, options.text, {
@@ -184,7 +184,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		typingOptions,
 		glitchOptions,
 		signalLossOptions,
-		glitchBurstOptions,
+		corruptionOptions,
 		censorOptions,
 		uncensorOptions,
 		scrambleOptions,
@@ -220,6 +220,15 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		return false;
 	}
 
+	// Censor with restore=false intentionally leaves text censored; skip the
+	// post-effect stable-text reset in both the standalone branch and outer cleanup.
+	const standaloneEffect = mode === "standalone" ? (exitEffect !== "none" ? exitEffect : enterEffect) : "none";
+	const skipFinalRestore =
+		(standaloneEffect === "censor" && censorOptions?.restore === false) ||
+		(standaloneEffect === "corruption" && corruptionOptions?.restore === false) ||
+		(standaloneEffect === "scramble" && scrambleOptions?.restore === false) ||
+		(standaloneEffect === "shuffle" && shuffleOptions?.restore === false);
+
 	let cancelled = false;
 	let activeRenderer: EffectRendererHandle | null = null;
 	const transitionHandle: ActiveEffectHandle = {
@@ -243,7 +252,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				typingOptions,
 				glitchOptions,
 				signalLossOptions,
-				glitchBurstOptions,
+				corruptionOptions,
 				censorOptions,
 				uncensorOptions,
 				scrambleOptions,
@@ -255,9 +264,8 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		};
 
 		if (mode === "standalone") {
-			const standaloneEffect = exitEffect !== "none" ? exitEffect : enterEffect;
 			await runPhase(standaloneEffect, fromText || toText);
-			if (!cancelled) el.textContent = targetStableText;
+			if (!cancelled && !skipFinalRestore) el.textContent = targetStableText;
 			return;
 		}
 
@@ -292,7 +300,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 	if (activeEffects.get(el) === transitionHandle) {
 		activeEffects.delete(el);
 		setRootEffect(rootEl, "none", rootEffectDataset);
-		el.textContent = targetStableText;
+		if (!skipFinalRestore) el.textContent = targetStableText;
 		onComplete?.();
 	}
 	return true;
@@ -335,7 +343,7 @@ export function playTextEffect(options: {
 	typingOptions?: TypingEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;

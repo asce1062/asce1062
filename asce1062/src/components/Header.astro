@@ -89,9 +89,9 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 	<p
 		class="site-greeting"
 		data-text-effect="decrypt, typing, glitch-lock-on"
-		data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time"
-		data-text-effect-interval-ms="18000">{siteMetadata.greeting}</p
-	>
+		data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time">
+		{siteMetadata.greeting}
+	</p>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
 
 	<script>
