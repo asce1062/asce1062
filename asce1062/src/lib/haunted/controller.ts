@@ -1,5 +1,6 @@
 import type { HauntedOptions } from "./types";
 import { CREATURES } from "./creatures";
+import { resolveThemeCSSVar } from "../shared/colorUtils";
 
 const DEFAULT_CREATURE_OPTIONS = {
 	animationTime: 1.5,
@@ -9,11 +10,17 @@ const DEFAULT_CREATURE_OPTIONS = {
 	dimensions: { width: 44, height: 44 },
 } as const;
 
-const DEFAULT_GLOW_OPTIONS = {
-	animationTime: 3,
-	boxShadowOff: "0px 0px 0px rgba(255,0,0,0)",
-	boxShadowOn: "0px 0px 40px rgba(255,0,0,1)",
-} as const;
+const DEFAULT_GLOW_ANIMATION_TIME = 3;
+
+function buildGlowDefaults(el: HTMLElement): { boxShadowOff: string; boxShadowOn: string } {
+	const color = resolveThemeCSSVar("--color-primary", el);
+	// color is "rgb(R, G, B)" so we strip the wrapper to get channel values
+	const channels = color.replace(/^rgb\(|\)$/g, "");
+	return {
+		boxShadowOff: `0px 0px 0px rgba(${channels}, 0)`,
+		boxShadowOn: `0px 0px 40px rgba(${channels}, 1)`,
+	};
+}
 
 function randomBetween(min: number, max: number): number {
 	return Math.random() * (max - min) + min;
@@ -56,7 +63,12 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	if (opts.creatureOptions?.dimensions) {
 		cOpts.dimensions = { ...DEFAULT_CREATURE_OPTIONS.dimensions, ...opts.creatureOptions.dimensions };
 	}
-	const gOpts = { ...DEFAULT_GLOW_OPTIONS, ...opts.glowOptions };
+	const glowDefaults = buildGlowDefaults(el);
+	const gOpts = {
+		animationTime: DEFAULT_GLOW_ANIMATION_TIME,
+		...glowDefaults,
+		...opts.glowOptions,
+	};
 
 	// Ensure container is positioned so absolutely-placed creatures are contained
 	let positionSet = false;

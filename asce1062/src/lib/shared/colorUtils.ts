@@ -105,6 +105,24 @@ function oklchStringToRgb(str: string): RGBColor | null {
 }
 
 /**
+ * Resolve a CSS custom property to a concrete color string by temporarily
+ * applying it to an off-screen element and reading the computed value.
+ *
+ * Returns `rgb(R, G, B)` (compatible with parseCSSColor).
+ * Falls back to `rgb(128, 128, 128)` outside a DOM context (SSR).
+ */
+export function resolveThemeCSSVar(varName: string, el?: HTMLElement): string {
+	if (typeof document === "undefined") return "rgb(128, 128, 128)";
+	const probe = document.createElement("div");
+	probe.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none";
+	probe.style.color = `var(${varName})`;
+	(el ?? document.body).appendChild(probe);
+	const resolved = getComputedStyle(probe).color;
+	probe.remove();
+	return resolved || "rgb(128, 128, 128)";
+}
+
+/**
  * Parse any CSS color string into an RGB triplet.
  * Handles hex, rgb(), hsl(), oklch(), and named colors (via canvas fallback).
  */
