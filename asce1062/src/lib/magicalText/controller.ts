@@ -2,9 +2,9 @@ import type { MagicalTextOptions } from "./types";
 import type { AdornmentKind } from "../shared/adornments";
 import type { RGBColor } from "../shared/colorUtils";
 import { ADORNMENTS } from "../shared/adornments";
-import { multiColorFade } from "../shared/colorUtils";
+import { multiColorFade, resolveThemeCSSVar } from "../shared/colorUtils";
 
-const DEFAULT_COLORS = ["darkorange", "purple"];
+const THEME_DEFAULT_COLORS = ["--color-primary", "--color-accent"];
 const DEFAULT_ANIMATION_TIME = 10;
 const DEFAULT_ADORNMENT_COUNT = 3;
 const DEFAULT_ADORNMENT_SIZE = 16;
@@ -29,7 +29,8 @@ function randomBetween(min: number, max: number): number {
  * to cancel the rAF loop and restore the original element content.
  */
 export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}): () => void {
-	const colors = opts.colors && opts.colors.length > 0 ? opts.colors : DEFAULT_COLORS;
+	const colors =
+		opts.colors && opts.colors.length > 0 ? opts.colors : THEME_DEFAULT_COLORS.map((v) => resolveThemeCSSVar(v, el));
 	const animTimeS = opts.animationTime ?? DEFAULT_ANIMATION_TIME;
 	const animTimeMs = animTimeS * 1000;
 	const showAdornments = opts.showAdornments !== false;
