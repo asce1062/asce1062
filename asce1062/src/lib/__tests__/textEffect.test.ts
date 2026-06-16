@@ -180,6 +180,55 @@ describe("readTextEffectConfig", () => {
 
 		expect(readTextEffectConfig(el)).toBeNull();
 	});
+
+	it("parses glitch dataset attributes into glitchOptions", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+				textEffectGlitchCharset: "letters",
+				textEffectGlitchReverse: "",
+				textEffectGlitchDelayMs: "40",
+				textEffectGlitchCount: "8",
+				textEffectGlitchItems: "▓,░,#,!",
+				textEffectGlitchShimmerMs: "3000",
+				textEffectGlitchShimmer: "true",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions).toEqual({
+			charset: "letters",
+			reverse: true,
+			delayMs: 40,
+			count: 8,
+			items: ["▓", "░", "#", "!"],
+			shimmerIntervalMs: 3000,
+			shimmer: true,
+		});
+	});
+
+	it("parses glitch-shimmer=false to disable shimmer", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+				textEffectGlitchShimmer: "false",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions?.shimmer).toBe(false);
+	});
+
+	it("omits glitchOptions when no glitch attributes are set", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions).toBeUndefined();
+	});
 });
 
 describe("playTextEffect", () => {
@@ -982,6 +1031,67 @@ describe("bindTextEffectTriggers", () => {
 		await vi.advanceTimersByTimeAsync(21_000);
 		expect(seenTriggers).toContain("random-time");
 		expect(el.textContent).toBe("signal-random-time");
+	});
+});
+
+describe("glitch renderer — reveal phase", () => {
+	it("sets el.textContent to target text after reveal completes", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hello");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "hello", { shimmer: false });
+		// count(5) + text.length(5) ticks at delayMs(50) = 500ms
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("hello");
+	});
+
+	it("cancel() stops the animation without throwing", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hi");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		const handle = runGlitchRenderer(el, "hi", { shimmer: false });
+		handle.cancel();
+		await handle.promise;
+	});
+
+	it("respects reverse option: locks in from right to left", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("abc");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "abc", { shimmer: false, reverse: true, count: 0, delayMs: 10 });
+		// After 1 tick: rightmost char should be locked
+		vi.advanceTimersByTime(10);
+		const text = el.textContent ?? "";
+		expect(text[2]).toBe("c");
+	});
+
+	it("uses items array as charset when provided", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hi");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "hi", { shimmer: false, count: 1, delayMs: 10, items: ["X"] });
+		// During noise phase every non-space char should be "X"
+		vi.advanceTimersByTime(10);
+		expect(el.textContent).toMatch(/^[X\s]+$/);
+	});
+});
+
+describe("glitch renderer — shimmer", () => {
+	it("cancel() during shimmer stops all timers", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("ab");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		const handle = runGlitchRenderer(el, "ab", {
+			shimmer: true,
+			shimmerIntervalMs: 50,
+			count: 0,
+			delayMs: 10,
+		});
+		await vi.advanceTimersByTimeAsync(200);
+		handle.cancel();
+		const textAfterCancel = el.textContent;
+		vi.advanceTimersByTime(10_000);
+		expect(el.textContent).toBe(textAfterCancel);
 	});
 });
 

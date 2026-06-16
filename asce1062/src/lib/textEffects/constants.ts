@@ -75,6 +75,9 @@ export const DEFAULT_SCRAMBLE_COUNT = 20;
 export const DEFAULT_SCRAMBLE_ITEMS = ["#", "!", "@", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="] as const;
 export const DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR = 3;
 export const DEFAULT_SHUFFLE_COUNT = 20;
+export const DEFAULT_GLITCH_COUNT = 5;
+export const DEFAULT_GLITCH_SHIMMER_INTERVAL_MS = 5_000;
+export const DEFAULT_GLITCH_ITEMS = ["▓", "░", "▒", "█", "#", "!", "@", "0", "1", "|", "/", "\\"] as const;
 
 export const EFFECT_DURATION_PROFILES: Record<
 	TextEffectKind,
@@ -156,5 +159,11 @@ export const EFFECT_DURATION_PROFILES: Record<
 		maxMs: 860,
 		perCharMs: 8,
 		baseMs: 300,
+	},
+	glitch: {
+		minMs: 480,
+		maxMs: 1_200,
+		perCharMs: 50,
+		baseMs: DEFAULT_GLITCH_COUNT * 50,
 	},
 };

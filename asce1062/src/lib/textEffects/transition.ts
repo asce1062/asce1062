@@ -14,6 +14,7 @@ import type {
 	ScrambleEffectOptions,
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
+	GlitchEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TRANSITION_HOLD_MS } from "./constants";
@@ -30,6 +31,7 @@ import { runUncensorRenderer } from "./effects/uncensor";
 import { runScrambleRenderer } from "./effects/scramble";
 import { runSlowRevealRenderer } from "./effects/slowReveal";
 import { runShuffleRenderer } from "./effects/shuffle";
+import { runGlitchRenderer } from "./effects/glitch";
 import { activeEffects, clearActiveEffect } from "./activeEffects";
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
@@ -57,6 +59,7 @@ function runPhaseRenderer(options: {
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
 }): EffectRendererHandle {
 	switch (options.effect) {
 		case "typing":
@@ -112,6 +115,10 @@ function runPhaseRenderer(options: {
 			return runShuffleRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
 				...options.shuffleOptions,
+			});
+		case "glitch":
+			return runGlitchRenderer(options.el, options.text, {
+				...options.glitchOptions,
 			});
 	}
 }
@@ -190,6 +197,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		scrambleOptions,
 		slowRevealOptions,
 		shuffleOptions,
+		glitchOptions,
 	} = options;
 	if (!el) return false;
 
@@ -258,6 +266,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				scrambleOptions,
 				slowRevealOptions,
 				shuffleOptions,
+				glitchOptions,
 			});
 			await activeRenderer.promise;
 			activeRenderer = null;
@@ -349,6 +358,7 @@ export function playTextEffect(options: {
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
 }): boolean {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;

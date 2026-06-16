@@ -11,6 +11,7 @@ import type {
 	ScrambleEffectOptions,
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
+	GlitchEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import {
@@ -71,6 +72,7 @@ export function bindTextEffectTriggers(options: {
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
 }): void {
 	const {
 		el,
@@ -92,6 +94,7 @@ export function bindTextEffectTriggers(options: {
 		scrambleOptions,
 		slowRevealOptions,
 		shuffleOptions,
+		glitchOptions,
 	} = options;
 	if (!el) return;
 
@@ -155,6 +158,7 @@ export function bindTextEffectTriggers(options: {
 				scrambleOptions,
 				slowRevealOptions,
 				shuffleOptions,
+				glitchOptions,
 			});
 			return;
 		}
@@ -174,6 +178,7 @@ export function bindTextEffectTriggers(options: {
 			scrambleOptions,
 			slowRevealOptions,
 			shuffleOptions,
+			glitchOptions,
 		});
 	};
 

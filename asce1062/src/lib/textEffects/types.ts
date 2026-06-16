@@ -12,7 +12,8 @@ export type TextEffectKind =
 	| "uncensor"
 	| "scramble"
 	| "slow-reveal"
-	| "shuffle";
+	| "shuffle"
+	| "glitch";
 export type TextEffectState = "none" | TextEffectKind;
 export type TextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
@@ -100,6 +101,12 @@ export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
 	},
+	glitch: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
 };
 
 export type TextEffectTrigger =
@@ -141,6 +148,24 @@ export type GlitchLockOnEffectOptions = {
 	frameCount?: number;
 	intensity?: number;
 	durationMs?: number;
+};
+
+/** Per-effect customization for standalone glitch renderer. */
+export type GlitchEffectOptions = {
+	/** Named noise charset preset. Ignored when `items` is provided. Default "blocks". */
+	charset?: GlitchCharset;
+	/** Explicit array of glitch characters. Takes precedence over `charset`. */
+	items?: string[];
+	/** Reveal direction: false = left→right (default), true = right→left. */
+	reverse?: boolean;
+	/** Ms between each reveal tick. Default 50. */
+	delayMs?: number;
+	/** Extra noise frames before reveal starts. Default 5. */
+	count?: number;
+	/** Max quiet ms before each post-settle shimmer. Default 5000. */
+	shimmerIntervalMs?: number;
+	/** Set false to disable the post-settle shimmer loop. Default true. */
+	shimmer?: boolean;
 };
 
 /** Per-effect customization for signal-loss renderer. */
@@ -243,6 +268,7 @@ export type TextEffectConfig = {
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
 };
 
 export type TextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
@@ -263,6 +289,7 @@ export type TextEffectOptions = {
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
 };
 
 export type TextTransitionOptions = TextEffectOptions & {

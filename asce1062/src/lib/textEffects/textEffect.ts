@@ -23,13 +23,13 @@
  *   - Effect names are the public/declarative values:
  *     `typing`, `backspace`, `decrypt`, `entropy`, `glitch-lock-on`,
  *     `signal-loss`, `corruption`, `censor`, `uncensor`, `scramble`,
- *     `slow-reveal`, `shuffle`.
+ *     `slow-reveal`, `shuffle`, `glitch`.
  *   - Families are internal pairing groups:
  *     `type` pairs `typing` with `backspace`
  *     `cipher` pairs `decrypt` with `entropy`
  *     `rare` pairs `glitch-lock-on` with `signal-loss`;
  *     standalone effects (corruption, censor, uncensor, scramble, slow-reveal,
- *     shuffle) also live in `rare` but run without a paired phase
+ *     shuffle, glitch) also live in `rare` but run without a paired phase
  *   - Roles describe lifecycle direction:
  *     `enter` effects reveal or resolve text into place
  *     `exit` effects remove or destabilize text before handoff
@@ -80,7 +80,7 @@
  *   data-text-effect="decrypt, entropy, typing, backspace, glitch-lock-on, signal-loss"
  *   data-text-effect="glitch-lock-on, signal-loss"   // rare paired, explicit opt-in
  *   data-text-effect="corruption"                    // standalone corruption burst
- *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle"
+ *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle, glitch"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time, random-interval"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
@@ -147,6 +147,15 @@
  *   data-text-effect-shuffle-delay-ms="110"          // ms between each shuffle frame (overrides durationMs)
  *   data-text-effect-shuffle-count="14"              // anagram-shuffle frames (default 20)
  *   data-text-effect-shuffle-restore="false"         // "false" to leave the final shuffled frame; default true
+ *
+ *   Glitch (standalone):
+ *   data-text-effect-glitch-charset="letters"        // "blocks" | "letters" | "binary" | any string (default "blocks")
+ *   data-text-effect-glitch-reverse                  // presence attribute - reverses reveal direction (right→left)
+ *   data-text-effect-glitch-delay-ms="100"           // ms between each reveal tick (overrides auto-duration)
+ *   data-text-effect-glitch-count="140"              // extra noise frames before reveal starts (default 5)
+ *   data-text-effect-glitch-items="▓,░,#,!"          // comma-separated glitch chars; takes precedence over charset
+ *   data-text-effect-glitch-shimmer-ms="1000"         // max quiet ms between post-settle shimmer pulses (default 5000)
+ *   data-text-effect-glitch-shimmer="true"            // "true" to enable the post-settle shimmer loop
  *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.

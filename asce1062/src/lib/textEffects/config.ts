@@ -11,6 +11,7 @@ import type {
 	ScrambleEffectOptions,
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
+	GlitchEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TEXT_EFFECT_TRIGGERS } from "./constants";
@@ -78,6 +79,13 @@ export function shouldHandleTextEffectTrigger(
  * - `data-text-effect-shuffle-count`           — anagram-shuffle frames (default 20)
  * - `data-text-effect-shuffle-delay-ms`        — ms between each shuffle frame (overrides durationMs)
  * - `data-text-effect-shuffle-restore`         — "false" to leave the final shuffled frame; default true
+ * - `data-text-effect-glitch-charset`          — "blocks" | "letters" | "binary" | any custom string (standalone glitch)
+ * - `data-text-effect-glitch-reverse`          — presence attribute; reverses reveal direction right→left (standalone glitch)
+ * - `data-text-effect-glitch-delay-ms`         — ms between each reveal tick (overrides auto-duration) (standalone glitch)
+ * - `data-text-effect-glitch-count`            — extra noise frames before reveal starts (default 5) (standalone glitch)
+ * - `data-text-effect-glitch-items`            — comma-separated glitch chars; takes precedence over charset (standalone glitch)
+ * - `data-text-effect-glitch-shimmer-ms`       — max quiet ms between post-settle shimmer pulses (default 5000) (standalone glitch)
+ * - `data-text-effect-glitch-shimmer`          — "false" to disable the post-settle shimmer loop (standalone glitch)
  *
  * Parsing is intentionally strict:
  * - unknown effects are ignored; if nothing valid remains, the registry skips the element
@@ -266,6 +274,31 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		shuffleOpts.restore = el.dataset.textEffectShuffleRestore !== "false";
 	const shuffleOptions = Object.keys(shuffleOpts).length > 0 ? shuffleOpts : undefined;
 
+	// --- glitch options ---
+	const glitchOpts: GlitchEffectOptions = {};
+	if (el.dataset.textEffectGlitchCharset !== undefined) glitchOpts.charset = el.dataset.textEffectGlitchCharset;
+	if (el.dataset.textEffectGlitchReverse !== undefined) glitchOpts.reverse = true;
+	const glitchDelayMs = el.dataset.textEffectGlitchDelayMs
+		? Number.parseInt(el.dataset.textEffectGlitchDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(glitchDelayMs)) glitchOpts.delayMs = glitchDelayMs;
+	const glitchCount = el.dataset.textEffectGlitchCount ? Number.parseInt(el.dataset.textEffectGlitchCount, 10) : NaN;
+	if (Number.isFinite(glitchCount)) glitchOpts.count = glitchCount;
+	if (el.dataset.textEffectGlitchItems !== undefined) {
+		const parsed = el.dataset.textEffectGlitchItems
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (parsed.length > 0) glitchOpts.items = parsed;
+	}
+	const glitchShimmerMs = el.dataset.textEffectGlitchShimmerMs
+		? Number.parseInt(el.dataset.textEffectGlitchShimmerMs, 10)
+		: NaN;
+	if (Number.isFinite(glitchShimmerMs)) glitchOpts.shimmerIntervalMs = glitchShimmerMs;
+	if (el.dataset.textEffectGlitchShimmer !== undefined)
+		glitchOpts.shimmer = el.dataset.textEffectGlitchShimmer !== "false";
+	const glitchOptions = Object.keys(glitchOpts).length > 0 ? glitchOpts : undefined;
+
 	return {
 		effects: normalizeTextEffectKinds(effects),
 		triggers: normalizeTextEffectTriggers(rawTriggers),
@@ -279,5 +312,6 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		scrambleOptions,
 		slowRevealOptions,
 		shuffleOptions,
+		glitchOptions,
 	};
 }

@@ -34,7 +34,7 @@
  * Motion behavior:
  *   - `data-text-effect` lists effect names, not family names. Use public
  *     effect values such as `typing`, `decrypt`, `backspace`, `entropy`,
- *     `glitch-lock-on`, or `signal-loss`.
+ *     `glitch-lock-on`, `signal-loss`, or `glitch`.
  *   - The shared engine maps those effects into internal families:
  *     `type`, `cipher`, and `rare`. Families only exist so the engine can infer
  *     the paired phase for a transition.
@@ -108,6 +108,7 @@ function initTextEffectRegistry(): void {
 			scrambleOptions: config.scrambleOptions,
 			slowRevealOptions: config.slowRevealOptions,
 			shuffleOptions: config.shuffleOptions,
+			glitchOptions: config.glitchOptions,
 		});
 	}
 }
