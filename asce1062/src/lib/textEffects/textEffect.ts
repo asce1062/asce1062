@@ -23,13 +23,13 @@
  *   - Effect names are the public/declarative values:
  *     `typing`, `backspace`, `decrypt`, `entropy`, `glitch-lock-on`,
  *     `signal-loss`, `corruption`, `censor`, `uncensor`, `scramble`,
- *     `slow-reveal`, `shuffle`, `glitch`.
+ *     `slow-reveal`, `shuffle`, `glitch`, `typewriter`.
  *   - Families are internal pairing groups:
  *     `type` pairs `typing` with `backspace`
  *     `cipher` pairs `decrypt` with `entropy`
  *     `rare` pairs `glitch-lock-on` with `signal-loss`;
  *     standalone effects (corruption, censor, uncensor, scramble, slow-reveal,
- *     shuffle, glitch) also live in `rare` but run without a paired phase
+ *     shuffle, glitch, typewriter) also live in `rare` but run without a paired phase
  *   - Roles describe lifecycle direction:
  *     `enter` effects reveal or resolve text into place
  *     `exit` effects remove or destabilize text before handoff
@@ -80,7 +80,7 @@
  *   data-text-effect="decrypt, entropy, typing, backspace, glitch-lock-on, signal-loss"
  *   data-text-effect="glitch-lock-on, signal-loss"   // rare paired, explicit opt-in
  *   data-text-effect="corruption"                    // standalone corruption burst
- *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle, glitch"
+ *   data-text-effect="censor, uncensor, scramble, slow-reveal, shuffle, glitch, typewriter"
  *   data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, content-change, random-effect, random-time, random-interval"
  *   data-text-effect-interval-ms="18000"
  *   data-text-effect-managed="manual"         // optional registry skip hint
@@ -156,6 +156,24 @@
  *   data-text-effect-glitch-items="▓,░,#,!"          // comma-separated glitch chars; takes precedence over charset
  *   data-text-effect-glitch-shimmer-ms="1000"         // max quiet ms between post-settle shimmer pulses (default 5000)
  *   data-text-effect-glitch-shimmer="true"            // "true" to enable the post-settle shimmer loop
+ *
+ *   Typewriter (standalone):
+ *   data-text-effect-typewriter-delay-ms="100"        // ms between each character typed or deleted (default 100)
+ *   data-text-effect-typewriter-cursor-char="|"       // cursor character (default "█")
+ *   data-text-effect-typewriter-cursor-blink-ms="530" // cursor blink interval in ms (default 530)
+ *   data-text-effect-typewriter-stutter-chance="0.1"  // 0–1 probability of stutter pause (default 0.1)
+ *   data-text-effect-typewriter-stutter-ms="160"      // max stutter pause duration in ms (default 160)
+ *   data-text-effect-typewriter-lead-in-ms="0"        // delay before typing begins in ms (default 0)
+ *   data-text-effect-typewriter-cycle="Hello|World"   // pipe-separated strings to cycle through
+ *   data-text-effect-typewriter-cycle-delay-ms="1000" // ms to hold after typing before backspacing (default 1000)
+ *   data-text-effect-typewriter-loop                  // presence attribute — loop continuously through cycle
+ *
+ *   Note - text alignment and spacing:
+ *   Effects run on the raw textContent of the element, so CSS text alignment
+ *   and spacing properties can be used to create different visual styles without
+ *   affecting the effect logic. For example:
+ *   style="letter-spacing: 0.04em;display: grid;justify-items: center;align-items: center;text-align: center;scroll-snap-type: y mandatory"
+ *   style="letter-spacing: 0.04em;display: grid;justify-items: right;align-items: right;text-align: right;scroll-snap-type: y mandatory"
  *
  * Design constraints:
  *   - Keep playback logic centralized so flourish behavior stays consistent.

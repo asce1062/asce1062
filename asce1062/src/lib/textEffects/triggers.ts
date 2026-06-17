@@ -12,6 +12,7 @@ import type {
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
 	GlitchEffectOptions,
+	TypewriterEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import {
@@ -73,6 +74,7 @@ export function bindTextEffectTriggers(options: {
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 }): void {
 	const {
 		el,
@@ -95,6 +97,7 @@ export function bindTextEffectTriggers(options: {
 		slowRevealOptions,
 		shuffleOptions,
 		glitchOptions,
+		typewriterOptions,
 	} = options;
 	if (!el) return;
 
@@ -132,7 +135,11 @@ export function bindTextEffectTriggers(options: {
 		if (pendingInitialPlayback && automaticReplayTriggers.has(trigger)) return;
 		if (hasActiveEffect(el)) return;
 		const text = options.toText ?? textReader(el, trigger);
-		if (!text) return;
+		// Allow empty text when typewriter cycle items are configured — the renderer
+		// uses `cycle` instead of `text`, so the element doesn't need prior content.
+		const hasCycleText =
+			candidateEffects.some((e) => e === "typewriter") && (typewriterOptions?.cycle?.length ?? 0) > 0;
+		if (!text && !hasCycleText) return;
 		const selectedEffect = resolveTextEffectKind(candidateEffects, useRandomEffect, Math.random());
 		const metadata = TEXT_EFFECTS[selectedEffect];
 		const fromText =
@@ -159,6 +166,7 @@ export function bindTextEffectTriggers(options: {
 				slowRevealOptions,
 				shuffleOptions,
 				glitchOptions,
+				typewriterOptions,
 			});
 			return;
 		}
@@ -179,6 +187,7 @@ export function bindTextEffectTriggers(options: {
 			slowRevealOptions,
 			shuffleOptions,
 			glitchOptions,
+			typewriterOptions,
 		});
 	};
 

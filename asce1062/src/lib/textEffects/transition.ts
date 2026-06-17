@@ -15,6 +15,7 @@ import type {
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
 	GlitchEffectOptions,
+	TypewriterEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TRANSITION_HOLD_MS } from "./constants";
@@ -32,6 +33,7 @@ import { runScrambleRenderer } from "./effects/scramble";
 import { runSlowRevealRenderer } from "./effects/slowReveal";
 import { runShuffleRenderer } from "./effects/shuffle";
 import { runGlitchRenderer } from "./effects/glitch";
+import { runTypewriterRenderer } from "./effects/typewriter";
 import { activeEffects, clearActiveEffect } from "./activeEffects";
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
@@ -60,6 +62,7 @@ function runPhaseRenderer(options: {
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 }): EffectRendererHandle {
 	switch (options.effect) {
 		case "typing":
@@ -119,6 +122,10 @@ function runPhaseRenderer(options: {
 		case "glitch":
 			return runGlitchRenderer(options.el, options.text, {
 				...options.glitchOptions,
+			});
+		case "typewriter":
+			return runTypewriterRenderer(options.el, options.text, {
+				...options.typewriterOptions,
 			});
 	}
 }
@@ -198,6 +205,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		slowRevealOptions,
 		shuffleOptions,
 		glitchOptions,
+		typewriterOptions,
 	} = options;
 	if (!el) return false;
 
@@ -235,7 +243,8 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		(standaloneEffect === "censor" && censorOptions?.restore === false) ||
 		(standaloneEffect === "corruption" && corruptionOptions?.restore === false) ||
 		(standaloneEffect === "scramble" && scrambleOptions?.restore === false) ||
-		(standaloneEffect === "shuffle" && shuffleOptions?.restore === false);
+		(standaloneEffect === "shuffle" && shuffleOptions?.restore === false) ||
+		standaloneEffect === "typewriter";
 
 	let cancelled = false;
 	let activeRenderer: EffectRendererHandle | null = null;
@@ -267,6 +276,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				slowRevealOptions,
 				shuffleOptions,
 				glitchOptions,
+				typewriterOptions,
 			});
 			await activeRenderer.promise;
 			activeRenderer = null;
@@ -359,6 +369,7 @@ export function playTextEffect(options: {
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 }): boolean {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;

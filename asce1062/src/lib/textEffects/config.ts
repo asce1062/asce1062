@@ -12,6 +12,7 @@ import type {
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
 	GlitchEffectOptions,
+	TypewriterEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TEXT_EFFECT_TRIGGERS } from "./constants";
@@ -299,6 +300,55 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		glitchOpts.shimmer = el.dataset.textEffectGlitchShimmer !== "false";
 	const glitchOptions = Object.keys(glitchOpts).length > 0 ? glitchOpts : undefined;
 
+	// --- typewriter options ---
+	const typewriterOpts: TypewriterEffectOptions = {};
+
+	if (el.dataset.textEffectTypewriterCycle !== undefined) {
+		const parsed = el.dataset.textEffectTypewriterCycle
+			.split("|")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (parsed.length > 0) typewriterOpts.cycle = parsed;
+	}
+
+	const typewriterCycleDelayMs = el.dataset.textEffectTypewriterCycleDelayMs
+		? Number.parseInt(el.dataset.textEffectTypewriterCycleDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(typewriterCycleDelayMs)) typewriterOpts.cycleDelayMs = typewriterCycleDelayMs;
+
+	if (el.dataset.textEffectTypewriterLoop !== undefined) typewriterOpts.loop = true;
+
+	const typewriterDelayMs = el.dataset.textEffectTypewriterDelayMs
+		? Number.parseInt(el.dataset.textEffectTypewriterDelayMs, 10)
+		: NaN;
+	if (Number.isFinite(typewriterDelayMs)) typewriterOpts.delayMs = typewriterDelayMs;
+
+	if (el.dataset.textEffectTypewriterCursorChar !== undefined)
+		typewriterOpts.cursorChar = el.dataset.textEffectTypewriterCursorChar;
+
+	const typewriterCursorBlinkMs = el.dataset.textEffectTypewriterCursorBlinkMs
+		? Number.parseInt(el.dataset.textEffectTypewriterCursorBlinkMs, 10)
+		: NaN;
+	if (Number.isFinite(typewriterCursorBlinkMs)) typewriterOpts.cursorBlinkIntervalMs = typewriterCursorBlinkMs;
+
+	const typewriterStutterChance = el.dataset.textEffectTypewriterStutterChance
+		? Number.parseFloat(el.dataset.textEffectTypewriterStutterChance)
+		: NaN;
+	if (Number.isFinite(typewriterStutterChance))
+		typewriterOpts.stutterChance = Math.min(1, Math.max(0, typewriterStutterChance));
+
+	const typewriterStutterMs = el.dataset.textEffectTypewriterStutterMs
+		? Number.parseInt(el.dataset.textEffectTypewriterStutterMs, 10)
+		: NaN;
+	if (Number.isFinite(typewriterStutterMs)) typewriterOpts.stutterMs = typewriterStutterMs;
+
+	const typewriterLeadInMs = el.dataset.textEffectTypewriterLeadInMs
+		? Number.parseInt(el.dataset.textEffectTypewriterLeadInMs, 10)
+		: NaN;
+	if (Number.isFinite(typewriterLeadInMs)) typewriterOpts.leadInMs = typewriterLeadInMs;
+
+	const typewriterOptions = Object.keys(typewriterOpts).length > 0 ? typewriterOpts : undefined;
+
 	return {
 		effects: normalizeTextEffectKinds(effects),
 		triggers: normalizeTextEffectTriggers(rawTriggers),
@@ -313,5 +363,6 @@ export function readTextEffectConfig(el: HTMLElement): TextEffectConfig | null {
 		slowRevealOptions,
 		shuffleOptions,
 		glitchOptions,
+		typewriterOptions,
 	};
 }

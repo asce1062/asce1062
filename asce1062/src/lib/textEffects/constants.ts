@@ -78,6 +78,12 @@ export const DEFAULT_SHUFFLE_COUNT = 20;
 export const DEFAULT_GLITCH_COUNT = 5;
 export const DEFAULT_GLITCH_SHIMMER_INTERVAL_MS = 5_000;
 export const DEFAULT_GLITCH_ITEMS = ["▓", "░", "▒", "█", "#", "!", "@", "0", "1", "|", "/", "\\"] as const;
+export const DEFAULT_TYPEWRITER_DELAY_MS = 100;
+export const DEFAULT_TYPEWRITER_CURSOR_CHAR = "█";
+export const DEFAULT_TYPEWRITER_CURSOR_BLINK_MS = 530;
+export const DEFAULT_TYPEWRITER_STUTTER_CHANCE = 0.1;
+export const DEFAULT_TYPEWRITER_STUTTER_MS = 160;
+export const DEFAULT_TYPEWRITER_CYCLE_DELAY_MS = 1_000;
 
 export const EFFECT_DURATION_PROFILES: Record<
 	TextEffectKind,
@@ -165,5 +171,11 @@ export const EFFECT_DURATION_PROFILES: Record<
 		maxMs: 1_200,
 		perCharMs: 50,
 		baseMs: DEFAULT_GLITCH_COUNT * 50,
+	},
+	typewriter: {
+		minMs: 400,
+		maxMs: 3_000,
+		perCharMs: DEFAULT_TYPEWRITER_DELAY_MS,
+		baseMs: 0,
 	},
 };

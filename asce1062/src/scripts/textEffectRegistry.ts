@@ -109,6 +109,7 @@ function initTextEffectRegistry(): void {
 			slowRevealOptions: config.slowRevealOptions,
 			shuffleOptions: config.shuffleOptions,
 			glitchOptions: config.glitchOptions,
+			typewriterOptions: config.typewriterOptions,
 		});
 	}
 }

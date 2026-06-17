@@ -13,7 +13,8 @@ export type TextEffectKind =
 	| "scramble"
 	| "slow-reveal"
 	| "shuffle"
-	| "glitch";
+	| "glitch"
+	| "typewriter";
 export type TextEffectState = "none" | TextEffectKind;
 export type TextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
@@ -107,6 +108,12 @@ export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
 	},
+	typewriter: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
 };
 
 export type TextEffectTrigger =
@@ -166,6 +173,28 @@ export type GlitchEffectOptions = {
 	shimmerIntervalMs?: number;
 	/** Set false to disable the post-settle shimmer loop. Default true. */
 	shimmer?: boolean;
+};
+
+/** Per-effect customization for typewriter (type-cycle-loop) renderer. */
+export type TypewriterEffectOptions = {
+	/** Strings to cycle through. If omitted, types the element's stable text once. */
+	cycle?: string[];
+	/** Ms to hold after fully typing before backspacing to the next cycle item. Default 1000. */
+	cycleDelayMs?: number;
+	/** Loop continuously through cycle items. Default false. */
+	loop?: boolean;
+	/** Ms between each character typed or deleted. Default 100. */
+	delayMs?: number;
+	/** Cursor character appended to typed text. Default "|". */
+	cursorChar?: string;
+	/** Cursor blink interval in ms. Default 530. */
+	cursorBlinkIntervalMs?: number;
+	/** 0–1 probability of a stutter pause between characters. Default 0.1. */
+	stutterChance?: number;
+	/** Max stutter pause duration in ms. Default 160. */
+	stutterMs?: number;
+	/** Initial delay before typing begins in ms. Default 0. */
+	leadInMs?: number;
 };
 
 /** Per-effect customization for signal-loss renderer. */
@@ -269,6 +298,7 @@ export type TextEffectConfig = {
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 };
 
 export type TextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
@@ -290,6 +320,7 @@ export type TextEffectOptions = {
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
 	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 };
 
 export type TextTransitionOptions = TextEffectOptions & {
