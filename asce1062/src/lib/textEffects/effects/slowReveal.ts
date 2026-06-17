@@ -1,5 +1,5 @@
 import type { EffectRendererHandle, SlowRevealEffectOptions } from "../types";
-import { DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR } from "../constants";
+import { DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR, DEFAULT_SCRAMBLE_ITEMS } from "../constants";
 import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, createTimeoutRenderer } from "../utils";
 
 export function runSlowRevealRenderer(
@@ -7,13 +7,25 @@ export function runSlowRevealRenderer(
 	text: string,
 	options: SlowRevealEffectOptions = {}
 ): EffectRendererHandle {
-	const { cyclesPerChar = DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR, charset = "blocks", durationMs } = options;
-	const charsetStr = resolveGlitchCharsetStr(charset);
+	const {
+		cyclesPerChar = DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR,
+		charset = "blocks",
+		items,
+		delayMs,
+		durationMs,
+	} = options;
+
+	const charsetStr = items
+		? items.join("")
+		: charset === "blocks"
+			? DEFAULT_SCRAMBLE_ITEMS.join("")
+			: resolveGlitchCharsetStr(charset);
+
 	const chars = text.split("");
 	const nonSpacePositions = chars.map((c, i) => ({ c, i })).filter(({ c }) => !/\s/.test(c));
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("slow-reveal", text);
 	const stepsTotal = Math.max(1, nonSpacePositions.length) * (cyclesPerChar + 1);
-	const stepMs = totalDuration / stepsTotal;
+	const stepMs = delayMs ?? totalDuration / stepsTotal;
 
 	return createTimeoutRenderer((schedule, finish) => {
 		const working = chars.map((c) =>

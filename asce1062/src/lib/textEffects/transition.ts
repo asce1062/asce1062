@@ -6,14 +6,16 @@ import type {
 	ActiveEffectHandle,
 	EffectRendererHandle,
 	TypingEffectOptions,
-	GlitchEffectOptions,
+	GlitchLockOnEffectOptions,
 	SignalLossEffectOptions,
-	GlitchBurstEffectOptions,
+	CorruptionEffectOptions,
 	CensorEffectOptions,
 	UncensorEffectOptions,
 	ScrambleEffectOptions,
 	SlowRevealEffectOptions,
 	ShuffleEffectOptions,
+	GlitchEffectOptions,
+	TypewriterEffectOptions,
 } from "./types";
 import { TEXT_EFFECTS } from "./types";
 import { DEFAULT_TRANSITION_HOLD_MS } from "./constants";
@@ -24,12 +26,14 @@ import { runDecryptEnterRenderer } from "./effects/decrypt";
 import { runEntropyExitRenderer } from "./effects/entropy";
 import { runGlitchLockOnEnterRenderer } from "./effects/glitchLockOn";
 import { runSignalLossExitRenderer } from "./effects/signalLoss";
-import { runGlitchRenderer } from "./effects/glitch";
+import { runCorruptionRenderer } from "./effects/corruption";
 import { runCensorRenderer } from "./effects/censor";
 import { runUncensorRenderer } from "./effects/uncensor";
 import { runScrambleRenderer } from "./effects/scramble";
 import { runSlowRevealRenderer } from "./effects/slowReveal";
 import { runShuffleRenderer } from "./effects/shuffle";
+import { runGlitchRenderer } from "./effects/glitch";
+import { runTypewriterRenderer } from "./effects/typewriter";
 import { activeEffects, clearActiveEffect } from "./activeEffects";
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
@@ -49,14 +53,16 @@ function runPhaseRenderer(options: {
 	durationMs?: number;
 	typingStepMs?: number;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 }): EffectRendererHandle {
 	switch (options.effect) {
 		case "typing":
@@ -76,17 +82,17 @@ function runPhaseRenderer(options: {
 		case "glitch-lock-on":
 			return runGlitchLockOnEnterRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
-				...options.glitchOptions,
+				...options.glitchLockOnOptions,
 			});
 		case "signal-loss":
 			return runSignalLossExitRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
 				...options.signalLossOptions,
 			});
-		case "glitch":
-			return runGlitchRenderer(options.el, options.text, {
+		case "corruption":
+			return runCorruptionRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
-				...options.glitchBurstOptions,
+				...options.corruptionOptions,
 			});
 		case "censor":
 			return runCensorRenderer(options.el, options.text, {
@@ -112,6 +118,14 @@ function runPhaseRenderer(options: {
 			return runShuffleRenderer(options.el, options.text, {
 				durationMs: options.durationMs,
 				...options.shuffleOptions,
+			});
+		case "glitch":
+			return runGlitchRenderer(options.el, options.text, {
+				...options.glitchOptions,
+			});
+		case "typewriter":
+			return runTypewriterRenderer(options.el, options.text, {
+				...options.typewriterOptions,
 			});
 	}
 }
@@ -182,14 +196,16 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		durationMs,
 		typingStepMs,
 		typingOptions,
-		glitchOptions,
+		glitchLockOnOptions,
 		signalLossOptions,
-		glitchBurstOptions,
+		corruptionOptions,
 		censorOptions,
 		uncensorOptions,
 		scrambleOptions,
 		slowRevealOptions,
 		shuffleOptions,
+		glitchOptions,
+		typewriterOptions,
 	} = options;
 	if (!el) return false;
 
@@ -220,6 +236,16 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		return false;
 	}
 
+	// Censor with restore=false intentionally leaves text censored; skip the
+	// post-effect stable-text reset in both the standalone branch and outer cleanup.
+	const standaloneEffect = mode === "standalone" ? (exitEffect !== "none" ? exitEffect : enterEffect) : "none";
+	const skipFinalRestore =
+		(standaloneEffect === "censor" && censorOptions?.restore === false) ||
+		(standaloneEffect === "corruption" && corruptionOptions?.restore === false) ||
+		(standaloneEffect === "scramble" && scrambleOptions?.restore === false) ||
+		(standaloneEffect === "shuffle" && shuffleOptions?.restore === false) ||
+		standaloneEffect === "typewriter";
+
 	let cancelled = false;
 	let activeRenderer: EffectRendererHandle | null = null;
 	const transitionHandle: ActiveEffectHandle = {
@@ -241,23 +267,24 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 				durationMs,
 				typingStepMs,
 				typingOptions,
-				glitchOptions,
+				glitchLockOnOptions,
 				signalLossOptions,
-				glitchBurstOptions,
+				corruptionOptions,
 				censorOptions,
 				uncensorOptions,
 				scrambleOptions,
 				slowRevealOptions,
 				shuffleOptions,
+				glitchOptions,
+				typewriterOptions,
 			});
 			await activeRenderer.promise;
 			activeRenderer = null;
 		};
 
 		if (mode === "standalone") {
-			const standaloneEffect = exitEffect !== "none" ? exitEffect : enterEffect;
 			await runPhase(standaloneEffect, fromText || toText);
-			if (!cancelled) el.textContent = targetStableText;
+			if (!cancelled && !skipFinalRestore) el.textContent = targetStableText;
 			return;
 		}
 
@@ -292,7 +319,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 	if (activeEffects.get(el) === transitionHandle) {
 		activeEffects.delete(el);
 		setRootEffect(rootEl, "none", rootEffectDataset);
-		el.textContent = targetStableText;
+		if (!skipFinalRestore) el.textContent = targetStableText;
 		onComplete?.();
 	}
 	return true;
@@ -333,14 +360,16 @@ export function playTextEffect(options: {
 	onComplete?: () => void;
 	reducedMotion?: boolean;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 }): boolean {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;

@@ -34,7 +34,7 @@
  * Motion behavior:
  *   - `data-text-effect` lists effect names, not family names. Use public
  *     effect values such as `typing`, `decrypt`, `backspace`, `entropy`,
- *     `glitch-lock-on`, or `signal-loss`.
+ *     `glitch-lock-on`, `signal-loss`, or `glitch`.
  *   - The shared engine maps those effects into internal families:
  *     `type`, `cipher`, and `rare`. Families only exist so the engine can infer
  *     the paired phase for a transition.
@@ -100,14 +100,16 @@ function initTextEffectRegistry(): void {
 			initialDelayMs: DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
 			randomIntervalMs: config.randomIntervalMs,
 			typingOptions: config.typingOptions,
-			glitchOptions: config.glitchOptions,
+			glitchLockOnOptions: config.glitchLockOnOptions,
 			signalLossOptions: config.signalLossOptions,
-			glitchBurstOptions: config.glitchBurstOptions,
+			corruptionOptions: config.corruptionOptions,
 			censorOptions: config.censorOptions,
 			uncensorOptions: config.uncensorOptions,
 			scrambleOptions: config.scrambleOptions,
 			slowRevealOptions: config.slowRevealOptions,
 			shuffleOptions: config.shuffleOptions,
+			glitchOptions: config.glitchOptions,
+			typewriterOptions: config.typewriterOptions,
 		});
 	}
 }

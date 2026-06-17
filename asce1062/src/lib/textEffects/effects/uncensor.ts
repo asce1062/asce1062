@@ -7,14 +7,15 @@ export function runUncensorRenderer(
 	text: string,
 	options: UncensorEffectOptions = {}
 ): EffectRendererHandle {
-	const { fillChar = DEFAULT_CENSOR_CHAR, durationMs } = options;
+	const { fillChar = DEFAULT_CENSOR_CHAR, delayMs, durationMs } = options;
 	const chars = text.split("");
+	const nonSpaceIndices = chars.map((c, i) => (/\s/.test(c) ? null : i)).filter((i): i is number => i !== null);
+	const nonSpaceCount = Math.max(1, nonSpaceIndices.length);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("uncensor", text);
-	const totalSteps = Math.max(1, chars.length);
-	const stepMs = totalDuration / totalSteps;
+	const stepMs = delayMs ?? totalDuration / nonSpaceCount;
 
-	// Start fully censored.
-	el.textContent = chars.map((c) => (/\s/.test(c) ? c : fillChar)).join("");
+	const working = chars.map((c) => (/\s/.test(c) ? c : fillChar));
+	el.textContent = working.join("");
 
 	let step = 0;
 	let resolvePromise: () => void = () => {};
@@ -24,10 +25,12 @@ export function runUncensorRenderer(
 	});
 
 	const intervalId = globalThis.setInterval(() => {
-		el.textContent = chars.map((c, i) => (i <= step || /\s/.test(c) ? c : fillChar)).join("");
+		const idx = nonSpaceIndices[step];
+		if (idx !== undefined) working[idx] = chars[idx] ?? fillChar;
+		el.textContent = working.join("");
 		step += 1;
 
-		if (step >= totalSteps) {
+		if (step >= nonSpaceCount) {
 			globalThis.clearInterval(intervalId);
 			if (settled) return;
 			settled = true;

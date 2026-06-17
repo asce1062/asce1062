@@ -7,12 +7,14 @@ export type TextEffectKind =
 	| "entropy"
 	| "glitch-lock-on"
 	| "signal-loss"
-	| "glitch"
+	| "corruption"
 	| "censor"
 	| "uncensor"
 	| "scramble"
 	| "slow-reveal"
-	| "shuffle";
+	| "shuffle"
+	| "glitch"
+	| "typewriter";
 export type TextEffectState = "none" | TextEffectKind;
 export type TextEffectReducedMotionStrategy = "instant-target" | "instant-restore" | "instant-clear";
 
@@ -64,7 +66,7 @@ export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
 	},
-	glitch: {
+	corruption: {
 		family: "rare",
 		role: "standalone",
 		standaloneSafe: true,
@@ -100,6 +102,18 @@ export const TEXT_EFFECTS: Record<TextEffectKind, TextEffectMetadata> = {
 		standaloneSafe: true,
 		reducedMotion: "instant-restore",
 	},
+	glitch: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
+	typewriter: {
+		family: "rare",
+		role: "standalone",
+		standaloneSafe: true,
+		reducedMotion: "instant-restore",
+	},
 };
 
 export type TextEffectTrigger =
@@ -116,7 +130,8 @@ export type TextEffectTrigger =
 	| "content-change"
 	| "manual"
 	| "random-effect"
-	| "random-time";
+	| "random-time"
+	| "random-interval";
 
 /** Charset for glitch-lock-on artifact characters. Named presets or any custom string. */
 export type GlitchCharset = "blocks" | "letters" | "binary" | (string & {});
@@ -134,12 +149,52 @@ export type TypingEffectOptions = {
 };
 
 /** Per-effect customization for glitch-lock-on renderer. */
-export type GlitchEffectOptions = {
+export type GlitchLockOnEffectOptions = {
 	charset?: GlitchCharset;
 	reverse?: boolean;
 	frameCount?: number;
 	intensity?: number;
 	durationMs?: number;
+};
+
+/** Per-effect customization for standalone glitch renderer. */
+export type GlitchEffectOptions = {
+	/** Named noise charset preset. Ignored when `items` is provided. Default "blocks". */
+	charset?: GlitchCharset;
+	/** Explicit array of glitch characters. Takes precedence over `charset`. */
+	items?: string[];
+	/** Reveal direction: false = left→right (default), true = right→left. */
+	reverse?: boolean;
+	/** Ms between each reveal tick. Default 50. */
+	delayMs?: number;
+	/** Extra noise frames before reveal starts. Default 5. */
+	count?: number;
+	/** Max quiet ms before each post-settle shimmer. Default 5000. */
+	shimmerIntervalMs?: number;
+	/** Set false to disable the post-settle shimmer loop. Default true. */
+	shimmer?: boolean;
+};
+
+/** Per-effect customization for typewriter (type-cycle-loop) renderer. */
+export type TypewriterEffectOptions = {
+	/** Strings to cycle through. If omitted, types the element's stable text once. */
+	cycle?: string[];
+	/** Ms to hold after fully typing before backspacing to the next cycle item. Default 1000. */
+	cycleDelayMs?: number;
+	/** Loop continuously through cycle items. Default false. */
+	loop?: boolean;
+	/** Ms between each character typed or deleted. Default 100. */
+	delayMs?: number;
+	/** Cursor character appended to typed text. Default "|". */
+	cursorChar?: string;
+	/** Cursor blink interval in ms. Default 530. */
+	cursorBlinkIntervalMs?: number;
+	/** 0–1 probability of a stutter pause between characters. Default 0.1. */
+	stutterChance?: number;
+	/** Max stutter pause duration in ms. Default 160. */
+	stutterMs?: number;
+	/** Initial delay before typing begins in ms. Default 0. */
+	leadInMs?: number;
 };
 
 /** Per-effect customization for signal-loss renderer. */
@@ -151,14 +206,20 @@ export type SignalLossEffectOptions = {
 	durationMs?: number;
 };
 
-/** Per-effect customization for standalone glitch burst renderer. */
-export type GlitchBurstEffectOptions = {
+/** Per-effect customization for standalone corruption renderer. */
+export type CorruptionEffectOptions = {
 	/** 0–1 fraction of chars corrupted per frame. Default 0.5. */
 	intensity?: number;
-	/** Number of glitch frames. Default 10. */
-	frameCount?: number;
-	/** Noise charset. Default "blocks". */
+	/** Number of corruption frames. Default 10. */
+	count?: number;
+	/** Named noise charset preset. Ignored when `items` is provided. Default "blocks". */
 	charset?: GlitchCharset;
+	/** Explicit array of corruption characters. Takes precedence over `charset`. */
+	items?: string[];
+	/** Ms between each frame. When provided, takes precedence over durationMs. */
+	delayMs?: number;
+	/** Restore original text after all frames complete. Default true. When false, the final corrupted frame is left in place. */
+	restore?: boolean;
 	durationMs?: number;
 };
 
@@ -168,6 +229,10 @@ export type CensorEffectOptions = {
 	fillChar?: string | string[];
 	/** Restore original text after censoring. Default true. */
 	restore?: boolean;
+	/** Ms between each letter replacement. When provided, takes precedence over durationMs. */
+	delayMs?: number;
+	/** Ms to hold the censored state before restoring. Default 0. */
+	holdMs?: number;
 	durationMs?: number;
 };
 
@@ -175,15 +240,23 @@ export type CensorEffectOptions = {
 export type UncensorEffectOptions = {
 	/** Masking character. Default "█". */
 	fillChar?: string;
+	/** Ms between each letter reveal. When provided, takes precedence over durationMs. */
+	delayMs?: number;
 	durationMs?: number;
 };
 
-/** Per-effect customization for scramble (progressive random noise accumulation) renderer. */
+/** Per-effect customization for scramble renderer. */
 export type ScrambleEffectOptions = {
 	/** Number of scramble iterations. Default 20. */
 	count?: number;
-	/** Noise charset. Default "blocks". */
+	/** Named noise charset preset. Ignored when `items` is provided. Default "blocks". */
 	charset?: GlitchCharset;
+	/** Explicit array of scramble characters. Takes precedence over `charset`. */
+	items?: string[];
+	/** Ms between each scramble tick. When provided, takes precedence over durationMs. */
+	delayMs?: number;
+	/** Restore original text after all iterations. Default true. When false, the final scrambled state is left in place. */
+	restore?: boolean;
 	durationMs?: number;
 };
 
@@ -191,8 +264,12 @@ export type ScrambleEffectOptions = {
 export type SlowRevealEffectOptions = {
 	/** Number of noise cycles each char spins through before locking in. Default 3. */
 	cyclesPerChar?: number;
-	/** Noise charset. Default "blocks". */
+	/** Named noise charset preset. Ignored when `items` is provided. Default "blocks". */
 	charset?: GlitchCharset;
+	/** Explicit array of slot-machine characters. Takes precedence over `charset`. */
+	items?: string[];
+	/** Ms between each step. When provided, takes precedence over durationMs. */
+	delayMs?: number;
 	durationMs?: number;
 };
 
@@ -200,6 +277,10 @@ export type SlowRevealEffectOptions = {
 export type ShuffleEffectOptions = {
 	/** Number of shuffle frames. Default 20. */
 	count?: number;
+	/** Ms between each shuffle frame. When provided, takes precedence over durationMs. */
+	delayMs?: number;
+	/** Restore original text after all frames. Default true. When false, the final shuffled frame is left in place. */
+	restore?: boolean;
 	durationMs?: number;
 };
 
@@ -208,14 +289,16 @@ export type TextEffectConfig = {
 	triggers: TextEffectTrigger[];
 	randomIntervalMs?: number;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 };
 
 export type TextTransitionMode = "standalone" | "enter-only" | "exit-only" | "full-transition";
@@ -228,14 +311,16 @@ export type TextEffectOptions = {
 	onComplete?: () => void;
 	reducedMotion?: boolean;
 	typingOptions?: TypingEffectOptions;
-	glitchOptions?: GlitchEffectOptions;
+	glitchLockOnOptions?: GlitchLockOnEffectOptions;
 	signalLossOptions?: SignalLossEffectOptions;
-	glitchBurstOptions?: GlitchBurstEffectOptions;
+	corruptionOptions?: CorruptionEffectOptions;
 	censorOptions?: CensorEffectOptions;
 	uncensorOptions?: UncensorEffectOptions;
 	scrambleOptions?: ScrambleEffectOptions;
 	slowRevealOptions?: SlowRevealEffectOptions;
 	shuffleOptions?: ShuffleEffectOptions;
+	glitchOptions?: GlitchEffectOptions;
+	typewriterOptions?: TypewriterEffectOptions;
 };
 
 export type TextTransitionOptions = TextEffectOptions & {

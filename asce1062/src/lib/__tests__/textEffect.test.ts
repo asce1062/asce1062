@@ -180,6 +180,108 @@ describe("readTextEffectConfig", () => {
 
 		expect(readTextEffectConfig(el)).toBeNull();
 	});
+
+	it("parses glitch dataset attributes into glitchOptions", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+				textEffectGlitchCharset: "letters",
+				textEffectGlitchReverse: "",
+				textEffectGlitchDelayMs: "40",
+				textEffectGlitchCount: "8",
+				textEffectGlitchItems: "▓,░,#,!",
+				textEffectGlitchShimmerMs: "3000",
+				textEffectGlitchShimmer: "true",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions).toEqual({
+			charset: "letters",
+			reverse: true,
+			delayMs: 40,
+			count: 8,
+			items: ["▓", "░", "#", "!"],
+			shimmerIntervalMs: 3000,
+			shimmer: true,
+		});
+	});
+
+	it("parses glitch-shimmer=false to disable shimmer", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+				textEffectGlitchShimmer: "false",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions?.shimmer).toBe(false);
+	});
+
+	it("omits glitchOptions when no glitch attributes are set", () => {
+		const el = {
+			dataset: {
+				textEffect: "glitch",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.glitchOptions).toBeUndefined();
+	});
+
+	it("parses typewriter dataset attributes into typewriterOptions", () => {
+		const el = {
+			dataset: {
+				textEffect: "typewriter",
+				textEffectTypewriterDelayMs: "80",
+				textEffectTypewriterCursorChar: "_",
+				textEffectTypewriterCursorBlinkMs: "400",
+				textEffectTypewriterStutterChance: "0.2",
+				textEffectTypewriterStutterMs: "200",
+				textEffectTypewriterLeadInMs: "300",
+				textEffectTypewriterCycle: "Hello|World",
+				textEffectTypewriterCycleDelayMs: "1500",
+				textEffectTypewriterLoop: "",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.typewriterOptions).toEqual({
+			delayMs: 80,
+			cursorChar: "_",
+			cursorBlinkIntervalMs: 400,
+			stutterChance: 0.2,
+			stutterMs: 200,
+			leadInMs: 300,
+			cycle: ["Hello", "World"],
+			cycleDelayMs: 1500,
+			loop: true,
+		});
+	});
+
+	it("omits typewriterOptions when no typewriter attributes are set", () => {
+		const el = {
+			dataset: {
+				textEffect: "typewriter",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.typewriterOptions).toBeUndefined();
+	});
+
+	it("trims whitespace from pipe-separated typewriter cycle items", () => {
+		const el = {
+			dataset: {
+				textEffect: "typewriter",
+				textEffectTypewriterCycle: " Hello | World | Foo ",
+			},
+		} as unknown as HTMLElement;
+
+		const config = readTextEffectConfig(el);
+		expect(config?.typewriterOptions?.cycle).toEqual(["Hello", "World", "Foo"]);
+	});
 });
 
 describe("playTextEffect", () => {
@@ -979,10 +1081,227 @@ describe("bindTextEffectTriggers", () => {
 		expect(seenTriggers).toContain("resume");
 		expect(el.textContent).toBe("signal-resume");
 
-		await vi.advanceTimersByTimeAsync(18_000);
-		await vi.advanceTimersByTimeAsync(5_000);
+		await vi.advanceTimersByTimeAsync(21_000);
 		expect(seenTriggers).toContain("random-time");
 		expect(el.textContent).toBe("signal-random-time");
+	});
+});
+
+describe("glitch renderer — reveal phase", () => {
+	it("sets el.textContent to target text after reveal completes", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hello");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "hello", { shimmer: false });
+		// count(5) + text.length(5) ticks at delayMs(50) = 500ms
+		await vi.runAllTimersAsync();
+		expect(el.textContent).toBe("hello");
+	});
+
+	it("cancel() stops the animation without throwing", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hi");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		const handle = runGlitchRenderer(el, "hi", { shimmer: false });
+		handle.cancel();
+		await handle.promise;
+	});
+
+	it("respects reverse option: locks in from right to left", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("abc");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "abc", { shimmer: false, reverse: true, count: 0, delayMs: 10 });
+		// After 1 tick: rightmost char should be locked
+		vi.advanceTimersByTime(10);
+		const text = el.textContent ?? "";
+		expect(text[2]).toBe("c");
+	});
+
+	it("uses items array as charset when provided", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("hi");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		runGlitchRenderer(el, "hi", { shimmer: false, count: 1, delayMs: 10, items: ["X"] });
+		// During noise phase every non-space char should be "X"
+		vi.advanceTimersByTime(10);
+		expect(el.textContent).toMatch(/^[X\s]+$/);
+	});
+});
+
+describe("glitch renderer — shimmer", () => {
+	it("cancel() during shimmer stops all timers", async () => {
+		vi.useFakeTimers();
+		const el = createMockEffectElement("ab");
+		const { runGlitchRenderer } = await import("@/lib/textEffects/effects/glitch");
+		const handle = runGlitchRenderer(el, "ab", {
+			shimmer: true,
+			shimmerIntervalMs: 50,
+			count: 0,
+			delayMs: 10,
+		});
+		await vi.advanceTimersByTimeAsync(200);
+		handle.cancel();
+		const textAfterCancel = el.textContent;
+		vi.advanceTimersByTime(10_000);
+		expect(el.textContent).toBe(textAfterCancel);
+	});
+});
+
+describe("typewriter renderer — simple text mode", () => {
+	it("types text character by character and resolves", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement();
+
+		const handle = runTypewriterRenderer(el, "hi", { delayMs: 50, stutterChance: 0, cursorChar: "|" });
+
+		// i=0 fires synchronously before any timer: empty string + cursor
+		expect(el.textContent).toBe("|");
+
+		await vi.advanceTimersByTimeAsync(50);
+		expect(el.textContent).toBe("h|");
+
+		// After last char: el.textContent = currentTyped (cursor char removed synchronously
+		// before startCursorBlink fires). The interval hasn't ticked yet.
+		await vi.advanceTimersByTimeAsync(50);
+		expect(el.textContent).toBe("hi");
+
+		await handle.promise;
+		expect(el.textContent).toBe("hi");
+	});
+
+	it("cursor blinks after typing completes", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement();
+
+		const handle = runTypewriterRenderer(el, "hi", {
+			delayMs: 10,
+			stutterChance: 0,
+			cursorBlinkIntervalMs: 100,
+			cursorChar: "|",
+		});
+
+		// Type "h" then "hi" (10ms + 10ms)
+		await vi.advanceTimersByTimeAsync(10);
+		expect(el.textContent).toBe("h|");
+		await vi.advanceTimersByTimeAsync(10);
+		// Last char: el.textContent = currentTyped (no cursor) set before blink starts.
+		expect(el.textContent).toBe("hi");
+		await handle.promise;
+
+		// Blink tick 1 (100ms): cursorVisible flips false → el.textContent = "hi"
+		await vi.advanceTimersByTimeAsync(100);
+		expect(el.textContent).toBe("hi");
+
+		// Blink tick 2 (100ms): cursorVisible flips true → el.textContent = "hi|"
+		await vi.advanceTimersByTimeAsync(100);
+		expect(el.textContent).toBe("hi|");
+	});
+
+	it("cancel stops typing and resolves without changing text further", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement();
+
+		const handle = runTypewriterRenderer(el, "hello world", { delayMs: 200, stutterChance: 0, cursorChar: "|" });
+
+		await vi.advanceTimersByTimeAsync(200);
+		expect(el.textContent).toBe("h|");
+
+		handle.cancel();
+		await handle.promise;
+
+		const snapshot = el.textContent;
+		await vi.advanceTimersByTimeAsync(1000);
+		expect(el.textContent).toBe(snapshot);
+	});
+
+	it("respects leadInMs before typing begins", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement("original");
+
+		runTypewriterRenderer(el, "hi", { delayMs: 50, stutterChance: 0, leadInMs: 200, cursorChar: "|" });
+
+		// Lead-in: element immediately shows cursor (prior content cleared), not original text.
+		// Default blink interval (530ms) hasn't fired yet at 100ms, so cursor is still visible.
+		await vi.advanceTimersByTimeAsync(100);
+		expect(el.textContent).toBe("|");
+
+		// Lead-in completes at 200ms; typing begins.
+		await vi.advanceTimersByTimeAsync(100);
+		await vi.advanceTimersByTimeAsync(50);
+		expect(el.textContent).toBe("h|");
+	});
+});
+
+describe("typewriter renderer — cycle mode", () => {
+	it("types first item, backspaces, then types second item and resolves", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement();
+
+		const handle = runTypewriterRenderer(el, "", {
+			cycle: ["Hi", "Bye"],
+			delayMs: 10,
+			cycleDelayMs: 50,
+			stutterChance: 0,
+			cursorChar: "|",
+		});
+
+		// Type "Hi": empty→H→Hi (2 chars × 10ms = 20ms)
+		await vi.advanceTimersByTimeAsync(20);
+		expect(el.textContent).toBe("Hi|");
+
+		// Hold cycleDelayMs (50ms)
+		await vi.advanceTimersByTimeAsync(50);
+
+		// Backspace "Hi" (2 removals × 10ms)
+		await vi.advanceTimersByTimeAsync(20);
+		expect(el.textContent).toBe("|");
+
+		// Type "Bye" (3 chars × 10ms); final item sets el.textContent = currentTyped (no cursor)
+		await vi.advanceTimersByTimeAsync(30);
+		expect(el.textContent).toBe("Bye");
+
+		await handle.promise;
+		expect(el.textContent).toBe("Bye");
+	});
+
+	it("loops indefinitely through cycle items until cancelled", async () => {
+		vi.useFakeTimers();
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		const { runTypewriterRenderer } = await import("@/lib/textEffects/effects/typewriter");
+		const el = createMockEffectElement();
+
+		const handle = runTypewriterRenderer(el, "", {
+			cycle: ["A", "B"],
+			loop: true,
+			delayMs: 10,
+			cycleDelayMs: 10,
+			stutterChance: 0,
+			cursorChar: "|",
+		});
+
+		await vi.advanceTimersByTimeAsync(500);
+
+		let resolved = false;
+		void handle.promise.then(() => {
+			resolved = true;
+		});
+		await Promise.resolve();
+		expect(resolved).toBe(false);
+
+		handle.cancel();
+		await handle.promise;
+		expect(resolved).toBe(true);
 	});
 });
 
