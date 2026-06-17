@@ -207,9 +207,23 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	el.addEventListener("mouseenter", onMouseEnter);
 	el.addEventListener("mouseleave", onMouseLeave);
 
+	const usingDefaultGlow = !opts.glowOptions?.boxShadowOff && !opts.glowOptions?.boxShadowOn;
+	let onFlavorChange: (() => void) | null = null;
+	if (usingDefaultGlow && typeof document !== "undefined") {
+		onFlavorChange = () => {
+			const fresh = buildGlowDefaults(el);
+			gOpts.boxShadowOff = fresh.boxShadowOff;
+			gOpts.boxShadowOn = fresh.boxShadowOn;
+		};
+		document.addEventListener("flavor-change", onFlavorChange);
+	}
+
 	return () => {
 		el.removeEventListener("mouseenter", onMouseEnter);
 		el.removeEventListener("mouseleave", onMouseLeave);
+		if (onFlavorChange) {
+			document.removeEventListener("flavor-change", onFlavorChange);
+		}
 		if (glowAnim) glowAnim.cancel();
 		el.getAnimations().forEach((a) => a.cancel());
 		pendingTimers.forEach(clearTimeout);

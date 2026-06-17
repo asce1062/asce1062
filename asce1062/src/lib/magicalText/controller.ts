@@ -29,8 +29,8 @@ function randomBetween(min: number, max: number): number {
  * to cancel the rAF loop and restore the original element content.
  */
 export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}): () => void {
-	const colors =
-		opts.colors && opts.colors.length > 0 ? opts.colors : THEME_DEFAULT_COLORS.map((v) => resolveThemeCSSVar(v, el));
+	const usingThemeDefaults = !opts.colors || opts.colors.length === 0;
+	const colors = usingThemeDefaults ? THEME_DEFAULT_COLORS.map((v) => resolveThemeCSSVar(v, el)) : opts.colors!;
 	const animTimeS = opts.animationTime ?? DEFAULT_ANIMATION_TIME;
 	const animTimeMs = animTimeS * 1000;
 	const showAdornments = opts.showAdornments !== false;
@@ -64,6 +64,7 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 	el.dataset.magicalTextOriginal = inner.textContent ?? "";
 
 	let rafId: number | null = null;
+	let fadeTable: RGBColor[] | null = null;
 
 	interface SparkleState {
 		wrapper: HTMLElement;
@@ -78,7 +79,6 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 		adornmentContainer.setAttribute("aria-hidden", "true");
 		el.appendChild(adornmentContainer);
 
-		let fadeTable: RGBColor[] | null = null;
 		if (adornmentConfig.colorTracked) {
 			fadeTable = multiColorFade(colors, 200);
 		}
@@ -140,10 +140,25 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 		}
 	}
 
+	let onFlavorChange: (() => void) | null = null;
+	if (usingThemeDefaults && typeof document !== "undefined") {
+		onFlavorChange = () => {
+			const fresh = THEME_DEFAULT_COLORS.map((v) => resolveThemeCSSVar(v, el));
+			inner.style.setProperty("--mt-colors", fresh.join(", "));
+			if (adornmentConfig.colorTracked) {
+				fadeTable = multiColorFade(fresh, 200);
+			}
+		};
+		document.addEventListener("flavor-change", onFlavorChange);
+	}
+
 	return () => {
 		if (rafId !== null) {
 			cancelAnimationFrame(rafId);
 			rafId = null;
+		}
+		if (onFlavorChange) {
+			document.removeEventListener("flavor-change", onFlavorChange);
 		}
 		el.innerHTML = el.dataset.magicalTextOriginal ?? originalInnerHTML;
 		el.classList.remove("magical-text-container");
