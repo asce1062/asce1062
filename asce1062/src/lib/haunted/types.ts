@@ -14,6 +14,13 @@ export type HauntedCreatureOptions = {
 	repeat?: boolean;
 	/** Width and height of each creature SVG in px. Default: { width: 44, height: 44 } */
 	dimensions?: { width: number; height: number };
+	/**
+	 * CSS colors for creatures that use fill="currentColor".
+	 * Multiple colors are distributed across creatures in round-robin
+	 * order. Default: ["--color-primary"] from the active theme, tracks flavor changes.
+	 * Has no effect on creatures with hardcoded SVG fills.
+	 */
+	colors?: string[];
 };
 
 export type HauntedGlowOptions = {

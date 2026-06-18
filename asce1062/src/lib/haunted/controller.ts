@@ -1,5 +1,6 @@
 import type { HauntedOptions } from "./types";
 import { CREATURES } from "./creatures";
+import { ADORNMENTS } from "../shared/adornments";
 import { resolveThemeCSSVar } from "../shared/colorUtils";
 
 const DEFAULT_CREATURE_OPTIONS = {
@@ -70,6 +71,14 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		...opts.glowOptions,
 	};
 
+	const isColorTracked = ADORNMENTS[creature].colorTracked;
+	const usingDefaultCreatureColor = isColorTracked && (!cOpts.colors || cOpts.colors.length === 0);
+	let resolvedCreatureColors: string[] | null = !isColorTracked
+		? null
+		: cOpts.colors && cOpts.colors.length > 0
+			? cOpts.colors
+			: [resolveThemeCSSVar("--color-primary", el)];
+
 	// Ensure container is positioned so absolutely-placed creatures are contained
 	let positionSet = false;
 	if (typeof window !== "undefined" && window.getComputedStyle(el).position === "static") {
@@ -102,6 +111,9 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		if (svgEl) {
 			svgEl.setAttribute("width", String(cOpts.dimensions.width));
 			svgEl.setAttribute("height", String(cOpts.dimensions.height));
+			if (resolvedCreatureColors) {
+				svgEl.style.color = resolvedCreatureColors[i % resolvedCreatureColors.length]!;
+			}
 		}
 
 		fly.appendChild(wave);
@@ -207,9 +219,32 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	el.addEventListener("mouseenter", onMouseEnter);
 	el.addEventListener("mouseleave", onMouseLeave);
 
+	const usingDefaultGlow = !opts.glowOptions?.boxShadowOff && !opts.glowOptions?.boxShadowOn;
+	let onFlavorChange: (() => void) | null = null;
+	if ((usingDefaultGlow || usingDefaultCreatureColor) && typeof document !== "undefined") {
+		onFlavorChange = () => {
+			if (usingDefaultGlow) {
+				const fresh = buildGlowDefaults(el);
+				gOpts.boxShadowOff = fresh.boxShadowOff;
+				gOpts.boxShadowOn = fresh.boxShadowOn;
+			}
+			if (usingDefaultCreatureColor) {
+				resolvedCreatureColors = [resolveThemeCSSVar("--color-primary", el)];
+				creatureEls.forEach(({ wave }, idx) => {
+					const svgEl = wave.querySelector("svg");
+					if (svgEl) svgEl.style.color = resolvedCreatureColors![idx % resolvedCreatureColors!.length]!;
+				});
+			}
+		};
+		document.addEventListener("flavor-change", onFlavorChange);
+	}
+
 	return () => {
 		el.removeEventListener("mouseenter", onMouseEnter);
 		el.removeEventListener("mouseleave", onMouseLeave);
+		if (onFlavorChange) {
+			document.removeEventListener("flavor-change", onFlavorChange);
+		}
 		if (glowAnim) glowAnim.cancel();
 		el.getAnimations().forEach((a) => a.cancel());
 		pendingTimers.forEach(clearTimeout);

@@ -19,6 +19,7 @@
  *   data-haunted-glow-animation-time="3"          glow cycle (s)
  *   data-haunted-glow-off="0px 0px 0px rgba(…)"  box-shadow at lowest glow point
  *   data-haunted-glow-on="0px 0px 40px rgba(…)"  box-shadow at highest glow point
+ *   data-haunted-creature-colors="#f00,#0f0,#00f"  creature fill colors (comma-separated CSS)
  */
 
 import type { CreatureKind, HauntedOptions } from "@/lib/haunted";
@@ -52,6 +53,10 @@ function readHauntedConfig(el: HTMLElement): HauntedOptions {
 	const height = Number.parseFloat(el.dataset.hauntedHeight ?? "");
 	if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
 		creatureOptions.dimensions = { width, height };
+	}
+
+	if (el.dataset.hauntedCreatureColors) {
+		creatureOptions.colors = el.dataset.hauntedCreatureColors.split(",").map((c) => c.trim());
 	}
 
 	if (Object.keys(creatureOptions).length > 0) opts.creatureOptions = creatureOptions;
