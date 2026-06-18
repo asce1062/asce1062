@@ -6,6 +6,9 @@
  * Props:
  *   creature          SVG creature to use: 'ghost' | 'ghost-alt' | 'heart' | 'star'.
  *                     Default: 'ghost'.
+ *   creatureColors    CSS color(s) for creatures that use fill="currentColor". Multiple colors are distributed
+ *                     across creatures in round-robin order. Default: [--color-primary] from
+ *                     the active theme, tracks flavor changes. No effect on creatures with hardcoded SVG fills.
  *   creatureOptions   Fine-tune the fly-out behaviour:
  *     animationTime   Fly duration in seconds. Default: 1.5
  *     numberOf        Number of creatures. Default: 6
@@ -39,6 +42,9 @@
  *            style={{ borderRadius: '12px', padding: '1rem 2rem' }}>
  *     Cyan glow
  *   </Haunted>
+ *	 <Haunted creature="star" creatureColors={["#ff6b35"]}>...</Haunted>
+ *	 <Haunted creature="north-star" creatureColors={["#f00", "#0f0", "#00f"]}>...</Haunted>
+ *	 <Haunted creature="music-note" creatureColors={["var(--color-primary)", "var(--color-accent)"]}>...</Haunted>
  *
  * Adding a new creature shape:
  *   1. Add the key to `AdornmentKind` in src/lib/shared/adornments.ts.
@@ -59,6 +65,7 @@ import "@/styles/components/haunted.css";
 
 interface Props {
 	creature?: CreatureKind;
+	creatureColors?: string[];
 	creatureOptions?: HauntedCreatureOptions;
 	disableFun?: boolean;
 	glowOptions?: HauntedGlowOptions;
@@ -87,6 +94,7 @@ interface Props {
 
 const {
 	creature,
+	creatureColors,
 	creatureOptions,
 	disableFun,
 	glowOptions,
@@ -107,6 +115,7 @@ const inlineStyle = style ? `${baseStyle}; ${serializeStyle(style)}` : baseStyle
 
 const dataAttrs: Record<string, string> = { "data-haunted": "" };
 if (creature) dataAttrs["data-haunted-creature"] = creature;
+if (creatureColors && creatureColors.length > 0) dataAttrs["data-haunted-creature-colors"] = creatureColors.join(",");
 if (disableFun) dataAttrs["data-haunted-disable-fun"] = "";
 if (creatureOptions?.animationTime !== undefined)
 	dataAttrs["data-haunted-animation-time"] = String(creatureOptions.animationTime);
