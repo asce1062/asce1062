@@ -19,9 +19,14 @@
  *                     Default: '0px 0px 0px rgba(255,0,0,0)'
  *     boxShadowOn     box-shadow CSS value at glow high point.
  *                     Default: '0px 0px 40px rgba(255,0,0,1)'
+ *   tag               HTML tag to use for the container. Default: 'div'.
+ *                     Also accepts 'span', 'section', 'article', 'aside', 'nav',
+ *                     'header', 'footer', 'main', 'li', 'button', 'a', 'sup', 'i'.
  *   style             Flat camelCase style object spread as inline style onto the
  *                     container (e.g. { borderRadius: '8px', padding: '1rem' }).
  *   class             Extra CSS class(es) applied to the container.
+ *   ...               Any additional HTML attributes (role, tabindex, aria-*, data-*,
+ *                     etc.) are forwarded directly to the root element.
  *
  * Usage:
  *   import Haunted from '@/components/Haunted.astro';
@@ -58,10 +63,38 @@ interface Props {
 	disableFun?: boolean;
 	glowOptions?: HauntedGlowOptions;
 	style?: Record<string, string>;
+	tag?:
+		| "div"
+		| "span"
+		| "section"
+		| "article"
+		| "aside"
+		| "nav"
+		| "header"
+		| "footer"
+		| "main"
+		| "li"
+		| "button"
+		| "a"
+		| "sup"
+		| "i"
+		| "b"
+		| "em"
+		| "strong";
 	class?: string;
+	[key: string]: unknown;
 }
 
-const { creature, creatureOptions, disableFun, glowOptions, style, class: className } = Astro.props;
+const {
+	creature,
+	creatureOptions,
+	disableFun,
+	glowOptions,
+	style,
+	tag: Tag = "div",
+	class: className,
+	...rest
+} = Astro.props;
 
 function serializeStyle(s: Record<string, string>): string {
 	return Object.entries(s)
@@ -90,8 +123,8 @@ if (glowOptions?.boxShadowOff !== undefined) dataAttrs["data-haunted-glow-off"] 
 if (glowOptions?.boxShadowOn !== undefined) dataAttrs["data-haunted-glow-on"] = glowOptions.boxShadowOn;
 ---
 
-<div class={className} style={inlineStyle} {...dataAttrs}>
+<Tag class={className} style={inlineStyle} {...rest} {...dataAttrs}>
 	<div class="haunted-content">
 		<slot />
 	</div>
-</div>
+</Tag>

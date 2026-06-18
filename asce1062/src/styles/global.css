@@ -4,6 +4,8 @@
 @import "./components/markdown.css";
 @import "./components/asciiReveal.css";
 @import "./components/asciiWidget.css";
+@import "./components/magical-text.css";
+@import "./components/haunted.css";
 
 @layer base {
 	/*

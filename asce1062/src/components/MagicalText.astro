@@ -16,7 +16,7 @@
  *   adornmentDuration Sparkle animation cycle in seconds. Default: 1.25.
  *   animationType    'sparkle' (rotate+scale) or 'scale' (scale only).
  *                    Default: per-adornment (star/heart → sparkle; ghost/* → scale).
- *   tag              HTML tag to use. Default: 'span'.
+ *   tag              HTML tag to use. Default: 'span'. Also accepts 'sup', 'i', 'b', 'em', 'strong', 'abbr', and block-level heading/div/p tags.
  *   class            Extra CSS class(es) forwarded to the root element.
  *
  * Usage:
@@ -54,8 +54,25 @@ interface Props {
 	adornmentOpacity?: number;
 	adornmentDuration?: number;
 	animationType?: AnimationType;
-	tag?: "span" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "label";
+	tag?:
+		| "span"
+		| "div"
+		| "h1"
+		| "h2"
+		| "h3"
+		| "h4"
+		| "h5"
+		| "h6"
+		| "p"
+		| "label"
+		| "sup"
+		| "i"
+		| "b"
+		| "em"
+		| "strong"
+		| "a";
 	class?: string;
+	[key: string]: unknown;
 }
 
 const {
@@ -71,6 +88,7 @@ const {
 	animationType,
 	tag: Tag = "span",
 	class: className,
+	...rest
 } = Astro.props;
 
 // Build data attributes for registry pickup
@@ -88,4 +106,4 @@ if (adornmentDuration !== undefined) dataAttrs["data-magical-text-adornment-dura
 if (animationType) dataAttrs["data-magical-text-animation-type"] = animationType;
 ---
 
-<Tag class={className} {...dataAttrs}>{text}</Tag>
+<Tag class={className} {...rest} {...dataAttrs}>{text}</Tag>
