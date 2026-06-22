@@ -492,6 +492,8 @@ function minimizeMusicDialog() {
 	applyMusicWindowRect();
 	isMusicOpen = false;
 	isMusicMinimized = true;
+	const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
+	(triggerEl ?? document.body).focus();
 	updateMusicVisibility();
 }
 
@@ -529,6 +531,10 @@ function closeMusicDialog() {
 	updateCover(null);
 	updatePlaybackUi();
 	setSignal("[\u00A0carrier search...\u00A0]", "paused");
+	// Return focus to the trigger before hiding the dialog so aria-hidden is
+	// never set while a descendant element still holds focus.
+	const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
+	(triggerEl ?? document.body).focus();
 	updateMusicVisibility();
 }
 

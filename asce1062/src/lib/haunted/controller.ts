@@ -1,7 +1,7 @@
 import type { HauntedOptions } from "./types";
 import { CREATURES } from "./creatures";
 import { ADORNMENTS } from "../shared/adornments";
-import { resolveThemeCSSVar } from "../shared/colorUtils";
+import { resolveThemeCSSVar, parseCSSColor } from "../shared/colorUtils";
 
 const DEFAULT_CREATURE_OPTIONS = {
 	animationTime: 1.5,
@@ -15,11 +15,10 @@ const DEFAULT_GLOW_ANIMATION_TIME = 3;
 
 function buildGlowDefaults(el: HTMLElement): { boxShadowOff: string; boxShadowOn: string } {
 	const color = resolveThemeCSSVar("--color-primary", el);
-	// color is "rgb(R, G, B)" so we strip the wrapper to get channel values
-	const channels = color.replace(/^rgb\(|\)$/g, "");
+	const { r, g, b } = parseCSSColor(color);
 	return {
-		boxShadowOff: `0px 0px 0px rgba(${channels}, 0)`,
-		boxShadowOn: `0px 0px 40px rgba(${channels}, 1)`,
+		boxShadowOff: `0px 0px 0px rgba(${r}, ${g}, ${b}, 0)`,
+		boxShadowOn: `0px 0px 40px rgba(${r}, ${g}, ${b}, 1)`,
 	};
 }
 
