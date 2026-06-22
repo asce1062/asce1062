@@ -252,29 +252,26 @@
 
 .music-visualizer {
 	min-height: 9rem;
-	overflow: auto;
+	overflow: hidden;
 	color: var(--player-ink);
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
-.music-visualizer .ascii-widget {
-	color: var(--player-ink);
+.music-ascii-visualizer {
+	font-family: var(--font-proto), var(--font-monospace-body), monospace;
+	font-size: 10px;
+	line-height: 12px;
+	white-space: pre;
+	overflow: hidden;
+	min-height: 144px; /* 12 rows × 12px */
+	user-select: none;
 }
 
-.music-visualizer .ascii-widget-controls {
-	border-color: var(--player-faint);
-}
-
-.music-visualizer .ascii-widget-btn,
-.music-visualizer .ascii-widget-font {
-	color: var(--player-ink);
-}
-
-.music-visualizer .ascii-widget-btn:focus-visible {
-	outline-color: var(--player-alert);
-}
-
-.music-ascii-art {
-	color: var(--player-ink);
+.music-ascii-visualizer > div {
+	display: block;
 }
 
 .music-signal-label {

@@ -1,15 +1,5 @@
 ---
-import asciiData from "@/data/ascii-art.json";
-import AsciiWidget from "@/components/AsciiWidget.astro";
 import "@/styles/components/music-player-modal.css";
-
-type AsciiVariant = { text: string; font: string; art: string };
-
-// The shell is rendered once in Layout.astro and persisted across soft
-// navigation. The client module owns all playback and geometry behavior.
-const musicAsciiVariantsJson = JSON.stringify(
-	(asciiData as AsciiVariant[]).filter((variant) => variant.text === "Alex.Immer")
-);
 ---
 
 <div id="music-modal-root" data-pagefind-ignore transition:persist>
@@ -97,8 +87,8 @@ const musicAsciiVariantsJson = JSON.stringify(
 						data-text-effect-interval-ms="18000">[ carrier search... ]</div
 					>
 				</div>
-				<div class="music-visualizer" aria-label="Alex.Immer ASCII logo">
-					<AsciiWidget widgetId="music-ascii" variants={musicAsciiVariantsJson} artClass="music-ascii-art" />
+				<div class="music-visualizer" aria-label="Audio visualizer">
+					<div id="music-ascii-visualizer" class="music-ascii-visualizer" aria-hidden="true"></div>
 				</div>
 			</section>
 
