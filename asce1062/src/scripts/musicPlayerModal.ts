@@ -41,8 +41,7 @@ import {
 	shouldTreatTerminalHandleTapAsDoubleTap,
 	type TerminalWindowRect,
 } from "@/lib/navBrand/terminalWindow";
-import { setupAsciiWidget } from "@/scripts/asciiWidget";
-import type { AsciiRevealTeardown } from "@/scripts/asciiWidget";
+import { AsciiVisualizerController } from "@/lib/asciiVisualizer";
 import "@/scripts/textEffectRegistry";
 
 interface MusicPlaylist {
@@ -97,6 +96,7 @@ interface MusicPageRefs {
 }
 
 let refs: MusicPageRefs | null = null;
+let visualizer: AsciiVisualizerController | null = null;
 let controlsAbortController: AbortController | null = null;
 let rootObserver: MutationObserver | null = null;
 let dockObserver: MutationObserver | null = null;
@@ -504,6 +504,7 @@ function closeMusicDialog() {
 		player.removeAttribute("src");
 		player.load();
 	}
+	visualizer?.setPlaying(false);
 	isMusicOpen = false;
 	isMusicMinimized = false;
 	isStreamLoading = false;
@@ -1019,6 +1020,7 @@ function setPlayerFlavor(flavor: MusicPlayerFlavor) {
 		refs?.terminal.removeAttribute("data-flavor");
 	}
 	if (refs?.flavorButton) refs.flavorButton.textContent = `\u00A0${activeFlavor}\u00A0`;
+	visualizer?.setFlavor(activeFlavor);
 }
 
 function syncPlayerThemeModeFromSite() {
@@ -1219,6 +1221,7 @@ function bindControls(signal: AbortSignal) {
 				setPlaybackState({ ...playbackState, isPlaying: false });
 				setSignal("[\u00A0stream error...\u00A0]", "paused");
 				updatePlaybackUi();
+				visualizer?.setPlaying(false);
 			},
 			{ signal }
 		);
@@ -1229,6 +1232,8 @@ function bindControls(signal: AbortSignal) {
 				isStreamLoading = false;
 				setSignal("[\u00A0stream online...\u00A0]", "playing");
 				updatePlaybackUi();
+				visualizer?.connect(player);
+				visualizer?.setPlaying(true);
 			},
 			{ signal }
 		);
@@ -1238,6 +1243,7 @@ function bindControls(signal: AbortSignal) {
 				setPlaybackState({ ...playbackState, isPlaying: false });
 				if (!player.ended) setSignal("[\u00A0stream paused...\u00A0]", "paused");
 				updatePlaybackUi();
+				visualizer?.setPlaying(false);
 			},
 			{ signal }
 		);
@@ -1245,6 +1251,7 @@ function bindControls(signal: AbortSignal) {
 			"ended",
 			() => {
 				applyQueueResult(advanceMusicQueue(playbackState));
+				visualizer?.setPlaying(false);
 			},
 			{ signal }
 		);
@@ -1274,6 +1281,8 @@ function bindControls(signal: AbortSignal) {
 }
 
 function cleanupMusicPage() {
+	visualizer?.teardown();
+	visualizer = null;
 	controlsAbortController?.abort();
 	controlsAbortController = null;
 	rootObserver?.disconnect();
@@ -1298,6 +1307,13 @@ async function bootMusicPage() {
 	refs = getRefs();
 	if (!refs) return;
 
+	const vizContainer = document.getElementById("music-ascii-visualizer");
+	if (vizContainer instanceof HTMLElement) {
+		visualizer = new AsciiVisualizerController();
+		visualizer.mount(vizContainer);
+		visualizer.setFlavor(activeFlavor);
+	}
+
 	controlsAbortController = new AbortController();
 	currentPlaylist = null;
 	currentTrack = null;
@@ -1315,20 +1331,4 @@ async function bootMusicPage() {
 document.addEventListener("astro:page-load", bootMusicPage);
 if (document.readyState !== "loading") {
 	bootMusicPage();
-}
-
-let musicAsciiTeardown: AsciiRevealTeardown | null = null;
-
-function initMusicAscii(): void {
-	musicAsciiTeardown?.();
-	const musicAsciiViewport = document.querySelector<HTMLElement>("#music-ascii .ascii-widget-scroll");
-	musicAsciiTeardown = setupAsciiWidget("music-ascii", {
-		container: musicAsciiViewport,
-		replayOnDice: true,
-	});
-}
-
-document.addEventListener("astro:page-load", initMusicAscii);
-if (document.readyState !== "loading") {
-	initMusicAscii();
 }
