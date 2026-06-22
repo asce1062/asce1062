@@ -110,6 +110,8 @@ let isMusicMinimized = false;
 let playlistsLoaded = false;
 let currentPlaylist: MusicPlaylist | null = null;
 let currentTrack: MusicTrack | null = null;
+let browsingPlaylist: MusicPlaylist | null = null;
+let browsingTracks: MusicTrack[] = [];
 let expandedPlaylistId: string | null = null;
 let musicWindowRect: TerminalWindowRect | null = null;
 let expandedMusicRect: TerminalWindowRect | null = null;
@@ -511,6 +513,8 @@ function closeMusicDialog() {
 	playlistsLoadPromise = null;
 	currentPlaylist = null;
 	currentTrack = null;
+	browsingPlaylist = null;
+	browsingTracks = [];
 	expandedPlaylistId = null;
 	setPlaybackState(createMusicPlaybackState<MusicTrack>());
 	refs?.terminal.classList.remove("is-collapsed");
@@ -673,6 +677,14 @@ function highlightPlayingTrack() {
 	});
 }
 
+function highlightPlayingPlaylist() {
+	document.querySelectorAll<HTMLElement>(".music-playlist-entry").forEach((entry) => {
+		const button = entry.querySelector<HTMLElement>(".music-terminal-row[data-playlist-id]");
+		const isActivePlaylist = Boolean(currentTrack) && entry.dataset.playlistEntryId === currentPlaylist?.id;
+		if (button) button.classList.toggle("is-playing", isActivePlaylist);
+	});
+}
+
 function setPlaylistChevron(button: Element, expanded: boolean) {
 	const icon = button.querySelector("i");
 	if (!icon) return;
@@ -702,6 +714,7 @@ function collapseExpandedPlaylist() {
 		refs.playlistsRoot.style.blockSize = "";
 	}
 	expandedPlaylistId = null;
+	highlightPlayingPlaylist();
 }
 
 function renderPlaylists(playlists: MusicPlaylist[]) {
@@ -759,7 +772,10 @@ function renderTracks(entry: HTMLElement, tracks: MusicTrack[]) {
 	if (!(queue instanceof HTMLOListElement) || !(queueState instanceof HTMLElement)) return;
 
 	queue.textContent = "";
-	setPlaybackState(createMusicPlaybackState(tracks));
+	// Store the browsed album's tracks separately. The active playback queue
+	// (playbackState.playlistTracks) is only replaced when the user explicitly
+	// plays a track from this album via playTrackFromBrowse().
+	browsingTracks = tracks;
 	if (!tracks.length) {
 		queueState.textContent = "This playlist has no playable tracks.";
 		queueState.hidden = false;
@@ -782,7 +798,7 @@ function renderTracks(entry: HTMLElement, tracks: MusicTrack[]) {
 		`;
 		setText(button, ".music-row-name", compactName(text(track.title, "untitled_track")));
 		setText(button, ".music-row-meta", formatMusicDuration(track.duration));
-		button.addEventListener("click", () => playTrack(track));
+		button.addEventListener("click", () => playTrackFromBrowse(track));
 		item.append(button);
 		queue.append(item);
 	});
@@ -790,7 +806,23 @@ function renderTracks(entry: HTMLElement, tracks: MusicTrack[]) {
 	queueState.hidden = true;
 	queue.hidden = false;
 	highlightPlayingTrack();
+	highlightPlayingPlaylist();
 	setSignal("[\u00A0playlist locked...\u00A0]", "paused");
+}
+
+function playTrackFromBrowse(track: MusicTrack) {
+	// Commit the browsed album's queue and playlist as the active playback
+	// context before playing. This preserves shuffle/repeat across album switches.
+	if (browsingTracks.length > 0) {
+		const newBaseState = createMusicPlaybackState(browsingTracks);
+		setPlaybackState({
+			...newBaseState,
+			shuffleEnabled: playbackState.shuffleEnabled,
+			repeatMode: playbackState.repeatMode,
+		});
+		currentPlaylist = browsingPlaylist;
+	}
+	playTrack(track);
 }
 
 function playTrack(track: MusicTrack) {
@@ -816,6 +848,7 @@ function playTrack(track: MusicTrack) {
 	updateNowFile();
 	updateCover(track.coverArt ? track : currentPlaylist);
 	highlightPlayingTrack();
+	highlightPlayingPlaylist();
 	updatePlaybackUi();
 }
 
@@ -868,6 +901,7 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 			refs.playlistsRoot.style.blockSize = "";
 		}
 		expandedPlaylistId = null;
+		highlightPlayingPlaylist();
 		return;
 	}
 
@@ -884,10 +918,14 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 
 	try {
 		const payload = await fetchJson(`/api/music/playlist/${encodeURIComponent(id)}`);
-		currentPlaylist = payload.playlist || playlist;
-		updateWindowTitle();
-		updateNowFile();
-		updateCover(currentPlaylist);
+		browsingPlaylist = payload.playlist || playlist;
+		if (!currentTrack) {
+			// Nothing is playing yet — show this album's info as a preview.
+			currentPlaylist = browsingPlaylist;
+			updateWindowTitle();
+			updateNowFile();
+			updateCover(currentPlaylist);
+		}
 		renderTracks(entry, Array.isArray(payload.tracks) ? payload.tracks : []);
 	} catch (error) {
 		queueState.textContent = error instanceof Error ? error.message : "Could not load playlist.";
@@ -910,6 +948,7 @@ function stopPlayback(options: { clearSelection?: boolean } = {}) {
 		isPlaying: false,
 	});
 	highlightPlayingTrack();
+	highlightPlayingPlaylist();
 	updateWindowTitle();
 	updateNowFile();
 	updatePlaybackUi();
@@ -1256,6 +1295,8 @@ async function bootMusicPage() {
 	controlsAbortController = new AbortController();
 	currentPlaylist = null;
 	currentTrack = null;
+	browsingPlaylist = null;
+	browsingTracks = [];
 	playbackState = createMusicPlaybackState<MusicTrack>();
 	isStreamLoading = false;
 	expandedPlaylistId = null;
