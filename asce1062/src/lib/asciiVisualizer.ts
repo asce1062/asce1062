@@ -70,11 +70,26 @@ export class AsciiVisualizerController {
 	private intervalId = 0;
 	private idleTick = 0;
 	private theme: AsciiVisualizerTheme = THEMES.DEFAULT;
+	private isPlaying = false;
+	// Peak decay buffer: bars fall by at most 1 row per frame for a smooth VU-meter feel
+	private previousHeights: number[] = new Array(COLS).fill(0);
+	// Cell-level render cache: skip DOM writes when char/color/shadow are unchanged
+	private lastChar: string[][] = [];
+	private lastColor: string[][] = [];
+	private lastShadow: string[][] = [];
+	// Reduced-motion listener so we react to OS setting changes without a page reload
+	private motionQuery: MediaQueryList | null = null;
+	private motionListener: ((e: MediaQueryListEvent) => void) | null = null;
+	// Precomputed log-spaced bin ranges per column — built once in connect()
+	private logBinRanges: Array<{ start: number; end: number }> = [];
 
 	mount(container: HTMLElement): void {
 		this.container = container;
 		container.textContent = "";
 		this.spanGrid = [];
+		this.lastChar = [];
+		this.lastColor = [];
+		this.lastShadow = [];
 
 		for (let row = 0; row < ROWS; row++) {
 			const rowEl = document.createElement("div");
@@ -87,7 +102,28 @@ export class AsciiVisualizerController {
 			}
 			container.appendChild(rowEl);
 			this.spanGrid.push(spans);
+			this.lastChar.push(new Array(COLS).fill(""));
+			this.lastColor.push(new Array(COLS).fill(""));
+			this.lastShadow.push(new Array(COLS).fill(""));
 		}
+
+		this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		this.motionListener = (e: MediaQueryListEvent) => {
+			if (e.matches) {
+				this.stopActive();
+				this.stopIdle();
+				this.renderStaticIdle();
+				return;
+			}
+			if (this.isPlaying) {
+				this.stopIdle();
+				this.startActive();
+			} else {
+				this.stopActive();
+				this.startIdle();
+			}
+		};
+		this.motionQuery.addEventListener("change", this.motionListener);
 
 		if (this.prefersReducedMotion()) {
 			this.renderStaticIdle();
@@ -107,6 +143,7 @@ export class AsciiVisualizerController {
 			source.connect(analyser);
 			analyser.connect(ctx.destination);
 			this.freqData = new Uint8Array(analyser.frequencyBinCount);
+			this.buildLogBinRanges(analyser.frequencyBinCount);
 			this.audioCtx = ctx;
 			this.analyser = analyser;
 			this.sourceNode = source;
@@ -116,11 +153,22 @@ export class AsciiVisualizerController {
 	}
 
 	setPlaying(playing: boolean): void {
+		this.isPlaying = playing;
 		if (this.prefersReducedMotion()) {
+			this.stopActive();
+			this.stopIdle();
 			this.renderStaticIdle();
 			return;
 		}
 		if (playing) {
+			// Browsers may suspend AudioContext until user interaction; resume before rendering
+			void this.audioCtx?.resume().catch(() => {});
+			// If AudioContext setup failed, keep idle running rather than wasting a RAF loop
+			if (!this.analyser) {
+				this.stopActive();
+				this.startIdle();
+				return;
+			}
 			this.stopIdle();
 			this.startActive();
 		} else {
@@ -131,11 +179,25 @@ export class AsciiVisualizerController {
 
 	setFlavor(flavor: MusicPlayerFlavor): void {
 		this.theme = THEMES[flavor] ?? THEMES.DEFAULT;
+		// Repaint immediately so idle/static states reflect the new theme without waiting for next tick
+		if (!this.rafId) {
+			if (this.prefersReducedMotion()) {
+				this.renderStaticIdle();
+			} else {
+				this.renderIdle(this.idleTick);
+			}
+		}
 	}
 
 	teardown(): void {
 		this.stopActive();
 		this.stopIdle();
+		this.isPlaying = false;
+		if (this.motionQuery && this.motionListener) {
+			this.motionQuery.removeEventListener("change", this.motionListener);
+			this.motionQuery = null;
+			this.motionListener = null;
+		}
 		if (this.audioCtx) {
 			this.audioCtx.close().catch(() => {});
 			this.audioCtx = null;
@@ -147,6 +209,11 @@ export class AsciiVisualizerController {
 			this.container = null;
 		}
 		this.spanGrid = [];
+		this.lastChar = [];
+		this.lastColor = [];
+		this.lastShadow = [];
+		this.previousHeights.fill(0);
+		this.logBinRanges = [];
 	}
 
 	private prefersReducedMotion(): boolean {
@@ -185,6 +252,50 @@ export class AsciiVisualizerController {
 		}
 	}
 
+	// Single cell write with cache guard — skips DOM mutation when nothing changed
+	private setCell(row: number, col: number, char: string, color: string, shadow: string): void {
+		if (
+			this.lastChar[row]?.[col] === char &&
+			this.lastColor[row]?.[col] === color &&
+			this.lastShadow[row]?.[col] === shadow
+		)
+			return;
+		const span = this.spanGrid[row]?.[col];
+		if (!span) return;
+		span.textContent = char;
+		span.style.color = color;
+		span.style.textShadow = shadow;
+		const rc = this.lastChar[row];
+		const rco = this.lastColor[row];
+		const rs = this.lastShadow[row];
+		if (rc) rc[col] = char;
+		if (rco) rco[col] = color;
+		if (rs) rs[col] = shadow;
+	}
+
+	// Called once in connect() after freqData is sized — avoids per-frame Math.exp() calls
+	private buildLogBinRanges(totalBins: number): void {
+		const logMax = Math.log(totalBins);
+		this.logBinRanges = [];
+		for (let col = 0; col < COLS; col++) {
+			const startBin = col === 0 ? 0 : Math.max(1, Math.round(Math.exp((col / COLS) * logMax)));
+			const rawEnd = Math.round(Math.exp(((col + 1) / COLS) * logMax));
+			const endBin = Math.min(totalBins - 1, Math.max(startBin, rawEnd));
+			this.logBinRanges.push({ start: startBin, end: endBin });
+		}
+	}
+
+	// Averages FFT bins for a column using the precomputed log-spaced ranges
+	private getLogBinValue(col: number): number {
+		const range = this.logBinRanges[col];
+		if (!range) return 0;
+		let sum = 0;
+		for (let b = range.start; b <= range.end; b++) {
+			sum += this.freqData[b] ?? 0;
+		}
+		return sum / (range.end - range.start + 1) / 255;
+	}
+
 	private renderActive(): void {
 		if (!this.analyser) {
 			this.renderIdle(this.idleTick);
@@ -192,33 +303,32 @@ export class AsciiVisualizerController {
 		}
 
 		this.analyser.getByteFrequencyData(this.freqData);
-		const binsPerCol = Math.floor(this.freqData.length / COLS);
 		const barHeights: number[] = [];
 
 		for (let col = 0; col < COLS; col++) {
-			let sum = 0;
-			for (let b = 0; b < binsPerCol; b++) {
-				sum += this.freqData[col * binsPerCol + b] ?? 0;
-			}
-			barHeights.push(Math.floor((sum / binsPerCol / 255) * ROWS));
+			const rawHeight = Math.floor(this.getLogBinValue(col) * ROWS);
+			const prev = this.previousHeights[col] ?? 0;
+			const height = Math.max(rawHeight, prev - 1);
+			this.previousHeights[col] = height;
+			barHeights.push(height);
 		}
 
 		for (let row = 0; row < ROWS; row++) {
 			const distFromBottom = ROWS - 1 - row;
 			for (let col = 0; col < COLS; col++) {
-				const span = this.spanGrid[row]?.[col];
-				if (!span) continue;
 				const barHeight = barHeights[col] ?? 0;
 				if (distFromBottom < barHeight) {
 					const charIdx = Math.min(CHARS.length - 1, Math.floor((barHeight / ROWS) * CHARS.length));
 					const intensity = barHeight / ROWS;
-					span.textContent = CHARS[charIdx] ?? " ";
-					span.style.color = this.theme.getColor(distFromBottom, ROWS, intensity);
-					span.style.textShadow = this.theme.glow;
+					this.setCell(
+						row,
+						col,
+						CHARS[charIdx] ?? " ",
+						this.theme.getColor(distFromBottom, ROWS, intensity),
+						this.theme.glow
+					);
 				} else {
-					span.textContent = " ";
-					span.style.color = "transparent";
-					span.style.textShadow = "none";
+					this.setCell(row, col, " ", "transparent", "none");
 				}
 			}
 		}
@@ -229,21 +339,15 @@ export class AsciiVisualizerController {
 		for (let row = 0; row < ROWS; row++) {
 			const isPatternRow = row >= patternStart && row < patternStart + IDLE_PATTERN.length;
 			for (let col = 0; col < COLS; col++) {
-				const span = this.spanGrid[row]?.[col];
-				if (!span) continue;
 				if (isPatternRow) {
 					const patternRowIdx = (row - patternStart + tick) % IDLE_PATTERN.length;
 					const line = IDLE_PATTERN[patternRowIdx] ?? "";
 					const padding = Math.floor((COLS - line.length) / 2);
 					const charPos = col - padding;
 					const char = charPos >= 0 && charPos < line.length ? (line[charPos] ?? " ") : " ";
-					span.textContent = char;
-					span.style.color = char !== " " ? this.theme.idleColor : "transparent";
-					span.style.textShadow = "none";
+					this.setCell(row, col, char, char !== " " ? this.theme.idleColor : "transparent", "none");
 				} else {
-					span.textContent = " ";
-					span.style.color = "transparent";
-					span.style.textShadow = "none";
+					this.setCell(row, col, " ", "transparent", "none");
 				}
 			}
 		}
@@ -254,21 +358,15 @@ export class AsciiVisualizerController {
 		for (let row = 0; row < ROWS; row++) {
 			const isPatternRow = row >= patternStart && row < patternStart + IDLE_PATTERN.length;
 			for (let col = 0; col < COLS; col++) {
-				const span = this.spanGrid[row]?.[col];
-				if (!span) continue;
 				if (isPatternRow) {
 					const patternRowIdx = row - patternStart;
 					const line = IDLE_PATTERN[patternRowIdx] ?? "";
 					const padding = Math.floor((COLS - line.length) / 2);
 					const charPos = col - padding;
 					const char = charPos >= 0 && charPos < line.length ? (line[charPos] ?? " ") : " ";
-					span.textContent = char;
-					span.style.color = char !== " " ? this.theme.idleColor : "transparent";
-					span.style.textShadow = "none";
+					this.setCell(row, col, char, char !== " " ? this.theme.idleColor : "transparent", "none");
 				} else {
-					span.textContent = " ";
-					span.style.color = "transparent";
-					span.style.textShadow = "none";
+					this.setCell(row, col, " ", "transparent", "none");
 				}
 			}
 		}
