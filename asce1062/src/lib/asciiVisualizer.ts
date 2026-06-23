@@ -134,8 +134,9 @@ export class AsciiVisualizerController {
 
 	connect(audioEl: HTMLAudioElement): void {
 		if (this.sourceNode) return;
+		let ctx: AudioContext | null = null;
 		try {
-			const ctx = new AudioContext();
+			ctx = new AudioContext();
 			const analyser = ctx.createAnalyser();
 			analyser.fftSize = 256;
 			analyser.smoothingTimeConstant = 0.7;
@@ -148,7 +149,8 @@ export class AsciiVisualizerController {
 			this.analyser = analyser;
 			this.sourceNode = source;
 		} catch {
-			// AudioContext unavailable (visualizer falls back to idle-only)
+			// Close any partially-created context so it isn't leaked; visualizer falls back to idle-only
+			void ctx?.close().catch(() => {});
 		}
 	}
 
