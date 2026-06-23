@@ -80,8 +80,6 @@ export class AsciiVisualizerController {
 	// Reduced-motion listener so we react to OS setting changes without a page reload
 	private motionQuery: MediaQueryList | null = null;
 	private motionListener: ((e: MediaQueryListEvent) => void) | null = null;
-	// Precomputed log-spaced bin ranges per column — built once in connect()
-	private logBinRanges: Array<{ start: number; end: number }> = [];
 
 	mount(container: HTMLElement): void {
 		this.container = container;
@@ -144,7 +142,6 @@ export class AsciiVisualizerController {
 			source.connect(analyser);
 			analyser.connect(ctx.destination);
 			this.freqData = new Uint8Array(analyser.frequencyBinCount);
-			this.buildLogBinRanges(analyser.frequencyBinCount);
 			this.audioCtx = ctx;
 			this.analyser = analyser;
 			this.sourceNode = source;
@@ -215,7 +212,6 @@ export class AsciiVisualizerController {
 		this.lastColor = [];
 		this.lastShadow = [];
 		this.previousHeights.fill(0);
-		this.logBinRanges = [];
 	}
 
 	private prefersReducedMotion(): boolean {
@@ -275,29 +271,6 @@ export class AsciiVisualizerController {
 		if (rs) rs[col] = shadow;
 	}
 
-	// Called once in connect() after freqData is sized — avoids per-frame Math.exp() calls
-	private buildLogBinRanges(totalBins: number): void {
-		const logMax = Math.log(totalBins);
-		this.logBinRanges = [];
-		for (let col = 0; col < COLS; col++) {
-			const startBin = col === 0 ? 0 : Math.max(1, Math.round(Math.exp((col / COLS) * logMax)));
-			const rawEnd = Math.round(Math.exp(((col + 1) / COLS) * logMax));
-			const endBin = Math.min(totalBins - 1, Math.max(startBin, rawEnd));
-			this.logBinRanges.push({ start: startBin, end: endBin });
-		}
-	}
-
-	// Averages FFT bins for a column using the precomputed log-spaced ranges
-	private getLogBinValue(col: number): number {
-		const range = this.logBinRanges[col];
-		if (!range) return 0;
-		let sum = 0;
-		for (let b = range.start; b <= range.end; b++) {
-			sum += this.freqData[b] ?? 0;
-		}
-		return sum / (range.end - range.start + 1) / 255;
-	}
-
 	private renderActive(): void {
 		if (!this.analyser) {
 			this.renderIdle(this.idleTick);
@@ -305,10 +278,15 @@ export class AsciiVisualizerController {
 		}
 
 		this.analyser.getByteFrequencyData(this.freqData);
+		const binsPerCol = Math.floor(this.freqData.length / COLS);
 		const barHeights: number[] = [];
 
 		for (let col = 0; col < COLS; col++) {
-			const rawHeight = Math.floor(this.getLogBinValue(col) * ROWS);
+			let sum = 0;
+			for (let b = 0; b < binsPerCol; b++) {
+				sum += this.freqData[col * binsPerCol + b] ?? 0;
+			}
+			const rawHeight = Math.floor((sum / binsPerCol / 255) * ROWS);
 			const prev = this.previousHeights[col] ?? 0;
 			const height = Math.max(rawHeight, prev - 1);
 			this.previousHeights[col] = height;
