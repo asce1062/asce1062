@@ -1,0 +1,2 @@
+import{i,s as r}from"./feedbackManager.DXeh4d_8.js";function c(){const e=document.getElementById("blog-share-btn");if(!e)return;i("blog-share-notification"),e.replaceWith(e.cloneNode(!0));const n=document.getElementById("blog-share-btn");n?.addEventListener("click",async()=>{const o=n.getAttribute("data-url"),t=n.getAttribute("data-title");if(o&&t){const a=`${t}
+${o}`;await r({shareData:{title:t,text:t,url:o},clipboardText:a,notificationId:"blog-share-notification"})}})}document.addEventListener("astro:page-load",c);
