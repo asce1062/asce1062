@@ -120,13 +120,5 @@ const toggleId = `${id}-toggle`;
 <script>
 	import { initCollapsibleNavigation } from "@/scripts/collapsibleNavigation";
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initCollapsibleNavigation);
-	} else {
-		initCollapsibleNavigation();
-	}
-
-	// Reinitialize after Astro view transitions
 	document.addEventListener("astro:page-load", initCollapsibleNavigation);
 </script>

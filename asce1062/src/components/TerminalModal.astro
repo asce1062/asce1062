@@ -189,11 +189,5 @@ import "@/styles/components/terminal-modal.css";
 		terminalShortcutCleanup = initTerminalShortcut();
 	}
 
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", bindTerminalShortcut, { once: true });
-	} else {
-		bindTerminalShortcut();
-	}
-
 	document.addEventListener("astro:page-load", bindTerminalShortcut);
 </script>

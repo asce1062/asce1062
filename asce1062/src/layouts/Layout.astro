@@ -277,14 +277,6 @@ const validFlavorIds = themeFlavors.map((flavor) => flavor.id);
 	<script>
 		import { initScrollProgress } from "@/scripts/scrollProgress";
 
-		// Initialize on first load
-		if (document.readyState === "loading") {
-			document.addEventListener("DOMContentLoaded", initScrollProgress);
-		} else {
-			initScrollProgress();
-		}
-
-		// Reinitialize after view transitions
 		document.addEventListener("astro:page-load", initScrollProgress);
 	</script>
 </html>

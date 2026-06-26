@@ -313,13 +313,6 @@ import "@/styles/components/avatar.css";
 		setupAvatarShare();
 	}
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initAvatarGenerator);
-	} else {
-		initAvatarGenerator();
-	}
-
-	// Reinitialize after view transitions
+	// astro:page-load fires on initial load and after every view transition.
 	document.addEventListener("astro:page-load", initAvatarGenerator);
 </script>

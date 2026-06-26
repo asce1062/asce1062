@@ -12,13 +12,5 @@
 <script>
 	import { initBackToTop } from "@/scripts/backToTop";
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initBackToTop);
-	} else {
-		initBackToTop();
-	}
-
-	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", initBackToTop);
 </script>

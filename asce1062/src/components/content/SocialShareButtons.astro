@@ -139,13 +139,5 @@ const shareLinks = [
 		});
 	}
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", setupBlogShare);
-	} else {
-		setupBlogShare();
-	}
-
-	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", setupBlogShare);
 </script>

@@ -2005,10 +2005,4 @@ function initTerminalModal(): void {
 	);
 }
 
-if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", initTerminalModal, { once: true });
-} else {
-	initTerminalModal();
-}
-
 document.addEventListener("astro:page-load", initTerminalModal);
