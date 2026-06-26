@@ -184,13 +184,5 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		}
 	}
 
-	// Initialize on load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initFloatingSearch);
-	} else {
-		initFloatingSearch();
-	}
-
-	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", initFloatingSearch);
 </script>

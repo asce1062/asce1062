@@ -130,14 +130,5 @@ const divProps = {
 		}
 	}
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", setupSearch);
-	} else {
-		// Document already loaded
-		setupSearch();
-	}
-
-	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", setupSearch);
 </script>

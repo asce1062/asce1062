@@ -132,14 +132,6 @@ import Layout from "@/layouts/Layout.astro";
 		}
 	}
 
-	// Initialize on first load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", initPDFViewer);
-	} else {
-		initPDFViewer();
-	}
-
-	// Reinitialize after view transitions
 	document.addEventListener("astro:page-load", initPDFViewer);
 </script>
 
