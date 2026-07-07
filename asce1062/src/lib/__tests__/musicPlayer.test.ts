@@ -33,8 +33,18 @@ describe("music player helpers", () => {
 	});
 
 	it("cycles through local player flavors without mutating the site theme", () => {
-		expect(MUSIC_PLAYER_FLAVORS).toEqual(["DEFAULT", "CRT", "AMBER", "SYNTHWAVE", "DOS", "VOID", "ICE", "REDLINE"]);
-		expect(getNextMusicPlayerFlavor("DEFAULT")).toBe("CRT");
+		expect(MUSIC_PLAYER_FLAVORS).toEqual([
+			"DEFAULT",
+			"OBSERVATORY",
+			"CRT",
+			"AMBER",
+			"SYNTHWAVE",
+			"DOS",
+			"VOID",
+			"ICE",
+			"REDLINE",
+		]);
+		expect(getNextMusicPlayerFlavor("DEFAULT")).toBe("OBSERVATORY");
 		expect(getNextMusicPlayerFlavor("VOID")).toBe("ICE");
 		expect(getNextMusicPlayerFlavor("ICE")).toBe("REDLINE");
 		expect(getNextMusicPlayerFlavor("REDLINE")).toBe("DEFAULT");
@@ -44,6 +54,7 @@ describe("music player helpers", () => {
 	it("maps the active site flavor to the local player flavor", () => {
 		expect(getMusicPlayerFlavorFromSiteFlavor(null)).toBe("DEFAULT");
 		expect(getMusicPlayerFlavorFromSiteFlavor("")).toBe("DEFAULT");
+		expect(getMusicPlayerFlavorFromSiteFlavor("observatory")).toBe("OBSERVATORY");
 		expect(getMusicPlayerFlavorFromSiteFlavor("crt-green")).toBe("CRT");
 		expect(getMusicPlayerFlavorFromSiteFlavor("amber")).toBe("AMBER");
 		expect(getMusicPlayerFlavorFromSiteFlavor("synthwave")).toBe("SYNTHWAVE");
@@ -55,6 +66,7 @@ describe("music player helpers", () => {
 
 	it("maps local player flavors back to site flavor ids for scoped theme tokens", () => {
 		expect(getSiteFlavorFromMusicPlayerFlavor("DEFAULT")).toBe("");
+		expect(getSiteFlavorFromMusicPlayerFlavor("OBSERVATORY")).toBe("observatory");
 		expect(getSiteFlavorFromMusicPlayerFlavor("CRT")).toBe("crt-green");
 		expect(getSiteFlavorFromMusicPlayerFlavor("AMBER")).toBe("amber");
 		expect(getSiteFlavorFromMusicPlayerFlavor("SYNTHWAVE")).toBe("synthwave");

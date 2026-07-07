@@ -8,7 +8,7 @@ import {
 
 describe("FLAVOR_TRANSITION_MAP", () => {
 	it("covers every flavor", () => {
-		const flavors: Flavor[] = ["", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
+		const flavors: Flavor[] = ["", "observatory", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
 		for (const f of flavors) {
 			expect(FLAVOR_TRANSITION_MAP[f]).toBeDefined();
 		}
@@ -18,6 +18,9 @@ describe("FLAVOR_TRANSITION_MAP", () => {
 describe("getMappedTransitionForFlavor", () => {
 	it("returns 'none' for default flavor", () => {
 		expect(getMappedTransitionForFlavor("")).toBe("none");
+	});
+	it("returns 'ripple' for observatory", () => {
+		expect(getMappedTransitionForFlavor("observatory")).toBe("ripple");
 	});
 	it("returns 'retune' for crt-green", () => {
 		expect(getMappedTransitionForFlavor("crt-green")).toBe("retune");

@@ -33,7 +33,17 @@ export const TRANSITION_STYLES: readonly TransitionStyle[] = [
 
 /** Re-export so callers don't need to import from flavorManager. */
 export type { Flavor };
-export const FLAVORS: readonly Flavor[] = ["", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
+export const FLAVORS: readonly Flavor[] = [
+	"",
+	"observatory",
+	"crt-green",
+	"amber",
+	"synthwave",
+	"dos",
+	"void",
+	"ice",
+	"redline",
+];
 
 export interface TransitionContext {
 	style: TransitionStyle;
@@ -58,6 +68,7 @@ export type TransitionFn = (applyChange: () => void, ctx?: TransitionContext) =>
 
 export const FLAVOR_TRANSITION_MAP: Record<Flavor, TransitionStyle> = {
 	"": "none",
+	observatory: "ripple",
 	"crt-green": "retune",
 	amber: "phosphor",
 	synthwave: "glitch",

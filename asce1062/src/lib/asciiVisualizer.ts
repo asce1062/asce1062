@@ -42,6 +42,7 @@ function makeTheme(minPct: number, maxPct: number, glowPx: number, idlePct: numb
 
 const THEMES: Record<MusicPlayerFlavor, AsciiVisualizerTheme> = {
 	DEFAULT: makeTheme(20, 100, 4, 65),
+	OBSERVATORY: makeTheme(20, 100, 6, 70), // celestial: soft ambient glow, stars faintly visible at idle
 	CRT: makeTheme(25, 100, 6, 75), // phosphor: starts brighter, stronger glow
 	AMBER: makeTheme(20, 100, 5, 65),
 	SYNTHWAVE: makeTheme(15, 100, 7, 65), // widest contrast, biggest glow

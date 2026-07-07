@@ -11,6 +11,7 @@
  *
  * Available flavors:
  *   ""           - default warm void (no attribute)
+ *   "observatory" - celestial deep-space indigo with nebula violet and starlight
  *   "crt-green"  - phosphor green basement terminal
  *   "amber"      - warm legacy archival terminal
  *   "synthwave"  - cosmic neon demo-scene
@@ -36,12 +37,23 @@ import { atomicSwitch } from "@/scripts/themeTransition";
 import { resolveEffectiveTransitionStyle, type TransitionContext } from "@/scripts/transitionRegistry";
 import { getStoredTransition } from "@/scripts/transitionManager";
 
-export type Flavor = "crt-green" | "amber" | "synthwave" | "dos" | "void" | "ice" | "redline" | "";
+export type Flavor = "observatory" | "crt-green" | "amber" | "synthwave" | "dos" | "void" | "ice" | "redline" | "";
 
-export const FLAVORS: readonly Flavor[] = ["", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
+export const FLAVORS: readonly Flavor[] = [
+	"",
+	"observatory",
+	"crt-green",
+	"amber",
+	"synthwave",
+	"dos",
+	"void",
+	"ice",
+	"redline",
+];
 
 export const FLAVOR_LABELS: Record<Flavor, string> = {
 	"": "Default",
+	observatory: "Observatory",
 	"crt-green": "CRT Green",
 	amber: "Amber",
 	synthwave: "Synthwave",
@@ -53,7 +65,8 @@ export const FLAVOR_LABELS: Record<Flavor, string> = {
 
 /** Swatch color for each flavor (used as --swatch CSS custom property). */
 export const FLAVOR_SWATCHES: Record<Flavor, string> = {
-	"": "oklch(70% 0.191 22.216)",
+	"": "oklch(80% 0.13 80)",
+	observatory: "oklch(78% 0.12 285)",
 	"crt-green": "oklch(78% 0.22 145)",
 	amber: "oklch(75% 0.20 70)",
 	synthwave: "oklch(72% 0.28 330)",

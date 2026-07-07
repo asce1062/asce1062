@@ -1,81 +1,89 @@
 /**
- * Tailwind CSS v4 Retro Theme Configuration
+ * Tailwind CSS v4 Theme Configuration - reworked
  *
- * Based on retro theme with oklch color space for better color accuracy
+ * DARK-FIRST. The unflavored dark theme lives in @theme (:root); light is an
+ * override under [data-theme="light"].
  *
- * Color System:
- * - Semantic colors: base, primary, secondary, accent, neutral
- * - Status colors: info, success, warning, error
- * - All colors include -content variants for proper contrast
+ * Layers:
+ *  1. Brand      - base-100/200/300 + content, primary, secondary, accent, neutral
+ *  2. Status     - info / success / warning / error (+ -content).
+ *  3. Semantic   - heading, link, muted, code-bg, atmosphere/pattern/matrix inks
+ *  4. Expression - glow tokens (per-flavor emission), motion, elevation
  *
+ * -content polarity is fixed at the DEFAULT layer: dark statuses are bright and
+ * pair with dark -content; light statuses are mid and pair with light -content
+ * (warning is the exception - it's bright in both modes, so it always takes
+ * dark -content). Flavors reskin the raw hues and inherit the correct polarity,
+ * so they never need to redeclare -content.
  */
 
-/* Enable data-theme based dark mode */
+/* Explicit dark variant (dark is the default, but this still targets it) */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
 	/*
 	============================================
-	DEFAULT THEME COLORS (Light Mode)
+	DEFAULT THEME - DARK (root)
 	============================================
-	Light theme is default. Dark mode is activated via data-theme="dark"
+	Warm-charcoal surfaces, warm near-white ink, a gold "phosphor" primary with
+	a cool cyan counterpoint.
 	============================================
 	*/
 
-	/* Light Theme (Default) */
-	--color-base-100: oklch(91.637% 0.034 90.515);
-	--color-base-200: oklch(88.272% 0.049 91.774);
-	--color-base-300: oklch(84.133% 0.065 90.856);
-	--color-base-content: oklch(41% 0.112 45.904);
+	--color-base-100: oklch(15% 0.014 65);
+	--color-base-200: oklch(19% 0.016 65);
+	--color-base-300: oklch(24% 0.018 65);
+	--color-base-content: oklch(91% 0.012 85);
 
-	--color-primary: oklch(71% 0.185 19.571);
-	--color-primary-content: oklch(96% 0.012 19.571);
+	--color-primary: oklch(80% 0.13 80);
+	--color-primary-content: oklch(21% 0.04 75);
 
-	--color-secondary: oklch(85% 0.15 154.449);
-	--color-secondary-content: oklch(30% 0.09 151.328);
+	--color-secondary: oklch(80% 0.08 210);
+	--color-secondary-content: oklch(20% 0.03 210);
 
-	--color-accent: oklch(60% 0.195 76);
-	--color-accent-content: oklch(97% 0.012 76);
+	--color-accent: oklch(87% 0.135 88);
+	--color-accent-content: oklch(22% 0.05 82);
 
-	--color-neutral: oklch(84.1% 0.081 73.639);
-	--color-neutral-content: oklch(44% 0.011 73.639);
+	--color-neutral: oklch(24% 0.014 65);
+	--color-neutral-content: oklch(73% 0.012 75);
 
-	--color-info: oklch(58% 0.158 241.966);
-	--color-info-content: oklch(96% 0.059 95.617);
+	/* Status - bright in dark mode → dark -content */
+	--color-info: oklch(72% 0.1 230);
+	--color-info-content: oklch(18% 0.04 230);
 
-	--color-success: oklch(51% 0.096 186.391);
-	--color-success-content: oklch(96% 0.059 95.617);
+	--color-success: oklch(74% 0.11 150);
+	--color-success-content: oklch(18% 0.04 150);
 
-	--color-warning: oklch(64% 0.222 41.116);
-	--color-warning-content: oklch(96% 0.059 95.617);
+	--color-warning: oklch(82% 0.12 85);
+	--color-warning-content: oklch(22% 0.05 80);
 
-	--color-error: oklch(70% 0.191 22.216);
-	--color-error-content: oklch(40% 0.123 38.172);
+	--color-error: oklch(65% 0.15 27);
+	--color-error-content: oklch(96% 0.015 27);
 
 	/*
 	============================================
 	SEMANTIC TYPOGRAPHY COLORS
 	============================================
-	Decouple color from raw status tokens.
-	Updated per-theme override block to change dark-mode mapping.
+	Decoupled from raw status tokens. link is now consistently primary
+	(overridable per flavor); muted is tuned to clear WCAG AA on the surface.
 	============================================
 	*/
 
 	/* Heading h2 */
 	--color-heading: var(--color-accent);
 	/* Interactive links */
-	--color-link: var(--color-warning);
+	--color-link: var(--color-primary);
 	/* Subdued / muted text */
-	--color-muted: oklch(58% 0.05 75);
+	--color-muted: oklch(65% 0.018 75);
 	/* Inline code surface (slightly elevated from base) */
-	--color-code-bg: oklch(86.272% 0.027 91.774);
+	--color-code-bg: oklch(20% 0.014 65);
 	/* Background atmosphere ink (topography mask). Separated from base-300 so surfaces stay stable. */
-	--color-atmosphere-ink: oklch(72% 0.075 90);
+	--color-atmosphere-ink: oklch(34% 0.02 65);
 	/* Guestbook card pattern ink. Quieter than atmosphere ink so dense hero patterns don't compete with text. */
-	--color-guestbook-pattern-ink: oklch(81.8% 0.054 90.3);
-	/* Matrix rain glyphs. Stronger than atmosphere ink for low-brightness OLED visibility. */
-	--color-matrix-rain: oklch(70% 0.075 90);
-	/* Native scrollbar skin. Derived from theme colors so every flavor. */
+	--color-guestbook-pattern-ink: oklch(26% 0.016 65);
+	/* Matrix rain glyphs. */
+	--color-matrix-rain: oklch(32% 0.05 145);
+	/* Native scrollbar skin. Derived from theme colors so every flavor adapts. */
 	--color-scrollbar-track: transparent;
 	--color-scrollbar-thumb: color-mix(in oklab, var(--color-primary), transparent 52%);
 	--color-scrollbar-thumb-border: var(--color-primary);
@@ -109,19 +117,25 @@
 	--text-body-bold--line-height: 20px;
 
 	--text-heading-3: 16px;
-	--text-heading-3--font-weight: 800;
+	--text-heading-3--font-weight: 700;
 	--text-heading-3--letter-spacing: 0em;
 	--text-heading-3--line-height: 20px;
 
 	--text-heading-2: 20px;
-	--text-heading-2--font-weight: 800;
+	--text-heading-2--font-weight: 700;
 	--text-heading-2--letter-spacing: 0em;
-	--text-heading-2--line-height: 24px;
+	--text-heading-2--line-height: 26px;
 
 	--text-heading-1: 30px;
-	--text-heading-1--font-weight: 800;
-	--text-heading-1--letter-spacing: 0em;
+	--text-heading-1--font-weight: 700;
+	--text-heading-1--letter-spacing: -0.01em;
 	--text-heading-1--line-height: 36px;
+
+	/* Display tier - reserved for site-identity moments (hero, greeting). */
+	--text-display: 44px;
+	--text-display--font-weight: 700;
+	--text-display--letter-spacing: -0.02em;
+	--text-display--line-height: 48px;
 
 	--text-monospace-body: 14px;
 	--text-monospace-body--font-weight: 400;
@@ -141,6 +155,7 @@
 	--font-heading-3: "0xProto", monospace;
 	--font-heading-2: "0xProto", monospace;
 	--font-heading-1: "0xProto", monospace;
+	--font-display: "uni0553", "0xProto", monospace;
 	--font-monospace-body: "0xProto", monospace;
 	--font-proto: "0xProto", monospace;
 	--font-retro: "uni0553", monospace;
@@ -207,7 +222,7 @@
 
 	/*
 	============================================
-	BORDER RADIUS
+	BORDER RADIUS - sharp / terminal (all square except -full)
 	============================================
 	*/
 
@@ -252,9 +267,8 @@
 	/*
 	============================================
 	BACKGROUND ASSETS
-	Single source of truth for SVG pattern URLs.
-	Flavors use mask-image with var(--color-base-300) so only
-	one SVG is needed (the fill color adapts via CSS).
+	Single source of truth for SVG pattern URLs. Flavors recolor the same SVG
+	via mask-image + var(--color-atmosphere-ink), so only one asset is needed.
 	============================================
 	*/
 
@@ -266,9 +280,12 @@
 	============================================
 	*/
 
+	/* Inner sizing for form controls (checkbox/radio dot, field inset). */
 	--size-selector: 0.25rem;
 	--size-field: 0.25rem;
 	--border: 1px;
+	/* Effect-intensity multipliers consumed by the JS/effects layer (scanline
+	   depth, grain amount). 0 disables, 1 = full. */
 	--depth: 1;
 	--noise: 1;
 }
@@ -279,9 +296,7 @@ KEYFRAME ANIMATIONS
 ============================================
 */
 
-/* Phosphor glow pulse.
-   Uses box-shadow so it doesn't affect layout.
-   Respects prefers-reduced-motion (only applied where motion is safe). */
+/* Phosphor glow pulse. Uses box-shadow so it doesn't affect layout. */
 @keyframes glow-pulse {
 	0% {
 		box-shadow:
@@ -311,122 +326,156 @@ KEYFRAME ANIMATIONS
 
 /*
 ============================================
-DARK MODE OVERRIDES
+LIGHT MODE OVERRIDE (default / unflavored)
 ============================================
-Dark mode activates when data-theme="dark" is set on html element
+Refined parchment. Warm and personal, but ink chroma is dialed back for
+readability and muted clears AA. Glows are suppressed on bright surfaces.
 ============================================
 */
-:where(html, .theme-scope)[data-theme="dark"] {
-	/* Light Theme (Default) */
-	--color-base-100: oklch(13% 0.018 270);
-	--color-base-200: oklch(20% 0.013 270);
-	--color-base-300: oklch(23% 0.015 270);
-	--color-base-content: oklch(90% 0.07 95);
+:where(html, .theme-scope)[data-theme="light"] {
+	--color-base-100: oklch(93% 0.02 85);
+	--color-base-200: oklch(89% 0.03 86);
+	--color-base-300: oklch(84% 0.04 86);
+	--color-base-content: oklch(34% 0.05 60);
 
-	--color-primary: oklch(70% 0.191 22.216);
-	--color-primary-content: oklch(25% 0.092 26.042);
+	--color-primary: oklch(52% 0.12 65);
+	--color-primary-content: oklch(97% 0.02 85);
 
-	--color-secondary: oklch(79% 0.209 151.711);
-	--color-secondary-content: oklch(26% 0.065 152.934);
+	--color-secondary: oklch(50% 0.09 205);
+	--color-secondary-content: oklch(98% 0.01 205);
 
-	--color-accent: oklch(85% 0.199 91.936);
-	--color-accent-content: oklch(28% 0.066 53.813);
+	--color-accent: oklch(48% 0.13 55);
+	--color-accent-content: oklch(97% 0.02 80);
 
-	--color-neutral: oklch(16% 0.019 329.708);
-	--color-neutral-content: oklch(70% 0.01 56.259);
+	--color-neutral: oklch(84% 0.03 80);
+	--color-neutral-content: oklch(40% 0.02 70);
 
-	--color-info: oklch(70% 0.165 254.624);
-	--color-info-content: oklch(28% 0.091 267.935);
+	/* Status - mid lightness in light mode → light -content (warning excepted). */
+	--color-info: oklch(52% 0.13 240);
+	--color-info-content: oklch(98% 0.02 240);
 
-	--color-success: oklch(43% 0.078 188.216);
-	--color-success-content: oklch(92% 0.12 95.746);
+	--color-success: oklch(50% 0.1 155);
+	--color-success-content: oklch(98% 0.02 155);
 
-	--color-warning: oklch(47% 0.157 37.304);
-	--color-warning-content: oklch(92% 0.12 95.746);
+	--color-warning: oklch(70% 0.13 75);
+	--color-warning-content: oklch(25% 0.06 70);
 
-	--color-error: oklch(63% 0.237 25.331);
-	--color-error-content: oklch(26% 0.079 36.259);
+	--color-error: oklch(52% 0.16 27);
+	--color-error-content: oklch(98% 0.015 27);
 
-	/*
-	============================================
-	SEMANTIC TYPOGRAPHY COLORS
-	============================================
-	Decouple color from raw status tokens.
-	Updated per-theme override block to change dark-mode mapping.
-	============================================
-	*/
 	/* Heading h2 */
 	--color-heading: var(--color-accent);
 	/* Interactive links */
 	--color-link: var(--color-primary);
-	/* Subdued / muted text */
-	--color-muted: oklch(68% 0.025 90);
-	/* Inline code surface (slightly elevated from base) */
-	--color-code-bg: oklch(16% 0.012 270);
-	/* Background atmosphere ink (topography mask). Separated from base-300 so surfaces stay stable. */
-	--color-atmosphere-ink: oklch(38% 0.032 270);
-	--color-guestbook-pattern-ink: oklch(26% 0.018 277.9);
-	/* Matrix rain glyphs. Stronger than atmosphere ink for low-brightness OLED visibility. */
-	--color-matrix-rain: oklch(24% 0.045 95);
+	/* Subdued / muted text (AA on parchment) */
+	--color-muted: oklch(46% 0.03 70);
+	/* Inline code surface */
+	--color-code-bg: oklch(87% 0.03 86);
+	--color-atmosphere-ink: oklch(74% 0.035 85);
+	--color-guestbook-pattern-ink: oklch(80% 0.03 86);
+	--color-matrix-rain: oklch(60% 0.08 145);
 
-	/* Glow token intensity (dark mode. stronger phosphor emission) */
-	--glow-active: inset 0 0 18px color-mix(in oklab, var(--color-primary), transparent 65%);
-	--glow-accent: 0 0 20px color-mix(in oklab, var(--color-accent), transparent 55%);
-	--glow-identity: 0 0 28px color-mix(in oklab, var(--color-primary), transparent 58%);
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
 }
 
 /*
 ============================================
 FLAVOR THEMES
 ============================================
-Flavors layer on top of both dark and light base themes.
-Dark: html[data-theme="dark"][data-flavor="X"]
+Flavors reskin brand + surface + semantic ink + glow. Status -content polarity
+is inherited from the default layer (dark → dark content; light → light content),
+so flavors only set raw hues.
+
+Dark:  html[data-theme="dark"][data-flavor="X"]
 Light: html[data-theme="light"][data-flavor="X"]
 
-Each light flavor tints the parchment base toward the flavor's personality.
-
-Flavors: crt-green | amber | synthwave | dos | void | ice | redline
+Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redline
 ============================================
 */
 
 /* ─── DARK FLAVORS ──────────────────────────────────────────────────────── */
 
-/* 1. CRT Green dark */
+/* 0. Observatory dark - the celestial flavor. Deep-space indigo, stellar-white
+      ink, nebula violet + cyan starlight, gold star highlights. */
+:where(html, .theme-scope)[data-theme="dark"][data-flavor="observatory"] {
+	--color-base-100: oklch(13% 0.03 275);
+	--color-base-200: oklch(17% 0.035 275);
+	--color-base-300: oklch(22% 0.04 278);
+	--color-base-content: oklch(93% 0.015 250);
+
+	--color-primary: oklch(78% 0.12 285);
+	--color-primary-content: oklch(16% 0.04 280);
+
+	--color-secondary: oklch(80% 0.1 210);
+	--color-secondary-content: oklch(16% 0.04 220);
+
+	--color-accent: oklch(85% 0.12 90);
+	--color-accent-content: oklch(20% 0.05 80);
+
+	--color-neutral: oklch(20% 0.03 275);
+	--color-neutral-content: oklch(74% 0.02 260);
+
+	--color-info: oklch(76% 0.12 250);
+	--color-success: oklch(78% 0.12 158);
+	--color-warning: oklch(85% 0.13 95);
+	--color-error: oklch(66% 0.16 25);
+
+	/* Heading h2 */
+	--color-heading: oklch(86% 0.13 288);
+	/* Interactive links */
+	--color-link: oklch(82% 0.11 210);
+	/* Subdued / muted text */
+	--color-muted: oklch(64% 0.03 265);
+	/* Inline code surface */
+	--color-code-bg: oklch(16% 0.03 275);
+	--color-atmosphere-ink: oklch(34% 0.05 278);
+	--color-guestbook-pattern-ink: oklch(26% 0.04 278);
+	--color-matrix-rain: oklch(34% 0.06 250);
+
+	/* Celestial emission (earned, but soft - starlight not neon) */
+	--glow-active: inset 0 0 18px color-mix(in oklab, var(--color-primary), transparent 62%);
+	--glow-accent: 0 0 22px color-mix(in oklab, var(--color-accent), transparent 52%);
+	--glow-identity: 0 0 32px color-mix(in oklab, var(--color-primary), transparent 55%);
+}
+
+/* 1. CRT Green dark (monochrome - status hues collapse to the green spectrum) */
 :where(html, .theme-scope)[data-theme="dark"][data-flavor="crt-green"] {
 	--color-base-100: oklch(8% 0.025 145);
 	--color-base-200: oklch(12% 0.03 145);
 	--color-base-300: oklch(16% 0.035 145);
-	--color-base-content: oklch(80% 0.16 148);
+	--color-base-content: oklch(84% 0.15 148);
 
-	--color-primary: oklch(88% 0.26 145);
+	--color-primary: oklch(86% 0.17 145);
 	--color-primary-content: oklch(10% 0.022 145);
 
-	--color-secondary: oklch(62% 0.14 148);
+	--color-secondary: oklch(64% 0.13 148);
 	--color-secondary-content: oklch(10% 0.022 145);
 
-	--color-accent: oklch(76% 0.22 140);
+	--color-accent: oklch(78% 0.16 140);
 	--color-accent-content: oklch(10% 0.022 145);
 
 	--color-neutral: oklch(14% 0.022 145);
-	--color-neutral-content: oklch(55% 0.1 148);
+	--color-neutral-content: oklch(58% 0.1 148);
 
-	--color-warning: oklch(72% 0.2 105);
-	--color-success: oklch(80% 0.24 145);
-
-	--color-error: oklch(58% 0.22 25);
-	--color-info: oklch(65% 0.14 185);
+	--color-warning: oklch(82% 0.16 108);
+	--color-success: oklch(84% 0.17 148);
+	--color-error: oklch(64% 0.18 32);
+	--color-info: oklch(74% 0.13 175);
 
 	/* Heading h2 */
-	--color-heading: oklch(92% 0.25 143);
+	--color-heading: oklch(90% 0.17 143);
 	/* Interactive links */
-	--color-link: oklch(88% 0.24 105);
+	--color-link: oklch(88% 0.17 115);
 	/* Subdued / muted text */
-	--color-muted: oklch(52% 0.09 148);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(60% 0.1 148);
+	/* Inline code surface */
 	--color-code-bg: oklch(10% 0.025 145);
 	--color-atmosphere-ink: oklch(34% 0.08 145);
 	--color-guestbook-pattern-ink: oklch(21% 0.053 145);
-	--color-matrix-rain: oklch(26% 0.11 148);
+	--color-matrix-rain: oklch(30% 0.11 148);
 
 	/* Strong phosphor glow (earned) */
 	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 58%);
@@ -434,41 +483,41 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 	--glow-identity: 0 0 32px color-mix(in oklab, var(--color-primary), transparent 50%);
 }
 
-/* 2. Amber Terminal dark */
+/* 2. Amber Terminal dark (monochrome amber) */
 :where(html, .theme-scope)[data-theme="dark"][data-flavor="amber"] {
 	--color-base-100: oklch(11% 0.028 50);
 	--color-base-200: oklch(16% 0.032 52);
 	--color-base-300: oklch(20% 0.036 55);
-	--color-base-content: oklch(78% 0.14 78);
+	--color-base-content: oklch(82% 0.13 78);
 
-	--color-primary: oklch(80% 0.2 72);
+	--color-primary: oklch(80% 0.16 72);
 	--color-primary-content: oklch(14% 0.025 52);
 
-	--color-secondary: oklch(65% 0.15 65);
+	--color-secondary: oklch(66% 0.14 65);
 	--color-secondary-content: oklch(14% 0.025 52);
 
-	--color-accent: oklch(86% 0.21 88);
+	--color-accent: oklch(86% 0.16 88);
 	--color-accent-content: oklch(16% 0.03 55);
+
 	--color-neutral: oklch(16% 0.022 52);
-	--color-neutral-content: oklch(58% 0.1 75);
+	--color-neutral-content: oklch(62% 0.1 75);
 
-	--color-warning: oklch(82% 0.2 85);
-	--color-success: oklch(55% 0.12 148);
-
-	--color-error: oklch(58% 0.2 25);
-	--color-info: oklch(60% 0.13 220);
+	--color-warning: oklch(84% 0.16 85);
+	--color-success: oklch(72% 0.13 138);
+	--color-error: oklch(62% 0.18 35);
+	--color-info: oklch(72% 0.12 215);
 
 	/* Heading h2 */
-	--color-heading: oklch(88% 0.22 80);
+	--color-heading: oklch(88% 0.16 80);
 	/* Interactive links */
-	--color-link: oklch(70% 0.24 40);
+	--color-link: oklch(78% 0.17 55);
 	/* Subdued / muted text */
-	--color-muted: oklch(52% 0.08 75);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(60% 0.09 75);
+	/* Inline code surface */
 	--color-code-bg: oklch(13% 0.028 50);
 	--color-atmosphere-ink: oklch(36% 0.08 58);
 	--color-guestbook-pattern-ink: oklch(23.5% 0.054 54);
-	--color-matrix-rain: oklch(28% 0.1 78);
+	--color-matrix-rain: oklch(30% 0.1 78);
 
 	--glow-active: inset 0 0 20px color-mix(in oklab, var(--color-primary), transparent 60%);
 	--glow-accent: 0 0 22px color-mix(in oklab, var(--color-accent), transparent 50%);
@@ -477,42 +526,41 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 
 /* 3. Synthwave dark */
 :where(html, .theme-scope)[data-theme="dark"][data-flavor="synthwave"] {
-	--color-base-100: oklch(14% 0.09 281);
-	--color-base-200: oklch(19% 0.09 281);
-	--color-base-300: oklch(24% 0.09 281);
-	--color-base-content: oklch(82% 0.1 275);
+	--color-base-100: oklch(14% 0.07 281);
+	--color-base-200: oklch(19% 0.075 281);
+	--color-base-300: oklch(24% 0.08 281);
+	--color-base-content: oklch(86% 0.08 275);
 
-	--color-primary: oklch(72% 0.22 350);
-	--color-primary-content: oklch(18% 0.06 350);
+	--color-primary: oklch(72% 0.17 350);
+	--color-primary-content: oklch(16% 0.05 350);
 
-	--color-secondary: oklch(82% 0.12 230);
-	--color-secondary-content: oklch(20% 0.04 230);
+	--color-secondary: oklch(82% 0.11 230);
+	--color-secondary-content: oklch(18% 0.04 230);
 
-	--color-accent: oklch(78% 0.19 58);
-	--color-accent-content: oklch(20% 0.05 56);
+	--color-accent: oklch(80% 0.15 60);
+	--color-accent-content: oklch(18% 0.05 56);
 
-	--color-neutral: oklch(22% 0.08 280);
-	--color-neutral-content: oklch(72% 0.08 275);
+	--color-neutral: oklch(22% 0.07 280);
+	--color-neutral-content: oklch(74% 0.07 275);
 
-	--color-warning: oklch(88% 0.19 95);
-	--color-success: oklch(76% 0.16 162);
-
-	--color-error: oklch(72% 0.22 22);
-	--color-info: oklch(76% 0.16 232);
+	--color-warning: oklch(86% 0.15 92);
+	--color-success: oklch(80% 0.15 168);
+	--color-error: oklch(72% 0.18 18);
+	--color-info: oklch(80% 0.14 240);
 
 	/* Heading h2*/
-	--color-heading: oklch(82% 0.25 335);
+	--color-heading: oklch(80% 0.16 335);
 	/* Interactive links */
-	--color-link: oklch(80% 0.18 195);
+	--color-link: oklch(82% 0.13 195);
 	/* Subdued / muted text */
-	--color-muted: oklch(62% 0.05 280);
-	/* Inline code surface (slightly elevated from base) */
-	--color-code-bg: oklch(17% 0.09 281);
-	--color-atmosphere-ink: oklch(40% 0.1 281);
-	--color-guestbook-pattern-ink: oklch(27% 0.095 281);
-	--color-matrix-rain: oklch(30% 0.08 275);
+	--color-muted: oklch(66% 0.05 280);
+	/* Inline code surface */
+	--color-code-bg: oklch(17% 0.075 281);
+	--color-atmosphere-ink: oklch(40% 0.09 281);
+	--color-guestbook-pattern-ink: oklch(27% 0.08 281);
+	--color-matrix-rain: oklch(32% 0.07 300);
 
-	/* Vivid synthwave glows (neon emission at full power) */
+	/* Vivid synthwave glows */
 	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 58%);
 	--glow-accent: 0 0 26px color-mix(in oklab, var(--color-accent), transparent 48%);
 	--glow-identity: 0 0 36px color-mix(in oklab, var(--color-primary), transparent 50%);
@@ -525,37 +573,36 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 	--color-base-300: oklch(28% 0.044 265);
 	--color-base-content: oklch(96% 0.008 265);
 
-	--color-primary: oklch(82% 0.15 195);
+	--color-primary: oklch(82% 0.13 195);
 	--color-primary-content: oklch(20% 0.04 265);
 
-	--color-secondary: oklch(88% 0.1 240);
+	--color-secondary: oklch(88% 0.09 240);
 	--color-secondary-content: oklch(20% 0.04 265);
 
-	--color-accent: oklch(86% 0.16 182);
+	--color-accent: oklch(86% 0.13 182);
 	--color-accent-content: oklch(20% 0.04 265);
 
 	--color-neutral: oklch(26% 0.038 265);
 	--color-neutral-content: oklch(78% 0.012 265);
 
-	--color-warning: oklch(88% 0.19 88);
-	--color-success: oklch(78% 0.19 148);
-
-	--color-error: oklch(72% 0.22 22);
-	--color-info: oklch(84% 0.14 200);
+	--color-warning: oklch(88% 0.16 95);
+	--color-success: oklch(82% 0.16 150);
+	--color-error: oklch(70% 0.18 28);
+	--color-info: oklch(86% 0.13 205);
 
 	/* Heading h2 */
-	--color-heading: oklch(90% 0.14 185);
+	--color-heading: oklch(90% 0.12 185);
 	/* Interactive links */
-	--color-link: oklch(76% 0.18 225);
+	--color-link: oklch(80% 0.13 225);
 	/* Subdued / muted text */
-	--color-muted: oklch(68% 0.01 265);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(72% 0.012 265);
+	/* Inline code surface */
 	--color-code-bg: oklch(18% 0.038 265);
 	--color-atmosphere-ink: oklch(44% 0.04 265);
 	--color-guestbook-pattern-ink: oklch(32% 0.04 265);
 	--color-matrix-rain: oklch(34% 0.024 265);
 
-	/* No glow (DOS was sharp, physical CRT, but no ambient flourishes) */
+	/* No glow (DOS was a sharp, physical CRT with no ambient flourishes) */
 	--glow-active: inset 0 0 0 transparent;
 	--glow-accent: 0 0 0 transparent;
 	--glow-identity: 0 0 0 transparent;
@@ -568,35 +615,34 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 	--color-base-300: oklch(22% 0 0);
 	--color-base-content: oklch(87.609% 0 0);
 
-	--color-primary: oklch(52% 0 0);
-	--color-primary-content: oklch(96% 0 0);
+	--color-primary: oklch(72% 0 0);
+	--color-primary-content: oklch(10% 0 0);
 
-	--color-secondary: oklch(38% 0 0);
+	--color-secondary: oklch(52% 0 0);
 	--color-secondary-content: oklch(96% 0 0);
 
-	--color-accent: oklch(60% 0 0);
-	--color-accent-content: oklch(96% 0 0);
+	--color-accent: oklch(82% 0 0);
+	--color-accent-content: oklch(12% 0 0);
 
 	--color-neutral: oklch(18% 0 0);
 	--color-neutral-content: oklch(70% 0 0);
 
-	--color-warning: oklch(72% 0.14 85);
-	--color-success: oklch(62% 0.14 155);
-
-	--color-error: oklch(60% 0.18 22);
-	--color-info: oklch(62% 0.14 230);
+	--color-warning: oklch(80% 0.11 88);
+	--color-success: oklch(72% 0.12 155);
+	--color-error: oklch(64% 0.16 27);
+	--color-info: oklch(72% 0.11 235);
 
 	/* Heading h2 */
-	--color-heading: oklch(92% 0 0);
+	--color-heading: oklch(94% 0 0);
 	/* Interactive links */
-	--color-link: oklch(65% 0 0);
+	--color-link: oklch(80% 0 0);
 	/* Subdued / muted text */
-	--color-muted: oklch(42% 0 0);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(60% 0 0);
+	/* Inline code surface */
 	--color-code-bg: oklch(8% 0 0);
 	--color-atmosphere-ink: oklch(32% 0 0);
 	--color-guestbook-pattern-ink: oklch(24% 0 0);
-	--color-matrix-rain: oklch(22% 0 0);
+	--color-matrix-rain: oklch(28% 0 0);
 
 	/* Absolute silence (no glow in the void) */
 	--glow-active: inset 0 0 0 transparent;
@@ -611,35 +657,34 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 	--color-base-300: oklch(18% 0.03 210);
 	--color-base-content: oklch(94% 0.016 202);
 
-	--color-primary: oklch(76% 0.19 197);
+	--color-primary: oklch(78% 0.14 197);
 	--color-primary-content: oklch(12% 0.018 212);
 
-	--color-secondary: oklch(68% 0.16 205);
+	--color-secondary: oklch(70% 0.13 205);
 	--color-secondary-content: oklch(12% 0.018 212);
 
-	--color-accent: oklch(84% 0.18 190);
+	--color-accent: oklch(84% 0.14 190);
 	--color-accent-content: oklch(12% 0.018 212);
 
 	--color-neutral: oklch(15% 0.018 212);
-	--color-neutral-content: oklch(65% 0.012 205);
+	--color-neutral-content: oklch(68% 0.012 205);
 
-	--color-warning: oklch(74% 0.15 198);
-	--color-success: oklch(66% 0.16 178);
-
-	--color-error: oklch(65% 0.22 22);
-	--color-info: oklch(78% 0.18 200);
+	--color-warning: oklch(82% 0.14 100);
+	--color-success: oklch(74% 0.14 172);
+	--color-error: oklch(66% 0.16 22);
+	--color-info: oklch(82% 0.15 200);
 
 	/* Heading h2 */
-	--color-heading: oklch(90% 0.18 195);
+	--color-heading: oklch(90% 0.14 195);
 	/* Interactive links */
-	--color-link: oklch(72% 0.2 210);
+	--color-link: oklch(76% 0.15 210);
 	/* Subdued / muted text */
-	--color-muted: oklch(58% 0.01 205);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(64% 0.02 205);
+	/* Inline code surface */
 	--color-code-bg: oklch(11% 0.02 212);
 	--color-atmosphere-ink: oklch(36% 0.04 210);
 	--color-guestbook-pattern-ink: oklch(22.5% 0.031 211);
-	--color-matrix-rain: oklch(28% 0.06 205);
+	--color-matrix-rain: oklch(30% 0.06 205);
 
 	/* Cold glow (tight, clinical, not warm) */
 	--glow-active: inset 0 0 16px color-mix(in oklab, var(--color-primary), transparent 62%);
@@ -654,37 +699,36 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 	--color-base-300: oklch(16% 0.036 22);
 	--color-base-content: oklch(90% 0.012 22);
 
-	--color-primary: oklch(60% 0.26 22);
-	--color-primary-content: oklch(95% 0.008 22);
+	--color-primary: oklch(64% 0.17 22);
+	--color-primary-content: oklch(96% 0.008 22);
 
-	--color-secondary: oklch(48% 0.2 18);
-	--color-secondary-content: oklch(92% 0.01 22);
+	--color-secondary: oklch(54% 0.15 18);
+	--color-secondary-content: oklch(94% 0.01 22);
 
-	--color-accent: oklch(68% 0.28 16);
-	--color-accent-content: oklch(95% 0.008 22);
+	--color-accent: oklch(70% 0.18 16);
+	--color-accent-content: oklch(96% 0.008 22);
 
 	--color-neutral: oklch(14% 0.02 20);
-	--color-neutral-content: oklch(62% 0.01 22);
+	--color-neutral-content: oklch(64% 0.012 22);
 
-	--color-warning: oklch(72% 0.2 55);
-	--color-success: oklch(52% 0.12 155);
-
-	--color-error: oklch(68% 0.28 16);
-	--color-info: oklch(58% 0.14 230);
+	--color-warning: oklch(80% 0.16 62);
+	--color-success: oklch(68% 0.13 152);
+	--color-error: oklch(70% 0.19 20);
+	--color-info: oklch(70% 0.13 240);
 
 	/* Heading h2 */
-	--color-heading: oklch(72% 0.28 18);
+	--color-heading: oklch(72% 0.18 18);
 	/* Interactive links */
-	--color-link: oklch(72% 0.22 35);
+	--color-link: oklch(74% 0.17 40);
 	/* Subdued / muted text */
-	--color-muted: oklch(52% 0.008 22);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(60% 0.02 22);
+	/* Inline code surface */
 	--color-code-bg: oklch(10% 0.024 20);
 	--color-atmosphere-ink: oklch(34% 0.05 22);
 	--color-guestbook-pattern-ink: oklch(21% 0.037 21);
-	--color-matrix-rain: oklch(26% 0.09 22);
+	--color-matrix-rain: oklch(28% 0.09 22);
 
-	/* Maximum tension glow (the loudest flavor)*/
+	/* Maximum tension glow (the loudest flavor) */
 	--glow-active: inset 0 0 22px color-mix(in oklab, var(--color-primary), transparent 55%);
 	--glow-accent: 0 0 28px color-mix(in oklab, var(--color-accent), transparent 46%);
 	--glow-identity: 0 0 36px color-mix(in oklab, var(--color-primary), transparent 48%);
@@ -695,11 +739,54 @@ Flavors: crt-green | amber | synthwave | dos | void | ice | redline
 LIGHT MODE FLAVOR OVERRIDES
 ============================================
 Selectors: html[data-theme="light"][data-flavor="X"]
-Light mode suppresses glows (they read poorly on bright surfaces)
+Light mode suppresses glows (they read poorly on bright surfaces).
 ============================================
 */
 
 /* ─── LIGHT FLAVORS ─────────────────────────────────────────────────────── */
+
+/* 0. Observatory light - daytime dome. Pale sky surfaces, deep-indigo ink,
+      violet primary, teal-cyan secondary, warm gold star accent. */
+:where(html, .theme-scope)[data-theme="light"][data-flavor="observatory"] {
+	--color-base-100: oklch(96% 0.012 250);
+	--color-base-200: oklch(92% 0.018 255);
+	--color-base-300: oklch(87% 0.026 260);
+	--color-base-content: oklch(30% 0.06 275);
+
+	--color-primary: oklch(48% 0.14 280);
+	--color-primary-content: oklch(97% 0.015 280);
+
+	--color-secondary: oklch(50% 0.1 215);
+	--color-secondary-content: oklch(98% 0.01 215);
+
+	--color-accent: oklch(52% 0.12 65);
+	--color-accent-content: oklch(97% 0.02 80);
+
+	--color-neutral: oklch(86% 0.02 260);
+	--color-neutral-content: oklch(38% 0.04 270);
+
+	--color-info: oklch(50% 0.14 252);
+	--color-success: oklch(50% 0.11 160);
+	--color-warning: oklch(70% 0.13 82);
+	--color-error: oklch(52% 0.16 25);
+
+	/* Heading h2 */
+	--color-heading: oklch(42% 0.15 282);
+	/* Interactive links */
+	--color-link: oklch(46% 0.13 220);
+	/* Subdued / muted text */
+	--color-muted: oklch(48% 0.04 270);
+	/* Inline code surface */
+	--color-code-bg: oklch(90% 0.02 258);
+	--color-atmosphere-ink: oklch(76% 0.03 262);
+	--color-guestbook-pattern-ink: oklch(81% 0.02 260);
+	--color-matrix-rain: oklch(58% 0.08 250);
+
+	/* Suppress glow (light surfaces don't emit) */
+	--glow-active: inset 0 0 0 transparent;
+	--glow-accent: 0 0 0 transparent;
+	--glow-identity: 0 0 0 transparent;
+}
 
 /* 1. CRT Green light */
 :where(html, .theme-scope)[data-theme="light"][data-flavor="crt-green"] {
@@ -708,26 +795,34 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 	--color-base-300: oklch(87% 0.024 138);
 	--color-base-content: oklch(28% 0.09 148);
 
-	--color-primary: oklch(42% 0.17 150);
+	--color-primary: oklch(42% 0.15 150);
 	--color-primary-content: oklch(96% 0.012 140);
 
 	--color-secondary: oklch(52% 0.13 148);
 	--color-secondary-content: oklch(96% 0.012 140);
 
-	--color-accent: oklch(36% 0.14 145);
+	--color-accent: oklch(38% 0.13 145);
 	--color-accent-content: oklch(96% 0.012 140);
 
+	--color-neutral: oklch(87% 0.024 140);
+	--color-neutral-content: oklch(34% 0.1 148);
+
+	--color-info: oklch(48% 0.13 178);
+	--color-success: oklch(46% 0.13 150);
+	--color-warning: oklch(60% 0.14 110);
+	--color-error: oklch(50% 0.17 32);
+
 	/* Heading h2 */
-	--color-heading: oklch(30% 0.14 150);
+	--color-heading: oklch(30% 0.13 150);
 	/* Interactive links */
-	--color-link: oklch(36% 0.2 110);
+	--color-link: oklch(40% 0.15 118);
 	/* Subdued / muted text */
-	--color-muted: oklch(55% 0.06 142);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(46% 0.09 145);
+	/* Inline code surface */
 	--color-code-bg: oklch(90% 0.022 138);
 	--color-atmosphere-ink: oklch(76% 0.04 138);
 	--color-guestbook-pattern-ink: oklch(79% 0.029 138);
-	--color-matrix-rain: oklch(78% 0.075 148);
+	--color-matrix-rain: oklch(60% 0.11 148);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -737,31 +832,39 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 
 /* 2. Amber light */
 :where(html, .theme-scope)[data-theme="light"][data-flavor="amber"] {
-	--color-base-100: oklch(91.637% 0.034 90.515);
-	--color-base-200: oklch(88.272% 0.049 91.774);
-	--color-base-300: oklch(84.133% 0.065 90.856);
-	--color-base-content: oklch(41% 0.112 45.904);
+	--color-base-100: oklch(93% 0.03 88);
+	--color-base-200: oklch(89% 0.045 90);
+	--color-base-300: oklch(84% 0.06 89);
+	--color-base-content: oklch(36% 0.08 55);
 
-	--color-primary: oklch(85% 0.199 91.936);
-	--color-primary-content: oklch(22% 0.06 88);
+	--color-primary: oklch(56% 0.14 68);
+	--color-primary-content: oklch(97% 0.02 88);
 
-	--color-secondary: oklch(75% 0.183 55.934);
-	--color-secondary-content: oklch(22% 0.07 50);
+	--color-secondary: oklch(58% 0.15 50);
+	--color-secondary-content: oklch(97% 0.02 50);
 
-	--color-accent: oklch(62% 0.195 76);
-	--color-accent-content: oklch(97% 0.012 76);
+	--color-accent: oklch(50% 0.14 62);
+	--color-accent-content: oklch(97% 0.02 76);
+
+	--color-neutral: oklch(84% 0.06 88);
+	--color-neutral-content: oklch(40% 0.06 62);
+
+	--color-info: oklch(52% 0.13 218);
+	--color-success: oklch(50% 0.11 138);
+	--color-warning: oklch(66% 0.15 82);
+	--color-error: oklch(52% 0.18 35);
 
 	/* Heading h2 */
-	--color-heading: oklch(48% 0.18 68);
+	--color-heading: oklch(46% 0.15 65);
 	/* Interactive links */
-	--color-link: oklch(50% 0.24 38);
+	--color-link: oklch(50% 0.17 45);
 	/* Subdued / muted text */
-	--color-muted: oklch(55% 0.06 75);
-	/* Inline code surface (slightly elevated from base) */
-	--color-code-bg: oklch(82% 0.072 88);
-	--color-atmosphere-ink: oklch(72% 0.075 90);
-	--color-guestbook-pattern-ink: oklch(79% 0.075 89);
-	--color-matrix-rain: oklch(70% 0.075 90);
+	--color-muted: oklch(48% 0.07 68);
+	/* Inline code surface */
+	--color-code-bg: oklch(87% 0.05 88);
+	--color-atmosphere-ink: oklch(74% 0.07 90);
+	--color-guestbook-pattern-ink: oklch(80% 0.055 89);
+	--color-matrix-rain: oklch(60% 0.1 78);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -773,29 +876,37 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 :where(html, .theme-scope)[data-theme="light"][data-flavor="synthwave"] {
 	--color-base-100: oklch(97% 0.014 300);
 	--color-base-200: oklch(94% 0.028 298);
-	--color-base-300: oklch(89% 0.052 295);
-	--color-base-content: oklch(36% 0.12 295);
+	--color-base-300: oklch(89% 0.05 295);
+	--color-base-content: oklch(34% 0.11 295);
 
-	--color-primary: oklch(58% 0.24 300);
-	--color-primary-content: oklch(97% 0.008 300);
+	--color-primary: oklch(52% 0.18 300);
+	--color-primary-content: oklch(97% 0.01 300);
 
-	--color-secondary: oklch(55% 0.18 192);
-	--color-secondary-content: oklch(97% 0.006 192);
+	--color-secondary: oklch(50% 0.14 195);
+	--color-secondary-content: oklch(98% 0.008 195);
 
-	--color-accent: oklch(68% 0.19 58);
-	--color-accent-content: oklch(18% 0.04 56);
+	--color-accent: oklch(56% 0.15 55);
+	--color-accent-content: oklch(97% 0.02 56);
+
+	--color-neutral: oklch(89% 0.04 298);
+	--color-neutral-content: oklch(40% 0.1 296);
+
+	--color-info: oklch(50% 0.15 242);
+	--color-success: oklch(50% 0.12 168);
+	--color-warning: oklch(66% 0.14 90);
+	--color-error: oklch(52% 0.18 20);
 
 	/* Heading h2 */
-	--color-heading: oklch(50% 0.26 296);
+	--color-heading: oklch(46% 0.19 298);
 	/* Interactive links */
-	--color-link: oklch(42% 0.22 192);
+	--color-link: oklch(44% 0.16 195);
 	/* Subdued / muted text */
-	--color-muted: oklch(58% 0.03 295);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(48% 0.06 296);
+	/* Inline code surface */
 	--color-code-bg: oklch(91% 0.028 298);
 	--color-atmosphere-ink: oklch(78% 0.06 295);
 	--color-guestbook-pattern-ink: oklch(86% 0.039 296.5);
-	--color-matrix-rain: oklch(70% 0.09 295);
+	--color-matrix-rain: oklch(58% 0.12 298);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -810,26 +921,34 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 	--color-base-300: oklch(86% 0 0);
 	--color-base-content: oklch(22% 0.031 278);
 
-	--color-primary: oklch(58% 0.158 241.966);
+	--color-primary: oklch(48% 0.16 255);
 	--color-primary-content: oklch(100% 0 0);
 
-	--color-secondary: oklch(55% 0.046 257);
+	--color-secondary: oklch(50% 0.05 257);
 	--color-secondary-content: oklch(100% 0 0);
 
-	--color-accent: oklch(60% 0.118 184);
+	--color-accent: oklch(52% 0.12 200);
 	--color-accent-content: oklch(100% 0 0);
 
+	--color-neutral: oklch(86% 0 0);
+	--color-neutral-content: oklch(30% 0.03 260);
+
+	--color-info: oklch(50% 0.15 205);
+	--color-success: oklch(48% 0.12 150);
+	--color-warning: oklch(66% 0.15 92);
+	--color-error: oklch(50% 0.18 28);
+
 	/* Heading h2 */
-	--color-heading: oklch(28% 0.12 248);
+	--color-heading: oklch(30% 0.13 250);
 	/* Interactive links */
-	--color-link: oklch(44% 0.2 255);
+	--color-link: oklch(44% 0.18 258);
 	/* Subdued / muted text */
-	--color-muted: oklch(55% 0.015 260);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(46% 0.02 260);
+	/* Inline code surface */
 	--color-code-bg: oklch(90% 0 0);
 	--color-atmosphere-ink: oklch(74% 0.012 260);
 	--color-guestbook-pattern-ink: oklch(79% 0.006 130);
-	--color-matrix-rain: oklch(68% 0.03 260);
+	--color-matrix-rain: oklch(58% 0.06 258);
 
 	/* No glow (DOS was sharp, systematic UI) */
 	--glow-active: inset 0 0 0 transparent;
@@ -842,28 +961,36 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 	--color-base-100: oklch(100% 0 0);
 	--color-base-200: oklch(97% 0 0);
 	--color-base-300: oklch(94% 0 0);
-	--color-base-content: oklch(8% 0 0);
+	--color-base-content: oklch(12% 0 0);
 
-	--color-primary: oklch(16% 0 0);
+	--color-primary: oklch(20% 0 0);
 	--color-primary-content: oklch(100% 0 0);
 
-	--color-secondary: oklch(22% 0 0);
+	--color-secondary: oklch(34% 0 0);
 	--color-secondary-content: oklch(100% 0 0);
 
 	--color-accent: oklch(27% 0 0);
 	--color-accent-content: oklch(100% 0 0);
 
+	--color-neutral: oklch(94% 0 0);
+	--color-neutral-content: oklch(28% 0 0);
+
+	--color-info: oklch(48% 0.13 235);
+	--color-success: oklch(48% 0.11 155);
+	--color-warning: oklch(64% 0.13 85);
+	--color-error: oklch(50% 0.16 27);
+
 	/* Heading h2 */
 	--color-heading: oklch(12% 0 0);
 	/* Interactive links */
-	--color-link: oklch(32% 0 0);
+	--color-link: oklch(28% 0 0);
 	/* Subdued / muted text */
-	--color-muted: oklch(55% 0 0);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(48% 0 0);
+	/* Inline code surface */
 	--color-code-bg: oklch(92% 0 0);
 	--color-atmosphere-ink: oklch(78% 0 0);
 	--color-guestbook-pattern-ink: oklch(79% 0 0);
-	--color-matrix-rain: oklch(68% 0 0);
+	--color-matrix-rain: oklch(58% 0 0);
 
 	/* Absolute silence (no glow in the void) */
 	--glow-active: inset 0 0 0 transparent;
@@ -878,26 +1005,34 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 	--color-base-300: oklch(88% 0.014 210);
 	--color-base-content: oklch(22% 0.04 218);
 
-	--color-primary: oklch(46% 0.17 200);
+	--color-primary: oklch(46% 0.13 200);
 	--color-primary-content: oklch(98% 0.006 200);
 
-	--color-secondary: oklch(54% 0.12 205);
+	--color-secondary: oklch(52% 0.1 205);
 	--color-secondary-content: oklch(98% 0.004 205);
 
-	--color-accent: oklch(58% 0.16 195);
+	--color-accent: oklch(50% 0.12 195);
 	--color-accent-content: oklch(98% 0.004 195);
 
+	--color-neutral: oklch(88% 0.014 210);
+	--color-neutral-content: oklch(34% 0.04 210);
+
+	--color-info: oklch(48% 0.14 200);
+	--color-success: oklch(48% 0.12 172);
+	--color-warning: oklch(66% 0.14 98);
+	--color-error: oklch(52% 0.16 22);
+
 	/* Heading h2 */
-	--color-heading: oklch(28% 0.14 210);
+	--color-heading: oklch(30% 0.13 210);
 	/* Interactive links */
-	--color-link: oklch(42% 0.2 198);
+	--color-link: oklch(42% 0.15 200);
 	/* Subdued / muted text */
-	--color-muted: oklch(58% 0.012 210);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(48% 0.03 210);
+	/* Inline code surface */
 	--color-code-bg: oklch(92% 0.012 210);
 	--color-atmosphere-ink: oklch(78% 0.018 210);
 	--color-guestbook-pattern-ink: oklch(79% 0.012 210);
-	--color-matrix-rain: oklch(68% 0.06 205);
+	--color-matrix-rain: oklch(58% 0.06 205);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
@@ -910,28 +1045,36 @@ Light mode suppresses glows (they read poorly on bright surfaces)
 	--color-base-100: oklch(99% 0.006 22);
 	--color-base-200: oklch(96% 0.016 22);
 	--color-base-300: oklch(90% 0.04 22);
-	--color-base-content: oklch(30% 0.1 22);
+	--color-base-content: oklch(28% 0.09 22);
 
-	--color-primary: oklch(55% 0.26 22);
+	--color-primary: oklch(52% 0.19 24);
 	--color-primary-content: oklch(98% 0.006 22);
 
-	--color-secondary: oklch(48% 0.22 18);
+	--color-secondary: oklch(48% 0.17 18);
 	--color-secondary-content: oklch(97% 0.01 22);
 
-	--color-accent: oklch(62% 0.28 28);
+	--color-accent: oklch(54% 0.19 28);
 	--color-accent-content: oklch(98% 0.006 22);
 
+	--color-neutral: oklch(90% 0.04 22);
+	--color-neutral-content: oklch(34% 0.08 22);
+
+	--color-info: oklch(50% 0.14 242);
+	--color-success: oklch(48% 0.12 152);
+	--color-warning: oklch(66% 0.14 60);
+	--color-error: oklch(52% 0.19 24);
+
 	/* Heading h2 */
-	--color-heading: oklch(48% 0.28 20);
+	--color-heading: oklch(46% 0.19 22);
 	/* Interactive links */
-	--color-link: oklch(52% 0.26 35);
+	--color-link: oklch(50% 0.18 35);
 	/* Subdued / muted text */
-	--color-muted: oklch(58% 0.015 22);
-	/* Inline code surface (slightly elevated from base) */
+	--color-muted: oklch(48% 0.05 22);
+	/* Inline code surface */
 	--color-code-bg: oklch(93% 0.02 22);
 	--color-atmosphere-ink: oklch(78% 0.04 22);
 	--color-guestbook-pattern-ink: oklch(79% 0.025 22);
-	--color-matrix-rain: oklch(70% 0.09 22);
+	--color-matrix-rain: oklch(60% 0.11 22);
 
 	/* Suppress glow (light surfaces don't emit) */
 	--glow-active: inset 0 0 0 transparent;
