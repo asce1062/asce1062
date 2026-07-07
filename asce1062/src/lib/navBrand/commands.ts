@@ -183,7 +183,19 @@ export const NAVBRAND_COMMANDS: readonly NavBrandCommandDefinition[] = [
 		action: "toggle-pref",
 		intent: "toggle",
 		aliases: ["light", "dark"],
-		keywords: ["mode", "appearance", "flavor", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"],
+		keywords: [
+			"mode",
+			"appearance",
+			"flavor",
+			"observatory",
+			"crt-green",
+			"amber",
+			"synthwave",
+			"dos",
+			"void",
+			"ice",
+			"redline",
+		],
 	},
 	{
 		id: "background",
@@ -936,8 +948,19 @@ function getSuggestionRouteTargets(): string[] {
 	return [...new Set([...getNavBrandRouteEntries().map((entry) => entry.name), ...getRouteAliasTargets()])];
 }
 
-const THEME_FLAVOR_TARGETS = ["default", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"] as const;
+const THEME_FLAVOR_TARGETS = [
+	"default",
+	"observatory",
+	"crt-green",
+	"amber",
+	"synthwave",
+	"dos",
+	"void",
+	"ice",
+	"redline",
+] as const;
 const THEME_CHAINED_FLAVOR_TARGETS = [
+	"observatory",
 	"crt-green",
 	"amber",
 	"synthwave",
@@ -1078,9 +1101,9 @@ function isKnownDynamicCommand(input: string): boolean {
 		/^(search|find|lookup)\s+.+$/.test(input) ||
 		/^(copy|clip|clipboard|pbcopy)\s+(email|mail|contact|site|url|home|github|gh|repo)$/.test(input) ||
 		(routeMatch ? resolveRouteTarget(routeMatch[2]) !== null : false) ||
-		/^theme\s+(dark|light|toggle|default|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
-		/^theme\s+flavor\s+(default|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
-		/^theme\s+(dark|light)\s+(default|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
+		/^theme\s+(dark|light|toggle|default|observatory|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
+		/^theme\s+flavor\s+(default|observatory|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
+		/^theme\s+(dark|light)\s+(default|observatory|crt-green|amber|synthwave|dos|void|ice|redline)$/.test(input) ||
 		/^(background|bg)\s+(stars|matrix|space|rain|hiragana)(\s+(on|off|toggle))?$/.test(input) ||
 		/^(stars|matrix)(\s+(on|off|toggle))?$/.test(input) ||
 		/^(rain|hiragana|space)$/.test(input) ||

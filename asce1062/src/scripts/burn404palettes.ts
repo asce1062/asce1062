@@ -34,6 +34,10 @@ export const FIRE_COLOR_STOPS: Record<string, readonly string[]> = {
 	// ── Light base (same hues, cold end kept transparent) ────────────────────
 	light: ["#00000000", "#00000000", "#df4f07", "#cf770f", "#ffaa20", "#ffdd88", "#ffffff"],
 
+	// ── Observatory (nebula violet + gold starlight) ──────────────────────────
+	observatory: ["#0d001a00", "#0d001a00", "#2e0854", "#6a1b9a", "#b34fd9", "#ffd66b", "#fff6d9"],
+	"observatory-light": ["#0d001a00", "#0d001a00", "#5c2d91", "#9b4fd9", "#ffcf5c", "#fff6d9"],
+
 	// ── CRT Green (phosphor terminal) ─────────────────────────────────────────
 	"crt-green": ["#00110000", "#00110000", "#003300", "#007700", "#00cc44", "#55ff88", "#ccffcc"],
 	"crt-green-light": ["#00110000", "#00110000", "#006600", "#00cc44", "#44ff77", "#ccffcc"],

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FIRE_COLOR_STOPS, getActiveColorStops, buildPalette } from "@/scripts/burn404palettes";
 
-const DARK_KEYS = ["dark", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
+const DARK_KEYS = ["dark", "observatory", "crt-green", "amber", "synthwave", "dos", "void", "ice", "redline"];
 const LIGHT_KEYS = DARK_KEYS.map((k) => (k === "dark" ? "light" : `${k}-light`));
 const ALL_KEYS = [...DARK_KEYS, ...LIGHT_KEYS];
 

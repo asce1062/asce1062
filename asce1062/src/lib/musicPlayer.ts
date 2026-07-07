@@ -6,7 +6,17 @@
  * advancement can be tested without a browser or audio element.
  */
 
-export const MUSIC_PLAYER_FLAVORS = ["DEFAULT", "CRT", "AMBER", "SYNTHWAVE", "DOS", "VOID", "ICE", "REDLINE"] as const;
+export const MUSIC_PLAYER_FLAVORS = [
+	"DEFAULT",
+	"OBSERVATORY",
+	"CRT",
+	"AMBER",
+	"SYNTHWAVE",
+	"DOS",
+	"VOID",
+	"ICE",
+	"REDLINE",
+] as const;
 
 export type MusicPlayerFlavor = (typeof MUSIC_PLAYER_FLAVORS)[number];
 export type MusicRepeatMode = "none" | "all" | "one";
@@ -38,6 +48,8 @@ export interface MusicQueueResult<TTrack extends MusicPlaybackTrack = MusicPlayb
 
 export function getMusicPlayerFlavorFromSiteFlavor(siteFlavor: string | null | undefined): MusicPlayerFlavor {
 	switch (siteFlavor) {
+		case "observatory":
+			return "OBSERVATORY";
 		case "crt-green":
 			return "CRT";
 		case "amber":
@@ -59,6 +71,8 @@ export function getMusicPlayerFlavorFromSiteFlavor(siteFlavor: string | null | u
 
 export function getSiteFlavorFromMusicPlayerFlavor(playerFlavor: MusicPlayerFlavor): string {
 	switch (playerFlavor) {
+		case "OBSERVATORY":
+			return "observatory";
 		case "CRT":
 			return "crt-green";
 		case "AMBER":
