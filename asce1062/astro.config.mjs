@@ -172,7 +172,7 @@ export default defineConfig({
 				ignoreURLParametersMatching: [/^theme$/, /^dpl$/, /^utm_\w+/i, /^fbclid$/i, /^ref$/i],
 
 				// Offline fallback
-				navigateFallback: "/offline",
+				navigateFallback: "/offline/index.html",
 				navigateFallbackDenylist: [
 					/^\/api\//, // API routes. Always hit the network, never serve fallback
 					/\.xml(\?.*)?$/, // Don't intercept XML files (RSS, sitemap)

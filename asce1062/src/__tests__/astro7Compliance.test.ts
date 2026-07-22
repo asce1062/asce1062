@@ -14,6 +14,13 @@ describe("Astro 7 migration contracts", () => {
 		expect(packageJson.devDependencies?.["vite-plugin-pwa"]).toBeUndefined();
 	});
 
+	it("binds the production navigation fallback to the generated offline document", async () => {
+		const source = await readFile(projectFile("astro.config.mjs"), "utf8");
+
+		expect(source).toMatch(/workbox:\s*{[\s\S]*?navigateFallback:\s*"\/offline\/index\.html"/);
+		expect(source).toMatch(/devOptions:\s*{[\s\S]*?navigateFallback:\s*"\/offline"/);
+	});
+
 	it("uses explicit JSX spaces around multiline homepage links", async () => {
 		const source = await readFile(projectFile("src/pages/index.astro"), "utf8");
 
