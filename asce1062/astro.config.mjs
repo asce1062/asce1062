@@ -1,5 +1,4 @@
 import { defineConfig } from "astro/config";
-import db from "@astrojs/db";
 import netlify from "@astrojs/netlify";
 import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
@@ -20,7 +19,6 @@ export default defineConfig({
 		inlineStylesheets: "auto", // Optimize CSS delivery
 	},
 	integrations: [
-		db(),
 		sitemap({
 			filter: (page) => !page.includes("/404") && !page.includes("/success"),
 			changefreq: "weekly",

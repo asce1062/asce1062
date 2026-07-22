@@ -1,10 +1,11 @@
 /**
  * Guestbook API utilities
- * Handles Astro DB integration for guestbook entries
+ * Handles guestbook persistence through Drizzle and libSQL
  * with moderation classification, rate limiting, and hashing
  */
-import { db, Guestbook, GuestbookModerationLog, desc, eq, gte, isNull, isNotNull, or, and } from "astro:db";
-import { count } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNotNull, isNull, or } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { Guestbook, GuestbookModerationLog } from "@/lib/db/schema";
 
 export interface EntryStyle {
 	bg: string;
