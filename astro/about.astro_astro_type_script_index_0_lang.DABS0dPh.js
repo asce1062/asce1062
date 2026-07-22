@@ -1,0 +1,1 @@
+import{t as e}from"./asciiWidget.B6MAmEfv.js";var t=null;function n(){t?.(),t=null;let n=document.getElementById(`nav-brand-name`);n&&(n.textContent=`alex`),t=e(`neofetch`,{onRender:(e,t)=>{t&&n&&(n.textContent=e.text.toLowerCase())}})}document.addEventListener(`astro:page-load`,n);

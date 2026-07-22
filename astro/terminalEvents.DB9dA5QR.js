@@ -1,0 +1,1 @@
+var e=`navbrand:open-terminal`;export{e as t};

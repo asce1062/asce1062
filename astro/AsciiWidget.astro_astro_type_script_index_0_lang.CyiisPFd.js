@@ -1,0 +1,4 @@
+import{n as e}from"./feedbackManager.DtLGtzkD.js";function t(e){let{text:t,font:n,art:r}=JSON.parse(e),i=`[${n}]\n\n\`\`\`figlet
+`+r+"\n```",a="```json\n"+JSON.stringify({text:t,font:n,art:r},null,2)+"\n```";return i+`
+
+`+a}function n(){document.querySelectorAll(`.ascii-widget-copy`).forEach(e=>{e.addEventListener(`click`,async()=>{let n=e.dataset.widgetId;if(!n)return;let i=document.getElementById(n)?.dataset.asciiCurrent;if(i)try{await navigator.clipboard.writeText(t(i)),r(e)}catch{}})})}function r(t){let n=t.querySelector(`.ascii-copy-icon`),r=t.querySelector(`.ascii-check-icon`);!n||!r||e(n,r)}document.addEventListener(`astro:page-load`,n);

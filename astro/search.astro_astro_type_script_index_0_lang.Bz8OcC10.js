@@ -1,0 +1,1 @@
+import{i as e,n as t}from"./keyboardShortcuts.Xo_39153.js";var n=window;n.__searchPageShortcutCleanup?.(),n.__searchPageSlashShortcutCleanup?.(),n.__searchPageShortcutCleanup=t(),n.__searchPageSlashShortcutCleanup=e(()=>{document.querySelector(`.pagefind-ui__search-input`)?.focus()});

@@ -1,0 +1,1 @@
+import{t as e}from"./avatarMiniWidget.DWdCcnbb.js";var t=null;function n(){t?.abort(),t=e(`sidebar`)}document.addEventListener(`astro:page-load`,n);

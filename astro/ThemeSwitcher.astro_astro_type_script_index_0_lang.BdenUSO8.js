@@ -1,0 +1,1 @@
+import{c as e,d as t,s as n}from"./themeManager.DoWQrdUM.js";var r=null;function i(){r?.abort(),r=new AbortController;let{signal:i}=r;e();let a=document.getElementById(`theme-toggle-btn`);a&&a.addEventListener(`click`,n,{signal:i}),t(i)}document.addEventListener(`astro:page-load`,i);
