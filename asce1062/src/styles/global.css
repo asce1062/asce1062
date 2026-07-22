@@ -359,7 +359,7 @@
 
 	/* Greeting in Header */
 	.site-greeting {
-		@apply text-2xl md:text-3xl;
+		@apply text-2xl md:text-4xl;
 		display: inline-block; /* Constrain hover zone to text width, not full paragraph block */
 		min-height: 1.25em; /* Reserve the line box so typing effects do not shift the hr below */
 		line-height: 1.25;
