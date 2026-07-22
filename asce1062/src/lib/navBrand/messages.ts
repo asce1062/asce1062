@@ -13,14 +13,7 @@ export type ActiveTimeBucket = "activeMorning" | "activeAfternoon" | "activeEven
 export type TerminalAtmosphereReason = "load" | "route-enter" | "resume" | "idle" | "idle-return" | "random-time";
 
 export type MessagePoolKey =
-	| "arrival"
-	| ActiveTimeBucket
-	| "idle"
-	| "idleEscalation"
-	| "return"
-	| "system"
-	| "rare"
-	| "hints";
+	"arrival" | ActiveTimeBucket | "idle" | "idleEscalation" | "return" | "system" | "rare" | "hints";
 
 export type MessagePool = Record<MessagePoolKey, string[]>;
 

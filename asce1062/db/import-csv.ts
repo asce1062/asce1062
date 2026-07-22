@@ -1,15 +1,21 @@
 /**
- * Migration script: import Netlify Forms CSV export into Astro DB.
+ * Migration script: import a Netlify Forms CSV export into the guestbook database.
  *
  * Usage:
  *   1. Export guestbook entries from Netlify Forms dashboard as CSV
  *   2. Place the CSV at db/guestbook.csv
- *   3. Run: npx astro db execute db/import-csv.ts --remote
+ *   3. Set ASTRO_DB_REMOTE_URL and ASTRO_DB_APP_TOKEN for the target database
+ *   4. Run: npx tsx db/import-csv.ts
+ *
+ * Fresh databases only: this script assigns IDs beginning at 1 and will fail
+ * rather than overwrite existing rows.
  */
-import { db, Guestbook } from "astro:db";
+import { db } from "../src/lib/db/client";
+import { Guestbook } from "../src/lib/db/schema";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import Papa from "papaparse";
+import { count } from "drizzle-orm";
 
 interface NetlifyFormRow {
 	name: string;
@@ -19,7 +25,10 @@ interface NetlifyFormRow {
 	created_at: string;
 }
 
-export default async function () {
+async function importCsv() {
+	const [{ existingRows }] = await db.select({ existingRows: count() }).from(Guestbook);
+	if (existingRows > 0) throw new Error("CSV import requires an empty Guestbook table");
+
 	const csvPath = resolve("db/guestbook.csv");
 	const raw = readFileSync(csvPath, "utf-8");
 
@@ -57,3 +66,5 @@ export default async function () {
 
 	console.warn(`Done! ${entries.length} entries imported.`);
 }
+
+await importCsv();

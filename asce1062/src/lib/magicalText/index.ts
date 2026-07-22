@@ -1,3 +1,2 @@
-export type { AdornmentKind, AnimationType, RGBColor, MagicalTextOptions } from "./types";
-export type { AdornmentConfig } from "./adornments";
+export type { AdornmentKind, AnimationType, MagicalTextOptions } from "./types";
 export { bindMagicalText } from "./controller";

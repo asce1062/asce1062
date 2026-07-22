@@ -1,6 +1,11 @@
-import { db, Guestbook } from "astro:db";
+import { db } from "../src/lib/db/client";
+import { Guestbook } from "../src/lib/db/schema";
+import { count } from "drizzle-orm";
 
-export default async function seed() {
+async function seed() {
+	const [{ existingRows }] = await db.select({ existingRows: count() }).from(Guestbook);
+	if (existingRows > 0) throw new Error("Seed data requires an empty Guestbook table");
+
 	await db.insert(Guestbook).values([
 		{
 			id: 4,
@@ -534,3 +539,5 @@ PS: I also moonlight as a [chip musician](music.alexmbugua.me)
 		},
 	]);
 }
+
+await seed();

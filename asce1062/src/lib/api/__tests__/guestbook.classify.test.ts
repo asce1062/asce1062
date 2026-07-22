@@ -21,30 +21,20 @@
 import { describe, it, expect, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
-// Mock astro:db
+// Mock the database client
 // classifyEntry never touches the DB when ipHash is null. The mock just needs
 // to satisfy the import (none of these functions will be called).
 // ---------------------------------------------------------------------------
-vi.mock("astro:db", () => ({
+vi.mock("@/lib/db/client", () => ({
 	db: {
 		select: vi.fn(),
 		update: vi.fn(),
 		insert: vi.fn(),
 	},
-	Guestbook: {},
-	GuestbookModerationLog: {},
-	desc: vi.fn(),
-	eq: vi.fn(),
-	gte: vi.fn(),
-	isNull: vi.fn(),
-	isNotNull: vi.fn(),
-	or: vi.fn(),
-	and: vi.fn(),
 }));
 
-// drizzle-orm is a real installed package (transitive dep of @astrojs/db) but
-// count() is only used in countPendingEntries(), which isn't called here.
-// No mock needed, the real import works fine.
+// Drizzle operators and the schema are real imports. They only construct SQL
+// expressions in DB-dependent paths, which these tests deliberately bypass.
 
 import { classifyEntry } from "../guestbook";
 

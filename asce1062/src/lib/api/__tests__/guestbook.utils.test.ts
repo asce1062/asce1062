@@ -7,23 +7,18 @@
  * → same hash) and always 64 hex characters. A regression here silently
  * breaks dedup and rate-limiting in the guestbook.
  *
- * `astro:db` is a Vite virtual module. It must be mocked before any import
- * from guestbook.ts so Vitest can resolve the module.
+ * The database client is mocked before importing guestbook.ts so these utility
+ * tests never open the local SQLite database.
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-vi.mock("astro:db", () => ({
+vi.mock("@/lib/db/client", () => ({
 	db: {
 		select: vi.fn(),
 		insert: vi.fn(),
 		update: vi.fn(),
 		delete: vi.fn(),
 	},
-	Guestbook: {},
-	eq: vi.fn(),
-	and: vi.fn(),
-	gt: vi.fn(),
-	sql: vi.fn(),
 }));
 
 import { hashValue, safeParseReasons, assertStatus } from "@/lib/api/guestbook";

@@ -23,7 +23,7 @@
  *   — or import via MagicalText.astro which includes it automatically.
  *
  * Adding a new adornment shape:
- *   See src/lib/magicalText/adornments.ts for step-by-step instructions.
+ *   See src/lib/shared/adornments.ts for step-by-step instructions.
  */
 
 import type { AdornmentKind, AnimationType, MagicalTextOptions } from "@/lib/magicalText";

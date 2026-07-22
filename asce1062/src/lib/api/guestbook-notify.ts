@@ -68,8 +68,7 @@ const TRANSIENT_ERROR_PATTERN = /ECONNRESET|ETIMEDOUT|ENOTFOUND|ECONNREFUSED/i;
 const COPY_SKIP_PENDING_REASONS = new Set(["link_only", "multiple_urls"]);
 
 export type EmailResult =
-	| { ok: true; rid?: string }
-	| { ok: false; reason: string; status?: number; code?: string; rid?: string };
+	{ ok: true; rid?: string } | { ok: false; reason: string; status?: number; code?: string; rid?: string };
 
 export interface NotifyInput {
 	name: string;

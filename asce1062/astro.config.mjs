@@ -1,11 +1,10 @@
 import { defineConfig } from "astro/config";
-import db from "@astrojs/db";
 import netlify from "@astrojs/netlify";
 import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
 import pagefind from "astro-pagefind";
 import markdownConfig from "./markdown.config";
-import AstroPWA from "@vite-pwa/astro";
+import { createPwaIntegration } from "./src/integrations/pwa";
 import { readdir, copyFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +19,6 @@ export default defineConfig({
 		inlineStylesheets: "auto", // Optimize CSS delivery
 	},
 	integrations: [
-		db(),
 		sitemap({
 			filter: (page) => !page.includes("/404") && !page.includes("/success"),
 			changefreq: "weekly",
@@ -29,7 +27,7 @@ export default defineConfig({
 		}),
 		mdx(),
 		pagefind(),
-		AstroPWA({
+		createPwaIntegration({
 			mode: "production",
 			base: "/",
 			scope: "/",
@@ -202,7 +200,7 @@ export default defineConfig({
 				// Explicitly set globDirectory to dist/ so Workbox scans the correct
 				// directory on Netlify SSR builds. @astrojs/netlify v7 sets
 				// config.build.client to .netlify/build/ (the SSR function dir), which
-				// @vite-pwa/astro would otherwise use — producing "no files matched"
+				// vite-plugin-pwa would otherwise use — producing "no files matched"
 				// warnings and an empty precache manifest.
 				globDirectory: fileURLToPath(new URL("dist/", import.meta.url)),
 				globPatterns: [
@@ -321,13 +319,13 @@ export default defineConfig({
 			},
 		}),
 		// @astrojs/netlify sets config.build.client to .netlify/build/ (its SSR build
-		// directory) rather than dist/. @vite-pwa/astro picks that up as both the glob
+		// directory) rather than dist/. The PWA plugin picks that up as both the glob
 		// source and the output directory, so sw.js ends up in .netlify/build/ and not in
 		// dist/ where Netlify serves static files.
 		//
-		// This integration runs AFTER @vite-pwa/astro in astro:build:done and copies
+		// This integration runs after PWA generation in astro:build:done and copies
 		// sw.js + workbox-*.js from .netlify/build/ to dist/. If the source doesn't
-		// exist (e.g. local static builds where @vite-pwa/astro writes directly to
+		// exist (e.g. local static builds where vite-plugin-pwa writes directly to
 		// dist/) it exits silently.
 		{
 			name: "pwa-sw-copy-to-dist",

@@ -7,7 +7,6 @@
     "@netlify/plugin-lighthouse",
     "autoprefixer",
     "postcss-nesting",
-    "drizzle-orm",
     "lint-staged"
   ],
   "ignore": ["public/fonts/**", "public/**/demo-files/**"],
