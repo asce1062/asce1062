@@ -63,6 +63,7 @@
     "tailwindcss": "^4.3.3",
     "typescript": "6.0.3",
     "validator": "^13.15.35",
+    "vite-plugin-pwa": "^1.3.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
@@ -87,7 +88,6 @@
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-toml": "^2.0.6",
     "tsx": "^4.21.0",
-    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.10"
   },
   "lint-staged": {
