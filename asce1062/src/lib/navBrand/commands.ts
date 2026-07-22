@@ -18,14 +18,7 @@ import { mainNavigation } from "@/data/navigation";
  * duplicated labels, routes, or search behavior.
  */
 export type NavBrandCommandAction =
-	| "search-handoff"
-	| "navigate"
-	| "hint"
-	| "toggle-pref"
-	| "external-link"
-	| "copy"
-	| "message"
-	| "terminal";
+	"search-handoff" | "navigate" | "hint" | "toggle-pref" | "external-link" | "copy" | "message" | "terminal";
 export type NavBrandCommandIntentGroup =
 	| "search"
 	| "navigation"

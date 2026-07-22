@@ -30,7 +30,6 @@ async function getOGRoute() {
 	const pages = { ...blogPages, ...notePages };
 
 	return OGImageRoute({
-		param: "route",
 		pages,
 		getImageOptions: (_path, page) => ({
 			title: page.frontmatter.title,

@@ -19,14 +19,7 @@ type AsciiVariant = { readonly text: string; readonly font: string; readonly art
 const asciiVariants = (asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer");
 
 type ConsoleColorRole =
-	| "primary"
-	| "secondary"
-	| "accent"
-	| "warning"
-	| "success"
-	| "info"
-	| "baseContent"
-	| "neutralContent";
+	"primary" | "secondary" | "accent" | "warning" | "success" | "info" | "baseContent" | "neutralContent";
 
 const colorVars: Record<ConsoleColorRole, string> = {
 	primary: "--color-primary",

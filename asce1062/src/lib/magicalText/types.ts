@@ -1,5 +1,4 @@
 export type { AdornmentKind, AnimationType } from "../shared/adornments";
-export type { RGBColor } from "../shared/colorUtils";
 
 export type MagicalTextOptions = {
 	/** CSS color strings. Default: ['darkorange', 'purple'] */
