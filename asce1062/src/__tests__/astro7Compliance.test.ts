@@ -4,6 +4,16 @@ import { describe, expect, it } from "vitest";
 const projectFile = (path: string) => new URL(`../../${path}`, import.meta.url);
 
 describe("Astro 7 migration contracts", () => {
+	it("installs the directly imported PWA plugin in production", async () => {
+		const packageJson = JSON.parse(await readFile(projectFile("package.json"), "utf8")) as {
+			dependencies?: Record<string, string>;
+			devDependencies?: Record<string, string>;
+		};
+
+		expect(packageJson.dependencies?.["vite-plugin-pwa"]).toBeDefined();
+		expect(packageJson.devDependencies?.["vite-plugin-pwa"]).toBeUndefined();
+	});
+
 	it("uses explicit JSX spaces around multiline homepage links", async () => {
 		const source = await readFile(projectFile("src/pages/index.astro"), "utf8");
 
