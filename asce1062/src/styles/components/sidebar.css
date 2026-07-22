@@ -342,15 +342,78 @@ body:has(#nav-toggle:checked) {
 	cursor: pointer;
 }
 
-.nav-link:hover,
-.nav-link--active {
-	background-color: var(--color-base-200);
+.nav-link:hover {
+	background-color: transparent;
+	background-image: conic-gradient(
+		color-mix(in oklab, var(--color-secondary), transparent 62%) 25%,
+		transparent 0 50%,
+		color-mix(in oklab, var(--color-secondary), transparent 62%) 0 75%,
+		transparent 0
+	);
+	background-size: 6px 6px;
 	color: var(--color-base-content);
 }
 
 .nav-link--active {
-	border-left: 2px solid var(--color-accent);
-	box-shadow: var(--glow-active);
+	background-color: transparent;
+	background-image:
+		linear-gradient(90deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(180deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(90deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(180deg, var(--color-accent) 50%, transparent 50%);
+	background-position:
+		0 0,
+		100% 0,
+		0 100%,
+		0 0,
+		0 0;
+	background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+	background-size:
+		8px 1px,
+		1px 8px,
+		8px 1px,
+		1px 8px;
+	color: var(--color-base-content);
+	animation: nav-marching-ants 650ms linear infinite;
+}
+
+.nav-link--active:hover {
+	background-color: var(--color-base-200);
+	background-image:
+		linear-gradient(90deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(180deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(90deg, var(--color-accent) 50%, transparent 50%),
+		linear-gradient(180deg, var(--color-accent) 50%, transparent 50%),
+		conic-gradient(
+			color-mix(in oklab, var(--color-secondary), transparent 62%) 25%,
+			transparent 0 50%,
+			color-mix(in oklab, var(--color-secondary), transparent 62%) 0 75%,
+			transparent 0
+		);
+	background-repeat: repeat-x, repeat-y, repeat-x, repeat-y, repeat;
+	background-size:
+		8px 1px,
+		1px 8px,
+		8px 1px,
+		1px 8px,
+		6px 6px;
+}
+
+@keyframes nav-marching-ants {
+	to {
+		background-position:
+			8px 0,
+			100% 8px,
+			-8px 100%,
+			0 -8px,
+			0 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nav-link--active {
+		animation: none;
+	}
 }
 
 .nav-link:focus-visible {
@@ -363,10 +426,24 @@ body:has(#nav-toggle:checked) {
 	background-color: var(--color-base-200);
 } */
 
-.nav-link:hover .nav-icon,
+.nav-link:hover .nav-icon {
+	color: var(--color-accent);
+	transform: rotate(-6deg);
+}
+
+.nav-link:hover .nav-text {
+	color: var(--color-accent);
+	transform: rotate(6deg);
+}
+
 .nav-link--active .nav-icon {
 	color: var(--color-accent);
 	transform: rotate(6deg);
+}
+
+.nav-link--active .nav-text {
+	color: var(--color-accent);
+	transform: rotate(-6deg);
 }
 
 .nav-icon {
@@ -1075,12 +1152,6 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		opacity: 1;
 		overflow: visible;
 		pointer-events: auto;
-	}
-
-	/* Active left-border still renders on the centered icon. */
-	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-link--active {
-		border-left: 2px solid var(--color-accent);
-		box-shadow: none;
 	}
 
 	/*
