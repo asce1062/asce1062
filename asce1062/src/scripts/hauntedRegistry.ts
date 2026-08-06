@@ -9,7 +9,9 @@
  * Markup contract:
  *   data-haunted                                  activate (required)
  *   data-haunted-creature="ghost"                 ghost | ghost-alt | heart | star
- *   data-haunted-disable-fun                      presence → disable all effects
+ *   data-haunted-disable-fun                      presence → disable all effects (glow and creatures)
+ *   data-haunted-disable-glow                     presence → disable only the glow, independent of disable-fun
+ *   data-haunted-disable-creatures                presence → disable only the creature fly-out, independent of disable-fun
  *   data-haunted-animation-time="1.5"             creature fly duration (s)
  *   data-haunted-number-of="6"                    number of creatures
  *   data-haunted-distance="200"                   travel distance (px)
@@ -34,6 +36,14 @@ function readHauntedConfig(el: HTMLElement): HauntedOptions {
 
 	if ("hauntedDisableFun" in el.dataset) {
 		opts.disableFun = true;
+	}
+
+	if ("hauntedDisableGlow" in el.dataset) {
+		opts.disableGlow = true;
+	}
+
+	if ("hauntedDisableCreatures" in el.dataset) {
+		opts.disableCreatures = true;
 	}
 
 	const creatureOptions: NonNullable<HauntedOptions["creatureOptions"]> = {};

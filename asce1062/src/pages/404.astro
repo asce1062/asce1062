@@ -47,11 +47,33 @@ const variantsJson = JSON.stringify(variants404);
 				<span class="ml-1 text-warning">cat ~/what-happened.txt</span>
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
-			<h2><i class="icon-question-circle"></i> Looks like you're lost.</h2>
-			<p>
-				This page doesn't exist. It may have moved, been removed, or the URL might just be wrong. Nothing to de<i
-					class="icon-bug"
-					aria-label="bug"></i> here, genuinely nothing at this path.
+			<h2>
+				<i class="icon-question-circle"></i>{" "}
+				<span
+					data-text-effect="typewriter"
+					data-text-effect-triggers="load, intersection, idle-return, resume"
+					data-text-effect-typewriter-delay-ms="200"
+					data-text-effect-typewriter-cursor-blink-ms="530"
+					data-text-effect-typewriter-stutter-chance="0.4"
+					data-text-effect-typewriter-stutter-ms="500"
+					data-text-effect-typewriter-lead-in-ms="1000"
+					data-text-effect-typewriter-cycle="or not...|...set the page on fire 🔥"
+					data-text-effect-typewriter-cycle-delay-ms="4053"
+					data-text-effect-typewriter-loop>
+					Looks like you're lost.
+				</span>
+			</h2>
+			<p
+				data-text-effect="glitch"
+				data-text-effect-triggers="load, intersection, idle-return, resume"
+				data-text-effect-glitch-charset="letters"
+				data-text-effect-glitch-reverse
+				data-text-effect-glitch-delay-ms="100"
+				data-text-effect-glitch-count="5"
+				data-text-effect-glitch-shimmer-ms="5000"
+				data-text-effect-glitch-shimmer="true">
+				This page doesn't exist. It may have moved, been removed, or the URL might just be wrong. Nothing to debug here,
+				genuinely nothing at this path.
 			</p>
 		</section>
 
@@ -88,7 +110,12 @@ const variantsJson = JSON.stringify(variants404);
 				<span class="ml-1 text-warning">ls ~/find-your-way/</span>
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
-			<h2><i class="icon-signpost-split"></i> Find your way back.</h2>
+			<h2>
+				<i class="icon-signpost-split"></i>{" "}
+				<span data-text-effect="signal-loss, glitch-lock-on" data-text-effect-triggers="intersection">
+					Find your way back.
+				</span>
+			</h2>
 			<div class="flex flex-wrap gap-3 mt-4">
 				<a href="/" class="link-action no-underline">
 					<i class="icon-house-heart"></i>

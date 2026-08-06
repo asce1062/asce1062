@@ -19,4 +19,5 @@ export const CREATURES: Record<CreatureKind, string> = {
 	"north-star": ADORNMENTS["north-star"].svg,
 	"music-note": ADORNMENTS["music-note"].svg,
 	cassette: ADORNMENTS["cassette"].svg,
+	"waving-hand": ADORNMENTS["waving-hand"].svg,
 };

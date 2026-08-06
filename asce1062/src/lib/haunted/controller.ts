@@ -56,7 +56,10 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		typeof window.matchMedia === "function" &&
 		window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-	if (disableFun || reducedMotion) return () => {};
+	const glowEnabled = !disableFun && !reducedMotion && !(opts.disableGlow ?? false);
+	const creaturesEnabled = !disableFun && !reducedMotion && !(opts.disableCreatures ?? false);
+
+	if (!glowEnabled && !creaturesEnabled) return () => {};
 
 	const creature = opts.creature ?? "ghost";
 	const cOpts = { ...DEFAULT_CREATURE_OPTIONS, ...opts.creatureOptions };
@@ -70,57 +73,63 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		...opts.glowOptions,
 	};
 
-	const isColorTracked = ADORNMENTS[creature].colorTracked;
-	const usingDefaultCreatureColor = isColorTracked && (!cOpts.colors || cOpts.colors.length === 0);
-	let resolvedCreatureColors: string[] | null = !isColorTracked
-		? null
-		: cOpts.colors && cOpts.colors.length > 0
-			? cOpts.colors
-			: [resolveThemeCSSVar("--color-primary", el)];
-
 	// Ensure container is positioned so absolutely-placed creatures are contained
 	let positionSet = false;
-	if (typeof window !== "undefined" && window.getComputedStyle(el).position === "static") {
-		el.style.position = "relative";
-		positionSet = true;
-	}
-
-	// Creature layer sits behind the content (z-index 0, no pointer events)
-	const creatureLayer = document.createElement("div");
-	creatureLayer.className = "haunted-creatures";
-	el.prepend(creatureLayer);
-
-	const svgStr = CREATURES[creature];
-	const n = Math.max(1, cOpts.numberOf);
+	let creatureLayer: HTMLElement | null = null;
 	const creatureEls: CreatureEl[] = [];
 	const canPlay: boolean[] = [];
+	let usingDefaultCreatureColor = false;
+	let resolvedCreatureColors: string[] | null = null;
 
-	for (let i = 0; i < n; i++) {
-		const wrap = document.createElement("div");
-		wrap.className = "haunted-creature-wrap";
+	if (creaturesEnabled) {
+		const isColorTracked = ADORNMENTS[creature].colorTracked;
+		usingDefaultCreatureColor = isColorTracked && (!cOpts.colors || cOpts.colors.length === 0);
+		resolvedCreatureColors = !isColorTracked
+			? null
+			: cOpts.colors && cOpts.colors.length > 0
+				? cOpts.colors
+				: [resolveThemeCSSVar("--color-primary", el)];
 
-		const fly = document.createElement("div");
-		fly.className = "haunted-creature-fly";
-
-		const wave = document.createElement("div");
-		wave.className = "haunted-creature-wave";
-		wave.innerHTML = svgStr;
-
-		const svgEl = wave.querySelector("svg");
-		if (svgEl) {
-			svgEl.setAttribute("width", String(cOpts.dimensions.width));
-			svgEl.setAttribute("height", String(cOpts.dimensions.height));
-			if (resolvedCreatureColors) {
-				svgEl.style.color = resolvedCreatureColors[i % resolvedCreatureColors.length]!;
-			}
+		if (typeof window !== "undefined" && window.getComputedStyle(el).position === "static") {
+			el.style.position = "relative";
+			positionSet = true;
 		}
 
-		fly.appendChild(wave);
-		wrap.appendChild(fly);
-		creatureLayer.appendChild(wrap);
+		// Creature layer sits behind the content (z-index 0, no pointer events)
+		creatureLayer = document.createElement("div");
+		creatureLayer.className = "haunted-creatures";
+		el.prepend(creatureLayer);
 
-		creatureEls.push({ wrap, fly, wave });
-		canPlay.push(true);
+		const svgStr = CREATURES[creature];
+		const n = Math.max(1, cOpts.numberOf);
+
+		for (let i = 0; i < n; i++) {
+			const wrap = document.createElement("div");
+			wrap.className = "haunted-creature-wrap";
+
+			const fly = document.createElement("div");
+			fly.className = "haunted-creature-fly";
+
+			const wave = document.createElement("div");
+			wave.className = "haunted-creature-wave";
+			wave.innerHTML = svgStr;
+
+			const svgEl = wave.querySelector("svg");
+			if (svgEl) {
+				svgEl.setAttribute("width", String(cOpts.dimensions.width));
+				svgEl.setAttribute("height", String(cOpts.dimensions.height));
+				if (resolvedCreatureColors) {
+					svgEl.style.color = resolvedCreatureColors[i % resolvedCreatureColors.length]!;
+				}
+			}
+
+			fly.appendChild(wave);
+			wrap.appendChild(fly);
+			creatureLayer.appendChild(wrap);
+
+			creatureEls.push({ wrap, fly, wave });
+			canPlay.push(true);
+		}
 	}
 
 	let glowAnim: Animation | null = null;
@@ -132,12 +141,16 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	}
 
 	function onMouseEnter(): void {
-		// Looping glow pulse
-		if (glowAnim) glowAnim.cancel();
-		glowAnim = el.animate(
-			[{ boxShadow: gOpts.boxShadowOff }, { boxShadow: gOpts.boxShadowOn }, { boxShadow: gOpts.boxShadowOff }],
-			{ duration: gOpts.animationTime * 1000, iterations: Infinity, easing: "ease-in-out" }
-		);
+		if (glowEnabled) {
+			// Looping glow pulse
+			if (glowAnim) glowAnim.cancel();
+			glowAnim = el.animate(
+				[{ boxShadow: gOpts.boxShadowOff }, { boxShadow: gOpts.boxShadowOn }, { boxShadow: gOpts.boxShadowOff }],
+				{ duration: gOpts.animationTime * 1000, iterations: Infinity, easing: "ease-in-out" }
+			);
+		}
+
+		if (!creaturesEnabled) return;
 
 		const rect = el.getBoundingClientRect();
 		const hw = cOpts.dimensions.width / 2;
@@ -201,15 +214,17 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	}
 
 	function onMouseLeave(): void {
-		// Cancel the looping glow and fade box-shadow back to off
-		if (glowAnim) {
-			glowAnim.cancel();
-			glowAnim = null;
+		if (glowEnabled) {
+			// Cancel the looping glow and fade box-shadow back to off
+			if (glowAnim) {
+				glowAnim.cancel();
+				glowAnim = null;
+			}
+			el.animate([{ boxShadow: gOpts.boxShadowOff }], {
+				duration: gOpts.animationTime * 1000,
+				fill: "forwards",
+			});
 		}
-		el.animate([{ boxShadow: gOpts.boxShadowOff }], {
-			duration: gOpts.animationTime * 1000,
-			fill: "forwards",
-		});
 
 		// Re-arm all creatures for the next hover
 		canPlay.fill(true);
@@ -218,16 +233,17 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	el.addEventListener("mouseenter", onMouseEnter);
 	el.addEventListener("mouseleave", onMouseLeave);
 
-	const usingDefaultGlow = !opts.glowOptions?.boxShadowOff && !opts.glowOptions?.boxShadowOn;
+	const usingDefaultGlow = glowEnabled && !opts.glowOptions?.boxShadowOff && !opts.glowOptions?.boxShadowOn;
+	const trackCreatureColor = creaturesEnabled && usingDefaultCreatureColor;
 	let onFlavorChange: (() => void) | null = null;
-	if ((usingDefaultGlow || usingDefaultCreatureColor) && typeof document !== "undefined") {
+	if ((usingDefaultGlow || trackCreatureColor) && typeof document !== "undefined") {
 		onFlavorChange = () => {
 			if (usingDefaultGlow) {
 				const fresh = buildGlowDefaults(el);
 				gOpts.boxShadowOff = fresh.boxShadowOff;
 				gOpts.boxShadowOn = fresh.boxShadowOn;
 			}
-			if (usingDefaultCreatureColor) {
+			if (trackCreatureColor) {
 				resolvedCreatureColors = [resolveThemeCSSVar("--color-primary", el)];
 				creatureEls.forEach(({ wave }, idx) => {
 					const svgEl = wave.querySelector("svg");
@@ -251,7 +267,7 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 			fly.getAnimations().forEach((a) => a.cancel());
 			wave.getAnimations().forEach((a) => a.cancel());
 		});
-		creatureLayer.remove();
+		creatureLayer?.remove();
 		if (positionSet) el.style.removeProperty("position");
 	};
 }

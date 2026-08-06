@@ -35,8 +35,10 @@
 	border-color: var(--color-accent);
 }
 
-/* Ensure content always sits above the patterned ::before layer */
-.entry-bubble > * {
+/* Ensure content always sits above the patterned ::before layer.
+   Scoped to .haunted-content (not a bare `> *`) so it doesn't fight
+   Haunted's own .haunted-creatures absolute/z-index:0 overlay. */
+.entry-bubble > .haunted-content {
 	position: relative;
 	z-index: 1;
 }
