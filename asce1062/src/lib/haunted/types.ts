@@ -36,6 +36,10 @@ export type HauntedOptions = {
 	creature?: CreatureKind;
 	creatureOptions?: HauntedCreatureOptions;
 	glowOptions?: HauntedGlowOptions;
-	/** Set true to disable all effects. Default: false */
+	/** Set true to disable all effects (glow and creatures). Default: false */
 	disableFun?: boolean;
+	/** Set true to disable only the box-shadow glow, independent of disableFun. Default: false */
+	disableGlow?: boolean;
+	/** Set true to disable only the creature fly-out, independent of disableFun. Default: false */
+	disableCreatures?: boolean;
 };

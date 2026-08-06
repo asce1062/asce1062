@@ -55,13 +55,13 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 
 	const inner = document.createElement("span");
 	inner.className = "magical-text-inner";
-	inner.textContent = el.dataset.magicalTextOriginal ?? originalInnerHTML;
+	inner.innerHTML = el.dataset.magicalTextOriginal ?? originalInnerHTML;
 	inner.style.setProperty("--mt-colors", colors.join(", "));
 	inner.style.setProperty("--mt-time", `${animTimeS}s`);
 	el.appendChild(inner);
 
 	// Store original so re-runs don't accumulate wrappers
-	el.dataset.magicalTextOriginal = inner.textContent ?? "";
+	el.dataset.magicalTextOriginal = inner.innerHTML;
 
 	let rafId: number | null = null;
 	let fadeTable: RGBColor[] | null = null;

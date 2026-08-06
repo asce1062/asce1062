@@ -15,7 +15,9 @@
  *     distance        Travel distance in px. Default: 200
  *     repeat          false = one-shot per page load. Default: true
  *     dimensions      { width, height } of each creature in px. Default: { 44, 44 }
- *   disableFun        true to disable all effects. Default: false
+ *   disableFun        true to disable all effects (glow and creatures). Default: false
+ *   disableGlow       true to disable only the box-shadow glow, independent of disableFun. Default: false
+ *   disableCreatures  true to disable only the creature fly-out, independent of disableFun. Default: false
  *   glowOptions       Fine-tune the box-shadow glow:
  *     animationTime   Glow pulse cycle in seconds. Default: 3
  *     boxShadowOff    box-shadow CSS value at glow low point.
@@ -68,6 +70,8 @@ interface Props {
 	creatureColors?: string[];
 	creatureOptions?: HauntedCreatureOptions;
 	disableFun?: boolean;
+	disableGlow?: boolean;
+	disableCreatures?: boolean;
 	glowOptions?: HauntedGlowOptions;
 	style?: Record<string, string>;
 	tag?:
@@ -97,6 +101,8 @@ const {
 	creatureColors,
 	creatureOptions,
 	disableFun,
+	disableGlow,
+	disableCreatures,
 	glowOptions,
 	style,
 	tag: Tag = "div",
@@ -117,6 +123,8 @@ const dataAttrs: Record<string, string> = { "data-haunted": "" };
 if (creature) dataAttrs["data-haunted-creature"] = creature;
 if (creatureColors && creatureColors.length > 0) dataAttrs["data-haunted-creature-colors"] = creatureColors.join(",");
 if (disableFun) dataAttrs["data-haunted-disable-fun"] = "";
+if (disableGlow) dataAttrs["data-haunted-disable-glow"] = "";
+if (disableCreatures) dataAttrs["data-haunted-disable-creatures"] = "";
 if (creatureOptions?.animationTime !== undefined)
 	dataAttrs["data-haunted-animation-time"] = String(creatureOptions.animationTime);
 if (creatureOptions?.numberOf !== undefined) dataAttrs["data-haunted-number-of"] = String(creatureOptions.numberOf);
