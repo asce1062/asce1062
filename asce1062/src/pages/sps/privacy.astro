@@ -18,8 +18,12 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-shield-check"></i> SPS Privacy Policy</h2>
 			<p>
-				This policy covers the <b>Self Prompting System</b> ("SPS") Discord application, a private engineering tool I operate.
-				It is separate from this website. The <a href="/privacy/">website privacy policy</a> covers alexmbugua.me and its
+				This policy covers the <b>Self Prompting System</b> ("SPS") Discord application, a private engineering tool. In this
+				policy, "the operator" means the person who runs SPS and is responsible for it, and "authorized users" means the people
+				the operator has explicitly allowed to use its Discord interface.
+			</p>
+			<p>
+				SPS is separate from this website. The <a href="/privacy/">website privacy policy</a> covers alexmbugua.me and its
 				guestbook, and none of the guestbook's storage, spam filtering, or vendor arrangements apply to SPS.
 			</p>
 			<p>
@@ -38,8 +42,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-hourglass-split"></i> Where things stand</h2>
 			<p>
 				SPS is a Windows-first orchestration system that runs locally and carries out engineering work through Claude
-				Code and Codex CLI workflows, using my existing sign-ins to those tools. A supervised fixture controller exists
-				today.
+				Code and Codex CLI workflows, using the operator's existing sign-ins to those tools. A supervised fixture
+				controller exists today.
 			</p>
 			<p>
 				<b>The Discord application is planned and not yet operational.</b> It does not collect anything from Discord at the
@@ -56,8 +60,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-discord"></i> What the Discord interface is for</h2>
 			<p>
-				It is meant for operators I have explicitly authorized, not for the public. Through slash commands, buttons, and
-				forms, it is intended to:
+				It is meant only for authorized users, not for the public. Through slash commands, buttons, and forms, it is
+				intended to:
 			</p>
 			<ul>
 				<li>show progress on authorized runs</li>
@@ -89,8 +93,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 				<li><b>References to engineering evidence</b> and audit records associated with a run.</li>
 			</ul>
 			<p>
-				Please keep passwords, tokens, and other people's personal information out of anything you submit. I can't
-				promise that submitted feedback, evidence, or exports will never contain sensitive information, so the safest
+				Keep passwords, tokens, and other people's personal information out of anything you submit. There is no
+				guarantee that submitted feedback, evidence, or exports will never contain sensitive information, so the safest
 				approach is not to put it there.
 			</p>
 		</section>
@@ -116,9 +120,9 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-diagram-3"></i> Where data goes</h2>
-			<p>Not all of it stays on one machine:</p>
+			<p>Not all of it stays on one computer:</p>
 			<ul>
-				<li><b>My computer:</b> controller state is stored on my Windows computer, where SPS runs.</li>
+				<li><b>Local computer:</b> controller state is stored on the computer where SPS runs.</li>
 				<li>
 					<b>Model providers:</b> selected feedback and task context may be passed to <b>Anthropic</b> (through Claude Code)
 					or{" "}
@@ -141,7 +145,7 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-hdd"></i> Storage</h2>
 			<p>
 				The current fixture controller keeps its state in a SQLite database, along with artifact and evidence files, on
-				my Windows computer, outside the project's source repository.
+				the computer where SPS runs, outside the project's source repository.
 			</p>
 			<p>
 				The storage protections that will apply to Discord data are still being settled. They will be described here
@@ -158,12 +162,13 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-clock-history"></i> Retention</h2>
 			<p>
 				There is no fixed retention period, and nothing deletes records automatically yet. Records are kept because they
-				support running work, recovering from interruptions, and keeping an audit history. I review them and remove them
-				when they're no longer needed. That review is a commitment I carry out by hand, not an automated mechanism.
+				support running work, recovering from interruptions, and keeping an audit history. The operator reviews them and
+				removes them when they are no longer needed. That review is a manual operating commitment, not an automated
+				mechanism.
 			</p>
 			<p>
-				Before Discord collection is switched on, I will settle retention periods, deletion procedures, and storage
-				protections, and update this policy to match.
+				Before Discord collection is switched on, the operator will settle retention periods, deletion procedures, and
+				storage protections, and update this policy to match.
 			</p>
 		</section>
 
@@ -175,16 +180,16 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-envelope-at"></i> Access, correction, and deletion</h2>
 			<p>
-				To ask for a copy of SPS records about you, or to have them corrected or deleted, email me at <a
+				To ask for a copy of SPS records about you, or to have them corrected or deleted, email the operator at <a
 					href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a
 				>. Include your Discord username or user ID, and roughly when and where the interaction happened (server,
 				channel, approximate date). Never send passwords, tokens, or other credentials. You don't need to open a public
 				issue for this.
 			</p>
 			<p>
-				I can review and remove records SPS stores locally and, once the Discord interface is active, messages the bot
-				has posted to Discord. Copies held by Discord, Anthropic, or OpenAI are subject to their own controls and
-				policies, so removing something from my records may not remove it from theirs.
+				The operator can review and remove records SPS stores locally and, once the Discord interface is active,
+				messages the bot has posted to Discord. Copies held by Discord, Anthropic, or OpenAI are subject to their own
+				controls and policies, so removing something from SPS records may not remove it from theirs.
 			</p>
 			<div class="flex flex-wrap gap-3 mt-4">
 				<a href={`mailto:${SOCIAL.email}`} class="link-action no-underline">
@@ -232,7 +237,7 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-calendar-event"></i> Changes</h2>
 			<p>
 				Material changes will be reflected on this page with an updated date. Once the Discord interface is active,
-				authorized operators will also get a notice when this policy changes.
+				authorized users will also be notified when this policy changes.
 			</p>
 			<p>Last updated <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>.</p>
 		</section>

@@ -18,8 +18,12 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-file-earmark-text"></i> SPS Terms of Service</h2>
 			<p>
-				These terms cover use of the <b>Self Prompting System</b> ("SPS") Discord application, a private, experimental tool
-				I operate. They don't cover this website; for that, see <a href="/notes/2026-03-12-licensing/"
+				These terms cover use of the <b>Self Prompting System</b> ("SPS") Discord application, a private, experimental tool.
+				In these terms, "the operator" means the person who runs SPS and is responsible for it, and "authorized users" means
+				the people the operator has explicitly allowed to use its Discord interface.
+			</p>
+			<p>
+				These terms don't cover this website; for that, see <a href="/notes/2026-03-12-licensing/"
 					>Licensing &amp; Disclaimer</a
 				>.
 			</p>
@@ -39,7 +43,7 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-terminal"></i> What SPS is</h2>
 			<p>
 				SPS is a Windows-first orchestration system that runs locally and carries out engineering work through Claude
-				Code and Codex CLI workflows. Its Discord interface is intended to let authorized operators see progress, give
+				Code and Codex CLI workflows. Its Discord interface is intended to let authorized users see progress, give
 				feedback, control authorized runs, and record explicit decisions, using slash commands, buttons, and forms.
 			</p>
 			<p>
@@ -55,8 +59,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-person-check"></i> Who may use it</h2>
 			<p>
-				Only people I have explicitly authorized. Authorization covers the projects and scope I have approved, and
-				nothing beyond them. Please don't use SPS outside that scope or try to get around the limits on who can use it.
+				Only authorized users. Authorization covers the projects and scope the operator has approved, and nothing beyond
+				them. Do not use SPS outside that scope or try to get around the limits on who can use it.
 			</p>
 		</section>
 
@@ -94,8 +98,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-hourglass-split"></i> Access and availability</h2>
 			<p>
-				I may suspend or revoke access for misuse, security concerns, or operational reasons. SPS is experimental, and I
-				don't guarantee that it will be available or run without interruption.
+				The operator may suspend or revoke access for misuse, security concerns, or operational reasons. SPS is
+				experimental, and there is no guarantee that it will be available or run without interruption.
 			</p>
 		</section>
 
@@ -141,12 +145,11 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-calendar-event"></i> Changes and contact</h2>
 			<p>
 				Material changes will be reflected on this page with an updated date. Once the Discord interface is active,
-				authorized operators will also get a notice when these terms change.
+				authorized users will also be notified when these terms change.
 			</p>
 			<p>
-				Questions go to <a href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a>. Last updated <time
-					datetime={effectiveDate.iso}>{effectiveDate.label}</time
-				>.
+				Questions about these terms can be sent to the operator at <a href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a
+				>. Last updated <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>.
 			</p>
 		</section>
 
