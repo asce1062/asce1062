@@ -1,0 +1,260 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SOCIAL } from "@/config/site-config";
+
+const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
+---
+
+<Layout
+	title="SPS Privacy Policy"
+	ogImage="images/social-preview.png"
+	description="How the Self Prompting System (SPS) Discord application is intended to handle data.">
+	<article>
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">cat ~/sps/PRIVACY</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-shield-check"></i> SPS Privacy Policy</h2>
+			<p>
+				This policy covers the <b>Self Prompting System</b> ("SPS") Discord application, a private engineering tool I operate.
+				It is separate from this website. The <a href="/privacy/">website privacy policy</a> covers alexmbugua.me and its
+				guestbook, and none of the guestbook's storage, spam filtering, or vendor arrangements apply to SPS.
+			</p>
+			<p>
+				Effective <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>. Read it alongside the <a
+					href="/sps/terms/">SPS Terms of Service</a
+				>.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps status</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-hourglass-split"></i> Where things stand</h2>
+			<p>
+				SPS is a Windows-first orchestration system that runs locally and carries out engineering work through Claude
+				Code and Codex CLI workflows, using my existing sign-ins to those tools. A supervised fixture controller exists
+				today.
+			</p>
+			<p>
+				<b>The Discord application is planned and not yet operational.</b> It does not collect anything from Discord at the
+				moment. This page describes how it is intended to handle data, published ahead of launch. It is not a sign that Discord
+				collection is already active.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps help</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-discord"></i> What the Discord interface is for</h2>
+			<p>
+				It is meant for operators I have explicitly authorized, not for the public. Through slash commands, buttons, and
+				forms, it is intended to:
+			</p>
+			<ul>
+				<li>show progress on authorized runs</li>
+				<li>receive feedback</li>
+				<li>control authorized runs, such as pausing and resuming them</li>
+				<li>collect explicit operator decisions, such as reviewing delivery candidates</li>
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps schema --records</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-database"></i> What SPS is intended to record</h2>
+			<ul>
+				<li>
+					<b>Discord identifiers:</b> your user ID, and the server, channel, and interaction IDs for each interaction.
+				</li>
+				<li>
+					<b>What you submit:</b> the text you enter in commands and forms, including feedback. This is content you write,
+					and it is recorded as submitted.
+				</li>
+				<li><b>Timestamps</b> for interactions and the actions they trigger.</li>
+				<li
+					><b>Action dispositions and operator decisions</b>, such as whether a run was paused or a candidate approved.</li
+				>
+				<li><b>References to engineering evidence</b> and audit records associated with a run.</li>
+			</ul>
+			<p>
+				Please keep passwords, tokens, and other people's personal information out of anything you submit. I can't
+				promise that submitted feedback, evidence, or exports will never contain sensitive information, so the safest
+				approach is not to put it there.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps schema --exclude</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-circle-slash"></i> What it is not meant to collect</h2>
+			<p>
+				General conversation in Discord servers is outside what SPS is intended to collect. The initial design does not
+				automatically ingest arbitrary channel messages or uploaded attachments. It works with what you deliberately
+				send it through its commands, buttons, and forms.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps trace --data-flow</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-diagram-3"></i> Where data goes</h2>
+			<p>Not all of it stays on one machine:</p>
+			<ul>
+				<li><b>My computer:</b> controller state is stored on my Windows computer, where SPS runs.</li>
+				<li>
+					<b>Model providers:</b> selected feedback and task context may be passed to <b>Anthropic</b> (through Claude Code)
+					or{" "}
+					<b>OpenAI</b> (through Codex) to carry out the work. Once sent, it is handled under that provider's own terms and
+					privacy policy.
+				</li>
+				<li>
+					<b>Discord:</b> every interaction passes through Discord. Status summaries and selected evidence may be posted to
+					the configured Discord channel, where anyone who can view that channel can read them.
+				</li>
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps where --state</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-hdd"></i> Storage</h2>
+			<p>
+				The current fixture controller keeps its state in a SQLite database, along with artifact and evidence files, on
+				my Windows computer, outside the project's source repository.
+			</p>
+			<p>
+				The storage protections that will apply to Discord data are still being settled. They will be described here
+				before Discord collection begins.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps retention --show</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-clock-history"></i> Retention</h2>
+			<p>
+				There is no fixed retention period, and nothing deletes records automatically yet. Records are kept because they
+				support running work, recovering from interruptions, and keeping an audit history. I review them and remove them
+				when they're no longer needed. That review is a commitment I carry out by hand, not an automated mechanism.
+			</p>
+			<p>
+				Before Discord collection is switched on, I will settle retention periods, deletion procedures, and storage
+				protections, and update this policy to match.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">mail -s "SPS request" {SOCIAL.email}</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-envelope-at"></i> Access, correction, and deletion</h2>
+			<p>
+				To ask for a copy of SPS records about you, or to have them corrected or deleted, email me at <a
+					href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a
+				>. Include your Discord username or user ID, and roughly when and where the interaction happened (server,
+				channel, approximate date). Never send passwords, tokens, or other credentials. You don't need to open a public
+				issue for this.
+			</p>
+			<p>
+				I can review and remove records SPS stores locally and, once the Discord interface is active, messages the bot
+				has posted to Discord. Copies held by Discord, Anthropic, or OpenAI are subject to their own controls and
+				policies, so removing something from my records may not remove it from theirs.
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href={`mailto:${SOCIAL.email}`} class="link-action no-underline">
+					<i class="icon-envelope-at"></i>
+					{SOCIAL.email}
+				</a>
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">ls ~/sps/third-party/</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-link-45deg"></i> Third-party privacy information</h2>
+			<ul>
+				<li>
+					<a href="https://discord.com/privacy" target="_blank" rel="noopener noreferrer">Discord Privacy Policy</a>
+				</li>
+				<li>
+					<a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer"
+						>Anthropic Privacy Policy</a
+					>
+				</li>
+				<li>
+					<a href="https://code.claude.com/docs/en/data-usage" target="_blank" rel="noopener noreferrer"
+						>Claude Code data usage</a
+					>
+				</li>
+				<li>
+					<a href="https://openai.com/policies/privacy-policy/" target="_blank" rel="noopener noreferrer"
+						>OpenAI Privacy Policy</a
+					>
+				</li>
+			</ul>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">git log -- ~/sps/PRIVACY</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-calendar-event"></i> Changes</h2>
+			<p>
+				Material changes will be reflected on this page with an updated date. Once the Discord interface is active,
+				authorized operators will also get a notice when this policy changes.
+			</p>
+			<p>Last updated <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>.</p>
+		</section>
+
+		<hr class="my-8 border-base-300" />
+
+		<section class="mb-6">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-error font-bold">$</span>
+				<span class="ml-1 text-warning">exit</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<div class="flex flex-wrap gap-3 mt-4">
+				<a href="/sps/terms/" class="link-action no-underline">
+					<i class="icon-file-earmark-text"></i>
+					SPS Terms
+				</a>
+				<a href="/privacy/" class="link-action no-underline">
+					<i class="icon-shield-check"></i>
+					Website Privacy
+				</a>
+			</div>
+		</section>
+	</article>
+</Layout>

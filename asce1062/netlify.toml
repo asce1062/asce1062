@@ -114,6 +114,12 @@ from = "/licensing"
 to = "/notes/2026-03-12-licensing"
 status = 301
 
+# SPS policy index. The header breadcrumb links /sps, which has no page of its own
+[[redirects]]
+from = "/sps"
+to = "/sps/terms/"
+status = 302
+
 # Legacy Blog Patterns
 # /blog/YYYY/MM/DD/slug -> /blog/YYYY-MM-DD-slug/
 [[redirects]]
