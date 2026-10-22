@@ -43,11 +43,13 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			<h2><i class="icon-terminal"></i> What SPS is</h2>
 			<p>
 				SPS is a Windows-first orchestration system that runs locally and carries out engineering work through Claude
-				Code and Codex CLI workflows. Its Discord interface is intended to let authorized users see progress, give
-				feedback, control authorized runs, and record explicit decisions, using slash commands, buttons, and forms.
+				Code CLI and Codex CLI workflows. Its Discord interface is private and experimental, and is configured for one
+				operator, one private server, and one channel.
 			</p>
 			<p>
-				A supervised fixture controller exists today. <b>The Discord interface is planned and not yet operational.</b>
+				Status notices are live: SPS posts private progress notices about project and run state. Feedback, run control,
+				candidate review, and export are operator controls. When operator controls are enabled, authorized users can use
+				them through slash commands and review buttons.
 			</p>
 		</section>
 
@@ -80,13 +82,32 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
+				<span class="ml-1 text-warning">sps review --accept</span>
+				<span class="blink" aria-hidden="true">_</span>
+			</p>
+			<h2><i class="icon-patch-check"></i> Reviews and acceptance</h2>
+			<p>
+				Accepting a review candidate is an authenticated decision tied to a specific revision, and it applies only to
+				that revision. Independent engineering results can support follow-up work, but they do not complete a goal on
+				their own.
+			</p>
+			<p>
+				Functional tests of SPS, and the publication of these terms, are not the operator's acceptance of any
+				engineering delivery.
+			</p>
+		</section>
+
+		<section class="mb-10">
+			<p class="text-xs text-neutral-content mb-2">
+				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps approve --physical</span>
 				<span class="blink" aria-hidden="true">_</span>
 			</p>
 			<h2><i class="icon-exclamation-triangle"></i> Approvals don't replace physical steps</h2>
 			<p>
-				Approving something in Discord does not satisfy a step that requires a physical action or an in-person
-				observation. Those steps still have to be carried out and observed directly.
+				Remote approval and physical readiness are separate. Approving something in Discord does not satisfy a step that
+				requires a hardware connection, a physical action, or an observation. Those steps still need the evidence they
+				specify.
 			</p>
 		</section>
 
@@ -144,8 +165,8 @@ const effectiveDate = { iso: "2026-10-22", label: "October 22, 2026" };
 			</p>
 			<h2><i class="icon-calendar-event"></i> Changes and contact</h2>
 			<p>
-				Material changes will be reflected on this page with an updated date. Once the Discord interface is active,
-				authorized users will also be notified when these terms change.
+				Material changes will be reflected on this page with an updated date, and authorized users will also be notified
+				when these terms change.
 			</p>
 			<p>
 				Questions about these terms can be sent to the operator at <a href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a
