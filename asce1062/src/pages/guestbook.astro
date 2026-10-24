@@ -98,7 +98,12 @@ const entries = await getGuestEntries();
 
 <Layout title={title} ogImage="images/social-preview.png" description={description}>
 	<PreviewImage src={image} altText={title} />
-	<h2>{title}</h2>
+	<h2
+		data-magical-text
+		data-magical-text-colors="#ff5f6d,#ffa64d,#ffe066,#7bd88f,#4ecdc4,#5b8def,#b16cea"
+		data-magical-text-adornment="heart">
+		{title}
+	</h2>
 	<p>{description}</p>
 	<p>
 		In the spirit of the beautifully chaotic, handcrafted web of yesteryear, when we all had personal homepages filled
