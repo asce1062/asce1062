@@ -84,6 +84,43 @@ describe("guestbook migrations", () => {
 		client.close();
 	});
 
+	it("rewrites valid legacy CURRENT_TIMESTAMP values to ISO and leaves other values alone", async () => {
+		const client = temporaryClient();
+		const migrations = await mkdtemp(join(tmpdir(), "migrations-"));
+		temporaryDatabases.push(migrations);
+		// Stop before 0002 so the legacy rows exist when it runs.
+		for (const name of ["0000_guestbook_baseline.sql", "0001_guestbook_copy_theme.sql"]) {
+			await writeFile(join(migrations, name), await readFile(new URL(name, MIGRATIONS), "utf8"));
+		}
+		await applyMigrations(client, pathToFileURL(`${migrations}/`));
+		await client.execute(`INSERT INTO "Guestbook" ("name", "message") VALUES ('Legacy', 'SQL default')`);
+		await client.execute({
+			sql: `INSERT INTO "Guestbook" ("name", "message", "timestamp", "moderatedAt", "adminNotifiedAt", "copySentAt")
+				VALUES ('Mixed', 'x', ?, ?, ?, ?)`,
+			args: ["2025-06-26 16:42:01", "2026-03-01T10:15:00.000Z", "not a date", "2025-13-45 99:99:99"],
+		});
+		await client.execute(
+			`INSERT INTO "GuestbookModerationLog" ("entryId", "action", "toStatus", "actor", "at")
+			VALUES (2, 'approve', 'visible', 'admin', '2025-06-27 08:00:00')`
+		);
+
+		await expect(applyMigrations(client, MIGRATIONS)).resolves.toEqual(["0002_normalize_legacy_timestamps.sql"]);
+
+		const rows = await client.execute(
+			`SELECT "timestamp", "moderatedAt", "adminNotifiedAt", "copySentAt" FROM "Guestbook" ORDER BY "id"`
+		);
+		expect(rows.rows[0].timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.000Z$/);
+		expect({ ...rows.rows[1] }).toEqual({
+			timestamp: "2025-06-26T16:42:01.000Z",
+			moderatedAt: "2026-03-01T10:15:00.000Z",
+			adminNotifiedAt: "not a date",
+			copySentAt: "2025-13-45 99:99:99", // right shape, invalid date: kept, not nulled
+		});
+		const log = await client.execute(`SELECT "at" FROM "GuestbookModerationLog"`);
+		expect(log.rows[0].at).toBe("2025-06-27T08:00:00.000Z");
+		client.close();
+	});
+
 	it("rolls back a failed migration and leaves it unrecorded", async () => {
 		const directory = await mkdtemp(join(tmpdir(), "migrations-"));
 		temporaryDatabases.push(directory);
