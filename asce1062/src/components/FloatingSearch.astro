@@ -22,7 +22,8 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			class="fixed left-0 right-0 lg:left-[var(--sidebar-current-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
 			role="dialog"
 			aria-modal="true"
-			aria-labelledby="floating-search-title">
+			aria-labelledby="floating-search-title"
+			inert>
 			<div class="flex items-center justify-between mb-4">
 				<h2 id="floating-search-title" class="m-0 leading-none">
 					<a href="/search">Search</a>
@@ -111,6 +112,8 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		function openSearch(trigger?: HTMLElement) {
 			if (!overlay || !modal) return;
 			_opener = trigger ?? (document.activeElement as HTMLElement | null);
+			// Closed, the modal is only faded out: inert keeps it out of the Tab order and the a11y tree.
+			modal.inert = false;
 			overlay.classList.remove("opacity-0", "pointer-events-none");
 			modal.classList.remove("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "hidden";
@@ -127,6 +130,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			if (!overlay || !modal) return;
 			overlay.classList.add("opacity-0", "pointer-events-none");
 			modal.classList.add("opacity-0", "pointer-events-none");
+			modal.inert = true;
 			document.body.style.overflow = "";
 			if (_opener?.isConnected) _opener.focus();
 			_opener = null;
@@ -138,6 +142,34 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		}
 		closeBtn.addEventListener("click", closeSearch, { signal });
 		overlay.addEventListener("click", closeSearch, { signal });
+
+		// Keep Tab inside the open modal, even if focus has not reached it yet (e.g. right after
+		// Ctrl+K). Focusables are read per keypress: Pagefind adds result links.
+		document.addEventListener(
+			"keydown",
+			(e) => {
+				if (e.key !== "Tab" || modal.inert) return;
+				const focusables = Array.from(
+					modal.querySelectorAll<HTMLElement>(
+						'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+					)
+				).filter((el) => el.getClientRects().length > 0);
+				const first = focusables[0];
+				const last = focusables[focusables.length - 1];
+				if (!first || !last) return;
+				if (!modal.contains(document.activeElement)) {
+					e.preventDefault();
+					(e.shiftKey ? last : first).focus();
+				} else if (e.shiftKey && document.activeElement === first) {
+					e.preventDefault();
+					last.focus();
+				} else if (!e.shiftKey && document.activeElement === last) {
+					e.preventDefault();
+					first.focus();
+				}
+			},
+			{ signal }
+		);
 
 		// Close on Escape key
 		document.addEventListener(
