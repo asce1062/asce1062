@@ -104,7 +104,6 @@ let stickyMetricsObserver: ResizeObserver | null = null;
 let playlistsLoadPromise: Promise<void> | null = null;
 let activeFlavor: MusicPlayerFlavor = "DEFAULT";
 let playbackState: MusicPlaybackState<MusicTrack> = createMusicPlaybackState<MusicTrack>();
-let isStreamLoading = false;
 let isMusicOpen = false;
 let isMusicMinimized = false;
 let playlistsLoaded = false;
@@ -511,7 +510,6 @@ function closeMusicDialog() {
 	visualizer?.setVisible(false);
 	isMusicOpen = false;
 	isMusicMinimized = false;
-	isStreamLoading = false;
 	musicWindowRect = null;
 	expandedMusicRect = null;
 	collapsedMusicRect = null;
@@ -678,11 +676,12 @@ function updateControlAvailability() {
 		refs?.shuffleButton,
 		refs?.repeatButton,
 	]) {
-		if (control instanceof HTMLButtonElement) control.disabled = !hasTracks || isStreamLoading;
+		if (control instanceof HTMLButtonElement) control.disabled = !hasTracks;
 	}
-	if (refs?.stopButton instanceof HTMLButtonElement) refs.stopButton.disabled = !hasCurrentTrack || isStreamLoading;
-	if (refs?.progressInput instanceof HTMLInputElement)
-		refs.progressInput.disabled = !hasCurrentTrack || isStreamLoading;
+	// Controls stay usable while a stream loads: a stalled stream must not lock
+	// the player, and a newer playTrack supersedes the pending load.
+	if (refs?.stopButton instanceof HTMLButtonElement) refs.stopButton.disabled = !hasCurrentTrack;
+	if (refs?.progressInput instanceof HTMLInputElement) refs.progressInput.disabled = !hasCurrentTrack;
 }
 
 function highlightPlayingTrack() {
@@ -848,7 +847,6 @@ function playTrack(track: MusicTrack) {
 
 	const requestId = ++playRequestId;
 	setPlaybackState(selectMusicTrack(playbackState, track.id, { isPlaying: true }));
-	isStreamLoading = true;
 	updatePlaybackUi();
 	player.src = `/api/music/stream/${encodeURIComponent(track.id)}`;
 	const playPromise = player.play();
@@ -869,7 +867,6 @@ function playTrack(track: MusicTrack) {
 		})
 		.finally(() => {
 			if (requestId !== playRequestId) return;
-			isStreamLoading = false;
 			updatePlaybackUi();
 		});
 	updateWindowTitle();
@@ -880,6 +877,21 @@ function playTrack(track: MusicTrack) {
 	updatePlaybackUi();
 }
 
+/**
+ * Resume the loaded track. Like playTrack, a rejection from a play() that a
+ * newer request superseded, or that pause() aborted, is not a playback failure.
+ */
+function resumePlayback(player: HTMLAudioElement): void {
+	const requestId = ++playRequestId;
+	player.play().catch((error: unknown) => {
+		if (requestId !== playRequestId) return;
+		if (error instanceof DOMException && error.name === "AbortError") return;
+		setPlaybackState({ ...playbackState, isPlaying: false });
+		setSignal("[\u00A0playback blocked...\u00A0]", "paused");
+		updatePlaybackUi();
+	});
+}
+
 function restartTrack(track: MusicTrack | null = currentTrack) {
 	const player = refs?.player;
 	if (!(player instanceof HTMLAudioElement) || !track?.id) return;
@@ -887,11 +899,7 @@ function restartTrack(track: MusicTrack | null = currentTrack) {
 	if (player.src) {
 		player.currentTime = 0;
 		setPlaybackState({ ...playbackState, isPlaying: true });
-		player.play().catch(() => {
-			setPlaybackState({ ...playbackState, isPlaying: false });
-			setSignal("[\u00A0playback blocked...\u00A0]", "paused");
-			updatePlaybackUi();
-		});
+		resumePlayback(player);
 		updatePlaybackUi();
 		return;
 	}
@@ -985,7 +993,7 @@ function stopPlayback(options: { clearSelection?: boolean } = {}) {
 
 function togglePlayback() {
 	const player = refs?.player;
-	if (!(player instanceof HTMLAudioElement) || isStreamLoading) return;
+	if (!(player instanceof HTMLAudioElement)) return;
 
 	if (!currentTrack && playbackState.queue[0]) {
 		playTrack(playbackState.queue[0]);
@@ -995,11 +1003,7 @@ function togglePlayback() {
 	if (!playbackState.isPlaying) {
 		setPlaybackState({ ...playbackState, isPlaying: true });
 		updatePlaybackUi();
-		player.play().catch(() => {
-			setPlaybackState({ ...playbackState, isPlaying: false });
-			setSignal("[\u00A0playback blocked...\u00A0]", "paused");
-			updatePlaybackUi();
-		});
+		resumePlayback(player);
 	} else {
 		setPlaybackState({ ...playbackState, isPlaying: false });
 		player.pause();
@@ -1008,18 +1012,16 @@ function togglePlayback() {
 }
 
 function playNextTrack() {
-	if (isStreamLoading) return;
 	applyQueueResult(moveMusicQueueNext(playbackState));
 }
 
 function playPreviousTrack() {
 	const player = refs?.player;
-	if (!(player instanceof HTMLAudioElement) || isStreamLoading) return;
+	if (!(player instanceof HTMLAudioElement)) return;
 	applyQueueResult(moveMusicQueuePrevious(playbackState, player.currentTime));
 }
 
 function toggleShuffle() {
-	if (isStreamLoading) return;
 	setPlaybackState(setMusicShuffleEnabled(playbackState, !playbackState.shuffleEnabled));
 	updatePlaybackUi();
 }
@@ -1238,7 +1240,6 @@ function bindControls(signal: AbortSignal) {
 		player.addEventListener(
 			"error",
 			() => {
-				isStreamLoading = false;
 				setPlaybackState({ ...playbackState, isPlaying: false });
 				setSignal("[\u00A0stream error...\u00A0]", "paused");
 				updatePlaybackUi();
@@ -1250,7 +1251,6 @@ function bindControls(signal: AbortSignal) {
 			"play",
 			() => {
 				setPlaybackState({ ...playbackState, isPlaying: true });
-				isStreamLoading = false;
 				setSignal("[\u00A0stream online...\u00A0]", "playing");
 				updatePlaybackUi();
 				visualizer?.connect(player);
@@ -1343,7 +1343,6 @@ async function bootMusicPage() {
 	browsingPlaylist = null;
 	browsingTracks = [];
 	playbackState = createMusicPlaybackState<MusicTrack>();
-	isStreamLoading = false;
 	expandedPlaylistId = null;
 	bindControls(controlsAbortController.signal);
 	syncPlayerFlavorFromSite();
