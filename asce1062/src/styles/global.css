@@ -211,6 +211,12 @@
 		top: 0;
 	}
 
+	/* Main is a programmatic focus target (skip link, back-to-top), not a control:
+	   ringing the whole content area adds no information. */
+	#main-content:focus {
+		outline: none;
+	}
+
 	/*
   ============================================
   Base Typography
