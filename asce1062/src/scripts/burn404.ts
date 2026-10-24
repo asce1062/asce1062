@@ -183,11 +183,12 @@ function isActive(): boolean {
 // ── Canvas management ───────────────────────────────────────────────────────
 
 function buildCanvas(): void {
+	// Astro soft navigation swaps <body>, detaching the old canvas. Reset all
+	// canvas state (including _fireW/_fireH) so the new canvas gets sized;
+	// otherwise resizeCanvas() sees an unchanged width and returns early.
 	if (_canvas && !document.body.contains(_canvas)) {
 		stopAnimation();
-		_canvas = null;
-		_ctx = null;
-		_buf = [];
+		removeCanvas();
 	}
 
 	if (_canvas) return;
