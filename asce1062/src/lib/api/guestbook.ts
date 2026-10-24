@@ -84,10 +84,11 @@ export interface CreateEntryInput {
 // ---------------------------------------------------------------------------
 
 /**
- * Tag-shaped markup: `<` + optional `/` + a letter-led tag name, then `>` or attributes.
+ * Tag-shaped markup: `<` + optional `/` + a letter-led tag name, then `>` or attributes
+ * (after whitespace or `/`, as browsers accept `<svg/onload=...>`).
  * Requiring a tag name keeps prose like "I <3 this, 5 > 4" out of the hard-spam bucket.
  */
-const HTML_TAG_RE = /<\/?[a-z][a-z0-9-]*(?:\s[^<>]*)?\/?>/i;
+const HTML_TAG_RE = /<\/?[a-z][a-z0-9-]*(?:[\s/][^<>]*)?>/i;
 
 /** BBCode link syntax */
 const BBCODE_RE = /\[url\s*=/i;
@@ -675,33 +676,40 @@ export async function updateEntryStatus(
 	if (!current) return false;
 
 	// One batch (a single transaction on libsql): the status change and its audit
-	// row commit together or not at all.
-	await db.batch([
-		db
-			.update(Guestbook)
-			.set({
-				status,
-				isSpam: status === "hidden",
-				moderatedAt: at,
-				moderatedBy: actor,
-				...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
-			})
-			.where(eq(Guestbook.id, id)),
-		db.insert(GuestbookModerationLog).values({
-			entryId: id,
-			action,
-			fromStatus: current.status ?? null,
-			toStatus: status,
-			reasonsBefore: current.moderationReason ?? null,
-			scoreBefore: current.moderationScore ?? null,
-			// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
-			// For "approve" / "hide" the flags are unchanged, so after === before.
-			reasonsAfter: clearFlags ? null : (current.moderationReason ?? null),
-			scoreAfter: clearFlags ? null : (current.moderationScore ?? null),
-			actor,
-			at,
-		}),
-	]);
+	// row commit together or not at all. If the entry was deleted after the read,
+	// the audit insert fails its foreign key and the whole batch rolls back.
+	try {
+		await db.batch([
+			db
+				.update(Guestbook)
+				.set({
+					status,
+					isSpam: status === "hidden",
+					moderatedAt: at,
+					moderatedBy: actor,
+					...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
+				})
+				.where(eq(Guestbook.id, id)),
+			db.insert(GuestbookModerationLog).values({
+				entryId: id,
+				action,
+				fromStatus: current.status ?? null,
+				toStatus: status,
+				reasonsBefore: current.moderationReason ?? null,
+				scoreBefore: current.moderationScore ?? null,
+				// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
+				// For "approve" / "hide" the flags are unchanged, so after === before.
+				reasonsAfter: clearFlags ? null : (current.moderationReason ?? null),
+				scoreAfter: clearFlags ? null : (current.moderationScore ?? null),
+				actor,
+				at,
+			}),
+		]);
+	} catch (err) {
+		const [stillThere] = await db.select({ id: Guestbook.id }).from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
+		if (!stillThere) return false;
+		throw err;
+	}
 	return true;
 }
 

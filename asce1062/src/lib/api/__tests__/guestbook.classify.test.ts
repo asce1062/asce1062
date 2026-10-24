@@ -125,6 +125,13 @@ describe("hard spam signals", () => {
 		}
 	);
 
+	it.each(["<svg/onload=alert(1)>", "<img/src=x onerror=alert(1)>", "<br/>", "</b>"])(
+		"slash-separated and closing tags are HTML tags: %s",
+		async (message) => {
+			expect((await classify({ message })).reasons).toContain("html_tag");
+		}
+	);
+
 	it("hard signals in the name field are caught too", async () => {
 		expect((await classify({ name: "<b>Buy now</b>" })).reasons).toContain("html_tag");
 		expect((await classify({ name: "Visit bit.ly/xyz" })).reasons).toContain("url_shortener");
