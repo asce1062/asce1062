@@ -7,12 +7,23 @@
  */
 import "@/styles/components/header.css";
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
-import { siteMetadata } from "@/data/navigation";
+import { mainNavigation, siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
 const currentPath = Astro.url.pathname;
 const isSearchPage = currentPath === "/search" || currentPath === "/search/";
+
+// Intermediate breadcrumb segments link only to real sections (navigation.ts is
+// the page list). Others (/.well-known, unknown segments on a 404) render as text.
+const knownSections = new Set(
+	mainNavigation.map((item) => item.href.replace(/\/$/, "")).filter((href) => href.startsWith("/"))
+);
+const crumbs = link.map((segment, index) => {
+	const href = `/${link.slice(0, index + 1).join("/")}`;
+	const isCurrent = index === link.length - 1;
+	return { segment, href, isCurrent, isLinked: isCurrent || knownSections.has(href) };
+});
 ---
 
 <header>
@@ -63,15 +74,19 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 						asce1062
 					</a>
 				</span>
-				{link && link.length > 0 ? (
-					<span>
-						{link.map((data, index) => (
+				{crumbs.length > 0 ? (
+					<span role="navigation" aria-label="Breadcrumb">
+						{crumbs.map(({ segment, href, isCurrent, isLinked }) => (
 							<span>
 								{" / "}
-								<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
-									{data}
-								</a>
-								{index === link.length - 1 && (
+								{isLinked ? (
+									<a class="inline! no-underline" href={href} aria-current={isCurrent ? "page" : undefined}>
+										{segment}
+									</a>
+								) : (
+									<span>{segment}</span>
+								)}
+								{isCurrent && (
 									<span class="blink" aria-hidden="true">
 										_
 									</span>
