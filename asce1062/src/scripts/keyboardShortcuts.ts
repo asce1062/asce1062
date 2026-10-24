@@ -205,15 +205,3 @@ export function initSidebarCollapseShortcut(callback: () => void): () => void {
 		document.removeEventListener("keydown", handler);
 	};
 }
-
-/**
- * Register multiple shortcuts at once
- */
-export function registerShortcuts(configs: ShortcutConfig[]): () => void {
-	const cleanupFunctions = configs.map(registerShortcut);
-
-	// Return cleanup function that removes all shortcuts
-	return () => {
-		cleanupFunctions.forEach((cleanup) => cleanup());
-	};
-}

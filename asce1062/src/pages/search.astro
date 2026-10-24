@@ -4,10 +4,10 @@ import SearchBox from "@/components/SearchBox.astro";
 ---
 
 <Layout
+	noIndex
 	title="Search"
 	ogImage="images/social-preview.png"
-	description="Find articles, topics and ideas by Alex Mbugua"
-	ogImage="images/social-preview.png">
+	description="Find articles, topics and ideas by Alex Mbugua">
 	<section id="pagefind-search">
 		<h1>Search</h1>
 		<p class="italic text-warning opacity-40">Find articles, topics and ideas...</p>
@@ -18,19 +18,20 @@ import SearchBox from "@/components/SearchBox.astro";
 <script>
 	import { initSearchShortcut, initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
 
-	type SearchShortcutWindow = Window &
-		typeof globalThis & {
-			__searchPageShortcutCleanup?: () => void;
-			__searchPageSlashShortcutCleanup?: () => void;
-		};
+	// Module scripts run once per session, so bind per visit to /search and unbind
+	// on swap; otherwise the shortcuts kept firing on every page after a visit.
+	const PAGE_INPUT = "#page-searchbox .pagefind-ui__search-input";
+	let cleanups: Array<() => void> = [];
 
-	const searchWindow = window as SearchShortcutWindow;
-	searchWindow.__searchPageShortcutCleanup?.();
-	searchWindow.__searchPageSlashShortcutCleanup?.();
-
-	searchWindow.__searchPageShortcutCleanup = initSearchShortcut();
-	searchWindow.__searchPageSlashShortcutCleanup = initSlashSearchShortcut(() => {
-		const input = document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null;
-		input?.focus();
+	document.addEventListener("astro:page-load", () => {
+		if (!document.getElementById("page-searchbox")) return;
+		cleanups = [
+			initSearchShortcut(PAGE_INPUT),
+			initSlashSearchShortcut(() => (document.querySelector(PAGE_INPUT) as HTMLInputElement | null)?.focus()),
+		];
+	});
+	document.addEventListener("astro:before-swap", () => {
+		for (const cleanup of cleanups) cleanup();
+		cleanups = [];
 	});
 </script>

@@ -1,5 +1,11 @@
 ---
-import type { GuestEntry, EntryStyle } from "@/lib/api/guestbook";
+import type { GuestEntry } from "@/lib/api/guestbook";
+import {
+	normalizeAvatarState,
+	parseEntryStyle,
+	sanitizeEntryUrl,
+	serializeEntryStyle,
+} from "@/lib/api/guestbook-input";
 import { formatDate } from "@/lib/content/utils";
 import EntryActions from "@/components/GuestBookEntryActions.astro";
 import Haunted from "@/components/Haunted.astro";
@@ -11,30 +17,18 @@ interface Props {
 const { entry } = Astro.props;
 const formattedDate = formatDate(entry.timestamp, "medium");
 
-const hasAvatar = entry.avatarOptIn === true && typeof entry.avatarState === "string" && entry.avatarState.length > 0;
+const avatarState = entry.avatarOptIn === true ? normalizeAvatarState(entry.avatarState) : null;
+const hasAvatar = avatarState !== null;
 
 // Simple ASCII art detection
 // Lines with 2+ consecutive spaces
 // Normal prose never has double spaces, but ASCII art relies on them for alignment
 const isAsciiArt = / {2}/.test(entry.message);
 
-// Parse style JSON with fallback defaults
-const defaults: EntryStyle = {
-	bg: "topography",
-	borderColor: "base-300",
-	borderWidth: "1px",
-	borderStyle: "solid",
-	borderRadius: "0.25rem",
-};
-
-let style: EntryStyle = defaults;
-if (entry.style) {
-	try {
-		style = { ...defaults, ...JSON.parse(entry.style) };
-	} catch {
-		// Invalid JSON. Use defaults
-	}
-}
+// Stored values are re-validated at render: rows written before the input
+// boundary existed may hold arbitrary style JSON or non-http(s) URLs.
+const style = parseEntryStyle(entry.style);
+const safeUrl = sanitizeEntryUrl(entry.url);
 
 // Build inline style object (Haunted forwards a flat camelCase style object, unlike the div element which takes the CSS string directly)
 const inlineStyles: Record<string, string> = {
@@ -53,43 +47,39 @@ const inlineStyles: Record<string, string> = {
 		class="entry-bubble"
 		style={inlineStyles}
 		creature="heart"
-		creatureColors={["var(--color-primary)", "var(--color-accent)"]}
+		creatureColors={["#ff5f6d", "#ffa64d", "#ffe066", "#7bd88f", "#4ecdc4", "#5b8def", "#b16cea"]}
 		creatureOptions={{ animationTime: 4, numberOf: 12, distance: 400 }}
 		disableGlow={true}>
 		<div class="entry-top">
-			{
-				hasAvatar && (
-					<div class="entry-avatar-stamp" title="8-bit avatar">
-						<canvas
-							class="entry-avatar-canvas avatar-frame"
-							data-avatar-state={entry.avatarState}
-							width="48"
-							height="48"
-							aria-hidden="true"
-						/>
-					</div>
-				)
-			}
+			{hasAvatar && (
+				<div class="entry-avatar-stamp" title="8-bit avatar">
+					<canvas
+						class="entry-avatar-canvas avatar-frame"
+						data-avatar-state={avatarState}
+						width="48"
+						height="48"
+						aria-hidden="true"
+					/>
+				</div>
+			)}
 			<EntryActions
 				entryId={entry.id}
 				entryName={entry.name}
-				entryStyle={entry.style || ""}
+				entryStyle={entry.style ? serializeEntryStyle(style) : ""}
 				entryMessage={entry.message}
-				entryAvatarState={hasAvatar ? entry.avatarState : null}
+				entryAvatarState={avatarState}
 			/>
 		</div>
 		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 		<div class="entry-meta">
 			<h2>
-				{
-					entry.url ? (
-						<a href={entry.url} target="_blank" rel="noopener noreferrer">
-							{entry.name}
-						</a>
-					) : (
-						entry.name
-					)
-				}
+				{safeUrl ? (
+					<a href={safeUrl} target="_blank" rel="noopener noreferrer">
+						{entry.name}
+					</a>
+				) : (
+					entry.name
+				)}
 			</h2>
 			<time datetime={entry.timestamp.toISOString()}>{formattedDate}</time>
 		</div>

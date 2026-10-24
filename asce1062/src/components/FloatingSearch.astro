@@ -10,52 +10,48 @@ const currentPath = Astro.url.pathname;
 const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 ---
 
-{
-	!isSearchPage && (
-		<>
-			<div
-				id="floating-search-overlay"
-				class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-100 opacity-0 pointer-events-none transition-opacity duration-300"
-				aria-hidden="true"
-			/>
-			<div
-				id="floating-search-modal"
-				class="fixed left-0 right-0 lg:left-[var(--sidebar-current-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="floating-search-title">
-				<div class="flex items-center justify-between mb-4">
-					<h2 id="floating-search-title" class="m-0 leading-none">
-						<a href="/search">Search</a>
-					</h2>
-					<button id="close-floating-search" class="btn btn-frame btn-error btn-sm" aria-label="Close search">
-						<i class="icon-x-lg" />
-					</button>
-				</div>
-				<div id="pagefind-search-floating">
-					<SearchBox searchId="floating-searchbox" showTips={true} />
-				</div>
+{!isSearchPage && (
+	<>
+		<div
+			id="floating-search-overlay"
+			class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-100 opacity-0 pointer-events-none transition-opacity duration-300"
+			aria-hidden="true"
+		/>
+		<div
+			id="floating-search-modal"
+			class="fixed left-0 right-0 lg:left-[var(--sidebar-current-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="floating-search-title">
+			<div class="flex items-center justify-between mb-4">
+				<h2 id="floating-search-title" class="m-0 leading-none">
+					<a href="/search">Search</a>
+				</h2>
+				<button id="close-floating-search" class="btn btn-frame btn-error btn-sm" aria-label="Close search">
+					<i class="icon-x-lg" />
+				</button>
 			</div>
-		</>
-	)
-}
+			<div id="pagefind-search-floating">
+				<SearchBox searchId="floating-searchbox" showTips={true} />
+			</div>
+		</div>
+	</>
+)}
 
 <script>
-	import { initSearchShortcut, initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
+	import { initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
 
 	// AbortController prevents event listeners from accumulating across
 	// Astro soft navigations. document/window persist across navigations
 	// so without cleanup each astro:page-load adds another set of listeners.
 	let _ac: AbortController | null = null;
 	let _ro: ResizeObserver | null = null;
-	let _shortcutCleanup: (() => void) | null = null;
 	let _slashShortcutCleanup: (() => void) | null = null;
 
 	function initFloatingSearch() {
 		// Tear down previous listeners and observer before re-init
 		_ac?.abort();
 		_ro?.disconnect();
-		_shortcutCleanup?.();
 		_slashShortcutCleanup?.();
 		_ac = new AbortController();
 		const { signal } = _ac;
@@ -132,7 +128,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			overlay.classList.add("opacity-0", "pointer-events-none");
 			modal.classList.add("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "";
-			_opener?.focus();
+			if (_opener?.isConnected) _opener.focus();
 			_opener = null;
 		}
 
@@ -158,7 +154,6 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		// Register Ctrl+K / Cmd+K shortcut to open the floating search
 		// Only register if we're NOT on the search page (since openBtn won't exist on search page)
 		if (openBtn) {
-			_shortcutCleanup = initSearchShortcut('#floating-searchbox input[type="text"]');
 			_slashShortcutCleanup = initSlashSearchShortcut(() => {
 				if (modal.classList.contains("pointer-events-none")) {
 					openSearch();
@@ -168,16 +163,21 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 				const searchInput = modal.querySelector('input[type="text"]') as HTMLInputElement | null;
 				searchInput?.focus();
 			});
-			// Also open modal when shortcut is pressed (if modal is closed)
+			// Ctrl/Cmd+K: one handler. Open the modal when closed (capturing the opener
+			// before focus moves), otherwise focus its input. A second handler used to
+			// focus the hidden input first, so the opener became that hidden input.
 			document.addEventListener(
 				"keydown",
 				(e) => {
 					if (!e.key) return;
 					const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-					if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
-						e.preventDefault();
+					if (e.key.toLowerCase() !== "k" || !isCtrlOrCmd) return;
+					e.preventDefault();
+					if (modal.classList.contains("pointer-events-none")) {
 						openSearch();
+						return;
 					}
+					(modal.querySelector('input[type="text"]') as HTMLInputElement | null)?.focus();
 				},
 				{ signal }
 			);

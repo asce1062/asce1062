@@ -36,6 +36,7 @@ function setupBrowserGlobals(search: string): BrowserHarness {
 			removeAttribute: vi.fn((name: string) => {
 				delete attributes[name];
 			}),
+			style: {} as Record<string, string>,
 		},
 		dispatchEvent: vi.fn(),
 		getElementById: vi.fn((id: string) => (id === "toggleIcon" ? icon : null)),
@@ -93,6 +94,21 @@ describe("themeManager URL theme overrides", () => {
 		expect(window.location.search).toBe("?theme=dark&flavor=crt-green");
 		expect(getCurrentTheme()).toBe("light");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+	});
+
+	it("applies a URL theme without overwriting the stored theme", async () => {
+		const { storage } = setupBrowserGlobals("?theme=light");
+		storage.set("theme", "dark");
+		const { initThemeFromUrl } = await import("@/scripts/themeManager");
+
+		initThemeFromUrl();
+
+		// "set-theme" makes astro-themes persist its detail, so it must not fire here.
+		const dispatched = vi.mocked(document.dispatchEvent).mock.calls.map(([event]) => event.type);
+		expect(dispatched).not.toContain("set-theme");
+		expect(storage.get("theme")).toBe("dark");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+		expect(document.documentElement.style.colorScheme).toBe("light");
 	});
 
 	it("persists URL flavor so later theme-only URLs retain the active flavor", async () => {

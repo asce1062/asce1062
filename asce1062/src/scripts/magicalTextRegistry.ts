@@ -28,6 +28,7 @@
 
 import type { AdornmentKind, AnimationType, MagicalTextOptions } from "@/lib/magicalText";
 import { bindMagicalText } from "@/lib/magicalText";
+import { ADORNMENTS } from "@/lib/shared/adornments";
 
 function readMagicalTextConfig(el: HTMLElement): MagicalTextOptions {
 	const opts: MagicalTextOptions = {};
@@ -45,8 +46,10 @@ function readMagicalTextConfig(el: HTMLElement): MagicalTextOptions {
 
 	if ("magicalTextNoAdornments" in el.dataset) opts.showAdornments = false;
 
-	if (el.dataset.magicalTextAdornment) {
-		opts.adornment = el.dataset.magicalTextAdornment as AdornmentKind;
+	// Unknown kinds fall back to the default instead of throwing in the controller.
+	const adornment = el.dataset.magicalTextAdornment;
+	if (adornment && Object.hasOwn(ADORNMENTS, adornment)) {
+		opts.adornment = adornment as AdornmentKind;
 	}
 
 	const count = el.dataset.magicalTextAdornmentCount ? Number.parseInt(el.dataset.magicalTextAdornmentCount, 10) : NaN;

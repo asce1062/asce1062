@@ -6,6 +6,12 @@
 import { and, count, desc, eq, gte, isNotNull, isNull, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { Guestbook, GuestbookModerationLog } from "@/lib/db/schema";
+import {
+	normalizeAvatarState,
+	parseEntryStyle,
+	sanitizeEntryUrl,
+	serializeEntryStyle,
+} from "@/lib/api/guestbook-input";
 
 export interface EntryStyle {
 	bg: string;
@@ -62,9 +68,9 @@ export interface ClassificationResult {
 export interface CreateEntryInput {
 	name: string;
 	email: string;
-	url: string;
+	url: string | null;
 	message: string;
-	style?: string;
+	style?: string | null;
 	/** Serialized avatar state string. Only stored when avatarOptIn is true. */
 	avatarState?: string | null;
 	/** Whether the submitter opted to attach their avatar */
@@ -77,8 +83,12 @@ export interface CreateEntryInput {
 // Spam Detection Regexes
 // ---------------------------------------------------------------------------
 
-/** Any raw HTML tag */
-const HTML_TAG_RE = /<[^>]+>/;
+/**
+ * Tag-shaped markup: `<` + optional `/` + a letter-led tag name, then `>` or attributes
+ * (after whitespace or `/`, as browsers accept `<svg/onload=...>`).
+ * Requiring a tag name keeps prose like "I <3 this, 5 > 4" out of the hard-spam bucket.
+ */
+const HTML_TAG_RE = /<\/?[a-z][a-z0-9-]*(?:[\s/][^<>]*)?>/i;
 
 /** BBCode link syntax */
 const BBCODE_RE = /\[url\s*=/i;
@@ -147,7 +157,7 @@ const ALL_REASON_NAMES: ReadonlySet<string> = new Set([
  * Bump this constant whenever scoring weights, thresholds, or reason names change
  * so rows classified under old rules can be identified in the DB.
  */
-const CURRENT_MODERATION_VERSION = 1;
+const CURRENT_MODERATION_VERSION = 2;
 
 /**
  * Canonical moderatedBy actor values:
@@ -401,21 +411,27 @@ export async function classifyEntry(input: {
 	const msg = normalizeForModeration(input.message || "");
 	const name = normalizeForModeration(input.name || "");
 
-	// --- Hard spam checks (each alone is score >= 10 → hidden) ---
+	const url = normalizeForModeration(input.url || "");
 
-	if (HTML_TAG_RE.test(msg)) {
+	// --- Hard spam checks (each alone is score >= 10 → hidden) ---
+	// Markup and link tricks are checked in the name too: it is rendered publicly
+	// right next to the message. The url field only gets the shortener check, since
+	// a link is what it is for.
+	const textFields = [msg, name];
+
+	if (textFields.some((field) => HTML_TAG_RE.test(field))) {
 		reasons.push("html_tag");
 		score += 10;
 	}
-	if (BBCODE_RE.test(msg)) {
+	if (textFields.some((field) => BBCODE_RE.test(field))) {
 		reasons.push("bbcode");
 		score += 10;
 	}
-	if (SHORTENER_RE.test(msg)) {
+	if ([...textFields, url].some((field) => SHORTENER_RE.test(field))) {
 		reasons.push("url_shortener");
 		score += 10;
 	}
-	if (OBFUSCATED_LINK_RE.test(msg)) {
+	if (textFields.some((field) => OBFUSCATED_LINK_RE.test(field))) {
 		reasons.push("obfuscated_link");
 		score += 10;
 	}
@@ -627,9 +643,10 @@ export async function countPendingEntries(): Promise<number> {
 /**
  * Update entry moderation status (admin action).
  *
- * Writes a row to GuestbookModerationLog before clearing any flags so the
- * original classifier output is always preserved for audit / analytics, even
- * when action === "approve_clear" nulls the Guestbook columns.
+ * The status change and its GuestbookModerationLog row are written in one batch,
+ * so the original classifier output is always preserved for audit / analytics,
+ * even when action === "approve_clear" nulls the Guestbook columns.
+ * Returns false (and writes nothing) when no entry has this id.
  *
  * Options:
  *  - `clearFlags`
@@ -645,7 +662,7 @@ export async function updateEntryStatus(
 	id: number,
 	status: ModerationStatus,
 	options?: { clearFlags?: boolean; moderatedBy?: string }
-): Promise<void> {
+): Promise<boolean> {
 	assertStatus(status);
 	const actor = options?.moderatedBy ?? MODERATED_BY.admin;
 	const clearFlags = options?.clearFlags ?? false;
@@ -656,35 +673,44 @@ export async function updateEntryStatus(
 
 	// Read current state before mutating. The log row needs the pre-action values.
 	const [current] = await db.select().from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
+	if (!current) return false;
 
-	// Apply the status change (and optionally clear flags) to the Guestbook row.
-	await db
-		.update(Guestbook)
-		.set({
-			status,
-			isSpam: status === "hidden",
-			moderatedAt: at,
-			moderatedBy: actor,
-			...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
-		})
-		.where(eq(Guestbook.id, id));
-
-	// Append an immutable audit row. Written after the update so a failed log
-	// insert never blocks the status change (best-effort audit).
-	await db.insert(GuestbookModerationLog).values({
-		entryId: id,
-		action,
-		fromStatus: current?.status ?? null,
-		toStatus: status,
-		reasonsBefore: current?.moderationReason ?? null,
-		scoreBefore: current?.moderationScore ?? null,
-		// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
-		// For "approve" / "hide" the flags are unchanged, so after === before.
-		reasonsAfter: clearFlags ? null : (current?.moderationReason ?? null),
-		scoreAfter: clearFlags ? null : (current?.moderationScore ?? null),
-		actor,
-		at,
-	});
+	// One batch (a single transaction on libsql): the status change and its audit
+	// row commit together or not at all. If the entry was deleted after the read,
+	// the audit insert fails its foreign key and the whole batch rolls back.
+	try {
+		await db.batch([
+			db
+				.update(Guestbook)
+				.set({
+					status,
+					isSpam: status === "hidden",
+					moderatedAt: at,
+					moderatedBy: actor,
+					...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
+				})
+				.where(eq(Guestbook.id, id)),
+			db.insert(GuestbookModerationLog).values({
+				entryId: id,
+				action,
+				fromStatus: current.status ?? null,
+				toStatus: status,
+				reasonsBefore: current.moderationReason ?? null,
+				scoreBefore: current.moderationScore ?? null,
+				// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
+				// For "approve" / "hide" the flags are unchanged, so after === before.
+				reasonsAfter: clearFlags ? null : (current.moderationReason ?? null),
+				scoreAfter: clearFlags ? null : (current.moderationScore ?? null),
+				actor,
+				at,
+			}),
+		]);
+	} catch (err) {
+		const [stillThere] = await db.select({ id: Guestbook.id }).from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
+		if (!stillThere) return false;
+		throw err;
+	}
+	return true;
 }
 
 /**
@@ -722,7 +748,7 @@ export async function createGuestEntry(
 
 	const classification = await classifyEntry({
 		name: entry.name,
-		url: entry.url,
+		url: entry.url ?? "",
 		message: trimmedMessage, // raw. classifyEntry normalizes internally
 		ipHash,
 		userAgentHash,
@@ -747,12 +773,13 @@ export async function createGuestEntry(
 	const result = await db.insert(Guestbook).values({
 		name: entry.name.trim().replace(/\s+/g, " "),
 		email: entry.email.trim() || null,
-		url: entry.url.trim() || null,
+		// Re-sanitized here so every caller gets the same storage guarantees.
+		url: sanitizeEntryUrl(entry.url),
 		message: trimmedMessage,
 		messageHash,
 		isSpam: classification.status === "hidden",
-		style: entry.style || null,
-		avatarState: entry.avatarOptIn ? entry.avatarState || null : null,
+		style: entry.style ? serializeEntryStyle(parseEntryStyle(entry.style)) : null,
+		avatarState: entry.avatarOptIn ? normalizeAvatarState(entry.avatarState) : null,
 		avatarOptIn: entry.avatarOptIn ?? false,
 		status: classification.status,
 		moderationReason: classification.reasons.length > 0 ? JSON.stringify(classification.reasons) : null,
@@ -866,23 +893,11 @@ export async function createGuestEntry(
 }
 
 // ---------------------------------------------------------------------------
-// Notification idempotency helpers
+// Notification delivery records
 // ---------------------------------------------------------------------------
 
-/**
- * Returns the current notification timestamps for an entry.
- * Used to gate email sends on route retry / double-submit.
- */
-export async function getNotificationFlags(
-	entryId: number
-): Promise<{ adminNotifiedAt: Date | null; copySentAt: Date | null }> {
-	const row = await db
-		.select({ adminNotifiedAt: Guestbook.adminNotifiedAt, copySentAt: Guestbook.copySentAt })
-		.from(Guestbook)
-		.where(eq(Guestbook.id, entryId))
-		.get();
-	return { adminNotifiedAt: row?.adminNotifiedAt ?? null, copySentAt: row?.copySentAt ?? null };
-}
+// Delivery dedup comes from the Resend Idempotency-Key. These timestamps record
+// what was delivered, for the admin view and any future backfill of failed sends.
 
 /** Mark admin notification as sent. */
 export async function markAdminNotified(entryId: number): Promise<void> {

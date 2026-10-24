@@ -38,6 +38,8 @@ function printError(message) {
 function validateToken(token) {
 	if (!token) return "Token must not be empty.";
 	if (token.length < MIN_TOKEN_LENGTH) return `Token must be at least ${MIN_TOKEN_LENGTH} characters.`;
+	// The admin login trims what is typed, so a padded token could never match its hash.
+	if (token !== token.trim()) return "Token must not start or end with whitespace.";
 	return "";
 }
 
@@ -135,6 +137,12 @@ async function readTokenFromInput() {
 async function main() {
 	const arg = process.argv[2];
 	const isGenerateMode = GENERATE_FLAGS.has(arg ?? "");
+	if (arg && !isGenerateMode) {
+		stderr.write(
+			"Warning: a token passed as an argument is kept in shell history and is visible in the process list. " +
+				"Prefer the prompt or --generate.\n"
+		);
+	}
 	const token = isGenerateMode ? generateRawToken() : (arg ?? (await readTokenFromInput()));
 	const validationError = validateToken(token);
 

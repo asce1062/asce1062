@@ -29,3 +29,24 @@ describe("buildTerminalPromptMirrorParts", () => {
 		});
 	});
 });
+
+describe("buildTerminalPromptMirrorParts with emoji", () => {
+	it("puts a whole emoji under the block cursor, never half a surrogate pair", () => {
+		const parts = buildTerminalPromptMirrorParts("search 🚀 now", 7);
+		expect(parts.cursorChar).toBe("🚀");
+		expect(parts.afterCaret).toBe(" now");
+	});
+
+	it("keeps multi-code-point graphemes together", () => {
+		const family = "👨‍👩‍👧";
+		const parts = buildTerminalPromptMirrorParts(`a${family}b`, 1);
+		expect(parts.cursorChar).toBe(family);
+		expect(parts.afterCaret).toBe("b");
+	});
+
+	it("takes a whole grapheme from the completion when the caret is at the end", () => {
+		const parts = buildTerminalPromptMirrorParts("go", 2, "🚀ship");
+		expect(parts.cursorChar).toBe("🚀");
+		expect(parts.completionAfterCursor).toBe("ship");
+	});
+});

@@ -3,9 +3,10 @@
  * Full-viewport interactive fire cursor for the 404 page.
  *
  * Renders fire wherever the user moves their cursor or touches. Text content
- * on the 404 page is detected as "flammable" via Range.getClientRects().
- * Any fire-buffer cell that overlaps text becomes permanently ignited once
- * the cursor passes over it.
+ * on the 404 page is "flammable": any glyph cell the torch core touches stays
+ * ignited for the rest of the visit. Burns are anchored to their text block
+ * (see burn404flammable.ts), so they persist through text effects, scrolling,
+ * and sidebar collapse. Only a block whose width changes (reflow) loses them.
  *
  * Works alongside burn404.ts (bottom strip). Both respond to the same
  * flourish-burn404 preference key.
@@ -15,13 +16,23 @@
  *
  * Lifecycle mirrors burn404.ts:
  *   astro:after-swap → applyTorchPref()
- *   astro:page-load  → initTorch() (reset state, re-detect flammable pixels)
+ *   astro:page-load  → initTorch() (reset burns, detect flammable anchors)
  *
  * BROWSER-ONLY. Import only from client-side <script> blocks.
  */
 
 import { PALETTE, MAX_INTENSITY, BURN404_PREF_CHANGE } from "@/scripts/burn404";
 import { getPref, PREF_KEYS } from "@/lib/prefs";
+import {
+	containsFlammableAnchor,
+	detectFlammableAnchors,
+	emptyFlammableAnchor,
+	findIgnitedCells,
+	resolveFlammableAnchor,
+	resolveHeldCells,
+	toCell,
+	type FlammableAnchor,
+} from "@/scripts/burn404flammable";
 
 // ── Public constants (exported for tests) ──────────────────────────────────
 
@@ -119,11 +130,6 @@ const TORCH_PIXEL_SIZE = 4;
 const TORCH_SOURCE_INTENSITY = 33;
 const PAGE_SENTINEL = "data-page-404";
 const FRAME_INTERVAL = 1000 / 30;
-// Extra canvas rows below the viewport for the detection pass.
-// Sized generously so content that is marginally below the fold on large
-// screens (e.g. the last paragraph on 2560×1440) still gets detected,
-// and descenders (y, g) near the viewport edge are fully captured.
-const DETECT_OVERFLOW = TORCH_PIXEL_SIZE * 16; // 64 px
 
 // ── Canvas / animation / interaction state ─────────────────────────────────
 
@@ -135,151 +141,113 @@ let _fireH = 0;
 let _rafId: number | null = null;
 let _lastFrame = 0;
 let _mouseFirePos: { x: number; y: number } | null = null;
-let _flammablePixels: Set<string> = new Set();
-let _burningPixels: Set<string> = new Set();
+// Flammable ink and burn memory, both keyed by anchor element with cells
+// relative to the anchor's origin (see burn404flammable.ts).
+let _anchors: Map<Element, FlammableAnchor> = new Map();
+let _burning: Map<Element, Set<string>> = new Map();
 let _ac: AbortController | null = null;
-let _scrollTimer: ReturnType<typeof setTimeout> | null = null;
 let _torchExtinguishing = false;
 let _mutationObserver: MutationObserver | null = null;
+let _observedSentinel: Element | null = null;
 let _mutationTimer: ReturnType<typeof setTimeout> | null = null;
+let _dirtyAnchors: Set<Element> | "all" = new Set();
+// Bumped on init/disable so a detection queued behind document.fonts.ready
+// cannot write results into a newer (or torn-down) visit.
+let _detectGeneration = 0;
 let _sidebarObserver: MutationObserver | null = null;
 
 // ── 404-page detection ─────────────────────────────────────────────────────
 
+function getSentinel(): Element | null {
+	return document.querySelector(`[${PAGE_SENTINEL}]`);
+}
+
 function isOn404Page(): boolean {
-	return document.querySelector(`[${PAGE_SENTINEL}]`) !== null;
+	return getSentinel() !== null;
 }
 
 function isActive(): boolean {
 	return getPref(PREF_KEYS.burn404) !== "0";
 }
 
-// ── Flammable pixel detection ──────────────────────────────────────────────
+// ── Flammable detection ────────────────────────────────────────────────────
 
 /**
- * Rasterise page content to an offscreen canvas at glyph-pixel accuracy,
- * then map each lit pixel to its fire-buffer cell.
- *
- * Text rendering strategy:
- * - Large text (≥24 px): strokeText. Fire traces letter outlines rather than
- *   flooding the entire filled glyph, allowing partial ignition of big letters.
- * - Small text (<24 px): fillText. Glyphs are small enough that fill is fine.
- * - Short text nodes (≤200 chars): character-by-character Range positioning for
- *   maximum granularity (each ASCII art glyph is independently flammable).
- * - Long text nodes: line-by-line fallback to keep detection fast.
- * Non-text leaf elements (icon pseudo-elements, HR, etc.) fall back to bounding rects.
+ * Re-detect flammable ink once fonts are ready: for every anchor, or only
+ * for `only` (anchors a text effect just mutated). Burn memory is kept for
+ * every anchor still in the DOM, with one exception: on a full re-detect
+ * (resize, sidebar toggle) an anchor whose width changed has reflowed, so its
+ * remembered cells no longer line up and are dropped. Partial re-detects
+ * never drop burns, since an effect legitimately resizes shrink-wrapped text.
  */
-function detectFlammablePixels(): Set<string> {
-	const sentinel = document.querySelector(`[${PAGE_SENTINEL}]`);
-	if (!sentinel || _fireW === 0 || _fireH === 0) return new Set();
+function redetect(only?: ReadonlySet<Element>): void {
+	const generation = _detectGeneration;
+	document.fonts.ready.then(() => {
+		const sentinel = getSentinel();
+		if (generation !== _detectGeneration || !sentinel || _fireW === 0) return;
 
-	const cw = _fireW * TORCH_PIXEL_SIZE;
-	const canvasH = _fireH * TORCH_PIXEL_SIZE;
-
-	const offscreen = document.createElement("canvas");
-	offscreen.width = cw;
-	offscreen.height = canvasH + DETECT_OVERFLOW;
-	const ctx = offscreen.getContext("2d", { willReadFrequently: true });
-	if (!ctx) return new Set();
-
-	ctx.fillStyle = "#000000";
-	ctx.fillRect(0, 0, cw, canvasH + DETECT_OVERFLOW);
-
-	// Render each text node at glyph level using canvas text APIs.
-	const walker = document.createTreeWalker(sentinel, NodeFilter.SHOW_TEXT);
-	let node: Node | null;
-	while ((node = walker.nextNode())) {
-		const parent = node.parentElement;
-		if (!parent) continue;
-		const style = window.getComputedStyle(parent);
-		if (style.display === "none" || style.visibility === "hidden") continue;
-
-		const text = node.textContent ?? "";
-		if (!text.trim()) continue;
-
-		const fontSize = parseFloat(style.fontSize);
-		ctx.font = `${style.fontStyle} ${style.fontWeight} ${fontSize}px ${style.fontFamily}`;
-		ctx.textBaseline = "alphabetic";
-		ctx.fillStyle = "#ffffff";
-
-		const CHAR_LIMIT = 200;
-		if (text.length <= CHAR_LIMIT) {
-			// Character-by-character: each glyph gets its own fire cell footprint.
-			for (let i = 0; i < text.length; i++) {
-				const char = text[i];
-				if (!char.trim()) continue;
-				const charRange = document.createRange();
-				charRange.setStart(node, i);
-				charRange.setEnd(node, i + 1);
-				const rects = charRange.getClientRects();
-				if (rects.length === 0) continue;
-				const r = rects[0];
-				if (r.width === 0 || r.height === 0 || r.bottom < 0 || r.top > canvasH + DETECT_OVERFLOW) continue;
-				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
-				ctx.fillText(char, r.left, baseline);
-			}
-		} else {
-			// Long text nodes (large pre blocks): line-by-line for performance.
-			const lineRange = document.createRange();
-			lineRange.selectNodeContents(node);
-			const lines = text.split("\n");
-			const lineRects = lineRange.getClientRects();
-			for (let i = 0; i < Math.min(lines.length, lineRects.length); i++) {
-				const r = lineRects[i];
-				if (r.bottom < 0 || r.top > canvasH + DETECT_OVERFLOW) continue;
-				const baseline = r.top + (r.height - fontSize) / 2 + fontSize * 0.8;
-				ctx.fillText(lines[i], r.left, baseline);
-			}
+		const detected = detectFlammableAnchors(sentinel, TORCH_PIXEL_SIZE, only);
+		const next = new Map<Element, FlammableAnchor>();
+		for (const [el, anchor] of _anchors) {
+			if (!el.isConnected || only?.has(el)) continue;
+			// Partial: untouched anchors keep their map. Full: known anchors with
+			// no ink right now (mid-backspace, hidden) keep their burns behind an
+			// empty mask until ink returns; detected anchors overwrite below.
+			next.set(el, only ? anchor : emptyFlammableAnchor(anchor.width));
 		}
-	}
+		for (const [el, anchor] of detected) {
+			if (!only && _anchors.has(el) && _anchors.get(el)?.width !== anchor.width) _burning.delete(el);
+			next.set(el, anchor);
+		}
+		for (const el of _burning.keys()) {
+			if (!next.has(el)) _burning.delete(el);
+		}
+		_anchors = next;
+	});
+}
 
-	// Non-text leaf elements (icon glyphs via :before, HR, images, etc.)
-	// No text node to render, so fall back to bounding rect.
-	ctx.fillStyle = "#ffffff";
-	for (const el of sentinel.querySelectorAll<HTMLElement>("*")) {
-		if (el.children.length > 0) continue;
-		if (Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) continue;
-		const style = window.getComputedStyle(el);
-		if (style.display === "none" || style.visibility === "hidden") continue;
+/**
+ * Advance burn state for one frame: ignite flammable cells under the torch
+ * core, then return the viewport cells to hold at full heat.
+ */
+function collectHeldCells(): Set<string> {
+	const held = new Set<string>();
+	if (_torchExtinguishing) return held;
+
+	for (const [el, anchor] of _anchors) {
+		if (!el.isConnected) continue;
 		const rect = el.getBoundingClientRect();
-		if (rect.width <= 0 || rect.height <= 0) continue;
-		if (rect.bottom < 0 || rect.top > canvasH + DETECT_OVERFLOW || rect.right < 0 || rect.left > cw) continue;
-		ctx.fillRect(
-			Math.max(0, Math.floor(rect.left)),
-			Math.max(0, Math.floor(rect.top)),
-			Math.ceil(rect.width),
-			Math.ceil(rect.height)
-		);
-	}
+		const origin = toCell(rect.left, rect.top, TORCH_PIXEL_SIZE);
 
-	// Map every lit pixel to its fire-buffer cell coordinate.
-	const pixels = ctx.getImageData(0, 0, cw, canvasH + DETECT_OVERFLOW).data;
-	const flammable = new Set<string>();
-	for (let y = 0; y < canvasH + DETECT_OVERFLOW; y++) {
-		for (let x = 0; x < cw; x++) {
-			if (pixels[(y * cw + x) * 4] > 64) {
-				const fx = Math.floor(x / TORCH_PIXEL_SIZE);
-				// Clamp so descenders that extend past the canvas bottom map to the
-				// last row rather than being silently discarded.
-				const fy = Math.min(_fireH - 1, Math.floor(y / TORCH_PIXEL_SIZE));
-				if (fx < _fireW) {
-					flammable.add(`${fx},${fy}`);
-				}
+		// TORCH_IGNITION_RADIUS is tighter than the visual fire radius so only
+		// cells directly under the torch core are lit, not its full flame spread.
+		if (_mouseFirePos !== null) {
+			const ignited = findIgnitedCells(anchor, origin, _mouseFirePos, TORCH_IGNITION_RADIUS);
+			if (ignited.length > 0) {
+				// Hot path (30fps): grow the module-owned set in place rather than copying it.
+				const burning = _burning.get(el) ?? new Set<string>();
+				for (const key of ignited) burning.add(key);
+				_burning.set(el, burning);
 			}
 		}
-	}
 
-	return flammable;
+		const burning = _burning.get(el);
+		if (!burning) continue;
+		for (const key of resolveHeldCells(anchor, burning, origin, _fireW, _fireH)) held.add(key);
+	}
+	return held;
 }
 
 // ── Canvas management ──────────────────────────────────────────────────────
 
 function buildTorchCanvas(): void {
+	// Astro soft navigation swaps <body>, detaching the old canvas. Reset all
+	// canvas state (including _fireW/_fireH) so the new canvas gets sized;
+	// otherwise resizeTorchCanvas() sees an unchanged width and returns early,
+	// leaving the canvas at the browser default 300×150.
 	if (_canvas && !document.body.contains(_canvas)) {
 		stopTorchAnimation();
-		_canvas = null;
-		_ctx = null;
-		_buf = [];
+		removeTorchCanvas();
 	}
 
 	if (_canvas) return;
@@ -314,7 +282,7 @@ function resizeTorchCanvas(): void {
 
 	// Mobile browser chrome show/hide only changes window.innerHeight; width
 	// stays constant. Skip those events so the torch canvas, fire buffer, and
-	// burning pixel state are all preserved without any bitmap clear.
+	// burn state are all preserved without any bitmap clear.
 	// Width changes (device rotation, desktop resize) still update.
 	if (newFireW === _fireW) return;
 
@@ -324,7 +292,6 @@ function resizeTorchCanvas(): void {
 	const oldW = _fireW;
 	const oldH = _fireH;
 	const oldBuf = _buf;
-	const oldBurning = _burningPixels;
 
 	_fireW = newFireW;
 	_fireH = newFireH;
@@ -343,22 +310,11 @@ function resizeTorchCanvas(): void {
 	}
 	_buf = newBuf;
 
-	_burningPixels = new Set<string>();
-	for (const key of oldBurning) {
-		const comma = key.indexOf(",");
-		const fx = parseInt(key.slice(0, comma), 10);
-		const fy = parseInt(key.slice(comma + 1), 10);
-		if (fx < _fireW && fy < _fireH) {
-			_burningPixels.add(key);
-		}
-	}
-
+	// Reflowed anchors drop their burns inside redetect(); the rest keep them.
 	if (isOn404Page()) {
-		document.fonts.ready.then(() => {
-			if (isOn404Page() && _fireW > 0) _flammablePixels = detectFlammablePixels();
-		});
+		redetect();
 	} else {
-		_flammablePixels = new Set();
+		_anchors = new Map();
 	}
 }
 
@@ -384,23 +340,6 @@ function tickTorch(now: number): void {
 
 	if (!_ctx || !_canvas || _fireW === 0 || _fireH === 0) return;
 
-	// While not extinguishing: ignite flammable pixels the cursor touches.
-	// Uses TORCH_IGNITION_RADIUS (tighter than visual fire radius) so only pixels
-	// directly under the torch core are permanently lit, not its full flame spread.
-	if (!_torchExtinguishing && _mouseFirePos !== null) {
-		const r = TORCH_IGNITION_RADIUS;
-		for (let dy = -r; dy <= r; dy++) {
-			for (let dx = -r; dx <= r; dx++) {
-				if (Math.sqrt(dx * dx + dy * dy) <= r) {
-					const key = `${Math.round(_mouseFirePos.x + dx)},${Math.round(_mouseFirePos.y + dy)}`;
-					if (_flammablePixels.has(key)) {
-						_burningPixels.add(key);
-					}
-				}
-			}
-		}
-	}
-
 	_buf = updateTorchFire(
 		_buf,
 		_fireW,
@@ -409,7 +348,7 @@ function tickTorch(now: number): void {
 		TORCH_DECAY,
 		_torchExtinguishing ? null : _mouseFirePos,
 		TORCH_FIRE_RADIUS,
-		_torchExtinguishing ? new Set<string>() : _burningPixels
+		collectHeldCells()
 	);
 
 	const img = _ctx.createImageData(_fireW, _fireH);
@@ -453,26 +392,49 @@ function stopTorchAnimation(): void {
 
 // ── Mutation watch ─────────────────────────────────────────────────────────
 
-function redetectAfterChange(): void {
-	_burningPixels = new Set();
-	document.fonts.ready.then(() => {
-		if (isOn404Page() && _fireW > 0) {
-			_flammablePixels = detectFlammablePixels();
-		}
-	});
+/**
+ * Queue a debounced re-detect. Text effects mutate a single anchor at a
+ * time, so only those anchors are re-detected; everything else keeps its
+ * flammable map and burns untouched.
+ */
+function scheduleRedetect(dirty: Iterable<Element> | "all", delayMs: number): void {
+	if (dirty === "all") {
+		_dirtyAnchors = "all";
+	} else if (_dirtyAnchors !== "all") {
+		_dirtyAnchors = new Set([..._dirtyAnchors, ...dirty]);
+	}
+	if (_mutationTimer !== null) clearTimeout(_mutationTimer);
+	_mutationTimer = setTimeout(() => {
+		_mutationTimer = null;
+		const pending = _dirtyAnchors;
+		_dirtyAnchors = new Set();
+		redetect(pending === "all" ? undefined : pending);
+	}, delayMs);
 }
 
 function startMutationWatch(): void {
-	const sentinel = document.querySelector(`[${PAGE_SENTINEL}]`);
-	if (!sentinel || _mutationObserver) return;
-	_mutationObserver = new MutationObserver(() => {
-		if (_mutationTimer !== null) clearTimeout(_mutationTimer);
-		_mutationTimer = setTimeout(() => {
-			_mutationTimer = null;
-			redetectAfterChange();
-		}, 150);
+	const sentinel = getSentinel();
+	if (!sentinel || (_mutationObserver && _observedSentinel === sentinel)) return;
+	// A soft navigation back to the 404 renders a new sentinel; rebind to it.
+	stopMutationWatch();
+	_observedSentinel = sentinel;
+	_mutationObserver = new MutationObserver((records) => {
+		const dirty = new Set<Element>();
+		for (const { target, addedNodes } of records) {
+			const el = target instanceof Element ? target : target.parentElement;
+			if (!el) continue;
+			const anchor = resolveFlammableAnchor(el, sentinel);
+			// A mutation above anchor level, or one that inserts new anchors,
+			// changes which anchors exist: re-detect everything.
+			if (anchor === sentinel || Array.from(addedNodes).some(containsFlammableAnchor)) {
+				scheduleRedetect("all", 150);
+				return;
+			}
+			dirty.add(anchor);
+		}
+		scheduleRedetect(dirty, 150);
 	});
-	_mutationObserver.observe(sentinel, { childList: true, subtree: true });
+	_mutationObserver.observe(sentinel, { childList: true, characterData: true, subtree: true });
 }
 
 function stopMutationWatch(): void {
@@ -480,20 +442,19 @@ function stopMutationWatch(): void {
 		clearTimeout(_mutationTimer);
 		_mutationTimer = null;
 	}
+	_dirtyAnchors = new Set();
 	_mutationObserver?.disconnect();
 	_mutationObserver = null;
+	_observedSentinel = null;
 }
 
 function startSidebarWatch(): void {
 	if (_sidebarObserver) return;
 	_sidebarObserver = new MutationObserver(() => {
-		// Sidebar collapsed/expanded on desktop — main content shifts horizontally.
-		// Re-detect after the CSS transition completes so coordinates are correct.
-		if (_mutationTimer !== null) clearTimeout(_mutationTimer);
-		_mutationTimer = setTimeout(() => {
-			_mutationTimer = null;
-			redetectAfterChange();
-		}, 300);
+		// Sidebar collapsed/expanded on desktop: main content shifts and may
+		// reflow. Burns follow their anchors; re-detect after the CSS transition
+		// so reflowed anchors are caught.
+		scheduleRedetect("all", 300);
 	});
 	_sidebarObserver.observe(document.documentElement, {
 		attributes: true,
@@ -508,11 +469,25 @@ function stopSidebarWatch(): void {
 
 // ── Enable / disable ───────────────────────────────────────────────────────
 
+/** Drop observers, input listeners, and any queued detection. */
+function releaseTorchListeners(): void {
+	_detectGeneration++;
+	stopMutationWatch();
+	stopSidebarWatch();
+	_ac?.abort();
+	_ac = null;
+	_mouseFirePos = null;
+}
+
 function enableTorch(): void {
 	_torchExtinguishing = false;
 	stopTorchAnimation();
 
-	if (!isOn404Page()) return;
+	if (!isOn404Page()) {
+		// Leaving the 404 via soft navigation: nothing to watch on this page.
+		releaseTorchListeners();
+		return;
+	}
 
 	const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	if (prefersReduced) return;
@@ -566,35 +541,12 @@ function enableTorch(): void {
 		{ signal }
 	);
 
-	// On scroll: extinguish burning pixels immediately; re-detect flammable
-	// positions after scrolling stops so coords stay aligned with the viewport.
-	document.addEventListener(
-		"scroll",
-		() => {
-			_burningPixels = new Set();
-			if (_scrollTimer !== null) clearTimeout(_scrollTimer);
-			_scrollTimer = setTimeout(() => {
-				_scrollTimer = null;
-				if (_canvas) _flammablePixels = detectFlammablePixels();
-			}, 200);
-		},
-		{ signal, passive: true }
-	);
-
 	startTorchAnimation();
 }
 
 function disableTorch(): void {
-	stopMutationWatch();
-	stopSidebarWatch();
-	if (_scrollTimer !== null) {
-		clearTimeout(_scrollTimer);
-		_scrollTimer = null;
-	}
-	_ac?.abort();
-	_ac = null;
-	_mouseFirePos = null;
-	_burningPixels = new Set(); // stop maintaining ignited pixels so they decay
+	releaseTorchListeners();
+	_burning = new Map(); // stop maintaining ignited cells so they decay
 
 	if (_rafId !== null) {
 		// Fire is animating (let it die naturally).
@@ -615,9 +567,10 @@ function applyTorchPref(): void {
 
 function initTorch(): void {
 	// Reset per-visit state. Detection is deferred (see below).
-	_burningPixels = new Set();
+	_detectGeneration++;
+	_burning = new Map();
 	_mouseFirePos = null;
-	_flammablePixels = new Set();
+	_anchors = new Map();
 
 	if (!isOn404Page() || !isActive() || _fireW === 0) return;
 
@@ -625,13 +578,7 @@ function initTorch(): void {
 	// Without this, Range.getClientRects() returns intermediate positions
 	// during Astro view transitions, reloads, and back-navigation, causing
 	// flammable zones to be offset from where elements actually land.
-	document.fonts.ready.then(() => {
-		setTimeout(() => {
-			if (isOn404Page() && _fireW > 0) {
-				_flammablePixels = detectFlammablePixels();
-			}
-		}, 50);
-	});
+	scheduleRedetect("all", 50);
 }
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────

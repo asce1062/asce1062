@@ -6,49 +6,109 @@ import Expand from "@/components/ui/Expand.astro";
 	<Expand title="Privacy Policy">
 		<div slot="content">
 			<p>
-				I <b><em>do not track you</em></b>, I <b><em>do not run analytics</em></b>, I <b>
+				I{" "}
+				<b>
+					<em>do not track you</em>
+				</b>
+				, I{" "}
+				<b>
+					<em>do not run analytics</em>
+				</b>
+				, I{" "}
+				<b>
 					<em>do not set cookies</em>
 				</b>
 			</p>
 			<p>
-				I <b><em>do write twelve values to your browser's localStorage</em></b>: your <b
-					><em>light/dark theme preference</em></b
-				>, whether to <b><em>match your device theme</em></b>, whether you've chosen to <b
-					><em>pause the blinking cursor effect</em></b
-				>, whether to show the <b><em>animated stars background</em></b> or <b><em>Matrix rain background</em></b>,
-				whether the <b><em>Doom-fire burn effect on the 404 page</em></b> is enabled, your chosen <b
-					><em>color flavor</em></b
-				> and <b><em>page transition style</em></b>, whether you've <b><em>collapsed the desktop sidebar</em></b>, a <b
-					><em>visit count and last-visit timestamp</em></b
-				> for the personalised sidebar greeting, and your <b><em>8-bit avatar customization</em></b> (if you've used the avatar
-				builder). These persist across visits by design so you shouldn't have to reconfigure your preferences every time you
-				open the site.
+				I{" "}
+				<b>
+					<em>do write twelve values to your browser's localStorage</em>
+				</b>
+				: your{" "}
+				<b>
+					<em>light/dark theme preference</em>
+				</b>
+				, whether to{" "}
+				<b>
+					<em>match your device theme</em>
+				</b>
+				, whether you've chosen to{" "}
+				<b>
+					<em>pause the blinking cursor effect</em>
+				</b>
+				, whether to show the{" "}
+				<b>
+					<em>animated stars background</em>
+				</b>{" "}
+				or{" "}
+				<b>
+					<em>Matrix rain background</em>
+				</b>
+				, whether the{" "}
+				<b>
+					<em>Doom-fire burn effect on the 404 page</em>
+				</b>{" "}
+				is enabled, your chosen{" "}
+				<b>
+					<em>color flavor</em>
+				</b>{" "}
+				and{" "}
+				<b>
+					<em>page transition style</em>
+				</b>
+				, whether you've{" "}
+				<b>
+					<em>collapsed the desktop sidebar</em>
+				</b>
+				, a{" "}
+				<b>
+					<em>visit count and last-visit timestamp</em>
+				</b>{" "}
+				for the personalised sidebar greeting, and your{" "}
+				<b>
+					<em>8-bit avatar customization</em>
+				</b>{" "}
+				(if you've saved an avatar). These persist across visits by design so you shouldn't have to reconfigure your
+				preferences every time you open the site. Two short-lived <code>sessionStorage</code> values (a visit marker and
+				the last page before going offline) are cleared when you close the tab, and the service worker keeps an offline
+				copy of this site's own pages.
 			</p>
 			<p>
-				The <b><em>only data I receive from you</em></b>, is that <b><em>which you freely give me</em></b> through the <b>
+				The{" "}
+				<b>
+					<em>only data I receive from you</em>
+				</b>
+				, is that{" "}
+				<b>
+					<em>which you freely give me</em>
+				</b>{" "}
+				through the{" "}
+				<b>
 					<em>email</em>
-				</b> or <b><em>guestbook forms</em></b>.
+				</b>{" "}
+				or{" "}
+				<b>
+					<em>guestbook forms</em>
+				</b>
+				.
 			</p>
 			<p>
-				Guestbook submissions are stored in a self-hosted <a
-					href="https://turso.tech"
-					target="_blank"
-					rel="noopener noreferrer">
+				Guestbook submissions are stored in a self-hosted{" "}
+				<a href="https://turso.tech" target="_blank" rel="noopener noreferrer">
 					Turso
-				</a> database (libSQL). Spam is filtered using a honeypot field and content pattern detection. No third-party services
-				process your data. Should you want a copy or would like me to delete anything you sent me;
+				</a>{" "}
+				database (libSQL). Spam is filtered using a honeypot field and content pattern detection. No third-party
+				services process your data. Should you want a copy or would like me to delete anything you sent me;
 			</p>
 			<p>
-				Contact me directly on <i class="icon-envelope-at"></i>: <a class="icon" href="mailto:alex@alexmbugua.me">
+				Contact me directly on <i class="icon-envelope-at"></i>:{" "}
+				<a class="icon" href="mailto:alex@alexmbugua.me">
 					alex@alexmbugua.me
 				</a>
 			</p>
 			<p>
-				Raise an issue in the <i class="icon-github"></i> repo <a
-					class="icon"
-					href="https://github.com/asce1062/asce1062/issues"
-					target="_blank"
-					rel="noopener noreferrer">
+				Raise an issue in the <i class="icon-github"></i> repo{" "}
+				<a class="icon" href="https://github.com/asce1062/asce1062/issues" target="_blank" rel="noopener noreferrer">
 					asce1062/issues
 				</a>
 			</p>

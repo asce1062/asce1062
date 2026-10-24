@@ -6,14 +6,38 @@ let hideTimeout: number | null = null;
 const AUTO_HIDE_DELAY = 3000; // 3 seconds - standard for auto-hiding UI elements
 
 /**
- * Scrolls the page back to the top
- * Supports both Safari and other browsers
+ * Scrolls the page back to the top and moves focus to the main content, so a
+ * keyboard user is not left on a button that is about to hide.
  */
 function scrollToTop(): void {
+	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	window.scrollTo({
 		top: 0,
-		behavior: "smooth",
+		behavior: reduceMotion ? "auto" : "smooth",
 	});
+
+	const main = document.getElementById("main-content");
+	if (main) {
+		if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+		main.focus({ preventScroll: true });
+	}
+}
+
+/** Cancel the pending auto-hide (pointer over the button, or it has focus). */
+function cancelAutoHide(): void {
+	if (hideTimeout !== null) {
+		clearTimeout(hideTimeout);
+		hideTimeout = null;
+	}
+}
+
+/** Restart the auto-hide when the pointer or focus leaves, if still scrolled down. */
+function resumeAutoHide(): void {
+	const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+	if (winScroll > 250) {
+		cancelAutoHide();
+		hideTimeout = window.setTimeout(hideButton, AUTO_HIDE_DELAY);
+	}
 }
 
 /**
@@ -43,8 +67,10 @@ function showButtonWithAutoHide(): void {
 	button.classList.remove("opacity-0", "invisible");
 	button.classList.add("opacity-100", "visible");
 
-	// Set auto-hide timer
-	hideTimeout = window.setTimeout(hideButton, AUTO_HIDE_DELAY);
+	// Set auto-hide timer, unless the button is focused (see initBackToTop)
+	if (!button.contains(document.activeElement)) {
+		hideTimeout = window.setTimeout(hideButton, AUTO_HIDE_DELAY);
+	}
 }
 
 /**
@@ -83,19 +109,14 @@ export function initBackToTop(): void {
 	// Add scroll handler to show/hide button
 	document.addEventListener("scroll", toggleBackToTopButton);
 
-	// Show button on hover/focus (cancels auto-hide)
-	button.addEventListener("mouseenter", () => {
-		if (hideTimeout !== null) {
-			clearTimeout(hideTimeout);
-		}
-	});
-
+	// Keep the button visible while hovered or focused (cancels auto-hide):
+	// hiding a focused element would drop keyboard focus to the body.
+	button.addEventListener("mouseenter", cancelAutoHide);
+	button.addEventListener("focusin", cancelAutoHide);
 	button.addEventListener("mouseleave", () => {
-		const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-		if (winScroll > 250) {
-			hideTimeout = window.setTimeout(hideButton, AUTO_HIDE_DELAY);
-		}
+		if (!button.contains(document.activeElement)) resumeAutoHide();
 	});
+	button.addEventListener("focusout", resumeAutoHide);
 
 	// Initial state check
 	toggleBackToTopButton();

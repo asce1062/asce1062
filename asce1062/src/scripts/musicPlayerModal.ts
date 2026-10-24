@@ -463,6 +463,7 @@ function openMusicDialog() {
 	isMusicMinimized = false;
 	refs?.terminal.classList.toggle("is-collapsed", musicWindowMode === "collapsed");
 	updateMusicVisibility();
+	visualizer?.setVisible(true);
 	void loadPlaylistsOnce();
 	refs?.terminal.focus();
 }
@@ -495,6 +496,8 @@ function minimizeMusicDialog() {
 	const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
 	(triggerEl ?? document.body).focus();
 	updateMusicVisibility();
+	// Nothing is on screen: stop the 60fps analyser loop and the idle animation.
+	visualizer?.setVisible(false);
 }
 
 function closeMusicDialog() {
@@ -505,6 +508,7 @@ function closeMusicDialog() {
 		player.load();
 	}
 	visualizer?.setPlaying(false);
+	visualizer?.setVisible(false);
 	isMusicOpen = false;
 	isMusicMinimized = false;
 	isStreamLoading = false;
@@ -587,6 +591,8 @@ function updateNowFile() {
 		const distance = Math.max(0, refs.nowFile.scrollWidth - viewport.clientWidth);
 		viewport.style.setProperty("--music-now-file-scroll-distance", `${distance}px`);
 		viewport.classList.toggle("is-scrolling", distance > 0);
+		// Full title on hover/AT when the line is truncated or scrolling
+		viewport.title = distance > 0 ? (refs.nowFile.textContent ?? "") : "";
 		viewport.classList.toggle("is-playing", Boolean(currentTrack));
 	});
 	controlsAbortController?.signal.addEventListener("abort", () => window.cancelAnimationFrame(scrollFrame), {
@@ -832,22 +838,36 @@ function playTrackFromBrowse(track: MusicTrack) {
 	playTrack(track);
 }
 
+/** Increments per playTrack; a settled play() from an older request is ignored. */
+let playRequestId = 0;
+
 function playTrack(track: MusicTrack) {
 	const player = refs?.player;
 	if (!(player instanceof HTMLAudioElement) || !track.id) return;
 
+	const requestId = ++playRequestId;
 	setPlaybackState(selectMusicTrack(playbackState, track.id, { isPlaying: true }));
 	isStreamLoading = true;
 	updatePlaybackUi();
 	player.src = `/api/music/stream/${encodeURIComponent(track.id)}`;
 	const playPromise = player.play();
 	playPromise
-		.catch(() => {
+		.catch((error: unknown) => {
+			// Switching tracks rejects the previous play() with AbortError; that is not
+			// a failure of the track now playing.
+			if (requestId !== playRequestId) return;
+			const name = error instanceof DOMException ? error.name : "";
+			if (name === "AbortError") return;
 			setPlaybackState({ ...playbackState, isPlaying: false });
-			setSignal("[\u00A0playback blocked...\u00A0]", "paused");
+			// NotAllowedError: autoplay policy. NotSupportedError: the stream itself failed.
+			setSignal(
+				name === "NotAllowedError" ? "[\u00A0playback blocked...\u00A0]" : "[\u00A0stream error\u00A0]",
+				"paused"
+			);
 			updatePlaybackUi();
 		})
 		.finally(() => {
+			if (requestId !== playRequestId) return;
 			isStreamLoading = false;
 			updatePlaybackUi();
 		});
@@ -1312,6 +1332,8 @@ async function bootMusicPage() {
 		visualizer = new AsciiVisualizerController();
 		visualizer.mount(vizContainer);
 		visualizer.setFlavor(activeFlavor);
+		// Only animate once the player is actually shown.
+		visualizer.setVisible(isMusicOpen);
 	}
 
 	controlsAbortController = new AbortController();

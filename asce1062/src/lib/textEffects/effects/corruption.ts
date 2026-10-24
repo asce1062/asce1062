@@ -1,6 +1,6 @@
 import type { EffectRendererHandle, CorruptionEffectOptions } from "../types";
 import { DEFAULT_CORRUPTION_COUNT, DEFAULT_CORRUPTION_INTENSITY, DEFAULT_CORRUPTION_ITEMS } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
+import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
 
 export function runCorruptionRenderer(
 	el: HTMLElement,
@@ -17,11 +17,10 @@ export function runCorruptionRenderer(
 		durationMs,
 	} = options;
 
-	const charsetStr = items
-		? items.join("")
-		: charset === "blocks"
-			? DEFAULT_CORRUPTION_ITEMS.join("")
-			: resolveGlitchCharsetStr(charset);
+	const glyphs = splitGraphemes(
+		items ? items.join("") : charset === "blocks" ? DEFAULT_CORRUPTION_ITEMS.join("") : resolveGlitchCharsetStr(charset)
+	);
+	const chars = splitGraphemes(text);
 	const totalCount = Math.max(3, count);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("corruption", text);
 	const stepMs = delayMs ?? totalDuration / totalCount;
@@ -35,13 +34,10 @@ export function runCorruptionRenderer(
 	});
 
 	const intervalId = globalThis.setInterval(() => {
-		el.textContent = text
-			.split("")
+		el.textContent = chars
 			.map((char) => {
 				if (/\s/.test(char)) return char;
-				return Math.random() < clampedIntensity
-					? (charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? char)
-					: char;
+				return Math.random() < clampedIntensity ? (pickRandomGrapheme(glyphs) ?? char) : char;
 			})
 			.join("");
 

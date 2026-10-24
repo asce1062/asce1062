@@ -2,11 +2,12 @@
 import Layout from "@/layouts/Layout.astro";
 ---
 
-<Layout title="Offline" ogImage="images/social-preview.png" description="You are currently offline">
+<Layout noIndex title="Offline" ogImage="images/social-preview.png" description="You are currently offline">
 	<div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
 		<h1 class="text-4xl font-bold mb-4 font-retro">You're Offline</h1>
 		<p class="text-xl mb-8">
-			It looks like you've lost your internet connection.<br />
+			It looks like you've lost your internet connection.
+			<br />
 			Don't worry, you can still browse cached pages!
 		</p>
 		<div id="offline-status" class="mb-4 text-sm opacity-70"></div>
@@ -24,47 +25,63 @@ import Layout from "@/layouts/Layout.astro";
 <script>
 	import { OfflineManager } from "@/scripts/offlineManager";
 
-	const statusEl = document.getElementById("offline-status");
-	const retryBtn = document.getElementById("retry-btn");
+	/** Teardown for the current /offline visit; null when not on the page. */
+	let teardown: (() => void) | null = null;
 
-	// Save the referrer as the last page if available
-	if (document.referrer && document.referrer !== window.location.href) {
-		OfflineManager.saveLastPage(document.referrer);
-	}
+	function initOfflinePage(): void {
+		const statusEl = document.getElementById("offline-status");
+		if (!statusEl) return; // only /offline has the status element
 
-	// Update status display
-	function updateStatus(online: boolean) {
-		if (statusEl) {
-			if (online) {
-				statusEl.textContent = "Connection restored! Redirecting...";
-			} else {
-				statusEl.textContent = "You are currently offline";
-			}
+		const retryBtn = document.getElementById("retry-btn");
+		let redirectTimer: ReturnType<typeof setTimeout> | null = null;
+
+		// Save the referrer as the last page if available
+		if (document.referrer && document.referrer !== window.location.href) {
+			OfflineManager.saveLastPage(document.referrer);
 		}
+
+		function updateStatus(online: boolean): void {
+			statusEl!.textContent = online ? "Connection restored! Redirecting..." : "You are currently offline";
+		}
+
+		// Redirect handler shared by all recovery paths; runs once per visit.
+		function handleConnectionRestored(): void {
+			if (redirectTimer !== null) return;
+			updateStatus(true);
+			stopPolling();
+			redirectTimer = setTimeout(async () => {
+				// A failed redirect (last page unreachable) must not end recovery for good.
+				if (!(await OfflineManager.tryRedirectToLastPage())) {
+					redirectTimer = null;
+					updateStatus(false);
+					stopPolling = OfflineManager.startPolling(() => handleConnectionRestored());
+				}
+			}, 1000);
+		}
+
+		retryBtn?.addEventListener("click", () => window.location.reload());
+
+		const cleanupListeners = OfflineManager.setupListeners(
+			() => handleConnectionRestored(),
+			() => updateStatus(false)
+		);
+		// Periodic server polling (every 2.5s) as fallback for unreliable online event
+		let stopPolling = OfflineManager.startPolling(() => handleConnectionRestored());
+
+		updateStatus(OfflineManager.isOnline());
+
+		// Leaving /offline by soft navigation must stop everything: a later poll
+		// success used to redirect the visitor away from whatever page they were on.
+		teardown = () => {
+			stopPolling();
+			cleanupListeners();
+			if (redirectTimer !== null) clearTimeout(redirectTimer);
+		};
 	}
 
-	// Redirect handler shared by all recovery paths
-	function handleConnectionRestored() {
-		updateStatus(true);
-		setTimeout(() => {
-			OfflineManager.tryRedirectToLastPage();
-		}, 1000);
-	}
-
-	// Manual retry button
-	retryBtn?.addEventListener("click", () => {
-		window.location.reload();
+	document.addEventListener("astro:page-load", initOfflinePage);
+	document.addEventListener("astro:before-swap", () => {
+		teardown?.();
+		teardown = null;
 	});
-
-	// Listen for online/offline events
-	OfflineManager.setupListeners(
-		() => handleConnectionRestored(),
-		() => updateStatus(false)
-	);
-
-	// Periodic server polling (every 2.5s) as fallback for unreliable online event
-	OfflineManager.startPolling(() => handleConnectionRestored());
-
-	// Show initial status
-	updateStatus(OfflineManager.isOnline());
 </script>

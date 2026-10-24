@@ -7,6 +7,7 @@ import {
 	DEFAULT_TYPEWRITER_STUTTER_MS,
 	DEFAULT_TYPEWRITER_CYCLE_DELAY_MS,
 } from "../constants";
+import { splitGraphemes } from "../utils";
 
 // Tracks the active cursor-blink stop function per element. A new render
 // invocation checks this first so any blink started after a prior completed
@@ -118,11 +119,12 @@ export function runTypewriterRenderer(
 	async function typeChars(target: string): Promise<void> {
 		stopCursorBlink();
 		cursorVisible = true;
-		for (let i = 0; i <= target.length; i++) {
+		const chars = splitGraphemes(target);
+		for (let i = 0; i <= chars.length; i++) {
 			if (cancelled) return;
-			currentTyped = target.slice(0, i);
+			currentTyped = chars.slice(0, i).join("");
 			render();
-			if (i < target.length && !cancelled) {
+			if (i < chars.length && !cancelled) {
 				let charDelay = delayMs;
 				if (stutterChance > 0 && Math.random() < stutterChance) {
 					charDelay += Math.floor(Math.random() * stutterMs);
@@ -135,9 +137,10 @@ export function runTypewriterRenderer(
 	async function backspaceChars(): Promise<void> {
 		stopCursorBlink();
 		cursorVisible = true;
-		for (let i = currentTyped.length; i >= 0; i--) {
+		const chars = splitGraphemes(currentTyped);
+		for (let i = chars.length; i >= 0; i--) {
 			if (cancelled) return;
-			currentTyped = currentTyped.slice(0, i);
+			currentTyped = chars.slice(0, i).join("");
 			render();
 			if (i > 0 && !cancelled) {
 				await wait(delayMs);

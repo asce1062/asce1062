@@ -29,6 +29,7 @@ import {
 	type ResolvedNavBrandCommand,
 } from "@/lib/navBrand/commands";
 import { buildTerminalPromptMirrorParts } from "@/lib/navBrand/promptMirror";
+import { splitGraphemes } from "@/lib/textEffects/utils";
 import { isFlavor, setFlavor } from "@/scripts/flavorManager";
 import {
 	getTerminalPresenceSummary,
@@ -178,6 +179,8 @@ let _lastOpenSource = "sidebar-expanded";
 let _lastDragHandleTapTs: number | null = null;
 let _entries: TerminalEntry[] = [];
 const _commandHistory: string[] = [];
+/** Session history is for recall, not a log: keep the most recent commands only. */
+const MAX_COMMAND_HISTORY = 100;
 let _nextEntryId = 0;
 let _terminalIdleTimer: number | null = null;
 let _terminalIdleCount = 0;
@@ -1186,16 +1189,23 @@ function destroyTerminal(): void {
 	resetTerminalSession(elements);
 	_open = false;
 	setWindowVisibility(elements);
-	_opener?.focus();
+	if (_opener?.isConnected) _opener.focus();
 	_opener = null;
 }
 
 function minimizeTerminal(): void {
 	const elements = getElements();
+	const hadFocus = Boolean(elements.windowEl?.contains(document.activeElement));
 	_open = false;
 	clearTerminalIdleTimer();
 	_windowState = minimizeTerminalWindow(_windowState);
 	setWindowVisibility(elements);
+	// Hiding the window would drop focus to <body>: move it to the dock chip that
+	// restores the terminal (or back to whatever opened it).
+	if (hadFocus) {
+		if (elements.dockChip && !elements.dockChip.hidden) elements.dockChip.focus();
+		else if (_opener?.isConnected) _opener.focus();
+	}
 }
 
 function maximizeOrRestoreTerminal(): void {
@@ -1637,7 +1647,10 @@ function submitCommand(rawInput: string): void {
 	const normalizedInput = rawInput.trim();
 	if (!normalizedInput) return;
 
-	_commandHistory.push(normalizedInput);
+	if (_commandHistory.at(-1) !== normalizedInput) {
+		_commandHistory.push(normalizedInput);
+		if (_commandHistory.length > MAX_COMMAND_HISTORY) _commandHistory.shift();
+	}
 	const resolved = resolveNavBrandCommandInput(normalizedInput);
 	if (!resolved) {
 		appendCommandAndOutput(elements, normalizedInput, buildNavBrandUnknownCommandMessage(normalizedInput), "system");
@@ -1838,6 +1851,9 @@ function initTerminalModal(): void {
 
 			if (event.key === "Escape") {
 				event.preventDefault();
+				// Handled here; without this the document-level Escape handler below also
+				// runs, so closing the completion menu or leaving fullscreen also minimized.
+				event.stopPropagation();
 				if (_completionItems.length > 0) {
 					closeCompletionMenu(elements);
 					return;
@@ -1937,7 +1953,9 @@ function initTerminalModal(): void {
 					return;
 				}
 				if (start > 0) {
-					input.setSelectionRange(start - 1, end);
+					// Delete one grapheme, not one UTF-16 unit (half an emoji).
+					const previous = splitGraphemes(input.value.slice(0, start)).at(-1) ?? "";
+					input.setSelectionRange(start - previous.length, end);
 					writeToTerminalInput(elements, "");
 				}
 				return;

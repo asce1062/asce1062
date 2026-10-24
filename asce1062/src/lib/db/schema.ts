@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { customType, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const dateText = customType<{ data: Date; driverData: string }>({
@@ -21,9 +20,13 @@ export const Guestbook = sqliteTable(
 		email: text("email"),
 		url: text("url"),
 		message: text("message").notNull(),
+		// App-side default, not .default(sql`CURRENT_TIMESTAMP`): Drizzle would emit
+		// the SQL default, which stores "YYYY-MM-DD HH:MM:SS". That sorts before ISO
+		// bounds, so same-day rate-limit and duplicate windows never matched. The
+		// migration keeps the SQL default for inserts made outside Drizzle.
 		timestamp: dateText("timestamp")
 			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`),
+			.$defaultFn(() => new Date()),
 		isSpam: integer("isSpam", { mode: "boolean" }),
 		style: text("style"),
 		status: text("status", { enum: ["visible", "pending", "hidden"] }).default("visible"),
@@ -64,7 +67,7 @@ export const GuestbookModerationLog = sqliteTable(
 		actor: text("actor").notNull(),
 		at: dateText("at")
 			.notNull()
-			.default(sql`CURRENT_TIMESTAMP`),
+			.$defaultFn(() => new Date()),
 	},
 	(table) => [index("ix_mod_log_entry").on(table.entryId)]
 );

@@ -18,16 +18,24 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 		<!-- prettier-ignore-start -->
 		<h2>
 			This is a{" "}
-			<a href="https://alastairjohnston.com/" target="_blank" rel="noopener noreferrer">hello page</a><sup
-				><a href="https://slashpages.net/#hello" target="_blank" rel="noopener noreferrer">1</a></sup
-			>. 👋
+			<a href="https://alastairjohnston.com/" target="_blank" rel="noopener noreferrer">
+				hello page
+			</a>
+			<sup>
+				<a href="https://slashpages.net/#hello" target="_blank" rel="noopener noreferrer">
+					1
+				</a>
+			</sup>
+			. 👋
 		</h2>
 		<!-- prettier-ignore-end -->
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">hello</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<h2
 				data-magical-text
@@ -38,8 +46,9 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 				data-magical-text-adornment-size="28.275"
 				data-magical-text-adornment-opacity="1"
 				data-magical-text-adornment-duration="2.25"
-				data-magical-text-animation-type="sparkle"><i class="icon-chat-square-heart"></i> Hello.</h2
-			>
+				data-magical-text-animation-type="sparkle">
+				<i class="icon-chat-square-heart"></i> Hello.
+			</h2>
 			<p>
 				My name is <u>Alex</u>, or you can call me “asce”, “ascii” or “Frosty”. You can learn more{" "}
 				<a href="/about">about me here</a>.
@@ -56,9 +65,13 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">mail -s "hey" {SOCIAL.email}</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-comment"></i> Preferred: <i class="icon-envelope-at"></i> Email</h2>
+			<h2>
+				<i class="icon-comment"></i> Preferred: <i class="icon-envelope-at"></i> Email
+			</h2>
 			<p class="mb-4">
 				Email is my preferred way to have a real conversation. I read everything and try to reply to anything that is
 				not a pitch or bulk mail. If you have something thoughtful to say, this is the way.
@@ -74,59 +87,60 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls ~/active/</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-broadcast"></i> Where to find me</h2>
+			<h2>
+				<i class="icon-broadcast"></i> Where to find me
+			</h2>
 			<p class="text-neutral-content mb-4">Places I actually show up:</p>
 			<ul class="space-y-2">
 				<li>
 					<span class="font-bold">This site</span>:
-					<a href={SITE.url} target="_blank" rel="noopener noreferrer">alexmbugua.me</a>
+					<a href={SITE.url} target="_blank" rel="noopener noreferrer">
+						alexmbugua.me
+					</a>
 					<span class="text-muted text-xs"> // my home on the internet</span>
 				</li>
 				<li>
-					<span class="font-bold">Now</span>:
-					<a href="/now">/now</a>
+					<span class="font-bold">Now</span>:<a href="/now">/now</a>
 					<span class="text-muted text-xs"> // what I'm currently focused on</span>
 				</li>
 				<li>
 					<span class="font-bold">GitHub</span>:
-					<a href={getGithubProfileUrl()} target="_blank" rel="noopener noreferrer">@{SOCIAL.github}</a>
+					<a href={getGithubProfileUrl()} target="_blank" rel="noopener noreferrer">
+						@{SOCIAL.github}
+					</a>
 					<span class="text-muted text-xs"> // where my code lives</span>
 				</li>
-				{
-					tiktok && (
-						<li>
-							<span class="font-bold">TikTok</span>:
-							<a href={tiktok.url} target="_blank" rel="noopener noreferrer">
-								{tiktok.handle}
-							</a>
-							<span class="text-muted text-xs"> // most active social presence</span>
-						</li>
-					)
-				}
-				{
-					youtube && (
-						<li>
-							<span class="font-bold">YouTube</span>:
-							<a href={youtube.url} target="_blank" rel="noopener noreferrer">
-								{youtube.handle}
-							</a>
-							<span class="text-muted text-xs"> // Gaming and occasional music content</span>
-						</li>
-					)
-				}
-				{
-					discord && (
-						<li>
-							<span class="font-bold">Discord</span>:
-							<a href={discord.url} target="_blank" rel="noopener noreferrer">
-								{discord.handle}
-							</a>
-							<span class="text-muted text-xs"> // Communities and chatting</span>
-						</li>
-					)
-				}
+				{tiktok && (
+					<li>
+						<span class="font-bold">TikTok</span>:
+						<a href={tiktok.url} target="_blank" rel="noopener noreferrer">
+							{tiktok.handle}
+						</a>
+						<span class="text-muted text-xs"> // most active social presence</span>
+					</li>
+				)}
+				{youtube && (
+					<li>
+						<span class="font-bold">YouTube</span>:
+						<a href={youtube.url} target="_blank" rel="noopener noreferrer">
+							{youtube.handle}
+						</a>
+						<span class="text-muted text-xs"> // Gaming and occasional music content</span>
+					</li>
+				)}
+				{discord && (
+					<li>
+						<span class="font-bold">Discord</span>:
+						<a href={discord.url} target="_blank" rel="noopener noreferrer">
+							{discord.handle}
+						</a>
+						<span class="text-muted text-xs"> // Communities and chatting</span>
+					</li>
+				)}
 			</ul>
 		</section>
 
@@ -134,9 +148,13 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/channels.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-diagram-3"></i> How I use each channel</h2>
+			<h2>
+				<i class="icon-diagram-3"></i> How I use each channel
+			</h2>
 			<div class="space-y-5 mt-4">
 				<div class="border-l-2 pl-4" style="border-color: var(--color-primary);">
 					<h3 class="badge badge-primary mb-1 font-bold">email/</h3>
@@ -150,7 +168,9 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 					<p class="mt-0 mb-0">
 						My main output. Blog posts, notes, projects, and the occasional longer piece. If I have thought about
 						something long enough to write it down properly, it ends up here. There is also a{" "}
-						<a href="/guestbook" class="underline decoration-wavy decoration-1">guestbook</a>{" "}
+						<a href="/guestbook" class="underline decoration-wavy decoration-1">
+							guestbook
+						</a>{" "}
 						if you want to leave a note publicly.
 					</p>
 				</div>
@@ -174,28 +194,24 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 						Home for my gaming content. I post pre-recorded gameplay's and occasionally go live here.
 					</p>
 				</div>
-				{
-					discord && (
-						<div class="border-l-2 pl-4" style="border-color: var(--color-info);">
-							<h3 class="badge badge-info mb-1 font-bold">discord/</h3>
-							<p class="mt-0 mb-0">
-								Mostly for communities I'm part of. If we share a server, feel free to ping me. I'm not always
-								monitoring DMs here, email is still better.
-							</p>
-						</div>
-					)
-				}
-				{
-					linkedin && (
-						<div class="border-l-2 pl-4" style="border-color: var(--color-warning);">
-							<h3 class="badge badge-warning mb-1 font-bold">linkedin/</h3>
-							<p class="mt-0 mb-0">
-								I keep a profile there and I do check messages occasionally. It is the right place for professional
-								enquiries, though email is still faster and more likely to get a response.
-							</p>
-						</div>
-					)
-				}
+				{discord && (
+					<div class="border-l-2 pl-4" style="border-color: var(--color-info);">
+						<h3 class="badge badge-info mb-1 font-bold">discord/</h3>
+						<p class="mt-0 mb-0">
+							Mostly for communities I'm part of. If we share a server, feel free to ping me. I'm not always monitoring
+							DMs here, email is still better.
+						</p>
+					</div>
+				)}
+				{linkedin && (
+					<div class="border-l-2 pl-4" style="border-color: var(--color-warning);">
+						<h3 class="badge badge-warning mb-1 font-bold">linkedin/</h3>
+						<p class="mt-0 mb-0">
+							I keep a profile there and I do check messages occasionally. It is the right place for professional
+							enquiries, though email is still faster and more likely to get a response.
+						</p>
+					</div>
+				)}
 			</div>
 		</section>
 
@@ -203,9 +219,13 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">grep -v "^active" ~/platforms.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-circle-slash"></i> Where I'm not really</h2>
+			<h2>
+				<i class="icon-circle-slash"></i> Where I'm not really
+			</h2>
 			<div class="border border-base-300 bg-base-200/50 p-4 space-y-2">
 				<div class="flex gap-4">
 					<span class="text-neutral-content w-28 shrink-0">X / Twitter</span>
@@ -226,7 +246,9 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			</div>
 			<p class="text-xs text-neutral-content mt-3">
 				The full list of accounts that are actually mine is on the{" "}
-				<a href="/verify" class="underline decoration-dashed">/verify</a>{" "}
+				<a href="/verify" class="underline decoration-dashed">
+					/verify
+				</a>{" "}
 				page.
 			</p>
 		</section>
@@ -235,15 +257,17 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/before-you-ping.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-info-circle"></i> A few things worth knowing first</h2>
+			<h2>
+				<i class="icon-info-circle"></i> A few things worth knowing first
+			</h2>
 			<ul class="space-y-3 mt-4">
 				<li>
 					<span>
-						Make sure you{" "}
-						<a href="/verify">verify</a>{" "}
-						you are actually talking to me.
+						Make sure you <a href="/verify">verify</a> you are actually talking to me.
 					</span>
 				</li>
 				<li>
@@ -255,41 +279,39 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 				</li>
 				<li>
 					<span>
-						Get to know <a href="/about">me</a>! You can check out my,{" "}
-						<a href="/interests">interests</a>, what I'm up to, <a href="/now">now</a>,{" "}
-						<a href="/notes/2026-03-12-guiding-principles">why</a> I do what I do here, or read through some of my more{
-							" "
-						}
-						<a href="/tags/motivation">personal musings</a>.
+						Get to know <a href="/about">me</a>! You can check out my, <a href="/interests">interests</a>, what I'm up
+						to, <a href="/now">now</a>, <a href="/notes/2026-03-12-guiding-principles">why</a> I do what I do here, or
+						read through some of my more <a href="/tags/motivation">personal musings</a>.
 					</span>
 				</li>
 				<li>
 					<span>
 						Most things I have to say online end up here on the site eventually. Blog posts, notes, project write-ups.
-						Worth doing a little{" "}
-						<a href="/search">spelunking</a>{" "}
-						before asking something I may have already written about.
+						Worth doing a little <a href="/search">spelunking</a> before asking something I may have already written
+						about.
 					</span>
 				</li>
 				<li>
 					<span>
 						Not looking to say hi but want to stay current? Subscribe to the{" "}
-						<a href="/rss.xml" class="underline decoration-wavy decoration-1">RSS feed</a>. No algorithm, no noise, just
-						posts when I publish them.
+						<a href="/rss.xml" class="underline decoration-wavy decoration-1">
+							RSS feed
+						</a>
+						. No algorithm, no noise, just posts when I publish them.
 					</span>
 				</li>
 				<li>
 					<span>
-						Professional enquiries: you can view my resume{" "}
-						<a href="/resume">as PDF</a>{" "}
-						or read the{" "}
+						Professional enquiries: you can view my resume <a href="/resume">as PDF</a> or read the{" "}
 						<a href="/blog/2025-06-19-resume">text version</a>.
 					</span>
 				</li>
 				<li>
 					<span>
 						There is a{" "}
-						<a href="/guestbook" class="underline decoration-wavy decoration-1">guestbook</a>{" "}
+						<a href="/guestbook" class="underline decoration-wavy decoration-1">
+							guestbook
+						</a>{" "}
 						if you would rather say something publicly. I read every entry.
 					</span>
 				</li>
@@ -313,12 +335,13 @@ const discord = SOCIAL.profiles.find((p) => p.name === "Discord");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<p>
-				If you made it here, you probably have something to say. I would genuinely like to hear it. Send me an <a
-					href={`mailto:${SOCIAL.email}`}>email</a
-				>. It's the best way.
+				If you made it here, you probably have something to say. I would genuinely like to hear it. Send me an{" "}
+				<a href={`mailto:${SOCIAL.email}`}>email</a>. It's the best way.
 			</p>
 			<div class="flex flex-wrap gap-3 mt-4">
 				<a href={`mailto:${SOCIAL.email}`} class="link-action link-action--accent no-underline">

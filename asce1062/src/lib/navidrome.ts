@@ -13,7 +13,16 @@ import { createHash, randomBytes } from "node:crypto";
 const SUBSONIC_VERSION = "1.16.1";
 const SUBSONIC_CLIENT = "alexmbugua-website";
 
-export type SubsonicEndpoint = "getAlbumList2" | "getPlaylists" | "getPlaylist" | "getCoverArt" | "stream";
+/** JSON calls are small; fail fast rather than pin the function. */
+const JSON_TIMEOUT_MS = 8_000;
+/** Media: time allowed until upstream response headers arrive (not the whole body). */
+const MEDIA_HEADERS_TIMEOUT_MS = 8_000;
+/** How long the set of public playlist/track/cover ids is reused per warm instance. */
+const CATALOG_TTL_MS = 5 * 60_000;
+/** Navidrome ids (base62, al-/pl- prefixed cover ids). Anything else never reaches upstream. */
+const MUSIC_ID_RE = /^[A-Za-z0-9_.-]{1,128}$/;
+
+export type SubsonicEndpoint = "getPlaylists" | "getPlaylist" | "getCoverArt" | "stream";
 
 export interface NavidromeConfig {
 	baseUrl: string;
@@ -119,6 +128,7 @@ export async function subsonicFetchJson(
 		headers: {
 			Accept: "application/json",
 		},
+		signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
 	});
 
 	if (!response.ok) {
@@ -152,13 +162,24 @@ export function jsonResponse(data: unknown, init?: ResponseInit): Response {
 	});
 }
 
+/**
+ * Map a gateway failure to a client response. Details (upstream messages such as
+ * "Wrong username or password", missing env var names) are logged, never returned.
+ */
 export function navidromeErrorResponse(error: unknown): Response {
 	if (error instanceof NavidromeConfigError) {
-		return jsonResponse({ error: error.message }, { status: 500 });
+		console.error("Navidrome is not configured:", error.message);
+		return jsonResponse({ error: "Music service unavailable" }, { status: 503 });
 	}
 
 	if (error instanceof NavidromeApiError) {
-		return jsonResponse({ error: error.message }, { status: error.statusCode });
+		console.error("Navidrome request failed:", error.message);
+		return jsonResponse({ error: "Music service unavailable" }, { status: error.statusCode });
+	}
+
+	if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+		console.error("Navidrome request timed out:", error.message);
+		return jsonResponse({ error: "Music service timed out" }, { status: 504 });
 	}
 
 	console.error("Unexpected Navidrome route error:", error);
@@ -188,40 +209,177 @@ export function readNumber(record: Record<string, unknown>, key: string): number
 }
 
 export function requireMusicId(id: string | undefined): string | Response {
-	if (!id?.trim()) {
-		return jsonResponse({ error: "Missing music id" }, { status: 400 });
+	if (!id || !MUSIC_ID_RE.test(id)) {
+		return jsonResponse({ error: "Invalid music id" }, { status: 400 });
 	}
 
 	return id;
 }
 
+export function notFoundResponse(): Response {
+	return jsonResponse({ error: "Not found" }, { status: 404 });
+}
+
+export function isPublicPlaylist(playlist: Record<string, unknown>): boolean {
+	return playlist.public === true || playlist.public === "true";
+}
+
+/** Ids the public player may request: public playlists and what they contain. */
+export interface PublicCatalog {
+	/** Raw Subsonic records of the public playlists, in Navidrome's order */
+	playlists: readonly Record<string, unknown>[];
+	playlistIds: ReadonlySet<string>;
+	trackIds: ReadonlySet<string>;
+	coverIds: ReadonlySet<string>;
+}
+
+export type CatalogKind = "playlistIds" | "trackIds" | "coverIds";
+
+async function loadPublicCatalog(): Promise<PublicCatalog> {
+	const list = await subsonicFetchJson("getPlaylists");
+	const publicPlaylists = readRecordArray(asRecord(list.playlists), "playlist").filter(isPublicPlaylist);
+	const playlists: Record<string, unknown>[] = [];
+	const playlistIds = new Set<string>();
+	const trackIds = new Set<string>();
+	const coverIds = new Set<string>();
+
+	// allSettled: one playlist failing (deleted mid-load, upstream hiccup) must not
+	// take the whole player down; it is simply left out until the next load.
+	const details = await Promise.allSettled(
+		publicPlaylists.map(async (summary) => {
+			const id = readString(summary, "id");
+			if (!id) throw new Error("playlist without id");
+			return { id, summary, payload: await subsonicFetchJson("getPlaylist", { id }) };
+		})
+	);
+
+	for (const detail of details) {
+		if (detail.status === "rejected") {
+			console.error("Navidrome playlist skipped from public catalog:", detail.reason);
+			continue;
+		}
+		const { id, summary, payload } = detail.value;
+		const playlist = asRecord(payload.playlist);
+		if (!playlist || !isPublicPlaylist(playlist)) continue;
+		playlists.push(summary);
+		playlistIds.add(id);
+		// Matches the client: a playlist without coverArt uses its own id as the cover id.
+		coverIds.add(readString(summary, "coverArt") ?? id);
+		coverIds.add(readString(playlist, "coverArt") ?? id);
+		for (const track of readRecordArray(playlist, "entry")) {
+			const trackId = readString(track, "id");
+			if (trackId) trackIds.add(trackId);
+			const coverArt = readString(track, "coverArt");
+			if (coverArt) coverIds.add(coverArt);
+		}
+	}
+
+	return { playlists, playlistIds, trackIds, coverIds };
+}
+
+/** A miss may refresh the catalog early, but at most this often. */
+const CATALOG_MISS_REFRESH_MS = 30_000;
+
+let catalogCache: { loadedAt: number; catalog: Promise<PublicCatalog> } | null = null;
+
+function loadIntoCache(now: number): Promise<PublicCatalog> {
+	const catalog = loadPublicCatalog();
+	catalogCache = { loadedAt: now, catalog };
+	// A failed load is not cached, so the next request retries.
+	catalog.catch(() => {
+		if (catalogCache?.catalog === catalog) catalogCache = null;
+	});
+	return catalog;
+}
+
+/** The public catalog, cached per warm function instance. */
+export function getPublicCatalog(now: number = Date.now()): Promise<PublicCatalog> {
+	if (catalogCache && now - catalogCache.loadedAt < CATALOG_TTL_MS) return catalogCache.catalog;
+	return loadIntoCache(now);
+}
+
+/**
+ * Whether an id is publicly servable. On a miss against a catalog older than
+ * CATALOG_MISS_REFRESH_MS, reload once first: a playlist just made public, or a
+ * cover id that changed when a playlist was edited, should not 404 for minutes.
+ */
+export async function isInPublicCatalog(kind: CatalogKind, id: string, now: number = Date.now()): Promise<boolean> {
+	const current = await getPublicCatalog(now);
+	if (current[kind].has(id)) return true;
+	if (catalogCache && now - catalogCache.loadedAt < CATALOG_MISS_REFRESH_MS) return false;
+	// Refresh without evicting: only a successful load replaces the cached catalog,
+	// so an upstream hiccup during a miss keeps serving the last good one (and 404s).
+	try {
+		const fresh = await loadPublicCatalog();
+		catalogCache = { loadedAt: now, catalog: Promise.resolve(fresh) };
+		return fresh[kind].has(id);
+	} catch (error) {
+		console.error("Navidrome catalog refresh failed; keeping the previous catalog:", error);
+		catalogCache = { loadedAt: now, catalog: Promise.resolve(current) };
+		return false;
+	}
+}
+
+/** Test hook: forget the cached catalog. */
+export function resetPublicCatalogCache(): void {
+	catalogCache = null;
+}
+
 export async function proxySubsonicBinary(
 	endpoint: Extract<SubsonicEndpoint, "getCoverArt" | "stream">,
 	params: Record<string, string>,
-	requestHeaders?: Headers
+	request?: Request
 ): Promise<Response> {
 	const url = buildSubsonicUrl(endpoint, params);
 	const headers = new Headers();
-	const range = requestHeaders?.get("Range");
+	const range = request?.headers.get("Range");
 
 	// Audio seeking depends on forwarding Range and preserving partial-response headers.
 	if (range) {
 		headers.set("Range", range);
 	}
+	// Let the browser revalidate cached covers (ETag/Last-Modified are passed back).
+	for (const name of ["If-None-Match", "If-Modified-Since"]) {
+		const value = request?.headers.get(name);
+		if (value) headers.set(name, value);
+	}
 
-	const upstream = await fetch(url, { headers });
+	// Abort upstream when the browser goes away, and give up if headers never
+	// arrive. The timer is cleared once streaming starts, so long tracks play on.
+	const controller = new AbortController();
+	const headersTimeout = setTimeout(() => controller.abort(), MEDIA_HEADERS_TIMEOUT_MS);
+	if (request?.signal.aborted) controller.abort();
+	request?.signal.addEventListener("abort", () => controller.abort(), { once: true });
+	let upstream: Response;
+	try {
+		upstream = await fetch(url, { headers, signal: controller.signal });
+	} finally {
+		clearTimeout(headersTimeout);
+	}
+
+	if (upstream.status === 304) {
+		const notModified = new Headers({ "Cache-Control": "public, max-age=86400" });
+		for (const name of ["ETag", "Last-Modified"]) {
+			const value = upstream.headers.get(name);
+			if (value) notModified.set(name, value);
+		}
+		return new Response(null, { status: 304, headers: notModified });
+	}
 
 	if (!upstream.ok) {
-		return jsonResponse(
-			{ error: `Navidrome media request failed: ${upstream.status} ${upstream.statusText}` },
-			{ status: upstream.status === 404 ? 404 : 502 }
-		);
+		console.error(`Navidrome media request failed: ${endpoint} ${upstream.status} ${upstream.statusText}`);
+		await upstream.body?.cancel().catch(() => {});
+		// 404 and 416 (bad Range) mean something to the media element; anything else is upstream trouble.
+		const status = upstream.status === 404 || upstream.status === 416 ? upstream.status : 502;
+		return jsonResponse({ error: "Media unavailable" }, { status });
 	}
 
 	const responseHeaders = new Headers({
-		"Cache-Control": "no-store",
+		// Covers are immutable per id and safe to cache; streams stay uncached.
+		"Cache-Control": endpoint === "getCoverArt" ? "public, max-age=86400" : "no-store",
+		"X-Content-Type-Options": "nosniff",
 	});
-	const copiedHeaders = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"];
+	const copiedHeaders = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified"];
 
 	for (const header of copiedHeaders) {
 		const value = upstream.headers.get(header);

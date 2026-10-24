@@ -41,13 +41,20 @@ function applyAdminHeaders(response: Response): Response {
 	return response;
 }
 
+// Exact match + prefix-with-slash prevents false matches on /administer, /admin-panel, etc.
+const isAdminPath = (path: string): boolean => path === "/admin" || path.startsWith("/admin/");
+
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, cookies } = context;
 	const { pathname } = new URL(request.url);
 
-	// Exact match + prefix-with-slash prevents false matches on /administer, /admin-panel, etc.
-	const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
-	const isAdminSubpage = pathname.startsWith("/admin/");
+	// Astro decodes the pathname (repeatedly) before routing, so /%61dmin/guestbook
+	// renders /admin/guestbook while the raw pathname does not look like an admin
+	// path. Treat the request as admin if either the routed pattern or the raw
+	// path says so, so neither can be used to slip past the checks below.
+	const paths = [context.routePattern, pathname].filter((path): path is string => typeof path === "string");
+	const isAdminRoute = paths.some(isAdminPath);
+	const isAdminSubpage = paths.some((path) => path.startsWith("/admin/"));
 
 	if (!isAdminRoute) return next();
 

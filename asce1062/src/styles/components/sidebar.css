@@ -18,6 +18,10 @@ Only visual / component styles live here.
 }
 
 .nav-hamburger {
+	/* A real <button>: reset UA chrome so it looks like the old label */
+	background: none;
+	border: 0;
+	font: inherit;
 	display: inline-flex;
 	align-items: center;
 	justify-content: left;
@@ -85,7 +89,7 @@ z-30 keeps it below sidebar (z-40) but above all page content.
 	position: fixed;
 	inset: 0;
 	z-index: 30;
-	background: oklch(0% 0 0 / 0.4);
+	background: color-mix(in oklab, black 40%, transparent);
 	cursor: pointer;
 	-webkit-tap-highlight-color: transparent;
 }
@@ -536,10 +540,11 @@ Also accessible to screen readers via aria-describedby on the toggle input.
 	}
 }
 
-/* On hover-capable devices: reveal when info button is hovered or keyboard-focused */
+/* On hover-capable devices: reveal when the info icon is hovered, or when the
+   option's own control has keyboard focus (the info icon is not focusable) */
 @media (hover: hover) {
 	.nav-option-control:has(.nav-option-info-btn:hover) + .nav-option-helper,
-	.nav-option-control:has(.nav-option-info-btn:focus-visible) + .nav-option-helper {
+	.nav-option-control:has(input:focus-visible) + .nav-option-helper {
 		display: block;
 	}
 }
@@ -682,13 +687,6 @@ Avatar Footer
 	border-top: 1px solid var(--color-base-300);
 }
 
-.nav-avatar-controls {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.375rem;
-}
-
 .nav-avatar-btn {
 	display: flex;
 	align-items: center;
@@ -774,6 +772,8 @@ Nav Brand: Expanded / Collapsed header swap
 	opacity: 0;
 	overflow: hidden;
 	pointer-events: none;
+	/* Hidden from focus and assistive tech too, not just from sight */
+	visibility: hidden;
 }
 
 .nav-brand-collapsed-trigger {
@@ -1125,26 +1125,38 @@ All rules scoped to lg+ so mobile is completely unaffected.
 	max-height switches instantly (0s) so there's no vertical wipe (only the
 	opacity fade is visible). Both sides fade simultaneously.
 	*/
+	/*
+	visibility hides the inactive side from Tab and screen readers. Becoming
+	visible is instant; becoming hidden waits for the opacity fade to finish.
+	*/
 	.nav-brand-expanded-content {
 		overflow: hidden;
 		max-height: 6rem;
 		opacity: 1;
+		visibility: visible;
 		transition:
 			max-height 160ms var(--ease-out),
-			opacity 120ms var(--ease-out);
+			opacity 120ms var(--ease-out),
+			visibility 0s;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-expanded-content {
 		max-height: 0;
 		opacity: 0;
 		pointer-events: none;
+		visibility: hidden;
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 120ms var(--ease-out),
+			visibility 0s linear 120ms;
 	}
 
 	/* Header avatar (collapsed state only): fade in */
 	.nav-brand-collapsed-content {
 		transition:
 			max-height 160ms var(--ease-out),
-			opacity 150ms var(--ease-out);
+			opacity 150ms var(--ease-out),
+			visibility 0s linear 150ms;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-collapsed-content {
@@ -1152,6 +1164,11 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		opacity: 1;
 		overflow: visible;
 		pointer-events: auto;
+		visibility: visible;
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 150ms var(--ease-out),
+			visibility 0s;
 	}
 
 	/*

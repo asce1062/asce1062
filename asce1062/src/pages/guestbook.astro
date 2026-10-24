@@ -8,14 +8,9 @@ import GuestbookEntry from "@/components/GuestbookEntry.astro";
 import ShareNotification from "@/components/ShareNotification.astro";
 import Expand from "@/components/ui/Expand.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
-import {
-	getGuestEntries,
-	createGuestEntry,
-	getNotificationFlags,
-	markAdminNotified,
-	markCopySent,
-} from "@/lib/api/guestbook";
-import { notifyNewEntry, sendEntryCopy } from "@/lib/api/guestbook-notify";
+import { getGuestEntries, createGuestEntry, markAdminNotified, markCopySent } from "@/lib/api/guestbook";
+import { notifyNewEntry, sendEntryCopy, type EmailResult } from "@/lib/api/guestbook-notify";
+import { ENTRY_LIMITS, readGuestbookForm } from "@/lib/api/guestbook-input";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
@@ -23,18 +18,24 @@ const image = "/src/assets/guestbook/guestbook.png";
 const title = "Guestbook";
 const description = "Drop me a note, let's connect ^^";
 
+// Shown above the form when the server rejects a submission the browser let through
+let submitError = "";
+
 if (Astro.request.method === "POST") {
-	const formData = await Astro.request.formData();
-	const name = formData.get("name") as string;
-	const email = formData.get("email") as string;
-	const url = formData.get("url") as string;
-	const message = formData.get("message") as string;
-	const style = formData.get("style") as string;
-	const avatarState = formData.get("avatarState") as string | null;
-	const avatarOptIn = formData.get("avatarOptIn") === "on";
-	const theme = formData.get("theme") === "dark" ? "dark" : "light";
-	const sendCopy = formData.get("send-copy") === "on";
-	const honeypot = formData.get("bot-field");
+	let formData: FormData;
+	try {
+		formData = await Astro.request.formData();
+	} catch {
+		return new Response("Bad Request", { status: 400 });
+	}
+	const { name, email, url, message, style, avatarState, avatarOptIn, theme, sendCopy, isBot, isSubmittable } =
+		readGuestbookForm(formData);
+
+	// Bots get the same page back; people get told what to change.
+	if (!isSubmittable && !isBot) {
+		Astro.response.status = 400;
+		submitError = `Please enter a name (up to ${ENTRY_LIMITS.name} characters) and a message (up to ${ENTRY_LIMITS.message} characters).`;
+	}
 
 	// Extract client IP (Netlify headers → standard fallbacks → dev stub)
 	const ip =
@@ -45,14 +46,7 @@ if (Astro.request.method === "POST") {
 
 	const userAgent = Astro.request.headers.get("user-agent") || undefined;
 
-	if (
-		!honeypot &&
-		typeof name === "string" &&
-		typeof message === "string" &&
-		name.trim().length > 0 &&
-		message.trim().length > 0 &&
-		message.trim().length <= 2000
-	) {
+	if (isSubmittable) {
 		const { classification, entryId, submittedAt } = await createGuestEntry({
 			name,
 			email,
@@ -65,45 +59,35 @@ if (Astro.request.method === "POST") {
 			userAgent,
 		});
 
-		// Await notifications before redirecting
-		// Fire-and-forget is not safe in serverless
-		// Function shuts down after response, cutting off any unawaited async work
-		const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "");
-		try {
-			const flags = await getNotificationFlags(entryId);
-			if (!flags.adminNotifiedAt) {
-				const result = await notifyNewEntry({
-					name,
-					email,
-					url,
-					message,
-					style,
-					avatarState: avatarOptIn ? avatarState : null,
-					classification,
-					entryId,
-					theme,
-					submittedAt,
-				});
-				if (result.ok) await markAdminNotified(entryId);
+		// Await delivery before redirecting: a serverless function stops once the
+		// response is sent, cutting off unawaited work. Both emails run in parallel
+		// within sendEmail's time budget, and each records its own delivery, so one
+		// failing (or its DB write failing) never skips the other.
+		const deliver = async (kind: string, send: () => Promise<EmailResult>, record: () => Promise<void>) => {
+			try {
+				const result = await send();
+				if (result.ok) await record();
+				else console.warn(`[guestbook] ${kind} not sent for entry ${entryId}: ${result.reason}`);
+			} catch (err) {
+				console.error(`[guestbook] ${kind} delivery error for entry ${entryId}:`, err);
 			}
-			if (sendCopy && validEmail && !flags.copySentAt) {
-				// spam/hidden/rate-limited guard is applied inside sendEntryCopy
-				const result = await sendEntryCopy({
-					name,
-					email,
-					message,
-					style,
-					avatarState: avatarOptIn ? avatarState : null,
-					classification,
-					entryId,
-					theme,
-					submittedAt,
-				});
-				if (result.ok) await markCopySent(entryId);
-			}
-		} catch (err) {
-			console.error("[guestbook] Notification error:", err);
-		}
+		};
+		const emailInput = { name, email, message, style, avatarState, classification, entryId, theme, submittedAt };
+
+		await Promise.all([
+			deliver(
+				"admin notification",
+				() => notifyNewEntry({ ...emailInput, url }),
+				() => markAdminNotified(entryId)
+			),
+			// Spam, rate-limit and recipient guards are applied inside sendEntryCopy
+			sendCopy &&
+				deliver(
+					"entry copy",
+					() => sendEntryCopy(emailInput),
+					() => markCopySent(entryId)
+				),
+		]);
 
 		return Astro.redirect("/success");
 	}
@@ -114,13 +98,20 @@ const entries = await getGuestEntries();
 
 <Layout title={title} ogImage="images/social-preview.png" description={description}>
 	<PreviewImage src={image} altText={title} />
-	<h2>{title}</h2>
+	<h2
+		data-magical-text
+		data-magical-text-colors="#ff5f6d,#ffa64d,#ffe066,#7bd88f,#4ecdc4,#5b8def,#b16cea"
+		data-magical-text-adornment="heart">
+		{title}
+	</h2>
 	<p>{description}</p>
 	<p>
 		In the spirit of the beautifully chaotic, handcrafted web of yesteryear, when we all had personal homepages filled
-		with <span class="blink">blinking text</span>, dubious counters <strong>
+		with <span class="blink">blinking text</span>, dubious counters{" "}
+		<strong>
 			Visitor# <span id="counter">000000</span>
-		</strong>, way too many <marquee>marquee tags</marquee> and
+		</strong>
+		, way too many <marquee>marquee tags</marquee> and{" "}
 		<span class="faded-text">color faded text (not just to impress recruiters)</span>, I've decided to bring back the
 		classic guestbook.
 	</p>
@@ -131,36 +122,49 @@ const entries = await getGuestEntries();
 			<li>All messages are subject to moderation and may be removed after the fact.</li>
 			<li>Be kind. Spam and abuse will be removed.</li>
 		</ul>
+		{submitError && (
+			<p class="mb-4 p-3 bg-error/10 border border-error text-sm" role="alert">
+				{submitError}
+			</p>
+		)}
 		<form id="form" method="POST">
 			<input type="hidden" name="theme" id="theme-input" value="light" />
 			<p>
 				<label>
 					Name
-					<br /><input class="input-allowed" type="text" name="name" required />
+					<br />
+					<input class="input-allowed" type="text" name="name" maxlength={ENTRY_LIMITS.name} required />
 				</label>
 			</p>
 			<p>
 				<label>
 					Email <small>(optional, not published)</small>
-					<br /><input class="input-allowed" type="email" name="email" id="email-input" />
+					<br />
+					<input class="input-allowed" type="email" name="email" id="email-input" maxlength={ENTRY_LIMITS.email} />
 				</label>
 			</p>
 			<p>
 				<label>
 					URL <small>(optional, linked from Name)</small>
-					<br /><input
+					<br />
+					<input
 						class="input-allowed"
 						type="url"
 						name="url"
 						placeholder="https://example.com"
 						pattern="https://.*"
+						maxlength={ENTRY_LIMITS.url}
 					/>
 				</label>
 			</p>
 			<p aria-hidden="true">
 				<label>
-					Subject <small>(please <b>skip</b> this field if you're real)</small>
-					<br /><input
+					Subject{" "}
+					<small>
+						(please <b>skip</b> this field if you're real)
+					</small>
+					<br />
+					<input
 						class="input-honeypot"
 						type="text"
 						name="bot-field"
@@ -168,11 +172,16 @@ const entries = await getGuestEntries();
 						autocomplete="off"
 						placeholder="Leave me be!"
 					/>
-					<small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
+					<small>
+						Are you sure you want to type in here? <b>I won't get your message</b>!
+					</small>
 				</label>
 			</p>
 			<p>
-				<label class="message" for="message-textarea"> Message </label>
+				<label class="message" for="message-textarea">
+					{" "}
+					Message{" "}
+				</label>
 			</p>
 
 			<input type="hidden" id="style-input" name="style" />
@@ -183,11 +192,16 @@ const entries = await getGuestEntries();
 					<div slot="content" class="p-4">
 						<!-- Background Pattern -->
 						<div class="customizer-section">
-							<h4>Background Pattern</h4>
+							<h4 id="customizer-pattern-label">Background Pattern</h4>
 							<div class="customizer-row">
-								<select id="pattern-select" class="input-allowed pattern-select">
+								<select
+									id="pattern-select"
+									class="input-allowed pattern-select"
+									aria-labelledby="customizer-pattern-label">
 									<option value="none">None</option>
-									{patterns.map((p) => <option value={p}>{toTitleCase(p)}</option>)}
+									{patterns.map((p) => (
+										<option value={p}>{toTitleCase(p)}</option>
+									))}
 								</select>
 								<div id="pattern-swatch" class="pattern-swatch"></div>
 							</div>
@@ -195,37 +209,41 @@ const entries = await getGuestEntries();
 
 						<!-- Border Radius -->
 						<div class="customizer-section">
-							<h4>Border Radius</h4>
-							<div class="flex gap-2">
-								{
-									radiusValues.map((r) => (
-										<div
-											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
-											data-radius={r}
-											title={r}>
-											<div class="pe-3 pt-2">
-												<div
-													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
-													style={`border-start-end-radius: ${r}`}
-												/>
-											</div>
+							<h4 id="customizer-radius-label">Border Radius</h4>
+							<div class="flex gap-2" role="group" aria-labelledby="customizer-radius-label">
+								{radiusValues.map((r) => (
+									<button
+										type="button"
+										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+										data-radius={r}
+										aria-pressed="false"
+										aria-label={`Radius ${r}`}
+										title={r}>
+										<div class="pe-3 pt-2">
+											<div
+												class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+												style={`border-start-end-radius: ${r}`}
+											/>
 										</div>
-									))
-								}
+									</button>
+								))}
 							</div>
 						</div>
 
 						<!-- Border Width -->
 						<div class="customizer-section">
-							<h4>Border Width</h4>
+							<h4 id="customizer-width-label">Border Width</h4>
 							<div class="relative mt-6 mb-1">
 								<kbd
 									id="border-width-label"
 									class="kbd kbd-sm absolute bottom-full mb-1 -translate-x-1/2 text-[0.625rem]"
-									style="left: calc(14.29% + 0.446rem);">1px</kbd
-								>
+									style="left: calc(14.29% + 0.446rem);">
+									1px
+								</kbd>
 								<input
 									id="border-width-slider"
+									aria-labelledby="customizer-width-label"
+									aria-valuetext="1px"
 									type="range"
 									min="0"
 									max="7"
@@ -238,41 +256,48 @@ const entries = await getGuestEntries();
 
 						<!-- Border Color -->
 						<div class="customizer-section">
-							<h4>Border Color</h4>
-							<div class="customizer-row">
-								{
-									swatchColors.map((c) => (
-										<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
-									))
-								}
+							<h4 id="customizer-color-label">Border Color</h4>
+							<div class="customizer-row" role="group" aria-labelledby="customizer-color-label">
+								{swatchColors.map((c) => (
+									<button
+										type="button"
+										class="color-swatch"
+										data-border-color={c}
+										aria-pressed="false"
+										aria-label={toTitleCase(c)}
+										title={toTitleCase(c)}
+										style={`background-color: var(--color-${c})`}
+									/>
+								))}
 							</div>
 						</div>
 
 						<!-- Border Style -->
 						<div class="customizer-section">
-							<h4>Border Style</h4>
-							<div class="flex gap-2">
-								{
-									borderStyles.map((s) => (
-										<div
-											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
-											data-border-style={s}
-											title={s}>
-											<div class="pe-3 pt-2">
-												{s === "none" ? (
-													<div class="h-6 w-8 flex items-center justify-center text-base-content/40">
-														<i class="icon-x-lg -mt-1 -ml-1" />
-													</div>
-												) : (
-													<div
-														class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
-														style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
-													/>
-												)}
-											</div>
+							<h4 id="customizer-style-label">Border Style</h4>
+							<div class="flex gap-2" role="group" aria-labelledby="customizer-style-label">
+								{borderStyles.map((s) => (
+									<button
+										type="button"
+										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+										data-border-style={s}
+										aria-pressed="false"
+										aria-label={`Border ${s}`}
+										title={s}>
+										<div class="pe-3 pt-2">
+											{s === "none" ? (
+												<div class="h-6 w-8 flex items-center justify-center text-base-content/40">
+													<i class="icon-x-lg -mt-1 -ml-1" />
+												</div>
+											) : (
+												<div
+													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+													style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
+												/>
+											)}
 										</div>
-									))
-								}
+									</button>
+								))}
 							</div>
 						</div>
 
@@ -285,7 +310,9 @@ const entries = await getGuestEntries();
 								<small>Include avatar in this entry</small>
 							</label>
 							<p id="avatar-random-notice" class="avatar-random-notice" style="display:none">
-								<small><i class="icon-info-circle"></i> No avatar customized. A random one will be generated.</small>
+								<small>
+									<i class="icon-info-circle"></i> No avatar customized. A random one will be generated.
+								</small>
 							</p>
 						</div>
 
@@ -314,7 +341,7 @@ const entries = await getGuestEntries();
 					name="message"
 					rows="4"
 					required
-					maxlength="2000"
+					maxlength={ENTRY_LIMITS.message}
 					class="block p-2.5 w-full text-sm textarea-styled"
 					placeholder="Say hi, write a poem, or sketch some ASCII art..."></textarea>
 				<!-- prettier-ignore-end -->
@@ -322,7 +349,8 @@ const entries = await getGuestEntries();
 
 			<p>
 				<label class="consent">
-					<input type="checkbox" class="checkbox" required /><small>
+					<input type="checkbox" class="checkbox" required />
+					<small>
 						I consent to this message being stored in a self-hosted database with honeypot and pattern-based spam
 						filtering.
 					</small>
@@ -330,19 +358,22 @@ const entries = await getGuestEntries();
 			</p>
 			<p id="send-copy-row" style="display:none">
 				<label class="consent">
-					<input type="checkbox" class="checkbox" name="send-copy" id="send-copy-checkbox" /><small>
-						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span></small
-					>
+					<input type="checkbox" class="checkbox" name="send-copy" id="send-copy-checkbox" />
+					<small>
+						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span>
+					</small>
 				</label>
 			</p>
 			<p>
-				<button type="submit" class="btn btn-frame font-retro btn-success"
-					><span class="font-retro text-success-content">Sign Guestbook</span>
+				<button type="submit" class="btn btn-frame font-retro btn-success">
+					<span class="font-retro text-success-content">Sign Guestbook</span>
 				</button>
 			</p>
 		</form>
 		<PrivacyPolicy />
-		{entries.map((entry) => <GuestbookEntry entry={entry} />)}
+		{entries.map((entry) => (
+			<GuestbookEntry entry={entry} />
+		))}
 	</div>
 	<ShareNotification id="entry-action-notification" message="Copied!" />
 </Layout>

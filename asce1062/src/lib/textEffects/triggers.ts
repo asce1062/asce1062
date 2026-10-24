@@ -133,6 +133,8 @@ export function bindTextEffectTriggers(options: {
 		} = {}
 	) => {
 		if (pendingInitialPlayback && automaticReplayTriggers.has(trigger)) return;
+		// Backstop for bindings not yet released after a swap: never animate detached nodes.
+		if (el.isConnected === false) return;
 		if (hasActiveEffect(el)) return;
 		const text = options.toText ?? textReader(el, trigger);
 		// Allow empty text when typewriter cycle items are configured — the renderer
@@ -350,6 +352,10 @@ export function bindTextEffectTriggers(options: {
 			play("random-interval");
 		}, randomIntervalMs);
 		randomTimers.set(el, intervalId);
+		registerTriggerCleanup(el, () => {
+			globalThis.clearInterval(intervalId);
+			if (randomTimers.get(el) === intervalId) randomTimers.delete(el);
+		});
 	}
 
 	if (shouldHandleTextEffectTrigger(normalizedTriggers, "random-time")) {

@@ -3,7 +3,6 @@
   "ignoreDependencies": [
     "pagefind",
     "lightningcss",
-    "@netlify/plugin-sitemap",
     "@netlify/plugin-lighthouse",
     "autoprefixer",
     "postcss-nesting",
@@ -16,9 +15,7 @@
     "vitest.config.*",
     "markdown.config.ts",
     "src/pages/**/*.{astro,mdx}",
-    "src/layouts/**/*.astro",
-    "src/components/**/*.astro",
-    "src/scripts/**/*.{ts,js}",
+    "src/components/MagicalText.astro",
     "scripts/**/*.{ts,js,mjs}",
     "db/**/*.{ts,js}",
     "src/**/*.test.{ts,js}"

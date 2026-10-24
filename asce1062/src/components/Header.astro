@@ -7,32 +7,46 @@
  */
 import "@/styles/components/header.css";
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
-import { siteMetadata } from "@/data/navigation";
+import { mainNavigation, siteMetadata } from "@/data/navigation";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
 const currentPath = Astro.url.pathname;
 const isSearchPage = currentPath === "/search" || currentPath === "/search/";
+
+// Intermediate breadcrumb segments link only to real sections (navigation.ts is
+// the page list). Others (/.well-known, unknown segments on a 404) render as text.
+const knownSections = new Set(
+	mainNavigation.map((item) => item.href.replace(/\/$/, "")).filter((href) => href.startsWith("/"))
+);
+const crumbs = link.map((segment, index) => {
+	const href = `/${link.slice(0, index + 1).join("/")}`;
+	const isCurrent = index === link.length - 1;
+	return { segment, href, isCurrent, isLinked: isCurrent || knownSections.has(href) };
+});
 ---
 
 <header>
 	<div id="navigation" class="mb-4">
-		<label for="nav-toggle" class="nav-hamburger" aria-label="Toggle navigation">
+		<button
+			type="button"
+			class="nav-hamburger"
+			aria-controls="nav-menu"
+			aria-expanded="false"
+			aria-label="Open navigation">
 			<i class="icon-list hover:-rotate-6 -mt-[2px]" aria-hidden="true"></i>
-		</label>
+		</button>
 		<div class="float-right flex flex-col gap-2 -mt-2">
 			<ThemeSwitcher default="dark" />
-			{
-				!isSearchPage && (
-					<button
-						id="open-floating-search"
-						type="button"
-						class="float-right h-11 w-11 transition-[color,transform] duration-100 hover:text-accent hover:rotate-6 cursor-pointer flex items-center justify-center"
-						aria-label="Open search">
-						<i class="icon-search-heart" aria-hidden="true" />
-					</button>
-				)
-			}
+			{!isSearchPage && (
+				<button
+					id="open-floating-search"
+					type="button"
+					class="float-right h-11 w-11 transition-[color,transform] duration-100 hover:text-accent hover:rotate-6 cursor-pointer flex items-center justify-center"
+					aria-label="Open search">
+					<i class="icon-search-heart" aria-hidden="true" />
+				</button>
+			)}
 		</div>
 
 		<b>
@@ -54,35 +68,37 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
 						&#x24;HOME
-					</a> / <a
-						class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors"
-						href="/">
+					</a>{" "}
+					/{" "}
+					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
 						asce1062
 					</a>
 				</span>
-				{
-					link && link.length > 0 ? (
-						<span>
-							{link.map((data, index) => (
-								<span>
-									{" / "}
-									<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
-										{data}
+				{crumbs.length > 0 ? (
+					<span role="navigation" aria-label="Breadcrumb">
+						{crumbs.map(({ segment, href, isCurrent, isLinked }) => (
+							<span>
+								{" / "}
+								{isLinked ? (
+									<a class="inline! no-underline" href={href} aria-current={isCurrent ? "page" : undefined}>
+										{segment}
 									</a>
-									{index === link.length - 1 && (
-										<span class="blink" aria-hidden="true">
-											_
-										</span>
-									)}
-								</span>
-							))}
-						</span>
-					) : (
-						<span class="blink" aria-hidden="true">
-							_
-						</span>
-					)
-				}
+								) : (
+									<span>{segment}</span>
+								)}
+								{isCurrent && (
+									<span class="blink" aria-hidden="true">
+										_
+									</span>
+								)}
+							</span>
+						))}
+					</span>
+				) : (
+					<span class="blink" aria-hidden="true">
+						_
+					</span>
+				)}
 			</span>
 		</b>
 	</div>

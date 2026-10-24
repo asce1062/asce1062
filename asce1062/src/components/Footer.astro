@@ -17,21 +17,29 @@ const colours = [
 <footer>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" aria-hidden="true" />
 	<div class="mx-auto">
-		{colours.map((colour) => <span class={`inline-block h-8 w-[10%] ${colour}`}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>)}
+		{colours.map((colour) => (
+			<span class={`inline-block h-8 w-[10%] ${colour}`}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		))}
 		<!-- prettier-ignore-start -->
 		<span class="block pt-2 text-xs italic">
-			{
-				siteMetadata.commitHash && (
-					<>
-						<i class="icon-git-commit text-base inline-block translate-y-1" />{" "}
-						<a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">
-							{siteMetadata.commitHash}
-						</a>
-					</>
-				)
-			} • <a class="decoration-wavy decoration-1" href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer"
-				><i class="icon-astro"></i></a
-			> • {new Date(siteMetadata.buildTime).toLocaleDateString()}
+			{siteMetadata.commitHash && (
+				<>
+					<i class="icon-git-commit text-base inline-block translate-y-1" aria-hidden="true" />{" "}
+					<a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">
+						{siteMetadata.commitHash}
+					</a>{" "}
+					•{" "}
+				</>
+			)}
+			<a
+				class="decoration-wavy decoration-1"
+				href={siteMetadata.astroUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="Built with Astro">
+				<i class="icon-astro" aria-hidden="true"></i>
+			</a>{" "}
+			• {new Date(siteMetadata.buildTime).toLocaleDateString()}
 		</span>
 		<!-- prettier-ignore-end -->
 	</div>

@@ -81,6 +81,10 @@ const divProps = {
 					input.name = "q";
 				}
 			}
+			// Only the dedicated /search box mirrors its query in ?q=. The floating
+			// modal lives on every page and must not rewrite (or read) their URLs.
+			if (el.id !== "page-searchbox") continue;
+
 			const url = new URL(window.location.href);
 			const params = new URLSearchParams(url.search);
 			const query = params.get("q");

@@ -26,12 +26,16 @@
 
 import type { CreatureKind, HauntedOptions } from "@/lib/haunted";
 import { bindHaunted } from "@/lib/haunted";
+import { CREATURES } from "@/lib/haunted/creatures";
 
 function readHauntedConfig(el: HTMLElement): HauntedOptions {
 	const opts: HauntedOptions = {};
 
-	if (el.dataset.hauntedCreature) {
-		opts.creature = el.dataset.hauntedCreature as CreatureKind;
+	// Unknown kinds fall back to the default: an unknown key used to throw inside
+	// bindHaunted and abort initialisation for every later element on the page.
+	const creature = el.dataset.hauntedCreature;
+	if (creature && Object.hasOwn(CREATURES, creature)) {
+		opts.creature = creature as CreatureKind;
 	}
 
 	if ("hauntedDisableFun" in el.dataset) {

@@ -20,53 +20,51 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 }
 ---
 
-{
-	tableOfContents && tableOfContents.length > 0 && (
-		<div
-			id="toc-container"
-			class="table-of-contents sticky top-1 z-10 bg-base-100 mb-4 sm:mb-8 border-b border-base-300 transition-transform duration-300">
-			<h1 class="text-warning">Table of Contents</h1>
-			<div class="mt-4">
-				<details id="toc-details">
-					<summary class="text-neutral-content hover:underline hover:decoration-wavy cursor-pointer">
-						Open Table of Contents
-					</summary>
-					<ul class="max-h-[50vh] overflow-y-auto">
-						{tableOfContents.map((item) => {
-							const { entry, hasChildren } = renderTocEntry(item);
-							return (
-								<li>
-									<a href={`#${entry.id}`}>{entry.value}</a>
-									{hasChildren && (
-										<ul>
-											{entry.children!.map((child: TableOfContentsEntry) => {
-												const childData = renderTocEntry(child);
-												return (
-													<li>
-														<a href={`#${child.id}`}>{child.value}</a>
-														{childData.hasChildren && (
-															<ul>
-																{child.children!.map((grandchild: TableOfContentsEntry) => (
-																	<li>
-																		<a href={`#${grandchild.id}`}>{grandchild.value}</a>
-																	</li>
-																))}
-															</ul>
-														)}
-													</li>
-												);
-											})}
-										</ul>
-									)}
-								</li>
-							);
-						})}
-					</ul>
-				</details>
-			</div>
+{tableOfContents && tableOfContents.length > 0 && (
+	<div
+		id="toc-container"
+		class="table-of-contents sticky top-1 z-10 bg-base-100 mb-4 sm:mb-8 border-b border-base-300 transition-transform duration-300">
+		<h1 class="text-warning">Table of Contents</h1>
+		<div class="mt-4">
+			<details id="toc-details">
+				<summary class="text-neutral-content hover:underline hover:decoration-wavy cursor-pointer">
+					Open Table of Contents
+				</summary>
+				<ul class="max-h-[50vh] overflow-y-auto">
+					{tableOfContents.map((item) => {
+						const { entry, hasChildren } = renderTocEntry(item);
+						return (
+							<li>
+								<a href={`#${entry.id}`}>{entry.value}</a>
+								{hasChildren && (
+									<ul>
+										{entry.children!.map((child: TableOfContentsEntry) => {
+											const childData = renderTocEntry(child);
+											return (
+												<li>
+													<a href={`#${child.id}`}>{child.value}</a>
+													{childData.hasChildren && (
+														<ul>
+															{child.children!.map((grandchild: TableOfContentsEntry) => (
+																<li>
+																	<a href={`#${grandchild.id}`}>{grandchild.value}</a>
+																</li>
+															))}
+														</ul>
+													)}
+												</li>
+											);
+										})}
+									</ul>
+								)}
+							</li>
+						);
+					})}
+				</ul>
+			</details>
 		</div>
-	)
-}
+	</div>
+)}
 
 <script>
 	import { init } from "@/scripts/tableOfContents";

@@ -33,28 +33,58 @@ const MAX_HEADER_CHARS = 120;
  * Rejects javascript:, data:, etc.
  * Returns undefined for invalid/empty values so callers can omit the link.
  */
-export function sanitizeUrl(url: string | undefined): string | undefined {
+export function sanitizeUrl(url: string | null | undefined): string | undefined {
 	if (!url) return undefined;
 	try {
-		const { protocol } = new URL(url);
-		return protocol === "https:" || protocol === "http:" ? url : undefined;
+		// Return the normalized href, not the input: the parser drops embedded
+		// newlines, which would otherwise forge lines in plain-text bodies.
+		const parsed = new URL(url);
+		return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : undefined;
 	} catch {
 		return undefined;
 	}
 }
 
 /**
+ * Every character that can start a new line or act as a control: C0/C1 controls
+ * (CR, LF, NEL U+0085, NUL, ESC...) plus the Unicode line and paragraph separators.
+ */
+// eslint-disable-next-line no-control-regex
+const LINE_BREAK_OR_CONTROL_RE = /[\u0000-\u001F\u007F-\u009F\u2028\u2029]+/g;
+
+/**
+ * Bidi embedding/override (U+202A-U+202E) and isolate (U+2066-U+2069) controls.
+ * They can make a name render as a different string ("Ada\u202Egnp.exe").
+ * Plain direction marks (LRM/RLM) are left alone: RTL text uses them legitimately.
+ */
+const BIDI_CONTROL_RE = /[\u202A-\u202E\u2066-\u2069]/g;
+
+/** Truncate by code point so a surrogate pair is never split. */
+function sliceCodePoints(text: string, max: number): string {
+	const codePoints = Array.from(text);
+	return codePoints.length <= max ? text : codePoints.slice(0, max).join("");
+}
+
+/**
+ * Collapse a user-supplied value onto one line: line breaks and controls become a
+ * space, bidi overrides are removed, whitespace runs collapse, ends are trimmed.
+ * Apply to short fields (name, email) placed in plain-text bodies, so a value can
+ * never add a line such as a forged "Status:" header.
+ */
+export function singleLine(value: string): string {
+	return value.replace(LINE_BREAK_OR_CONTROL_RE, " ").replace(BIDI_CONTROL_RE, "").replace(/\s+/g, " ").trim();
+}
+
+/**
  * Sanitizes a string for use in an email header value.
- * Strips CR/LF (header injection), trims whitespace, and truncates to MAX_HEADER_CHARS.
+ * Applies singleLine (header injection, spoofing controls) and truncates to
+ * MAX_HEADER_CHARS code points.
  * Returns undefined for empty/falsy input so callers can omit the header entirely.
  * Apply to any user-supplied value that ends up in Subject, From name, etc.
  */
 export function sanitizeHeaderValue(value: string | undefined): string | undefined {
 	if (!value) return undefined;
-	const cleaned = value
-		.replace(/[\r\n]+/g, " ")
-		.trim()
-		.slice(0, MAX_HEADER_CHARS);
+	const cleaned = sliceCodePoints(singleLine(value), MAX_HEADER_CHARS).trim();
 	return cleaned || undefined;
 }
 
@@ -66,7 +96,7 @@ export function sanitizeHeaderValue(value: string | undefined): string | undefin
  */
 export function parseEmailAddress(value: string | undefined): string | undefined {
 	if (!value) return undefined;
-	const trimmed = value.replace(/[\r\n]/g, "").trim();
+	const trimmed = value.replace(LINE_BREAK_OR_CONTROL_RE, "").replace(BIDI_CONTROL_RE, "").trim();
 	if (!trimmed) return undefined;
 	// validator.isEmail handles RFC-compliant validation including quoted strings,
 	// IP literals, and IDN.
@@ -74,12 +104,14 @@ export function parseEmailAddress(value: string | undefined): string | undefined
 }
 
 /**
- * Truncates text to max characters, appending "…" if cut.
+ * Truncates text to max code points, appending "…" if cut.
+ * Code points, not UTF-16 units: a split surrogate pair serializes as a lone
+ * "\ud83d" that strict JSON parsers (the email API) can reject.
  * Shared by all email builders.
  */
 export function truncate(text: string, max: number): string {
-	if (text.length <= max) return text;
-	return text.slice(0, max) + "…";
+	const cut = sliceCodePoints(text, max);
+	return cut === text ? text : cut + "…";
 }
 
 /**

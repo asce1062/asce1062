@@ -39,6 +39,7 @@ import {
 	setTheme,
 	getSystemTheme,
 	getThemeFromUrl,
+	paintTheme,
 	updateThemeIcon,
 	MATCH_DEVICE_THEME_CHANGE_EVENT,
 } from "@/scripts/themeManager";
@@ -159,17 +160,19 @@ function init(): void {
 
 // Re-stamp data-theme before the new page's content becomes visible on soft nav.
 document.addEventListener("astro:after-swap", () => {
+	// astro-themes re-applies the stored theme on after-swap; a URL theme must
+	// override data-theme and color-scheme together or form controls mismatch.
 	const urlTheme = getThemeFromUrl();
 	if (urlTheme) {
-		document.documentElement.setAttribute("data-theme", urlTheme);
+		paintTheme(urlTheme);
 		return;
 	}
 
 	if (!isMatchDeviceTheme()) return;
-	// Apply without calling the full setTheme to keep this synchronous and
-	// avoid a double dispatch. the astro:page-load init() call right after
-	// will call setTheme() which handles persistence and icon sync.
-	document.documentElement.setAttribute("data-theme", getSystemTheme());
+	// Paint without the full setTheme to keep this synchronous and avoid a
+	// double dispatch. The astro:page-load init() call right after will call
+	// setTheme() which handles persistence and icon sync.
+	paintTheme(getSystemTheme());
 });
 
 document.addEventListener("astro:page-load", init);

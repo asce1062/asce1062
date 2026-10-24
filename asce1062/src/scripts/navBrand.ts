@@ -155,7 +155,15 @@ function getElements(): NavBrandElements {
 	};
 }
 
+/**
+ * In-memory twin of the session flag. The module lives for the whole tab
+ * session across soft navigations, so this alone stops a blocked sessionStorage
+ * (private mode, disabled site data) from counting every page change as a visit.
+ */
+let visitRecordedThisSession = false;
+
 function getSessionFlag(): boolean {
+	if (visitRecordedThisSession) return true;
 	try {
 		return !!sessionStorage.getItem(SESSION_KEY);
 	} catch {
@@ -164,6 +172,7 @@ function getSessionFlag(): boolean {
 }
 
 function setSessionFlag(): void {
+	visitRecordedThisSession = true;
 	try {
 		sessionStorage.setItem(SESSION_KEY, "1");
 	} catch {

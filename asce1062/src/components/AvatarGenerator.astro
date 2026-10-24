@@ -50,6 +50,13 @@ import "@/styles/components/avatar.css";
 		private layerTabs: NodeListOf<Element>;
 		private layerContent: HTMLElement | null;
 
+		/** Removes the window listener so the controller (and its image cache) can be collected. */
+		private abort: AbortController;
+
+		destroy(): void {
+			this.abort.abort();
+		}
+
 		constructor() {
 			// Initialize renderer and state manager
 			this.renderer = new AvatarRenderer("avatar-canvas", "loading-indicator");
@@ -59,6 +66,7 @@ import "@/styles/components/avatar.css";
 			this.genderRadios = document.querySelectorAll('input[name="gender"]');
 			this.layerTabs = document.querySelectorAll(".layer-tab");
 			this.layerContent = document.getElementById("layer-content");
+			this.abort = new AbortController();
 
 			// Set state change callback
 			this.stateManager.setOnStateChange(() => this.onStateChange());
@@ -116,27 +124,31 @@ import "@/styles/components/avatar.css";
 			downloadBtn?.addEventListener("click", () => this.download());
 
 			// External avatar changes (e.g. sidebar mini widget randomize/gender)
-			window.addEventListener(AVATAR_CHANGE_EVENT, (e) => {
-				// Skip events that this controller itself triggered to avoid re-entrant loops.
-				if (this.stateManager.isUpdating) return;
-				const { gender, state } = (e as CustomEvent<{ gender: Gender; state: AvatarState }>).detail;
-				const prevGender = this.stateManager.getGender();
-				this.stateManager.applyExternalChange(gender, state);
-				// If gender changed, sync tab highlights and preload new image set before rendering.
-				if (prevGender !== gender) {
-					this.layerTabs.forEach((tab, index) => {
-						tab.classList.toggle("active", index === 0);
-						(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
-					});
-					this.renderer.preloadImages(gender).then(() => {
+			window.addEventListener(
+				AVATAR_CHANGE_EVENT,
+				(e) => {
+					// Skip events that this controller itself triggered to avoid re-entrant loops.
+					if (this.stateManager.isUpdating) return;
+					const { gender, state } = (e as CustomEvent<{ gender: Gender; state: AvatarState }>).detail;
+					const prevGender = this.stateManager.getGender();
+					this.stateManager.applyExternalChange(gender, state);
+					// If gender changed, sync tab highlights and preload new image set before rendering.
+					if (prevGender !== gender) {
+						this.layerTabs.forEach((tab, index) => {
+							tab.classList.toggle("active", index === 0);
+							(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
+						});
+						this.renderer.preloadImages(gender).then(() => {
+							this.renderLayerItems();
+							this.renderer.renderAvatar(gender, state).catch(() => {});
+						});
+					} else {
 						this.renderLayerItems();
 						this.renderer.renderAvatar(gender, state).catch(() => {});
-					});
-				} else {
-					this.renderLayerItems();
-					this.renderer.renderAvatar(gender, state).catch(() => {});
-				}
-			});
+					}
+				},
+				{ signal: this.abort.signal }
+			);
 		}
 
 		/**
@@ -199,56 +211,34 @@ import "@/styles/components/avatar.css";
 			if (!layer) return;
 
 			for (let i = 1; i <= layer.count; i++) {
-				const item = document.createElement("div");
+				// A real button: keyboard operable, named, and its selection is announced.
+				const item = document.createElement("button");
+				item.type = "button";
 				item.className = "layer-item";
-				item.style.cssText =
-					"aspect-ratio: 1; border: 1px solid transparent; cursor: pointer; transition: border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);";
 				item.dataset.index = i.toString();
+				const isSelected = state[currentLayer] === i;
+				item.classList.toggle("selected", isSelected);
+				item.setAttribute("aria-pressed", String(isSelected));
+				item.setAttribute("aria-label", `${layer.title} ${i}`);
 
-				// Highlight selected item
-				if (state[currentLayer] === i) {
-					item.classList.add("selected");
-					item.style.cssText += " border-color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary);";
-				}
-
-				// Render thumbnail
+				// Render thumbnail (decorative: the button carries the name)
 				if (currentLayer !== "background") {
 					const thumbnail = this.renderer.renderThumbnail(gender, layer.name, i, state["background"]);
-					thumbnail.style.cssText =
-						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+					thumbnail.setAttribute("aria-hidden", "true");
 					item.appendChild(thumbnail);
 				} else {
 					const img = document.createElement("img");
-					img.style.cssText =
-						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-					const path = getImagePath(gender, layer.name, i);
-					img.src = path;
-					img.alt = `${layer.title} ${i}`;
+					img.src = getImagePath(gender, layer.name, i);
+					img.alt = "";
 					item.appendChild(img);
 				}
 
 				// Add item number
 				const number = document.createElement("span");
 				number.className = "layer-item-number";
-				number.style.cssText =
-					"display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
+				number.setAttribute("aria-hidden", "true");
 				number.textContent = i.toString();
 				item.appendChild(number);
-
-				// Add hover effects
-				item.addEventListener("mouseenter", () => {
-					if (!item.classList.contains("selected")) {
-						item.style.borderColor = "var(--color-info)";
-					}
-					item.style.transform = "scale(1.05)";
-				});
-
-				item.addEventListener("mouseleave", () => {
-					if (!item.classList.contains("selected")) {
-						item.style.borderColor = "transparent";
-					}
-					item.style.transform = "scale(1)";
-				});
 
 				// Handle click
 				item.addEventListener("click", async () => {
@@ -309,10 +299,17 @@ import "@/styles/components/avatar.css";
 		const avatarCanvas = document.getElementById("avatar-canvas");
 		if (!avatarCanvas) return;
 
+		controllerInstance?.destroy();
 		controllerInstance = new AvatarGeneratorController();
 		setupAvatarShare();
 	}
 
 	// astro:page-load fires on initial load and after every view transition.
 	document.addEventListener("astro:page-load", initAvatarGenerator);
+	// Leaving /8biticon: drop the controller's window listener, or every later
+	// sidebar avatar change re-rendered the detached generator.
+	document.addEventListener("astro:before-swap", () => {
+		controllerInstance?.destroy();
+		controllerInstance = null;
+	});
 </script>

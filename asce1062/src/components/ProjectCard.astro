@@ -41,16 +41,12 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 ---
 
 <div class="relative flex flex-col overflow-auto bg-neutral/40 border border-base-300">
-	{
-		resolvedImage && (
-			<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
-		)
-	}
-	{
-		!resolvedImage && githubOgUrl && (
-			<img src={githubOgUrl} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
-		)
-	}
+	{resolvedImage && (
+		<Image src={resolvedImage} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+	)}
+	{!resolvedImage && githubOgUrl && (
+		<img src={githubOgUrl} alt={description} class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+	)}
 	<div class="p-4 h-full flex flex-col gap-2">
 		<a
 			class="no-underline text-sm transition-colors duration-200 font-bold hover:text-primary-content text-warning break-all w-fit font-retro"
@@ -60,75 +56,65 @@ const githubOgUrl = !resolvedImage ? getGitHubOgImage(repo) : null;
 			{name}
 		</a>
 		<span class="flex flex-row justify-between items-center w-full text-xs sm:text-sm font-bold">
-			{
-				contributors !== undefined && (
-					<span
-						class:list={[
-							"flex flex-row items-center gap-1 font-retro",
-							contributors >= 1 ? "text-warning" : "text-neutral-content",
-						]}>
-						<i class="icon-repo-contributors" />
-						{contributors}
-					</span>
-				)
-			}
-			{
-				issues !== undefined && (
-					<span
-						class:list={[
-							"flex flex-row items-center gap-1 font-retro",
-							issues >= 1 ? "text-warning" : "text-neutral-content",
-						]}>
-						<i class="icon-issue-opened" />
-						{issues}
-					</span>
-				)
-			}
-			{
-				stars !== undefined && (
-					<span
-						class:list={[
-							"flex flex-row items-center gap-1 font-retro",
-							stars >= 1 ? "text-warning" : "text-neutral-content",
-						]}>
-						<i class="icon-star" />
-						{stars}
-					</span>
-				)
-			}
-			{
-				forks !== undefined && (
-					<span
-						class:list={[
-							"flex flex-row items-center gap-1 font-retro",
-							forks >= 1 ? "text-warning" : "text-neutral-content",
-						]}>
-						<i class="icon-repo-forked" />
-						{forks}
-					</span>
-				)
-			}
+			{contributors !== undefined && (
+				<span
+					class:list={[
+						"flex flex-row items-center gap-1 font-retro",
+						contributors >= 1 ? "text-warning" : "text-neutral-content",
+					]}>
+					<i class="icon-repo-contributors" />
+					{contributors}
+				</span>
+			)}
+			{issues !== undefined && (
+				<span
+					class:list={[
+						"flex flex-row items-center gap-1 font-retro",
+						issues >= 1 ? "text-warning" : "text-neutral-content",
+					]}>
+					<i class="icon-issue-opened" />
+					{issues}
+				</span>
+			)}
+			{stars !== undefined && (
+				<span
+					class:list={[
+						"flex flex-row items-center gap-1 font-retro",
+						stars >= 1 ? "text-warning" : "text-neutral-content",
+					]}>
+					<i class="icon-star" />
+					{stars}
+				</span>
+			)}
+			{forks !== undefined && (
+				<span
+					class:list={[
+						"flex flex-row items-center gap-1 font-retro",
+						forks >= 1 ? "text-warning" : "text-neutral-content",
+					]}>
+					<i class="icon-repo-forked" />
+					{forks}
+				</span>
+			)}
 		</span>
 		<div class="grow break-all">
 			<p>{description}</p>
 		</div>
 
 		<div class="flex flex-col gap-2">
-			{
-				tools && tools.length > 0 && (
-					<div class="flex flex-wrap gap-2">
-						{tools.map((tool) => {
-							const iconClass = getLanguageIcon(tool.name) || tool.icon;
-							return (
-								<span class="badge badge-success badge-lg px-2 py-1 flex items-center gap-1">
-									{iconClass && <i class={iconClass} />}
-									{tool.name}
-								</span>
-							);
-						})}
-					</div>
-				)
-			}
+			{tools && tools.length > 0 && (
+				<div class="flex flex-wrap gap-2">
+					{tools.map((tool) => {
+						const iconClass = getLanguageIcon(tool.name) || tool.icon;
+						return (
+							<span class="badge badge-success badge-lg px-2 py-1 flex items-center gap-1">
+								{iconClass && <i class={iconClass} />}
+								{tool.name}
+							</span>
+						);
+					})}
+				</div>
+			)}
 			<div>
 				<a
 					class="hover:underline hover:decoration-wavy link-action transition-colors"

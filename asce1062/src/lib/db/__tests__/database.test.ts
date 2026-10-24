@@ -1,4 +1,5 @@
 import { createClient } from "@libsql/client";
+import { gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -67,6 +68,41 @@ describe("guestbook database baseline", () => {
 		expect(log.entryId).toBe(entry.id);
 		expect(log.at).toBeInstanceOf(Date);
 
+		client.close();
+	});
+
+	// Window queries (rate limit, duplicates) compare timestamps as text against
+	// ISO bounds. SQLite's CURRENT_TIMESTAMP is "YYYY-MM-DD HH:MM:SS", and " "
+	// sorts before "T", so a row stored by the SQL default never falls inside a
+	// same-day window. Inserts that omit the timestamp must still store ISO.
+	it("stores omitted timestamps as ISO so same-day window queries match", async () => {
+		const databasePath = join(tmpdir(), `guestbook-${crypto.randomUUID()}.db`);
+		temporaryDatabases.push(databasePath);
+		const client = createClient({ url: `file:${databasePath}` });
+		const migration = await readFile(
+			new URL("../../../../db/migrations/0000_guestbook_baseline.sql", import.meta.url),
+			"utf8"
+		);
+		await client.executeMultiple(migration);
+		const database = drizzle(client);
+
+		const [entry] = await database.insert(Guestbook).values({ name: "Window", message: "Same day" }).returning();
+		await database.insert(GuestbookModerationLog).values({
+			entryId: entry.id,
+			action: "approve",
+			toStatus: "visible",
+			actor: "test",
+		});
+
+		const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+		const inWindow = await database.select().from(Guestbook).where(gte(Guestbook.timestamp, tenMinutesAgo));
+		const logsInWindow = await database
+			.select()
+			.from(GuestbookModerationLog)
+			.where(gte(GuestbookModerationLog.at, tenMinutesAgo));
+
+		expect(inWindow).toHaveLength(1);
+		expect(logsInWindow).toHaveLength(1);
 		client.close();
 	});
 });

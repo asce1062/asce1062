@@ -49,9 +49,17 @@ describe("hash-admin-token script", () => {
 	it("prints only an Argon2id hash in argument mode", async () => {
 		const { stdout, stderr } = await execFileAsync("node", [SCRIPT_PATH, VALID_TOKEN]);
 
-		expect(stderr).toBe("");
+		expect(stderr).toContain("shell history");
+		expect(stderr).not.toContain(VALID_TOKEN);
 		expect(stdout.trim()).toMatch(/^\$argon2id\$/);
 		expect(stdout).not.toContain(VALID_TOKEN);
+	});
+
+	it("rejects a token with surrounding whitespace, which the login could never match", async () => {
+		await expect(execFileAsync("node", [SCRIPT_PATH, ` ${VALID_TOKEN} `])).rejects.toMatchObject({
+			code: 1,
+			stderr: expect.stringContaining("whitespace"),
+		});
 	});
 
 	it("rejects a short token without echoing it", async () => {

@@ -2,10 +2,11 @@
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import ContentCard from "@/components/ContentCard.astro";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { sortByDate, formatDate, getContentUrl } from "@/lib/content/utils";
 
-const allPosts = await getCollection("blog");
+const allPosts = await getPublishedEntries("blog");
 const posts = sortByDate(allPosts);
 
 // Pre-render to get reading time from remark plugin
@@ -28,18 +29,16 @@ await Promise.all(
 		<li>A place to capture, organize, distill and express what I consume.</li>
 	</ul>
 	<Columns columns={1}>
-		{
-			posts.map((post) => (
-				<ContentCard
-					name={post.data.title}
-					url={getContentUrl(post.id, "/blog")}
-					image={post.data.image.url}
-					description={post.data.description}
-					date={formatDate(post.data.pubDate, "long")}
-					tags={post.data.tags}
-					readingTime={readingTimes.get(post.id)}
-				/>
-			))
-		}
+		{posts.map((post) => (
+			<ContentCard
+				name={post.data.title}
+				url={getContentUrl(post.id, "/blog")}
+				image={post.data.image.url}
+				description={post.data.description}
+				date={formatDate(post.data.pubDate, "long")}
+				tags={post.data.tags}
+				readingTime={readingTimes.get(post.id)}
+			/>
+		))}
 	</Columns>
 </Layout>

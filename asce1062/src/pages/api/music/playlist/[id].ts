@@ -1,8 +1,11 @@
 import type { APIRoute } from "astro";
 import {
 	asRecord,
+	isInPublicCatalog,
+	isPublicPlaylist,
 	jsonResponse,
 	navidromeErrorResponse,
+	notFoundResponse,
 	readNumber,
 	readRecordArray,
 	readString,
@@ -14,6 +17,7 @@ import {
  * GET /api/music/playlist/[id]
  *
  * Loads one public playlist's metadata and playable entries from Navidrome.
+ * Private playlists 404, the same as ids that do not exist.
  * The client receives normalized track records only; stream and cover URLs are
  * still resolved through separate same-origin proxy routes.
  */
@@ -42,6 +46,7 @@ export const GET: APIRoute = async ({ params }) => {
 	if (id instanceof Response) return id;
 
 	try {
+		if (!(await isInPublicCatalog("playlistIds", id))) return notFoundResponse();
 		const payload = await subsonicFetchJson("getPlaylist", { id });
 		const playlist = asRecord(payload.playlist);
 		const tracks = readRecordArray(playlist, "entry")
@@ -55,7 +60,7 @@ export const GET: APIRoute = async ({ params }) => {
 						name: readString(playlist, "name") ?? "Untitled playlist",
 						comment: readString(playlist, "comment"),
 						owner: readString(playlist, "owner"),
-						public: playlist.public === true || playlist.public === "true",
+						public: isPublicPlaylist(playlist),
 						songCount: readNumber(playlist, "songCount"),
 						duration: readNumber(playlist, "duration"),
 						coverArt: readString(playlist, "coverArt") ?? id,

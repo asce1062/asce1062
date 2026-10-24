@@ -78,6 +78,7 @@ import {
 	bindTextEffectTriggers,
 	readTextEffectConfig,
 } from "@/lib/textEffects/textEffect";
+import { releaseDetachedTriggerBindings } from "@/lib/textEffects/activeEffects";
 
 let hasInitializedTextEffectRegistry = false;
 
@@ -115,3 +116,6 @@ function initTextEffectRegistry(): void {
 }
 
 document.addEventListener("astro:page-load", initTextEffectRegistry);
+// The swap has replaced most of <body>: release bindings and running effects of
+// the elements it removed, before the new page binds its own.
+document.addEventListener("astro:after-swap", releaseDetachedTriggerBindings);

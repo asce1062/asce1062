@@ -32,7 +32,9 @@ function updateIframeTheme(config: IframeThemeConfig): void {
 
 			const queryValue = config.queryValues[currentTheme];
 			const regex = new RegExp(`${config.queryParam}=(dark|light)`, "g");
-			iframe.src = iframe.src.replace(regex, `${config.queryParam}=${queryValue}`);
+			const nextSrc = iframe.src.replace(regex, `${config.queryParam}=${queryValue}`);
+			// Assigning src always restarts navigation, even to the same URL.
+			if (nextSrc !== iframe.src) iframe.src = nextSrc;
 			break;
 		}
 
@@ -46,40 +48,18 @@ function updateIframeTheme(config: IframeThemeConfig): void {
 }
 
 /**
- * Initialize iframe theme management for a single iframe
- * Automatically sets up event listeners for theme changes
+ * Initialize iframe theme management for a single iframe.
+ * Called once from a module script; follows soft navigations and every change
+ * to data-theme (toggle, match-device, URL theme, after-swap restamp).
  */
 export function initIframeTheme(config: IframeThemeConfig): void {
 	const updateFn = () => updateIframeTheme(config);
 
-	// Initial load
-	if (document.readyState === "loading") {
-		document.addEventListener("DOMContentLoaded", updateFn);
-	} else {
-		updateFn();
-	}
-
-	// Reinitialize after view transitions
+	// Module scripts are deferred, so the document is already parsed here.
+	updateFn();
 	document.addEventListener("astro:page-load", updateFn);
-
-	// Theme changes
-	document.addEventListener("set-theme", updateFn);
-}
-
-/**
- * Initialize iframe theme management for multiple iframes at once
- */
-export function initMultipleIframeThemes(configs: IframeThemeConfig[]): void {
-	configs.forEach((config) => initIframeTheme(config));
-}
-
-/**
- * Cleanup function to remove event listeners (useful for SPAs)
- */
-export function cleanupIframeTheme(config: IframeThemeConfig): void {
-	const updateFn = () => updateIframeTheme(config);
-
-	document.removeEventListener("DOMContentLoaded", updateFn);
-	document.removeEventListener("astro:page-load", updateFn);
-	document.removeEventListener("set-theme", updateFn);
+	new MutationObserver(updateFn).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["data-theme"],
+	});
 }

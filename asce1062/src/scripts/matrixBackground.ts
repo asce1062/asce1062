@@ -98,6 +98,7 @@ function buildCanvas(): void {
 
 	const canvas = document.createElement("canvas");
 	canvas.id = CANVAS_ID;
+	canvas.setAttribute("aria-hidden", "true"); // decorative
 	document.body.prepend(canvas);
 	_canvas = canvas;
 	_ctx = canvas.getContext("2d");
@@ -106,17 +107,35 @@ function buildCanvas(): void {
 	window.addEventListener("resize", resizeCanvas);
 }
 
+/** Layout size in CSS pixels; the backing store is this times devicePixelRatio. */
+let _cssWidth = 0;
+let _cssHeight = 0;
+
 function resizeCanvas(): void {
 	if (!_canvas) return;
-	_canvas.width = window.innerWidth;
-	_canvas.height = window.innerHeight;
+	const cssWidth = window.innerWidth;
+	const cssHeight = window.innerHeight;
+	// Capped: the trail repaints the whole canvas every frame.
+	const dpr = Math.min(window.devicePixelRatio || 1, 2);
+	const pixelWidth = Math.round(cssWidth * dpr);
+	const pixelHeight = Math.round(cssHeight * dpr);
 
-	const cols = Math.floor(_canvas.width / FONT_SIZE) + 1;
+	// Assigning width/height clears the bitmap; skip no-op resizes (mobile URL bar, drags).
+	if (_canvas.width !== pixelWidth || _canvas.height !== pixelHeight) {
+		_canvas.width = pixelWidth;
+		_canvas.height = pixelHeight;
+	}
+	// Resizing resets the transform; draw in CSS pixels so glyphs stay crisp.
+	_ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+	_cssWidth = cssWidth;
+	_cssHeight = cssHeight;
+
+	const cols = Math.floor(cssWidth / FONT_SIZE) + 1;
 	// Preserve existing drops when resizing; initialise new columns randomly.
 	const prev = _drops;
 	_drops = Array.from(
 		{ length: cols },
-		(_, i) => prev[i] ?? Math.floor(Math.random() * (_canvas!.height / FONT_SIZE / 2)) + 1
+		(_, i) => prev[i] ?? Math.floor(Math.random() * (cssHeight / FONT_SIZE / 2)) + 1
 	);
 }
 
@@ -135,11 +154,14 @@ function tick(now: number): void {
 	}
 	_lastFrame = now;
 
-	if (!_ctx || !_canvas) return;
+	if (!_ctx || !_canvas) {
+		_rafId = null; // let startAnimation() run again once a canvas exists
+		return;
+	}
 
 	// Trail (semi-transparent base-100 rect each frame).
 	_ctx.fillStyle = _trailColor;
-	_ctx.fillRect(0, 0, _canvas.width, _canvas.height);
+	_ctx.fillRect(0, 0, _cssWidth, _cssHeight);
 
 	// Characters (secondary color).
 	_ctx.fillStyle = _charColor;
@@ -149,7 +171,7 @@ function tick(now: number): void {
 		const char = CHARS[Math.floor(Math.random() * CHARS.length)];
 		_ctx.fillText(char, i * FONT_SIZE, _drops[i] * FONT_SIZE);
 
-		if (_drops[i] * FONT_SIZE > _canvas.height && Math.random() > 0.975) {
+		if (_drops[i] * FONT_SIZE > _cssHeight && Math.random() > 0.975) {
 			_drops[i] = 0;
 		}
 

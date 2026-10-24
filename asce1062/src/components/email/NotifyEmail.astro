@@ -5,15 +5,16 @@
  */
 import type { ClassificationResult } from "@/lib/api/guestbook";
 import { hexLight, hexDark } from "@/config/design-tokens";
-import { getPatternDataUri, parseEntryStyle, entryBorderCss } from "@/lib/email/helpers";
-import { BASE_URL, MAX_ADMIN_PREVIEW_CHARS } from "@/config/email-config";
+import { getPatternDataUri, entryBorderCss } from "@/lib/email/helpers";
+import { parseEntryStyle } from "@/lib/api/guestbook-input";
+import { BASE_URL, MAX_ADMIN_PREVIEW_CHARS, sanitizeUserText, truncate } from "@/config/email-config";
 
 interface Props {
 	name: string;
 	email: string;
 	url: string;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarImageDataUri?: string | null;
 	classification: ClassificationResult;
 	entryId: number;
@@ -48,8 +49,10 @@ const entryUrl = `${BASE_URL}/guestbook#entry-${entryId}`;
 const reviewUrl = `${BASE_URL}/admin/guestbook`;
 const reasons = classification.reasons.length > 0 ? classification.reasons.join(", ") : "none";
 const formattedDate = submittedAt.toUTCString();
-const previewMsg = message.length > MAX_ADMIN_PREVIEW_CHARS ? message.slice(0, MAX_ADMIN_PREVIEW_CHARS) + "…" : message;
-const truncated = message.length > MAX_ADMIN_PREVIEW_CHARS;
+// Same sanitizing and code-point truncation as the plain-text part.
+const cleanMessage = sanitizeUserText(message);
+const previewMsg = truncate(cleanMessage, MAX_ADMIN_PREVIEW_CHARS);
+const truncated = previewMsg !== cleanMessage;
 
 // Body background. Remote URL.
 const bodyPattern = theme === "dark" ? `${BASE_URL}/images/topography.svg` : `${BASE_URL}/images/topographylight.svg`;
@@ -75,9 +78,8 @@ const msgBgCss = patternDataUri
 	</head>
 	<body style={`margin:0;padding:0;${bodyBgCss}font-family:'Courier New',Courier,monospace;`}>
 		<!-- Preheader: inbox preview text. Hidden visually in all email clients -->
-		<div
-			style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
-			{status.label} - {name}: {previewMsg.slice(0, 90)}
+		<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+			{status.label} - {name}: {truncate(previewMsg, 90)}
 		</div>
 		<table
 			role="presentation"
@@ -119,8 +121,8 @@ const msgBgCss = patternDataUri
 							<td
 								style={`background:${L["base-300"]};border-left:2px solid ${L["base-300"]};border-right:2px solid ${L["base-300"]};padding:8px 20px;`}>
 								<span style={`color:${L["base-content"]};font-size:12px;`}>
-									<strong>Score:</strong>{" "}{classification.score}&nbsp;&nbsp;
-									<strong>Reasons:</strong>{" "}{reasons}
+									<strong>Score:</strong> {classification.score}&nbsp;&nbsp;
+									<strong>Reasons:</strong> {reasons}
 								</span>
 							</td>
 						</tr>
@@ -137,37 +139,37 @@ const msgBgCss = patternDataUri
 									border="0"
 									style={`font-size:13px;color:${L["base-content"]};`}>
 									<tr>
-										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>Name</td
-										>
-										<td><strong>{name}</strong></td>
+										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+											Name
+										</td>
+										<td>
+											<strong>{name}</strong>
+										</td>
 									</tr>
-									{
-										email && (
-											<tr>
-												<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
-													Email
-												</td>
-												<td>{email}</td>
-											</tr>
-										)
-									}
-									{
-										url && (
-											<tr>
-												<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
-													URL
-												</td>
-												<td>
-													<a href={url} style={`color:${L["link"]};`}>
-														{url}
-													</a>
-												</td>
-											</tr>
-										)
-									}
+									{email && (
+										<tr>
+											<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+												Email
+											</td>
+											<td>{email}</td>
+										</tr>
+									)}
+									{url && (
+										<tr>
+											<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+												URL
+											</td>
+											<td>
+												<a href={url} style={`color:${L["link"]};`}>
+													{url}
+												</a>
+											</td>
+										</tr>
+									)}
 									<tr>
-										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>Time</td
-										>
+										<td style={`color:${L["neutral-content"]};white-space:nowrap;padding-right:12px;width:1%;`}>
+											Time
+										</td>
 										<td>{formattedDate}</td>
 									</tr>
 								</table>
@@ -181,27 +183,23 @@ const msgBgCss = patternDataUri
 									<tr>
 										<td style={`${msgBorderCss}${msgBgCss}padding:12px;`}>
 											<!-- Avatar stamp -->
-											{
-												avatarImageDataUri && (
-													<div style="line-height:0;margin-bottom:16px;">
-														<img
-															src={avatarImageDataUri}
-															width="48"
-															height="48"
-															alt="8-bit avatar"
-															style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${L["base-100"]};border:2px solid ${L["warning"]};box-shadow:3px 3px 0 ${L["base-content"]};padding:1px;`}
-														/>
-													</div>
-												)
-											}
+											{avatarImageDataUri && (
+												<div style="line-height:0;margin-bottom:16px;">
+													<img
+														src={avatarImageDataUri}
+														width="48"
+														height="48"
+														alt="8-bit avatar"
+														style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${L["base-100"]};border:2px solid ${L["warning"]};box-shadow:3px 3px 0 ${L["base-content"]};padding:1px;`}
+													/>
+												</div>
+											)}
 											<!--
 												max-height + overflow-y:auto for clients that support it (Gmail web, Apple Mail).
 												Server-side truncation at MAX_ADMIN_PREVIEW_CHARS is the safety net for clients that don't.
 											-->
 											<pre
-												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${L["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}
-												>{previewMsg}{truncated && <span style={`color:${L["muted"]};font-style:italic;`}> … (truncated, {message.length} chars total)</span>}</pre
-											>
+												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${L["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}>{previewMsg}{truncated && <span style={`color:${L["muted"]};font-style:italic;`}> … (truncated, {message.length} chars total)</span>}</pre>
 										</td>
 									</tr>
 								</table>
@@ -212,40 +210,36 @@ const msgBgCss = patternDataUri
 							<td style={`background:${L["base-200"]};border:2px solid ${L["base-300"]};padding:16px 20px;`}>
 								<table cellpadding="0" cellspacing="0" border="0" role="presentation">
 									<tr>
-										{
-											classification.status === "visible" && (
-												<td style="padding-right:12px;">
-													<table cellpadding="0" cellspacing="0" border="0" role="presentation">
-														<tr>
-															<td style={`background:${L["success"]};`}>
-																<a
-																	href={entryUrl}
-																	style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["success-content"]};`}>
-																	View Entry &rarr;
-																</a>
-															</td>
-														</tr>
-													</table>
-												</td>
-											)
-										}
-										{
-											classification.status !== "visible" && (
-												<td>
-													<table cellpadding="0" cellspacing="0" border="0" role="presentation">
-														<tr>
-															<td style={`background:${L["warning"]};`}>
-																<a
-																	href={reviewUrl}
-																	style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["warning-content"]};`}>
-																	Review in Admin &rarr;
-																</a>
-															</td>
-														</tr>
-													</table>
-												</td>
-											)
-										}
+										{classification.status === "visible" && (
+											<td style="padding-right:12px;">
+												<table cellpadding="0" cellspacing="0" border="0" role="presentation">
+													<tr>
+														<td style={`background:${L["success"]};`}>
+															<a
+																href={entryUrl}
+																style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["success-content"]};`}>
+																View Entry &rarr;
+															</a>
+														</td>
+													</tr>
+												</table>
+											</td>
+										)}
+										{classification.status !== "visible" && (
+											<td>
+												<table cellpadding="0" cellspacing="0" border="0" role="presentation">
+													<tr>
+														<td style={`background:${L["warning"]};`}>
+															<a
+																href={reviewUrl}
+																style={`display:block;padding:8px 18px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${L["warning-content"]};`}>
+																Review in Admin &rarr;
+															</a>
+														</td>
+													</tr>
+												</table>
+											</td>
+										)}
 									</tr>
 								</table>
 							</td>

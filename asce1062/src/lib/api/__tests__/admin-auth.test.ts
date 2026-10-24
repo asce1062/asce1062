@@ -229,6 +229,14 @@ describe("checkAdminAuth", () => {
 		await expect(checkAdminAuth(makeRequest(ADMIN_URL), makeCookies(session))).resolves.toEqual({ ok: true });
 	});
 
+	it("accepts a valid session cookie without running argon2 on a bearer header", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(verify).mockClear();
+		const request = makeRequest(ADMIN_URL, { authorization: "Bearer anything" });
+		await expect(checkAdminAuth(request, makeCookies(session))).resolves.toEqual({ ok: true });
+		expect(verify).not.toHaveBeenCalled();
+	});
+
 	it("returns ok:false when the signed admin session cookie is tampered", async () => {
 		const session = await createSessionForTest();
 		await expect(checkAdminAuth(makeRequest(ADMIN_URL), makeCookies(`${session}.tampered`))).resolves.toEqual({

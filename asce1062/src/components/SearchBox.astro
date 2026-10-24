@@ -21,45 +21,43 @@ const { searchId, showTips = true, className = "", autofocus = false } = Astro.p
 ---
 
 <div class={className}>
-	{
-		showTips && (
-			<div class="mb-8">
-				<Expand title="Search Tips">
-					<div slot="content">
-						<p>
-							<b>
-								<em>Indexed:</em>
-							</b>{" "}
-							Search by content, dates, description, excerpts, tags or titles
-						</p>
-						<p>
-							<b>
-								<em>Exact phrases:</em>
-							</b>{" "}
-							Use quotes like <code>"I'm happy you're here"</code>
-						</p>
-						<p>
-							<b>
-								<em>Fuzzy matching:</em>
-							</b>{" "}
-							Partial matches like <code>config</code> will find <b class="italic text-sm">"configuration"</b>
-						</p>
-						<p>
-							<b>
-								<em>Multiple terms:</em>
-							</b>{" "}
-							Search for <code>using icomoon</code> to find posts containing both words
-						</p>
-						<p>
-							<b>
-								<em>Shortcuts:</em>
-							</b>{" "}
-							Use <kbd>Ctrl+K</kbd> or <kbd>Cmd+K</kbd> for quick access
-						</p>
-					</div>
-				</Expand>
-			</div>
-		)
-	}
+	{showTips && (
+		<div class="mb-8">
+			<Expand title="Search Tips">
+				<div slot="content">
+					<p>
+						<b>
+							<em>Indexed:</em>
+						</b>{" "}
+						Search by content, dates, description, excerpts, tags or titles
+					</p>
+					<p>
+						<b>
+							<em>Exact phrases:</em>
+						</b>{" "}
+						Use quotes like <code>"I'm happy you're here"</code>
+					</p>
+					<p>
+						<b>
+							<em>Fuzzy matching:</em>
+						</b>{" "}
+						Partial matches like <code>config</code> will find <b class="italic text-sm">"configuration"</b>
+					</p>
+					<p>
+						<b>
+							<em>Multiple terms:</em>
+						</b>{" "}
+						Search for <code>using icomoon</code> to find posts containing both words
+					</p>
+					<p>
+						<b>
+							<em>Shortcuts:</em>
+						</b>{" "}
+						Use <kbd>Ctrl+K</kbd> or <kbd>Cmd+K</kbd> for quick access
+					</p>
+				</div>
+			</Expand>
+		</div>
+	)}
 	<SearchField id={searchId} autofocus={autofocus} />
 </div>

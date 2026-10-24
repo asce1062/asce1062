@@ -12,14 +12,16 @@ const variants404 = (asciiData as AsciiVariant[]).filter((v) => v.text === "404"
 const variantsJson = JSON.stringify(variants404);
 ---
 
-<Layout title="404" description="This page doesn't exist." ogImage="images/social-preview.png">
+<Layout noIndex title="404" description="This page doesn't exist." ogImage="images/social-preview.png">
 	<article data-page-404>
 		<h1 class="sr-only">404. Page Not Found</h1>
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cd /page-not-found</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<p class="text-error text-sm font-bold mb-0"> bash: cd: /page-not-found: No such file or directory </p>
 		</section>
@@ -28,7 +30,9 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat /dev/404</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 
 			<div class="text-center">
@@ -45,7 +49,9 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/what-happened.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<h2>
 				<i class="icon-question-circle"></i>{" "}
@@ -85,9 +91,7 @@ const variantsJson = JSON.stringify(variants404);
 						<span class="ml-1 text-neutral-content">you are not the only one wandering</span>
 					</p>
 					<!-- prettier-ignore-start -->
-					<pre
-						class="pre-art text-neutral-content text-xs leading-tight m-0 opacity-60"
-						aria-hidden="true">
+					<pre class="pre-art text-neutral-content text-xs leading-tight m-0 opacity-60" aria-hidden="true">
                __
               / _)
      _.----._/ /
@@ -108,7 +112,9 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls ~/find-your-way/</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<h2>
 				<i class="icon-signpost-split"></i>{" "}
@@ -142,7 +148,9 @@ const variantsJson = JSON.stringify(variants404);
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit 1</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<p>
 				If you think something is genuinely broken, feel free to <a href="/hello">let me know</a>.
@@ -160,9 +168,16 @@ const variantsJson = JSON.stringify(variants404);
 
 	function init404(): void {
 		_teardown?.();
+		_teardown = null;
+		// This listener outlives the 404 page; /about has its own neofetch setup.
+		if (!document.querySelector("[data-page-404]")) return;
 		// replayOnDice: art is visible on load, animate immediately on dice click.
 		_teardown = setupAsciiWidget("neofetch", { replayOnDice: true });
 	}
 
 	document.addEventListener("astro:page-load", init404);
+	document.addEventListener("astro:before-swap", () => {
+		_teardown?.();
+		_teardown = null;
+	});
 </script>

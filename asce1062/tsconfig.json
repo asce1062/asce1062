@@ -28,6 +28,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", ".astro/**/*", "db/**/*"],
+  "include": ["src/**/*", ".astro/**/*", "db/**/*", "markdown.config.ts", "vitest.config.ts"],
   "exclude": ["dist", "node_modules"]
 }

@@ -4,11 +4,10 @@ import {
 	DEFAULT_SIGNAL_LOSS_BLACKOUT_HOLD_MS,
 	DEFAULT_SIGNAL_DROPOUT_CHAR,
 } from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs, splitGraphemes } from "../utils";
 
 function renderSignalLossDropoutText(text: string, dropoutChar: string): string {
-	return text
-		.split("")
+	return splitGraphemes(text)
 		.map((char) => (/\s/.test(char) ? char : dropoutChar))
 		.join("");
 }
@@ -23,7 +22,7 @@ function renderSignalLossFrame(
 	if (frame === 0) return text;
 	if (frame >= totalFrames - 1) return renderSignalLossDropoutText(text, dropoutChar);
 
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const lossRatio = frame / Math.max(totalFrames - 1, 1);
 	if (falseRecovery && totalFrames > 5 && frame === Math.floor(totalFrames * 0.45)) return text;
 

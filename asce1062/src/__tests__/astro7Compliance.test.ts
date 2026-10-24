@@ -16,8 +16,15 @@ describe("Astro 7 migration contracts", () => {
 
 	it("binds the production navigation fallback to the generated offline document", async () => {
 		const source = await readFile(projectFile("astro.config.mjs"), "utf8");
+		const workbox = source.slice(source.indexOf("workbox: {"), source.indexOf("devOptions: {"));
 
-		expect(source).toMatch(/workbox:\s*{[\s\S]*?navigateFallback:\s*"\/offline\/index\.html"/);
+		// The offline page is a network-failure fallback for navigations, never an
+		// app shell: navigateFallback would serve it for every non-precached URL
+		// (/about, /sps, /guestbook) even while online.
+		// null, not omitted: vite-plugin-pwa defaults a missing value to "index.html".
+		expect(workbox).toMatch(/navigateFallback:\s*null,/);
+		expect(workbox).toMatch(/request\.mode === "navigate",\s*handler:\s*"NetworkOnly",/);
+		expect(workbox).toMatch(/precacheFallback:\s*{\s*fallbackURL:\s*"\/offline\/index\.html"\s*}/);
 		expect(source).toMatch(/devOptions:\s*{[\s\S]*?navigateFallback:\s*"\/offline"/);
 	});
 

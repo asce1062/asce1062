@@ -111,25 +111,32 @@ const doNotShip = [
 			<p class="mb-2 text-xs text-muted">
 				<span class="font-bold text-success">$</span>
 				<span class="ml-1 text-warning">cat ~/style/field-manual.md</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h1 class="mb-3 text-heading-1"><i class="icon-flask-florence"></i> /style</h1>
+			<h1 class="mb-3 text-heading-1">
+				<i class="icon-flask-florence"></i> /style
+			</h1>
 			<p class="text-lg text-base-content">
 				A working reference, not a manifesto: how alexmbugua.me writes, names things, and presents itself.
 			</p>
 			<p>
-				This is a <a href="https://indieweb.org/style-guide" target="_blank" rel="noopener noreferrer">style page</a>{
-					" "
-				}
-				in the IndieWeb sense: part editorial guide, part design reference, part reminder to keep the site recognizably mine.
-				The philosophy lives in <a href="/notes/2026-03-12-guiding-principles">Guiding Principles</a>; the raw token
-				matrix lives in <a href="/palette">/palette</a>.
+				This is a{" "}
+				<a href="https://indieweb.org/style-guide" target="_blank" rel="noopener noreferrer">
+					style page
+				</a>{" "}
+				in the IndieWeb sense: part editorial guide, part design reference, part reminder to keep the site recognizably
+				mine. The philosophy lives in <a href="/notes/2026-03-12-guiding-principles">Guiding Principles</a>; the raw
+				token matrix lives in <a href="/palette">/palette</a>.
 			</p>
 			<p>If something on this site feels consistent, it probably passed through this page.</p>
 		</section>
 
 		<section id="writing" class="mb-14">
-			<h2><i class="icon-pencil-square"></i> Writing</h2>
+			<h2>
+				<i class="icon-pencil-square"></i> Writing
+			</h2>
 			<p>
 				The site speaks like a developer thinking out loud at a clean desk: warm, specific, a little unusual but
 				intentional, and useful enough for future Alex to debug from.
@@ -140,7 +147,9 @@ const doNotShip = [
 					<section>
 						<h3>Voice</h3>
 						<ul>
-							{voiceRules.map((rule) => <li>{rule}</li>)}
+							{voiceRules.map((rule) => (
+								<li>{rule}</li>
+							))}
 						</ul>
 						<p>The site should read like someone thinking clearly, not performing intelligence.</p>
 						<p>Clarity beats cleverness. Specificity beats abstraction. Shipping beats theorizing.</p>
@@ -149,21 +158,27 @@ const doNotShip = [
 					<section>
 						<h3>Titles</h3>
 						<ul>
-							{titleRules.map((rule) => <li>{rule}</li>)}
+							{titleRules.map((rule) => (
+								<li>{rule}</li>
+							))}
 						</ul>
 					</section>
 
 					<section>
 						<h3>Formatting</h3>
 						<ul>
-							{formattingRules.map((rule) => <li>{rule}</li>)}
+							{formattingRules.map((rule) => (
+								<li>{rule}</li>
+							))}
 						</ul>
 					</section>
 
 					<section>
 						<h3>Technical writing</h3>
 						<ul>
-							{technicalRules.map((rule) => <li>{rule}</li>)}
+							{technicalRules.map((rule) => (
+								<li>{rule}</li>
+							))}
 						</ul>
 					</section>
 				</div>
@@ -172,11 +187,15 @@ const doNotShip = [
 					<section class="not-prose mb-8">
 						<h3 class="m-0 mb-3 text-sm font-bold text-success">Good titles</h3>
 						<ul class="m-0 mb-5 list-none space-y-2 p-0 text-sm">
-							{goodTitles.map((title) => <li class="border-l-2 border-success pl-3">{title}</li>)}
+							{goodTitles.map((title) => (
+								<li class="border-l-2 border-success pl-3">{title}</li>
+							))}
 						</ul>
 						<h3 class="m-0 mb-3 text-sm font-bold text-warning">Less good</h3>
 						<ul class="m-0 list-none space-y-2 p-0 text-sm">
-							{avoidTitles.map((title) => <li class="border-l-2 border-warning pl-3">{title}</li>)}
+							{avoidTitles.map((title) => (
+								<li class="border-l-2 border-warning pl-3">{title}</li>
+							))}
 						</ul>
 					</section>
 
@@ -195,7 +214,9 @@ const doNotShip = [
 						<h3>Breaking the rules</h3>
 						<p>Rules exist to make the site clearer, not stricter. Break them when:</p>
 						<ul>
-							{breakRules.map((rule) => <li>{rule}</li>)}
+							{breakRules.map((rule) => (
+								<li>{rule}</li>
+							))}
 						</ul>
 						<p>If it reads better and still feels like this site, it is better.</p>
 					</section>
@@ -220,7 +241,9 @@ const doNotShip = [
 		</section>
 
 		<section id="interface-system" class="mb-8">
-			<h2><i class="icon-collection"></i> Interface system</h2>
+			<h2>
+				<i class="icon-collection"></i> Interface system
+			</h2>
 			<p>
 				The rest of this page is the supporting UI specimen sheet: tokens, type, prose elements, controls, cards, and
 				terminal accents. These exist to support the writing: to keep it readable, consistent, and unmistakably part of
@@ -229,39 +252,41 @@ const doNotShip = [
 		</section>
 
 		<section id="color-roles" class="mb-12">
-			<h2><i class="icon-palette"></i> Color roles</h2>
+			<h2>
+				<i class="icon-palette"></i> Color roles
+			</h2>
 			<p>
 				Use semantic roles first. Base tokens build surfaces, brand tokens carry action, status tokens mean state, and
 				atmosphere tokens keep the cosmic layer from leaking into structural UI.
 			</p>
 
 			<div class="not-prose mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-				{
-					colorSpecimens.map((role) => (
-						<section>
-							<div class="mb-3 flex items-center gap-3">
-								<span
-									class="h-9 w-9 shrink-0 border border-base-300"
-									style={`background-color: var(--color-${role.id})`}
-									aria-hidden="true"
-								/>
-								<div>
-									<h3 class="m-0 text-sm font-bold">{role.name}</h3>
-									<code class="text-xs text-muted">--color-{role.id}</code>
-								</div>
+				{colorSpecimens.map((role) => (
+					<section>
+						<div class="mb-3 flex items-center gap-3">
+							<span
+								class="h-9 w-9 shrink-0 border border-base-300"
+								style={`background-color: var(--color-${role.id})`}
+								aria-hidden="true"
+							/>
+							<div>
+								<h3 class="m-0 text-sm font-bold">{role.name}</h3>
+								<code class="text-xs text-muted">--color-{role.id}</code>
 							</div>
-							<p class="m-0 text-sm text-muted">{role.description}</p>
-						</section>
-					))
-				}
+						</div>
+						<p class="m-0 text-sm text-muted">{role.description}</p>
+					</section>
+				))}
 			</div>
 		</section>
 
 		<section id="type" class="mb-12">
-			<h2><i class="icon-type"></i> Type</h2>
+			<h2>
+				<i class="icon-type"></i> Type
+			</h2>
 			<p>
-				The site speaks in <code>0xProto</code>. <code>uni0553</code> is a rare accent for pixel-era labels, buttons, and
-				console charm. No soft corporate sans voice sneaks into the cockpit.
+				The site speaks in <code>0xProto</code>. <code>uni0553</code> is a rare accent for pixel-era labels, buttons,
+				and console charm. No soft corporate sans voice sneaks into the cockpit.
 			</p>
 
 			<div class="not-prose mt-5 grid gap-4 md:grid-cols-2">
@@ -279,7 +304,9 @@ const doNotShip = [
 		</section>
 
 		<section id="selection-body" class="mb-12">
-			<h2><i class="icon-cursor-text"></i> Global selection and body</h2>
+			<h2>
+				<i class="icon-cursor-text"></i> Global selection and body
+			</h2>
 			<p>
 				The global body layer uses <code>0xProto</code>, <code>--color-base-content</code>, and the ambient topography
 				surface. Browser text selection uses <code>--color-info</code> with <code>--color-info-content</code>.
@@ -291,7 +318,9 @@ const doNotShip = [
 		</section>
 
 		<section id="headings" class="mb-12">
-			<h2><i class="icon-type-h1"></i> Headings</h2>
+			<h2>
+				<i class="icon-type-h1"></i> Headings
+			</h2>
 			<p>Headings should create a usable scan path. Terminal flavor is welcome; broken outline order is not.</p>
 
 			<div class="not-prose mt-5">
@@ -303,7 +332,9 @@ const doNotShip = [
 		</section>
 
 		<section id="prose" class="mb-12">
-			<h2><i class="icon-paragraph"></i> Prose</h2>
+			<h2>
+				<i class="icon-paragraph"></i> Prose
+			</h2>
 			<p>
 				The prose layer should be readable before it is clever. Links, lists, quotes, tables, and details carry the same
 				sharp terminal language as the rest of the site.
@@ -317,17 +348,20 @@ const doNotShip = [
 						<a href="https://slashpages.net/#style" target="_blank" rel="noopener noreferrer">
 							external slashpage link
 						</a>
-						, <strong>strong text</strong>, <em>emphasis</em>,
+						, <strong>strong text</strong>, <em>emphasis</em>,{" "}
 						<mark class="bg-secondary px-1 text-secondary-content">search result mark</mark>, <ins>inserted text</ins>,
-						<sup><a href="#resources">1</a></sup>, and <code>inline-code</code>.
+						<sup>
+							<a href="#resources">1</a>
+						</sup>
+						, and <code>inline-code</code>.
 					</p>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Keyboard</h3>
 					<p class="m-0 text-sm leading-relaxed">
-						Use <kbd>Cmd</kbd> + <kbd>K</kbd> for command-palette style shortcuts and <kbd>Ctrl</kbd> +
-						<kbd>Shift</kbd> + <kbd>L</kbd> for theme language.
+						Use <kbd>Cmd</kbd> + <kbd>K</kbd> for command-palette style shortcuts and <kbd>Ctrl</kbd> +<kbd>Shift</kbd>{" "}
+						+ <kbd>L</kbd> for theme language.
 					</p>
 				</section>
 
@@ -366,22 +400,32 @@ const doNotShip = [
 						</thead>
 						<tbody>
 							<tr>
-								<td><code>code</code></td>
+								<td>
+									<code>code</code>
+								</td>
 								<td>Inline tokens</td>
 								<td>Filenames, classes, commands, APIs</td>
 							</tr>
 							<tr>
-								<td><code>blockquote</code></td>
+								<td>
+									<code>blockquote</code>
+								</td>
 								<td>Quoted or pulled notes</td>
 								<td>Warm warning rail, no ornamental quote marks</td>
 							</tr>
 							<tr>
-								<td><code>kbd</code></td>
+								<td>
+									<code>kbd</code>
+								</td>
 								<td>Keyboard input</td>
-								<td>Use for shortcuts like <kbd>Cmd</kbd> + <kbd>K</kbd></td>
+								<td>
+									Use for shortcuts like <kbd>Cmd</kbd> + <kbd>K</kbd>
+								</td>
 							</tr>
 							<tr>
-								<td><code>details</code></td>
+								<td>
+									<code>details</code>
+								</td>
 								<td>Side context</td>
 								<td>Use when the page needs optional depth</td>
 							</tr>
@@ -403,7 +447,9 @@ const doNotShip = [
 		</section>
 
 		<section id="code" class="mb-12">
-			<h2><i class="icon-code-slash"></i> Code</h2>
+			<h2>
+				<i class="icon-code-slash"></i> Code
+			</h2>
 			<p>
 				Code should feel like material from the same terminal as the UI. Inline code is compact; blocks are bordered and
 				scrollable. Markdown-rendered pages get the Shiki data attributes; Astro-authored pages only get those highlight
@@ -414,14 +460,14 @@ const doNotShip = [
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Inline tokens</h3>
 					<p class="m-0 text-sm">
-						Name the exact thing: <code>src/pages/style.astro</code>, <code>--color-accent</code>,
+						Name the exact thing: <code>src/pages/style.astro</code>, <code>--color-accent</code>,{" "}
 						<code>theme-flavor</code>, <code>astro:page-load</code>.
 					</p>
 				</section>
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-accent">Markdown-only highlight hooks</h3>
 					<p class="m-0 text-sm">
-						Generated MDX/Shiki output may include <code>data-theme</code>, <code>data-line</code>,
+						Generated MDX/Shiki output may include <code>data-theme</code>, <code>data-line</code>,{" "}
 						<code>data-highlighted-line</code>, and <code>data-highlighted-chars</code>. Do not expect those styles from
 						plain <code>.astro</code> snippets unless those attributes are authored explicitly.
 					</p>
@@ -430,7 +476,9 @@ const doNotShip = [
 		</section>
 
 		<section id="buttons" class="mb-12">
-			<h2><i class="icon-hand-index"></i> Buttons</h2>
+			<h2>
+				<i class="icon-hand-index"></i> Buttons
+			</h2>
 			<p>
 				Buttons are italic, monospace, sharp-edged controls. Start with <code>.btn</code>, add a color when state or
 				emphasis requires it, then add a personality variant only when the surface deserves extra character.
@@ -440,48 +488,59 @@ const doNotShip = [
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Color variants</h3>
 					<div class="flex flex-wrap gap-3">
-						<button type="button" class="btn">default</button>
-						{
-							buttonVariants.map((variant) => (
-								<button type="button" class={`btn btn-${variant}`}>
-									{variant}
-								</button>
-							))
-						}
-						<button type="button" class="btn" disabled> disabled </button>
+						<button type="button" class="btn">
+							default
+						</button>
+						{buttonVariants.map((variant) => (
+							<button type="button" class={`btn btn-${variant}`}>
+								{variant}
+							</button>
+						))}
+						<button type="button" class="btn" disabled>
+							{" "}
+							disabled{" "}
+						</button>
 					</div>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Personality variants</h3>
 					<div class="flex flex-wrap gap-4">
-						{
-							buttonPersonalities.map((variant) => (
-								<button type="button" class={`btn btn-primary ${variant}`}>
-									{variant.replace("btn-", "")}
-								</button>
-							))
-						}
+						{buttonPersonalities.map((variant) => (
+							<button type="button" class={`btn btn-primary ${variant}`}>
+								{variant.replace("btn-", "")}
+							</button>
+						))}
 					</div>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Sizes</h3>
 					<div class="flex flex-wrap items-center gap-3">
-						<button type="button" class="btn btn-secondary btn-xs">xs</button>
-						<button type="button" class="btn btn-secondary btn-sm">sm</button>
-						<button type="button" class="btn btn-secondary">default</button>
-						<button type="button" class="btn btn-secondary btn-lg">lg</button>
+						<button type="button" class="btn btn-secondary btn-xs">
+							xs
+						</button>
+						<button type="button" class="btn btn-secondary btn-sm">
+							sm
+						</button>
+						<button type="button" class="btn btn-secondary">
+							default
+						</button>
+						<button type="button" class="btn btn-secondary btn-lg">
+							lg
+						</button>
 					</div>
 				</section>
 			</div>
 		</section>
 
 		<section id="links" class="mb-12">
-			<h2><i class="icon-link-45deg"></i> Link actions</h2>
+			<h2>
+				<i class="icon-link-45deg"></i> Link actions
+			</h2>
 			<p>
-				Use <code>.link-action</code> for navigational commands. Plain prose links remain text; action links are little terminal
-				buttons with icons or command glyphs.
+				Use <code>.link-action</code> for navigational commands. Plain prose links remain text; action links are little
+				terminal buttons with icons or command glyphs.
 			</p>
 
 			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
@@ -492,34 +551,42 @@ const doNotShip = [
 							<i class="icon-flask-florence"></i>
 							default
 						</a>
-						{
-							linkVariants.map((variant) => (
-								<a href="/style" class={`link-action link-action--${variant} no-underline`}>
-									<span aria-hidden="true">&gt;</span>
-									{variant}
-								</a>
-							))
-						}
+						{linkVariants.map((variant) => (
+							<a href="/style" class={`link-action link-action--${variant} no-underline`}>
+								<span aria-hidden="true">&gt;</span>
+								{variant}
+							</a>
+						))}
 					</div>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Sizes</h3>
 					<div class="flex flex-wrap items-center gap-3">
-						<a href="/style" class="link-action link-action--accent link-action--xs no-underline">xs</a>
-						<a href="/style" class="link-action link-action--accent link-action--sm no-underline">sm</a>
-						<a href="/style" class="link-action link-action--accent no-underline">default</a>
-						<a href="/style" class="link-action link-action--accent link-action--lg no-underline">lg</a>
+						<a href="/style" class="link-action link-action--accent link-action--xs no-underline">
+							xs
+						</a>
+						<a href="/style" class="link-action link-action--accent link-action--sm no-underline">
+							sm
+						</a>
+						<a href="/style" class="link-action link-action--accent no-underline">
+							default
+						</a>
+						<a href="/style" class="link-action link-action--accent link-action--lg no-underline">
+							lg
+						</a>
 					</div>
 				</section>
 			</div>
 		</section>
 
 		<section id="badges" class="mb-12">
-			<h2><i class="icon-tags"></i> Badges and tags</h2>
+			<h2>
+				<i class="icon-tags"></i> Badges and tags
+			</h2>
 			<p>
-				Badges label metadata, state, and tiny taxonomy. Tags can use <code>.link-action</code> when they navigate; badges
-				are better when they just annotate.
+				Badges label metadata, state, and tiny taxonomy. Tags can use <code>.link-action</code> when they navigate;
+				badges are better when they just annotate.
 			</p>
 
 			<div class="not-prose mt-5 grid gap-4 lg:grid-cols-2">
@@ -527,7 +594,9 @@ const doNotShip = [
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Badge variants</h3>
 					<div class="flex flex-wrap gap-2">
 						<span class="badge">default</span>
-						{badgeVariants.map((variant) => <span class={`badge badge-${variant}`}>{variant}</span>)}
+						{badgeVariants.map((variant) => (
+							<span class={`badge badge-${variant}`}>{variant}</span>
+						))}
 					</div>
 				</section>
 
@@ -544,7 +613,9 @@ const doNotShip = [
 		</section>
 
 		<section id="forms" class="mb-12">
-			<h2><i class="icon-input-cursor-text"></i> Forms</h2>
+			<h2>
+				<i class="icon-input-cursor-text"></i> Forms
+			</h2>
 			<p>
 				Inputs are blunt terminal fields with visible focus rings. The patterned textarea below intentionally imports
 				the guestbook component styles so this page can document that form surface where it is used.
@@ -555,15 +626,13 @@ const doNotShip = [
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Text inputs</h3>
 					<div class="grid gap-3">
 						<input class="input" value="default input" aria-label="Default input specimen" />
-						{
-							inputVariants.map((variant) => (
-								<input
-									class={`input input-${variant}`}
-									value={`${variant} input`}
-									aria-label={`${variant} input specimen`}
-								/>
-							))
-						}
+						{inputVariants.map((variant) => (
+							<input
+								class={`input input-${variant}`}
+								value={`${variant} input`}
+								aria-label={`${variant} input specimen`}
+							/>
+						))}
 						<input class="input input-sm" value="small input" aria-label="Small input specimen" />
 						<input class="input input-lg" value="large input" aria-label="Large input specimen" />
 						<input class="input" value="disabled input" aria-label="Disabled input specimen" disabled />
@@ -580,17 +649,19 @@ const doNotShip = [
 
 				<section class="lg:col-span-2">
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Guestbook textarea surface</h3>
-					<div class="textarea-wrapper"
-						><textarea class="block min-h-28 w-full p-2.5 text-sm textarea-styled" aria-label="Textarea style specimen"
-							>Say hi, write a poem, or sketch some ASCII art...</textarea
-						></div
-					>
+					<div class="textarea-wrapper">
+						<textarea
+							class="block min-h-28 w-full p-2.5 text-sm textarea-styled"
+							aria-label="Textarea style specimen">Say hi, write a poem, or sketch some ASCII art...</textarea>
+					</div>
 				</section>
 			</div>
 		</section>
 
 		<section id="controls" class="mb-12">
-			<h2><i class="icon-toggles"></i> Controls</h2>
+			<h2>
+				<i class="icon-toggles"></i> Controls
+			</h2>
 			<p>
 				Checkboxes use the icon font. Toggles are square, compact, and tokenized. Every state needs focus visibility and
 				reduced-motion respect.
@@ -600,26 +671,38 @@ const doNotShip = [
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Checkbox states and sizes</h3>
 					<div class="flex flex-wrap items-center gap-4 text-sm">
-						<label><input type="checkbox" class="checkbox" checked disabled /> disabled</label>
-						<label><input type="checkbox" class="checkbox" /> unchecked</label>
-						<label><input type="checkbox" class="checkbox" checked /> checked</label>
-						<label><input type="checkbox" class="checkbox checkbox-xs" checked /> xs</label>
-						<label><input type="checkbox" class="checkbox checkbox-sm" checked /> sm</label>
-						<label><input type="checkbox" class="checkbox" checked /> default</label>
-						<label><input type="checkbox" class="checkbox checkbox-lg" checked /> lg</label>
+						<label>
+							<input type="checkbox" class="checkbox" checked disabled /> disabled
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox" /> unchecked
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox" checked /> checked
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox checkbox-xs" checked /> xs
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox checkbox-sm" checked /> sm
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox" checked /> default
+						</label>
+						<label>
+							<input type="checkbox" class="checkbox checkbox-lg" checked /> lg
+						</label>
 					</div>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Checkbox colors</h3>
 					<div class="flex flex-wrap gap-4 text-sm">
-						{
-							controlVariants.map((variant) => (
-								<label>
-									<input type="checkbox" class={`checkbox checkbox-${variant}`} checked /> {variant}
-								</label>
-							))
-						}
+						{controlVariants.map((variant) => (
+							<label>
+								<input type="checkbox" class={`checkbox checkbox-${variant}`} checked /> {variant}
+							</label>
+						))}
 					</div>
 				</section>
 
@@ -630,32 +713,44 @@ const doNotShip = [
 							<input type="checkbox" class="toggle" checked disabled />
 							disabled
 						</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" /> off</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" checked /> on</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-xs" checked /> xs</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-sm" checked /> sm</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle" checked /> default</label>
-						<label class="flex items-center gap-2"><input type="checkbox" class="toggle toggle-lg" checked /> lg</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle" /> off
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle" checked /> on
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle toggle-xs" checked /> xs
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle toggle-sm" checked /> sm
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle" checked /> default
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" class="toggle toggle-lg" checked /> lg
+						</label>
 					</div>
 				</section>
 
 				<section>
 					<h3 class="m-0 mb-4 text-sm font-bold text-accent">Toggle colors</h3>
 					<div class="flex flex-wrap items-center gap-4 text-sm">
-						{
-							controlVariants.map((variant) => (
-								<label class="flex items-center gap-2">
-									<input type="checkbox" class={`toggle toggle-${variant}`} checked /> {variant}
-								</label>
-							))
-						}
+						{controlVariants.map((variant) => (
+							<label class="flex items-center gap-2">
+								<input type="checkbox" class={`toggle toggle-${variant}`} checked /> {variant}
+							</label>
+						))}
 					</div>
 				</section>
 			</div>
 		</section>
 
 		<section id="cards" class="mb-12">
-			<h2><i class="icon-collection"></i> Cards and frames</h2>
+			<h2>
+				<i class="icon-collection"></i> Cards and frames
+			</h2>
 			<p>
 				Cards are structural surfaces, not decoration. Keep borders sharp, use base surfaces, and reserve heavy
 				character for places where it helps the object feel handled.
@@ -683,7 +778,9 @@ const doNotShip = [
 		</section>
 
 		<section id="terminal-bits" class="mb-12">
-			<h2><i class="icon-terminal"></i> Terminal bits</h2>
+			<h2>
+				<i class="icon-terminal"></i> Terminal bits
+			</h2>
 			<p>
 				These are the tiny signals that make the site feel alive: command prompts, cursors, ASCII-ish labels, and
 				phosphor accents. Use them like seasoning, not wallpaper.
@@ -695,7 +792,9 @@ const doNotShip = [
 					<p class="m-0 text-sm text-muted">
 						<span class="font-bold text-success">$</span>
 						<span class="ml-1 text-warning">transmit --channel style --mode warm-void</span>
-						<span class="blink" aria-hidden="true">_</span>
+						<span class="blink" aria-hidden="true">
+							_
+						</span>
 					</p>
 				</section>
 				<section>
@@ -711,7 +810,9 @@ const doNotShip = [
 		</section>
 
 		<section id="words" class="mb-12">
-			<h2><i class="icon-quote"></i> Words and motifs</h2>
+			<h2>
+				<i class="icon-quote"></i> Words and motifs
+			</h2>
 			<p>
 				Recurring words should feel like site weather, not a thesaurus trap. Use motifs when they clarify tone or
 				structure.
@@ -721,27 +822,37 @@ const doNotShip = [
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-success">Preferred motifs</h3>
 					<div class="flex flex-wrap gap-2">
-						{motifs.map((word) => <span class="badge badge-secondary badge-sm">{word}</span>)}
+						{motifs.map((word) => (
+							<span class="badge badge-secondary badge-sm">{word}</span>
+						))}
 					</div>
 				</section>
 				<section>
 					<h3 class="m-0 mb-3 text-sm font-bold text-warning">Use carefully</h3>
 					<div class="flex flex-wrap gap-2">
-						{carefulWords.map((word) => <span class="badge badge-warning badge-sm">{word}</span>)}
+						{carefulWords.map((word) => (
+							<span class="badge badge-warning badge-sm">{word}</span>
+						))}
 					</div>
 				</section>
 			</div>
 		</section>
 
 		<section id="do-not-ship" class="mb-12">
-			<h2><i class="icon-x-octagon"></i> Do not ship</h2>
+			<h2>
+				<i class="icon-x-octagon"></i> Do not ship
+			</h2>
 			<ul>
-				{doNotShip.map((item) => <li>{item}</li>)}
+				{doNotShip.map((item) => (
+					<li>{item}</li>
+				))}
 			</ul>
 		</section>
 
 		<section id="resources" class="mb-6">
-			<h2><i class="icon-book"></i> Resources</h2>
+			<h2>
+				<i class="icon-book"></i> Resources
+			</h2>
 			<ul>
 				<li>
 					<a href="https://rubenerd.com/the-rubenerd-style-guide/" target="_blank" rel="noopener noreferrer">

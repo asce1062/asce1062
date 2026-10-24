@@ -21,7 +21,7 @@ export function createProgressBar(): void {
 	progressContainer.style.backgroundColor = "transparent";
 
 	const progressBar = document.createElement("div");
-	progressBar.className = "progress-bar h-1 w-0 transition-[width] duration-150";
+	progressBar.className = "progress-bar h-1 w-0 transition-[width] duration-150 motion-reduce:transition-none";
 	progressBar.id = "scroll-progress-bar";
 	progressBar.style.background =
 		"linear-gradient(to right, var(--color-primary), var(--color-accent), var(--color-secondary), var(--color-warning))";
@@ -38,7 +38,8 @@ export function createProgressBar(): void {
 function updateProgress(): void {
 	const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
 	const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-	const scrolled = Math.min((winScroll / height) * 100, 100);
+	// A page shorter than the viewport has nothing to scroll: 0%, not NaN%.
+	const scrolled = height > 0 ? Math.min((winScroll / height) * 100, 100) : 0;
 
 	const progressBar = document.getElementById("scroll-progress-bar");
 	if (progressBar) {
@@ -56,14 +57,4 @@ export function initScrollProgress(): void {
 	createProgressBar();
 	document.addEventListener("scroll", updateProgress, { signal: _scrollAc.signal });
 	updateProgress(); // Initial update
-}
-
-/**
- * Removes the progress bar from the page
- */
-export function removeProgressBar(): void {
-	const progressBar = document.getElementById("scroll-progress-bar");
-	if (progressBar && progressBar.parentElement) {
-		progressBar.parentElement.remove();
-	}
 }

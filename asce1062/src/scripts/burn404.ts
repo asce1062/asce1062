@@ -183,11 +183,12 @@ function isActive(): boolean {
 // ── Canvas management ───────────────────────────────────────────────────────
 
 function buildCanvas(): void {
+	// Astro soft navigation swaps <body>, detaching the old canvas. Reset all
+	// canvas state (including _fireW/_fireH) so the new canvas gets sized;
+	// otherwise resizeCanvas() sees an unchanged width and returns early.
 	if (_canvas && !document.body.contains(_canvas)) {
 		stopAnimation();
-		_canvas = null;
-		_ctx = null;
-		_buf = [];
+		removeCanvas();
 	}
 
 	if (_canvas) return;
@@ -406,9 +407,13 @@ if (typeof document !== "undefined") {
 
 	document.addEventListener("astro:after-swap", applyPref);
 	document.addEventListener("astro:page-load", init);
-	// Rebuild palette whenever the user switches theme or flavor so the fire
-	// instantly reflects their new color context.
-	document.addEventListener("set-theme", rebuildPalette);
+	// Rebuild palette whenever the theme or flavor changes so the fire instantly
+	// reflects the new color context. data-theme is observed rather than the
+	// "set-theme" event, which URL theme overrides (?theme=) do not dispatch.
+	new MutationObserver(rebuildPalette).observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["data-theme"],
+	});
 	document.addEventListener("flavor-change", rebuildPalette);
 
 	window.addEventListener("storage", (e) => {

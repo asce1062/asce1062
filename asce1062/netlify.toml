@@ -12,11 +12,9 @@ publish = "dist"
 # functions = "netlify/functions"
 
 [build.environment]
-# Node version
-NODE_VERSION = "22"
-
-# Build optimization
-NPM_FLAGS = "--legacy-peer-deps"
+# Node version. Same major as local development (nvm default 24).
+# A bare major resolves to that line's latest release; Astro needs >=22.23.4.
+NODE_VERSION = "24"
 
 # Local development configuration
 [dev]
@@ -114,6 +112,12 @@ from = "/licensing"
 to = "/notes/2026-03-12-licensing"
 status = 301
 
+# security.txt lives at the RFC 9116 location; the signature covers only that copy.
+[[redirects]]
+from = "/security.txt"
+to = "/.well-known/security.txt"
+status = 301
+
 # SPS policy index. The header breadcrumb links /sps, which has no page of its own
 [[redirects]]
 from = "/sps"
@@ -137,27 +141,32 @@ status = 301
 # Content-Type headers for specific files
 [[headers]]
 for = "/rss.xml"
+
 [headers.values]
 Content-Type = "application/rss+xml; charset=UTF-8"
 
 [[headers]]
 for = "/sitemap-index.xml"
+
 [headers.values]
 Content-Type = "application/xml; charset=UTF-8"
 
 [[headers]]
 for = "/sitemap-0.xml"
+
 [headers.values]
 Content-Type = "application/xml; charset=UTF-8"
 
 [[headers]]
 for = "/robots.txt"
+
 [headers.values]
 Content-Type = "text/plain; charset=UTF-8"
 
 # Security headers for all pages
 [[headers]]
 for = "/*"
+
 [headers.values]
 # Content Security Policy - Protects against XSS and other injection attacks
 # Note: 'unsafe-inline' is needed for Astro's hydration and astro-themes
@@ -178,65 +187,84 @@ Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 
 [[headers]]
 for = "/astro/*"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
+# Service worker scripts are unhashed and must be revalidated on every check,
+# or a returning visitor keeps an old worker. Hashed build assets live under
+# /astro/* (immutable above); no catch-all immutable rule for *.js or *.css.
 [[headers]]
-for = "/*.js"
+for = "/sw.js"
+
 [headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
+Cache-Control = "public, max-age=0, no-cache"
 
 [[headers]]
-for = "/*.css"
+for = "/registerSW.js"
+
+[headers.values]
+Cache-Control = "public, max-age=0, no-cache"
+
+# The Workbox runtime is content-hashed (workbox-<hash>.js) and safe to cache forever.
+[[headers]]
+for = "/workbox-*.js"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/fonts/*"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/*.woff2"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/**/*.png"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.jpg"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.webp"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.svg"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 # API routes must not be cached by CDN or browsers (responses are dynamic)
 [[headers]]
 for = "/api/*"
+
 [headers.values]
 Cache-Control = "no-store"
 
 # Netlify Plugins
-# Generate and manage sitemap
-[[plugins]]
-package = "@netlify/plugin-sitemap"
-
+# The sitemap comes from @astrojs/sitemap (sitemap-index.xml); a second
+# generator would also write sitemap.xml and shadow the redirect below.
 # Run Lighthouse performance audits
 [[plugins]]
 package = "@netlify/plugin-lighthouse"
 
 [plugins.inputs]
+
 # Lighthouse performance budgets
 [plugins.inputs.thresholds]
 performance = 0.9

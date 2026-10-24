@@ -1,5 +1,5 @@
 import { OGImageRoute } from "astro-og-canvas";
-import { getCollection } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import type { APIRoute, GetStaticPathsOptions } from "astro";
 
 // Explicitly enable prerendering for static build
@@ -7,14 +7,14 @@ export const prerender = true;
 
 // Helper function to get OG route configuration
 async function getOGRoute() {
-	const posts = await getCollection("blog");
-	const notes = await getCollection("notes");
+	const posts = await getPublishedEntries("blog");
+	const notes = await getPublishedEntries("notes");
 
 	// Create pages object with blog post paths as keys
 	const blogPages = Object.fromEntries(
 		posts.map((post) => {
-			// Remove .mdx extension from id to match URL structure
-			const path = `/blog/${post.id.replace(".mdx", "")}`;
+			// Glob loader ids are the filename without extension, matching the URL
+			const path = `/blog/${post.id}`;
 			return [path, { frontmatter: post.data }];
 		})
 	);
@@ -22,7 +22,7 @@ async function getOGRoute() {
 	// Add note paths
 	const notePages = Object.fromEntries(
 		notes.map((note) => {
-			const path = `/notes/${note.id.replace(".mdx", "")}`;
+			const path = `/notes/${note.id}`;
 			return [path, { frontmatter: note.data }];
 		})
 	);

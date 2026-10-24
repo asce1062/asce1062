@@ -79,6 +79,27 @@ describe("pickNavBrandHintCommand", () => {
 });
 
 describe("resolveNavBrandCommandInput", () => {
+	it("never runs a command from a substring that is not a prefix", () => {
+		// "ix" is inside the alias "fix" (reset): it must not reset the terminal.
+		expect(resolveNavBrandCommandInput("ix")).toBeNull();
+	});
+
+	it("does not guess between several commands sharing a prefix", () => {
+		const ambiguous = ["s", "h", "re"].filter((prefix) => resolveNavBrandCommandInput(prefix) !== null);
+		expect(ambiguous).toEqual([]);
+	});
+
+	it("keeps words like 'more' and 'details' in a search query", () => {
+		expect(resolveNavBrandCommandInput("search more")?.query).toBe("more");
+		expect(resolveNavBrandCommandInput("find details here")?.query).toBe("details here");
+		expect(resolveNavBrandCommandInput("search astro --verbose")).toMatchObject({ query: "astro", verbose: true });
+	});
+
+	it("still accepts exact names, aliases and unambiguous prefixes", () => {
+		expect(resolveNavBrandCommandInput("fix")?.command.id).toBe("reset");
+		expect(resolveNavBrandCommandInput("hel")?.command.id).toBe("help");
+	});
+
 	it("matches direct commands", () => {
 		expect(resolveNavBrandCommandInput("help")?.command.id).toBe("help");
 		expect(resolveNavBrandCommandInput("status")?.command.id).toBe("status");

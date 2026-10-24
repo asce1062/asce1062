@@ -163,11 +163,17 @@
 		transition: none;
 	}
 
-	/* Respect prefers-reduced-motion */
+	/* Respect prefers-reduced-motion: no transitions, and every CSS animation
+	   (including on pseudo-elements) jumps to its end state after a single pass. */
 	@media (prefers-reduced-motion: reduce) {
 		html,
-		* {
+		*,
+		*::before,
+		*::after {
 			transition: none !important;
+			animation-duration: 0.001ms !important;
+			animation-iteration-count: 1 !important;
+			scroll-behavior: auto !important;
 		}
 	}
 
@@ -209,6 +215,12 @@
 
 	.skip-link:focus {
 		top: 0;
+	}
+
+	/* Main is a programmatic focus target (skip link, back-to-top), not a control:
+	   ringing the whole content area adds no information. */
+	#main-content:focus {
+		outline: none;
 	}
 
 	/*
@@ -509,12 +521,6 @@ iframe {
 	color-scheme: auto;
 	display: block;
 }
-
-#ascii-404 {
-	@apply text-center;
-	display: inline-block;
-}
-
 @view-transition {
 	navigation: auto;
 }
@@ -562,6 +568,16 @@ marquee {
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	animation: gradient-shift var(--duration-ambient, 5s) var(--ease-in-out, ease-in-out) infinite;
+}
+
+/* Forced colors drop the gradient background but keep the transparent fill:
+   fall back to plain system text so the words stay readable. */
+@media (forced-colors: active) {
+	.faded-text {
+		background: none;
+		-webkit-text-fill-color: currentColor;
+		animation: none;
+	}
 }
 
 @keyframes gradient-shift {

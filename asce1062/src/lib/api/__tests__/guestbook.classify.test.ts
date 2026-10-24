@@ -117,6 +117,34 @@ describe("hard spam signals", () => {
 		expect(r.reasons).toContain("dot_com_obfuscation");
 	});
 
+	it.each(["I <3 this site, 5 > 4", "a < b and c > d", "<- back -> forward", "love it <3 >.<"])(
+		"comparison and emoticon text is not an HTML tag: %s",
+		async (message) => {
+			const r = await classify({ message });
+			expect(r.reasons).not.toContain("html_tag");
+		}
+	);
+
+	it.each(["<svg/onload=alert(1)>", "<img/src=x onerror=alert(1)>", "<br/>", "</b>"])(
+		"slash-separated and closing tags are HTML tags: %s",
+		async (message) => {
+			expect((await classify({ message })).reasons).toContain("html_tag");
+		}
+	);
+
+	it("hard signals in the name field are caught too", async () => {
+		expect((await classify({ name: "<b>Buy now</b>" })).reasons).toContain("html_tag");
+		expect((await classify({ name: "Visit bit.ly/xyz" })).reasons).toContain("url_shortener");
+		expect((await classify({ name: "[url=http://spam.com]x" })).reasons).toContain("bbcode");
+		expect((await classify({ name: "hxxp kizaru" })).status).toBe("hidden");
+	});
+
+	it("a shortener in the url field is a hard signal", async () => {
+		const r = await classify({ url: "https://bit.ly/onepiece" });
+		expect(r.reasons).toContain("url_shortener");
+		expect(r.status).toBe("hidden");
+	});
+
 	it("multiple hard signals → all emitted, score clamped to 10", async () => {
 		const r = await classify({
 			message: "<b>check</b> hxxp://kizaru.com dot com [url=x]x[/url]",

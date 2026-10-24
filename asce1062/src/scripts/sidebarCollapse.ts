@@ -125,11 +125,14 @@ function initCollapse(): void {
 	const cleanupSidebarShortcut = initSidebarCollapseShortcut(() => setCollapsed(!isCollapsed()));
 	signal.addEventListener("abort", cleanupSidebarShortcut, { once: true });
 
-	// Escape while focused inside a collapsed sidebar: expand and return focus to tab
+	// Escape while focused inside a collapsed sidebar: expand and return focus to tab.
+	// Desktop only: collapse is a desktop layout, and below it Escape belongs to the
+	// mobile drawer (sidebarNav.ts); handling it here cleared the saved preference.
+	const desktop = window.matchMedia("(min-width: 1024px)");
 	document.addEventListener(
 		"keydown",
 		(e: KeyboardEvent) => {
-			if (e.key === "Escape" && isCollapsed()) {
+			if (e.key === "Escape" && desktop.matches && isCollapsed()) {
 				const sidebar = document.querySelector<HTMLElement>(".nav-menu");
 				if (sidebar?.contains(document.activeElement)) {
 					setCollapsed(false);

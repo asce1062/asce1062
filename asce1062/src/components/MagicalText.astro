@@ -106,4 +106,6 @@ if (adornmentDuration !== undefined) dataAttrs["data-magical-text-adornment-dura
 if (animationType) dataAttrs["data-magical-text-animation-type"] = animationType;
 ---
 
-<Tag class={className} {...rest} {...dataAttrs}>{text}</Tag>
+<Tag class={className} {...rest} {...dataAttrs}>
+	{text}
+</Tag>

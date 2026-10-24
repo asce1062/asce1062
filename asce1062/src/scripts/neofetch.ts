@@ -14,6 +14,12 @@ function initNeofetch(): void {
 	_teardown?.();
 	_teardown = null;
 
+	// The listener outlives /about (module scripts run once per session): do
+	// nothing on pages without the widget, or every later page reset the brand
+	// name set by the sidebar egg and re-ran the 404 page's own neofetch setup.
+	const widget = document.getElementById("neofetch");
+	if (!widget || widget.closest("[data-page-404]")) return; // 404 sets up its own
+
 	const brandName = document.getElementById("nav-brand-name");
 	if (brandName) brandName.textContent = "alex";
 
