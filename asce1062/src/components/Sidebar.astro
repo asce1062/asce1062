@@ -6,7 +6,8 @@
  *
  * #nav-toggle checkbox (hidden) is the state machine.
  * body:has(#nav-toggle:checked) in sidebar.css handles panel/overlay/hamburger.
- * The hamburger label lives in Header.astro (for="nav-toggle").
+ * The hamburger button lives in Header.astro; sidebarNav.ts mirrors the
+ * checkbox into aria-expanded and makes the closed mobile drawer inert.
  * JS handles: Escape key, scroll lock, close-on-click, header offset.
  */
 import "@/styles/components/sidebar.css";
@@ -48,8 +49,7 @@ const eggVariantsJson = JSON.stringify(
 
 <!-- Nav panel -->
 <aside
-	role="navigation"
-	aria-label="Main navigation"
+	id="nav-menu"
 	class="nav-menu fixed top-0 left-0 z-40 flex flex-col w-[var(--sidebar-width)] h-full -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out bg-base-100">
 	<div class="nav-brand">
 		<!-- Expanded: visitor-aware shell prompt -->

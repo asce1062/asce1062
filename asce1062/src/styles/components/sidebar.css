@@ -18,6 +18,10 @@ Only visual / component styles live here.
 }
 
 .nav-hamburger {
+	/* A real <button>: reset UA chrome so it looks like the old label */
+	background: none;
+	border: 0;
+	font: inherit;
 	display: inline-flex;
 	align-items: center;
 	justify-content: left;
