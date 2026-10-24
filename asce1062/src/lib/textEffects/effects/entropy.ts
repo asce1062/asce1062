@@ -1,11 +1,12 @@
 import type { EffectRendererHandle } from "../types";
 import { DECRYPT_CHARS, DEFAULT_ENTROPY_TOTAL_FRAMES } from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs, splitGraphemes } from "../utils";
 
 export function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs?: number): EffectRendererHandle {
 	const totalFrames = DEFAULT_ENTROPY_TOTAL_FRAMES;
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("entropy", text);
 	const frameInterval = totalDuration / totalFrames;
+	const chars = splitGraphemes(text);
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
 	let settled = false;
@@ -14,10 +15,9 @@ export function runEntropyExitRenderer(el: HTMLElement, text: string, durationMs
 	});
 	const intervalId = globalThis.setInterval(() => {
 		const entropyRatio = frame / totalFrames;
-		const keepCount = Math.max(0, Math.floor((1 - entropyRatio) * text.length));
+		const keepCount = Math.max(0, Math.floor((1 - entropyRatio) * chars.length));
 
-		el.textContent = text
-			.split("")
+		el.textContent = chars
 			.map((char, i) => {
 				if (char === " ") return char;
 				if (i < keepCount) return char;

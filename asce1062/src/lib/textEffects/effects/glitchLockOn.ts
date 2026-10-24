@@ -1,23 +1,23 @@
 import type { EffectRendererHandle, GlitchLockOnEffectOptions } from "../types";
 import { DEFAULT_GLITCH_LOCK_TOTAL_FRAMES } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
+import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
 
-function pickGlitchChar(charsetStr: string, seed: number, useRandom: boolean): string {
-	if (useRandom) return charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? "_";
-	return charsetStr[seed % charsetStr.length] ?? "_";
+function pickGlitchChar(glyphs: readonly string[], seed: number, useRandom: boolean): string {
+	if (useRandom) return pickRandomGrapheme(glyphs) ?? "_";
+	return glyphs[seed % glyphs.length] ?? "_";
 }
 
 function renderGlitchLockFrame(
 	text: string,
 	frame: number,
 	totalFrames: number,
-	charsetStr: string,
+	glyphs: readonly string[],
 	useRandom: boolean,
 	reverse: boolean,
 	intensity: number
 ): string {
 	if (frame >= totalFrames - 1) return text;
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const instability = 1 - frame / Math.max(totalFrames - 1, 1);
 	const effectiveIntensity = Math.max(0.01, Math.min(1, intensity));
 	const artifactEvery = Math.max(2, Math.ceil(4 / effectiveIntensity - instability * 2));
@@ -36,14 +36,14 @@ function renderGlitchLockFrame(
 			}
 
 			const seed = reverse ? chars.length - 1 - index + frame : index + frame;
-			if (seed % artifactEvery === 0) return pickGlitchChar(charsetStr, seed, useRandom);
+			if (seed % artifactEvery === 0) return pickGlitchChar(glyphs, seed, useRandom);
 			if (instability > 0.62 && seed % 3 === 0) return `${char}${char}`;
 			return char;
 		})
 		.join("");
 
 	if (frame === 0) return `${body}${chars.at(-1) ?? ""}`;
-	if (frame === 1) return `${pickGlitchChar(charsetStr, frame, useRandom)}${body}`;
+	if (frame === 1) return `${pickGlitchChar(glyphs, frame, useRandom)}${body}`;
 	if (frame === totalFrames - 2) return body.replace(/[ _\-/\\|]/, "");
 	return body;
 }
@@ -61,7 +61,7 @@ export function runGlitchLockOnEnterRenderer(
 		durationMs,
 	} = options;
 
-	const charsetStr = resolveGlitchCharsetStr(charset);
+	const glyphs = splitGraphemes(resolveGlitchCharsetStr(charset));
 	const useRandom = charset !== "blocks";
 	const totalFrames = Math.max(3, frameCount);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("glitch-lock-on", text);
@@ -73,7 +73,7 @@ export function runGlitchLockOnEnterRenderer(
 		resolvePromise = resolve;
 	});
 	const intervalId = globalThis.setInterval(() => {
-		el.textContent = renderGlitchLockFrame(text, frame, totalFrames, charsetStr, useRandom, reverse, intensity);
+		el.textContent = renderGlitchLockFrame(text, frame, totalFrames, glyphs, useRandom, reverse, intensity);
 
 		frame += 1;
 

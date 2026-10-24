@@ -1,6 +1,6 @@
 import type { EffectRendererHandle, ScrambleEffectOptions } from "../types";
 import { DEFAULT_SCRAMBLE_COUNT, DEFAULT_SCRAMBLE_ITEMS } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
+import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
 
 export function runScrambleRenderer(
 	el: HTMLElement,
@@ -9,17 +9,15 @@ export function runScrambleRenderer(
 ): EffectRendererHandle {
 	const { count = DEFAULT_SCRAMBLE_COUNT, charset = "blocks", items, delayMs, restore = true, durationMs } = options;
 
-	const charsetStr = items
-		? items.join("")
-		: charset === "blocks"
-			? DEFAULT_SCRAMBLE_ITEMS.join("")
-			: resolveGlitchCharsetStr(charset);
+	const glyphs = splitGraphemes(
+		items ? items.join("") : charset === "blocks" ? DEFAULT_SCRAMBLE_ITEMS.join("") : resolveGlitchCharsetStr(charset)
+	);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("scramble", text);
 	const stepMs = delayMs ?? totalDuration / Math.max(1, count);
 
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const working = [...chars];
-	const nonSpaceIndices = chars.map((_, i) => i).filter((i) => !/\s/.test(text[i] ?? ""));
+	const nonSpaceIndices = chars.map((_, i) => i).filter((i) => !/\s/.test(chars[i] ?? ""));
 
 	let frame = 0;
 	let resolvePromise: () => void = () => {};
@@ -54,7 +52,7 @@ export function runScrambleRenderer(
 	activeInterval = globalThis.setInterval(() => {
 		if (nonSpaceIndices.length > 0) {
 			const idx = nonSpaceIndices[Math.floor(Math.random() * nonSpaceIndices.length)]!;
-			working[idx] = charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? working[idx] ?? "_";
+			working[idx] = pickRandomGrapheme(glyphs) ?? working[idx] ?? "_";
 		}
 		el.textContent = working.join("");
 		frame++;

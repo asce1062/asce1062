@@ -43,13 +43,34 @@ export function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
+const graphemeSegmenter =
+	typeof Intl !== "undefined" && "Segmenter" in Intl
+		? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+		: null;
+
+/**
+ * Split text into user-perceived characters (grapheme clusters).
+ *
+ * Effects animate per character, so they must never index by UTF-16 code
+ * unit: that cuts surrogate pairs (🔥) and ZWJ sequences (👩‍💻) in half and
+ * the browser paints U+FFFD for the orphaned half.
+ */
+export function splitGraphemes(text: string): string[] {
+	if (graphemeSegmenter) return Array.from(graphemeSegmenter.segment(text), ({ segment }) => segment);
+	return Array.from(text);
+}
+
+export function pickRandomGrapheme(graphemes: readonly string[]): string | undefined {
+	return graphemes[Math.floor(Math.random() * graphemes.length)];
+}
+
 export function renderTypingFrame(
 	text: string,
 	visibleLength: number,
 	showCursor: boolean,
 	cursorChar = TERMINAL_BLOCK_CURSOR
 ): string {
-	const resolvedText = text.slice(0, visibleLength);
+	const resolvedText = splitGraphemes(text).slice(0, visibleLength).join("");
 	return showCursor ? `${resolvedText}${cursorChar}` : resolvedText;
 }
 

@@ -7,7 +7,13 @@ import {
 	DEFAULT_TYPING_END_BLINK_COUNT,
 	TERMINAL_BLOCK_CURSOR,
 } from "../constants";
-import { createTimeoutRenderer, resolveTextEffectDurationMs, renderTypingFrame, resolveHumanPauseMs } from "../utils";
+import {
+	createTimeoutRenderer,
+	resolveTextEffectDurationMs,
+	renderTypingFrame,
+	resolveHumanPauseMs,
+	splitGraphemes,
+} from "../utils";
 
 export function runBackspaceExitRenderer(
 	el: HTMLElement,
@@ -23,8 +29,9 @@ export function runBackspaceExitRenderer(
 
 	return createTimeoutRenderer((schedule, finish) => {
 		const resolvedDurationMs = resolveTextEffectDurationMs("backspace", text);
-		const averageStepMs = Math.max((resolvedDurationMs - DEFAULT_BACKSPACE_HOLD_MS) / Math.max(text.length, 1), stepMs);
-		let index = text.length;
+		const charCount = splitGraphemes(text).length;
+		const averageStepMs = Math.max((resolvedDurationMs - DEFAULT_BACKSPACE_HOLD_MS) / Math.max(charCount, 1), stepMs);
+		let index = charCount;
 		let trailingBlinkCount = 0;
 		el.textContent = renderTypingFrame(text, index, true, cursorChar);
 

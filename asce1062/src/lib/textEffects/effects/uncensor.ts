@@ -1,6 +1,6 @@
 import type { EffectRendererHandle, UncensorEffectOptions } from "../types";
 import { DEFAULT_CENSOR_CHAR } from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs, splitGraphemes } from "../utils";
 
 export function runUncensorRenderer(
 	el: HTMLElement,
@@ -8,7 +8,7 @@ export function runUncensorRenderer(
 	options: UncensorEffectOptions = {}
 ): EffectRendererHandle {
 	const { fillChar = DEFAULT_CENSOR_CHAR, delayMs, durationMs } = options;
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const nonSpaceIndices = chars.map((c, i) => (/\s/.test(c) ? null : i)).filter((i): i is number => i !== null);
 	const nonSpaceCount = Math.max(1, nonSpaceIndices.length);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("uncensor", text);

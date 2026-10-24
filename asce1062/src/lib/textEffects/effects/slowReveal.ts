@@ -1,6 +1,12 @@
 import type { EffectRendererHandle, SlowRevealEffectOptions } from "../types";
 import { DEFAULT_SLOW_REVEAL_CYCLES_PER_CHAR, DEFAULT_SCRAMBLE_ITEMS } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, createTimeoutRenderer } from "../utils";
+import {
+	resolveTextEffectDurationMs,
+	resolveGlitchCharsetStr,
+	createTimeoutRenderer,
+	splitGraphemes,
+	pickRandomGrapheme,
+} from "../utils";
 
 export function runSlowRevealRenderer(
 	el: HTMLElement,
@@ -15,22 +21,18 @@ export function runSlowRevealRenderer(
 		durationMs,
 	} = options;
 
-	const charsetStr = items
-		? items.join("")
-		: charset === "blocks"
-			? DEFAULT_SCRAMBLE_ITEMS.join("")
-			: resolveGlitchCharsetStr(charset);
+	const glyphs = splitGraphemes(
+		items ? items.join("") : charset === "blocks" ? DEFAULT_SCRAMBLE_ITEMS.join("") : resolveGlitchCharsetStr(charset)
+	);
 
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const nonSpacePositions = chars.map((c, i) => ({ c, i })).filter(({ c }) => !/\s/.test(c));
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("slow-reveal", text);
 	const stepsTotal = Math.max(1, nonSpacePositions.length) * (cyclesPerChar + 1);
 	const stepMs = delayMs ?? totalDuration / stepsTotal;
 
 	return createTimeoutRenderer((schedule, finish) => {
-		const working = chars.map((c) =>
-			/\s/.test(c) ? c : (charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? c)
-		);
+		const working = chars.map((c) => (/\s/.test(c) ? c : (pickRandomGrapheme(glyphs) ?? c)));
 		el.textContent = working.join("");
 
 		let posIdx = 0;
@@ -46,7 +48,7 @@ export function runSlowRevealRenderer(
 			const entry = nonSpacePositions[posIdx]!;
 
 			if (cycleCount < cyclesPerChar) {
-				working[entry.i] = charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? entry.c;
+				working[entry.i] = pickRandomGrapheme(glyphs) ?? entry.c;
 				el.textContent = working.join("");
 				cycleCount++;
 				schedule(tick, stepMs);

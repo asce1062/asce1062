@@ -1,15 +1,11 @@
 import type { EffectRendererHandle, GlitchEffectOptions } from "../types";
 import { DEFAULT_GLITCH_COUNT, DEFAULT_GLITCH_SHIMMER_INTERVAL_MS, DEFAULT_GLITCH_ITEMS } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr } from "../utils";
+import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
 
-function pickChar(charsetStr: string): string {
-	return charsetStr[Math.floor(Math.random() * charsetStr.length)] ?? "_";
-}
-
-function setCharAt(str: string, index: number, ch: string): string {
-	const arr = str.split("");
-	arr[index] = ch;
-	return arr.join("");
+function setCharAt(chars: readonly string[], index: number, ch: string): string[] {
+	const next = [...chars];
+	next[index] = ch;
+	return next;
 }
 
 export function runGlitchRenderer(
@@ -27,18 +23,15 @@ export function runGlitchRenderer(
 		shimmer = true,
 	} = options;
 
-	const charsetStr = items
-		? items.join("")
-		: charset === "blocks"
-			? DEFAULT_GLITCH_ITEMS.join("")
-			: resolveGlitchCharsetStr(charset);
+	const glyphs = splitGraphemes(
+		items ? items.join("") : charset === "blocks" ? DEFAULT_GLITCH_ITEMS.join("") : resolveGlitchCharsetStr(charset)
+	);
+	const pickChar = (): string => pickRandomGrapheme(glyphs) ?? "_";
 
-	const stepMs = delayMs ?? resolveTextEffectDurationMs("glitch", text) / Math.max(1, text.length + count);
-	const total = text.length + count;
-	const nonSpaceIndices = text
-		.split("")
-		.map((_, i) => i)
-		.filter((i) => !/\s/.test(text[i] ?? ""));
+	const chars = splitGraphemes(text);
+	const stepMs = delayMs ?? resolveTextEffectDurationMs("glitch", text) / Math.max(1, chars.length + count);
+	const total = chars.length + count;
+	const nonSpaceIndices = chars.map((_, i) => i).filter((i) => !/\s/.test(chars[i] ?? ""));
 
 	let frame = 0;
 	let settled = false;
@@ -50,12 +43,8 @@ export function runGlitchRenderer(
 		resolvePromise = resolve;
 	});
 
-	function randomizeAll(current: string): string {
-		let result = current;
-		for (let i = 0; i < text.length; i++) {
-			if (!/\s/.test(text[i] ?? "")) result = setCharAt(result, i, pickChar(charsetStr));
-		}
-		return result;
+	function randomizeAll(): string[] {
+		return chars.map((char) => (/\s/.test(char) ? char : pickChar()));
 	}
 
 	function scheduleShimmer() {
@@ -68,7 +57,7 @@ export function runGlitchRenderer(
 				return;
 			}
 			const pos = nonSpaceIndices[Math.floor(Math.random() * nonSpaceIndices.length)]!;
-			el.textContent = setCharAt(text, pos, pickChar(charsetStr));
+			el.textContent = setCharAt(chars, pos, pickChar()).join("");
 
 			const t1 = globalThis.setTimeout(
 				() => {
@@ -78,7 +67,7 @@ export function runGlitchRenderer(
 					const t2 = globalThis.setTimeout(
 						() => {
 							if (settled) return;
-							el.textContent = setCharAt(text, pos, pickChar(charsetStr));
+							el.textContent = setCharAt(chars, pos, pickChar()).join("");
 
 							const t3 = globalThis.setTimeout(
 								() => {
@@ -102,30 +91,28 @@ export function runGlitchRenderer(
 	}
 
 	// Start with fully randomized text
-	let working = randomizeAll(text);
-	el.textContent = working;
+	let working = randomizeAll();
+	el.textContent = working.join("");
 
 	revealInterval = globalThis.setInterval(() => {
 		const lockedCount = Math.max(0, frame - count + 1);
 
 		// Lock in the next char once past the noise buffer
 		if (frame >= count) {
-			const lockIdx = reverse ? text.length - 1 - (frame - count) : frame - count;
-			if (lockIdx >= 0 && lockIdx < text.length) {
-				working = setCharAt(working, lockIdx, text[lockIdx] ?? "");
+			const lockIdx = reverse ? chars.length - 1 - (frame - count) : frame - count;
+			if (lockIdx >= 0 && lockIdx < chars.length) {
+				working = setCharAt(working, lockIdx, chars[lockIdx] ?? "");
 			}
 		}
 
 		// Re-randomize all unlocked positions
-		for (let i = 0; i < text.length; i++) {
-			if (/\s/.test(text[i] ?? "")) continue;
-			const isLocked = reverse ? i >= text.length - lockedCount : i < lockedCount;
-			if (!isLocked) {
-				working = setCharAt(working, i, pickChar(charsetStr));
-			}
-		}
+		working = working.map((char, i) => {
+			if (/\s/.test(chars[i] ?? "")) return char;
+			const isLocked = reverse ? i >= chars.length - lockedCount : i < lockedCount;
+			return isLocked ? char : pickChar();
+		});
 
-		el.textContent = working;
+		el.textContent = working.join("");
 		frame++;
 
 		if (frame >= total) {

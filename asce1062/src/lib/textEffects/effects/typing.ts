@@ -10,7 +10,13 @@ import {
 	DEFAULT_HUMAN_PAUSE_MAX_MS,
 	TERMINAL_BLOCK_CURSOR,
 } from "../constants";
-import { createTimeoutRenderer, resolveTypingDurationMs, renderTypingFrame, resolveHumanPauseMs } from "../utils";
+import {
+	createTimeoutRenderer,
+	resolveTypingDurationMs,
+	renderTypingFrame,
+	resolveHumanPauseMs,
+	splitGraphemes,
+} from "../utils";
 
 export function runTypingEnterRenderer(
 	el: HTMLElement,
@@ -29,8 +35,9 @@ export function runTypingEnterRenderer(
 	} = options;
 
 	return createTimeoutRenderer((schedule, finish) => {
+		const chars = splitGraphemes(text);
 		const resolvedDurationMs = resolveTypingDurationMs(text, stepMs);
-		const averageStepMs = Math.max((resolvedDurationMs - leadInMs) / Math.max(text.length, 1), 1);
+		const averageStepMs = Math.max((resolvedDurationMs - leadInMs) / Math.max(chars.length, 1), 1);
 		let index = 0;
 		let trailingBlinkCount = 0;
 
@@ -44,7 +51,7 @@ export function runTypingEnterRenderer(
 			schedule(() => {
 				trailingBlinkCount += 1;
 				const showCursor = trailingBlinkCount % 2 === 0;
-				el.textContent = renderTypingFrame(blinkText, blinkText.length, showCursor, cursorChar);
+				el.textContent = renderTypingFrame(blinkText, chars.length, showCursor, cursorChar);
 
 				if (trailingBlinkCount >= endBlinkCount * 2) {
 					el.textContent = completeText;
@@ -57,7 +64,7 @@ export function runTypingEnterRenderer(
 		};
 		const scheduleNext = () => {
 			const variance = Math.random() * Math.min(DEFAULT_TYPING_STEP_VARIANCE_MS, averageStepMs * 0.45);
-			const punctuationPause = /[.,;:!?]/.test(text[index] ?? "") ? averageStepMs * punctuationPauseMultiplier : 0;
+			const punctuationPause = /[.,;:!?]/.test(chars[index] ?? "") ? averageStepMs * punctuationPauseMultiplier : 0;
 			const humanPause =
 				index > 0 ? resolveHumanPauseMs(averageStepMs, stutterChance, DEFAULT_HUMAN_PAUSE_MIN_MS, stutterMaxMs) : 0;
 			const baseDelay = averageStepMs * (0.72 + Math.random() * 0.42);
@@ -68,7 +75,7 @@ export function runTypingEnterRenderer(
 			index += 1;
 			el.textContent = renderTypingFrame(text, index, true, cursorChar);
 
-			if (index >= text.length) {
+			if (index >= chars.length) {
 				scheduleTrailingBlink(text, text);
 				return;
 			}

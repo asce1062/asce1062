@@ -1,6 +1,6 @@
 import type { EffectRendererHandle, CensorEffectOptions } from "../types";
 import { DEFAULT_CENSOR_CHAR } from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs, splitGraphemes } from "../utils";
 
 function pickFillChar(fillChar: string | string[]): string {
 	if (Array.isArray(fillChar)) {
@@ -15,7 +15,7 @@ export function runCensorRenderer(
 	options: CensorEffectOptions = {}
 ): EffectRendererHandle {
 	const { fillChar = DEFAULT_CENSOR_CHAR, restore = true, delayMs, holdMs = 0, durationMs } = options;
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 
 	// Only iterate non-space characters — spaces are preserved in position throughout
 	const nonSpaceIndices = chars.map((c, i) => (/\s/.test(c) ? null : i)).filter((i): i is number => i !== null);

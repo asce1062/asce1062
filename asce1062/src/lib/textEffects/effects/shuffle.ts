@@ -1,6 +1,6 @@
 import type { EffectRendererHandle, ShuffleEffectOptions } from "../types";
 import { DEFAULT_SHUFFLE_COUNT } from "../constants";
-import { resolveTextEffectDurationMs } from "../utils";
+import { resolveTextEffectDurationMs, splitGraphemes } from "../utils";
 
 export function runShuffleRenderer(
 	el: HTMLElement,
@@ -8,7 +8,7 @@ export function runShuffleRenderer(
 	options: ShuffleEffectOptions = {}
 ): EffectRendererHandle {
 	const { count = DEFAULT_SHUFFLE_COUNT, delayMs, restore = true, durationMs } = options;
-	const chars = text.split("");
+	const chars = splitGraphemes(text);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("shuffle", text);
 	const stepMs = delayMs ?? totalDuration / Math.max(1, count);
 
