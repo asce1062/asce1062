@@ -1153,6 +1153,9 @@ export function resolveNavBrandCommandCompletions(input: string): NavBrandComman
 	return { state: "unknown", items: [] };
 }
 
+/** Shortest typed prefix that may resolve a command on its own. */
+const MIN_COMMAND_PREFIX = 2;
+
 /**
  * Resolve terminal input against the launcher registry.
  *
@@ -1266,30 +1269,24 @@ export function resolveNavBrandCommandInput(input: string): ResolvedNavBrandComm
 		return resolved(getNavBrandCommand("sidebar"), "toggle");
 	}
 
-	let bestMatch: { command: NavBrandCommandDefinition; score: number } | null = null;
-
+	// Last resort: an exact name/alias/keyword, or a prefix that points at exactly
+	// one command. No substring matching and no guessing between commands: a stray
+	// "ix" (inside the alias "fix") must not reset the terminal. The suggestion
+	// path uses the same prefix rule, so what the ghost text shows is what runs.
+	const prefixMatches = new Set<NavBrandCommandDefinition>();
 	for (const command of NAVBRAND_COMMANDS) {
 		for (const term of getCommandTerms(command)) {
 			const normalizedTerm = normalizeCommandInput(term);
-			let score = -1;
-
-			if (normalizedInput === normalizedTerm) {
-				score = 100;
-			} else if (normalizedTerm.startsWith(normalizedInput)) {
-				score = 80;
-			} else if (normalizedTerm.includes(normalizedInput)) {
-				score = 55;
-			}
-
-			if (score > -1 && (!bestMatch || score > bestMatch.score)) {
-				bestMatch = { command, score };
+			if (normalizedInput === normalizedTerm) return resolved(command);
+			if (normalizedInput.length >= MIN_COMMAND_PREFIX && normalizedTerm.startsWith(normalizedInput)) {
+				prefixMatches.add(command);
 			}
 		}
 	}
 
-	if (!bestMatch) return null;
-
-	return resolved(bestMatch.command);
+	if (prefixMatches.size !== 1) return null;
+	const [onlyMatch] = prefixMatches;
+	return resolved(onlyMatch);
 }
 
 /**
