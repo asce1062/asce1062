@@ -8,14 +8,8 @@ import GuestbookEntry from "@/components/GuestbookEntry.astro";
 import ShareNotification from "@/components/ShareNotification.astro";
 import Expand from "@/components/ui/Expand.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
-import {
-	getGuestEntries,
-	createGuestEntry,
-	getNotificationFlags,
-	markAdminNotified,
-	markCopySent,
-} from "@/lib/api/guestbook";
-import { notifyNewEntry, sendEntryCopy } from "@/lib/api/guestbook-notify";
+import { getGuestEntries, createGuestEntry, markAdminNotified, markCopySent } from "@/lib/api/guestbook";
+import { notifyNewEntry, sendEntryCopy, type EmailResult } from "@/lib/api/guestbook-notify";
 import { ENTRY_LIMITS, readGuestbookForm } from "@/lib/api/guestbook-input";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
@@ -65,45 +59,35 @@ if (Astro.request.method === "POST") {
 			userAgent,
 		});
 
-		// Await notifications before redirecting
-		// Fire-and-forget is not safe in serverless
-		// Function shuts down after response, cutting off any unawaited async work
-		const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "");
-		try {
-			const flags = await getNotificationFlags(entryId);
-			if (!flags.adminNotifiedAt) {
-				const result = await notifyNewEntry({
-					name,
-					email,
-					url,
-					message,
-					style,
-					avatarState: avatarOptIn ? avatarState : null,
-					classification,
-					entryId,
-					theme,
-					submittedAt,
-				});
-				if (result.ok) await markAdminNotified(entryId);
+		// Await delivery before redirecting: a serverless function stops once the
+		// response is sent, cutting off unawaited work. Both emails run in parallel
+		// within sendEmail's time budget, and each records its own delivery, so one
+		// failing (or its DB write failing) never skips the other.
+		const deliver = async (kind: string, send: () => Promise<EmailResult>, record: () => Promise<void>) => {
+			try {
+				const result = await send();
+				if (result.ok) await record();
+				else console.warn(`[guestbook] ${kind} not sent for entry ${entryId}: ${result.reason}`);
+			} catch (err) {
+				console.error(`[guestbook] ${kind} delivery error for entry ${entryId}:`, err);
 			}
-			if (sendCopy && validEmail && !flags.copySentAt) {
-				// spam/hidden/rate-limited guard is applied inside sendEntryCopy
-				const result = await sendEntryCopy({
-					name,
-					email,
-					message,
-					style,
-					avatarState: avatarOptIn ? avatarState : null,
-					classification,
-					entryId,
-					theme,
-					submittedAt,
-				});
-				if (result.ok) await markCopySent(entryId);
-			}
-		} catch (err) {
-			console.error("[guestbook] Notification error:", err);
-		}
+		};
+		const emailInput = { name, email, message, style, avatarState, classification, entryId, theme, submittedAt };
+
+		await Promise.all([
+			deliver(
+				"admin notification",
+				() => notifyNewEntry({ ...emailInput, url }),
+				() => markAdminNotified(entryId)
+			),
+			// Spam, rate-limit and recipient guards are applied inside sendEntryCopy
+			sendCopy &&
+				deliver(
+					"entry copy",
+					() => sendEntryCopy(emailInput),
+					() => markCopySent(entryId)
+				),
+		]);
 
 		return Astro.redirect("/success");
 	}

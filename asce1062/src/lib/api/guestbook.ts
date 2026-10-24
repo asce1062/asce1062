@@ -893,23 +893,11 @@ export async function createGuestEntry(
 }
 
 // ---------------------------------------------------------------------------
-// Notification idempotency helpers
+// Notification delivery records
 // ---------------------------------------------------------------------------
 
-/**
- * Returns the current notification timestamps for an entry.
- * Used to gate email sends on route retry / double-submit.
- */
-export async function getNotificationFlags(
-	entryId: number
-): Promise<{ adminNotifiedAt: Date | null; copySentAt: Date | null }> {
-	const row = await db
-		.select({ adminNotifiedAt: Guestbook.adminNotifiedAt, copySentAt: Guestbook.copySentAt })
-		.from(Guestbook)
-		.where(eq(Guestbook.id, entryId))
-		.get();
-	return { adminNotifiedAt: row?.adminNotifiedAt ?? null, copySentAt: row?.copySentAt ?? null };
-}
+// Delivery dedup comes from the Resend Idempotency-Key. These timestamps record
+// what was delivered, for the admin view and any future backfill of failed sends.
 
 /** Mark admin notification as sent. */
 export async function markAdminNotified(entryId: number): Promise<void> {

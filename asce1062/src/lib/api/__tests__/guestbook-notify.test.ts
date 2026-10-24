@@ -517,7 +517,11 @@ describe("notifyNewEntry. Retry on 429 / 5xx", () => {
 		const result = await resultPromise;
 
 		expect(result.ok).toBe(false);
-		expect(global.fetch).toHaveBeenCalledTimes(6); // 1 initial + 5 retries (max)
+		// 1 initial + 5 retries is the ceiling; the total deadline (max 8s) stops it
+		// sooner, since the backoff alone for 5 retries is ~15s.
+		const attempts = vi.mocked(global.fetch).mock.calls.length;
+		expect(attempts).toBeGreaterThanOrEqual(2);
+		expect(attempts).toBeLessThanOrEqual(6);
 	});
 
 	it("always returns a result (never throws) even on persistent failure", async () => {
@@ -530,5 +534,118 @@ describe("notifyNewEntry. Retry on 429 / 5xx", () => {
 		const result = await resultPromise.catch(() => null);
 		// notifyNewEntry must not throw
 		expect(result).not.toBeNull();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Real network failure shapes, stalled bodies and the total time budget
+// ---------------------------------------------------------------------------
+
+/** A fetch mock that only settles when its AbortSignal fires, like a hung socket. */
+function hangingFetch(respond?: (signal: AbortSignal) => Response) {
+	return vi.fn(
+		(_url: string, init: RequestInit) =>
+			new Promise<Response>((resolve, reject) => {
+				const signal = init.signal as AbortSignal;
+				if (respond) return resolve(respond(signal));
+				signal.addEventListener("abort", () =>
+					reject(Object.assign(new Error("The operation was aborted"), { name: "AbortError" }))
+				);
+			})
+	);
+}
+
+describe("notifyNewEntry. network failure shapes and time budget", () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	it("retries undici's TypeError('fetch failed') whose code is on err.cause", async () => {
+		const cause = Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" });
+		const undiciError = new TypeError("fetch failed", { cause });
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValueOnce(undiciError).mockResolvedValueOnce(makeOkFetchResponse()));
+
+		const resultPromise = notifyNewEntry(makeNotifyInput());
+		await vi.runAllTimersAsync();
+
+		expect((await resultPromise).ok).toBe(true);
+		expect(global.fetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("reports the cause code rather than the generic 'fetch failed'", async () => {
+		vi.stubEnv("GUESTBOOK_EMAIL_RETRIES", "0");
+		const cause = Object.assign(new Error("getaddrinfo ENOTFOUND api.resend.com"), { code: "ENOTFOUND" });
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed", { cause })));
+
+		const resultPromise = notifyNewEntry(makeNotifyInput());
+		await vi.runAllTimersAsync();
+		const result = await resultPromise;
+
+		expect(result.ok).toBe(false);
+		expect(!result.ok && result.reason).toContain("ENOTFOUND");
+	});
+
+	it("does not hang when an error response body stalls", async () => {
+		vi.stubEnv("GUESTBOOK_EMAIL_RETRIES", "0");
+		vi.stubEnv("GUESTBOOK_EMAIL_TIMEOUT_MS", "2000");
+		const stalledBody = (signal: AbortSignal) =>
+			new Response(
+				new ReadableStream({
+					start(controller) {
+						signal.addEventListener("abort", () => controller.error(new Error("aborted")));
+					},
+				}),
+				{ status: 503 }
+			);
+		vi.stubGlobal("fetch", hangingFetch(stalledBody));
+
+		let settled = false;
+		const resultPromise = notifyNewEntry(makeNotifyInput()).then((r) => {
+			settled = true;
+			return r;
+		});
+		// Rendering runs first (real async work). Only move the clock once the
+		// request is in flight, otherwise the timer may not exist yet.
+		await vi.waitFor(() => expect(global.fetch).toHaveBeenCalled());
+		await vi.advanceTimersByTimeAsync(2_500);
+
+		expect(settled).toBe(true);
+		const result = await resultPromise;
+		expect(!result.ok && result.status).toBe(503);
+	});
+
+	it("gives up once the total deadline is spent, whatever the retry count", async () => {
+		vi.stubEnv("GUESTBOOK_EMAIL_RETRIES", "5");
+		vi.stubEnv("GUESTBOOK_EMAIL_TIMEOUT_MS", "10000");
+		vi.stubEnv("GUESTBOOK_EMAIL_DEADLINE_MS", "3000");
+		vi.stubGlobal("fetch", hangingFetch());
+
+		const start = Date.now();
+		let finishedAt = 0;
+		const resultPromise = notifyNewEntry(makeNotifyInput()).then((r) => {
+			finishedAt = Date.now();
+			return r;
+		});
+		await vi.runAllTimersAsync();
+		const result = await resultPromise;
+
+		expect(result.ok).toBe(false);
+		expect(finishedAt - start).toBeLessThanOrEqual(3_000);
+	});
+});
+
+describe("notifyNewEntry. tuning env vars", () => {
+	it("GUESTBOOK_EMAIL_RETRIES=0 disables retries", async () => {
+		vi.stubEnv("GUESTBOOK_EMAIL_RETRIES", "0");
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 500 })));
+
+		const result = await notifyNewEntry(makeNotifyInput());
+
+		expect(result.ok).toBe(false);
+		expect(global.fetch).toHaveBeenCalledTimes(1);
 	});
 });
