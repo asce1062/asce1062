@@ -83,8 +83,11 @@ export interface CreateEntryInput {
 // Spam Detection Regexes
 // ---------------------------------------------------------------------------
 
-/** Any raw HTML tag */
-const HTML_TAG_RE = /<[^>]+>/;
+/**
+ * Tag-shaped markup: `<` + optional `/` + a letter-led tag name, then `>` or attributes.
+ * Requiring a tag name keeps prose like "I <3 this, 5 > 4" out of the hard-spam bucket.
+ */
+const HTML_TAG_RE = /<\/?[a-z][a-z0-9-]*(?:\s[^<>]*)?\/?>/i;
 
 /** BBCode link syntax */
 const BBCODE_RE = /\[url\s*=/i;
@@ -153,7 +156,7 @@ const ALL_REASON_NAMES: ReadonlySet<string> = new Set([
  * Bump this constant whenever scoring weights, thresholds, or reason names change
  * so rows classified under old rules can be identified in the DB.
  */
-const CURRENT_MODERATION_VERSION = 1;
+const CURRENT_MODERATION_VERSION = 2;
 
 /**
  * Canonical moderatedBy actor values:
@@ -407,21 +410,27 @@ export async function classifyEntry(input: {
 	const msg = normalizeForModeration(input.message || "");
 	const name = normalizeForModeration(input.name || "");
 
-	// --- Hard spam checks (each alone is score >= 10 → hidden) ---
+	const url = normalizeForModeration(input.url || "");
 
-	if (HTML_TAG_RE.test(msg)) {
+	// --- Hard spam checks (each alone is score >= 10 → hidden) ---
+	// Markup and link tricks are checked in the name too: it is rendered publicly
+	// right next to the message. The url field only gets the shortener check, since
+	// a link is what it is for.
+	const textFields = [msg, name];
+
+	if (textFields.some((field) => HTML_TAG_RE.test(field))) {
 		reasons.push("html_tag");
 		score += 10;
 	}
-	if (BBCODE_RE.test(msg)) {
+	if (textFields.some((field) => BBCODE_RE.test(field))) {
 		reasons.push("bbcode");
 		score += 10;
 	}
-	if (SHORTENER_RE.test(msg)) {
+	if ([...textFields, url].some((field) => SHORTENER_RE.test(field))) {
 		reasons.push("url_shortener");
 		score += 10;
 	}
-	if (OBFUSCATED_LINK_RE.test(msg)) {
+	if (textFields.some((field) => OBFUSCATED_LINK_RE.test(field))) {
 		reasons.push("obfuscated_link");
 		score += 10;
 	}
