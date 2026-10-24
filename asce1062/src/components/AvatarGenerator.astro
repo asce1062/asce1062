@@ -105,7 +105,7 @@ import "@/styles/components/avatar.css";
 				});
 			});
 
-			// Layer tabs
+			// Layer tabs: click, or arrows/Home/End within the tablist (tabs pattern)
 			this.layerTabs.forEach((tab) => {
 				tab.addEventListener("click", () => {
 					const layer = (tab as HTMLElement).dataset.layer;
@@ -113,6 +113,7 @@ import "@/styles/components/avatar.css";
 						this.switchLayer(layer);
 					}
 				});
+				tab.addEventListener("keydown", (e) => this.onTabKeydown(e as KeyboardEvent, tab as HTMLElement));
 			});
 
 			// Randomize button
@@ -134,10 +135,7 @@ import "@/styles/components/avatar.css";
 					this.stateManager.applyExternalChange(gender, state);
 					// If gender changed, sync tab highlights and preload new image set before rendering.
 					if (prevGender !== gender) {
-						this.layerTabs.forEach((tab, index) => {
-							tab.classList.toggle("active", index === 0);
-							(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
-						});
+						this.markActiveTab(this.stateManager.getCurrentLayer());
 						this.renderer.preloadImages(gender).then(() => {
 							this.renderLayerItems();
 							this.renderer.renderAvatar(gender, state).catch(() => {});
@@ -174,10 +172,7 @@ import "@/styles/components/avatar.css";
 			await this.stateManager.changeGender(newGender);
 
 			// Reset to first tab
-			this.layerTabs.forEach((tab, index) => {
-				tab.classList.toggle("active", index === 0);
-				(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
-			});
+			this.markActiveTab(this.stateManager.getCurrentLayer());
 		}
 
 		/**
@@ -185,15 +180,40 @@ import "@/styles/components/avatar.css";
 		 */
 		private switchLayer(layerName: string): void {
 			this.stateManager.setCurrentLayer(layerName);
-
-			// Update active state and aria-selected on tabs
-			this.layerTabs.forEach((tab) => {
-				const isActive = (tab as HTMLElement).dataset.layer === layerName;
-				tab.classList.toggle("active", isActive);
-				(tab as HTMLElement).setAttribute("aria-selected", String(isActive));
-			});
-
+			this.markActiveTab(layerName);
 			this.renderLayerItems();
+		}
+
+		/** Sync tab selection, the roving tabindex, and the panel's label to a layer. */
+		private markActiveTab(layerName: string): void {
+			this.layerTabs.forEach((tab) => {
+				const el = tab as HTMLElement;
+				const isActive = el.dataset.layer === layerName;
+				el.classList.toggle("active", isActive);
+				el.setAttribute("aria-selected", String(isActive));
+				el.tabIndex = isActive ? 0 : -1;
+				if (isActive) this.layerContent?.setAttribute("aria-labelledby", el.id);
+			});
+		}
+
+		/** Arrow keys move between tabs (wrapping), Home/End jump to the ends; selection follows focus. */
+		private onTabKeydown(e: KeyboardEvent, tab: HTMLElement): void {
+			const tabs = Array.from(this.layerTabs) as HTMLElement[];
+			const index = tabs.indexOf(tab);
+			const next =
+				e.key === "ArrowRight" || e.key === "ArrowDown"
+					? tabs[(index + 1) % tabs.length]
+					: e.key === "ArrowLeft" || e.key === "ArrowUp"
+						? tabs[(index - 1 + tabs.length) % tabs.length]
+						: e.key === "Home"
+							? tabs[0]
+							: e.key === "End"
+								? tabs[tabs.length - 1]
+								: null;
+			if (!next?.dataset.layer) return;
+			e.preventDefault();
+			this.switchLayer(next.dataset.layer);
+			next.focus();
 		}
 
 		/**

@@ -141,7 +141,8 @@
 	justify-content: center;
 	gap: 0.08rem;
 	flex: 0 0 auto;
-	min-width: 3.65rem;
+	/* Small enough that all six tabs fit the 388px column without a clipped last label. */
+	min-width: 3.5rem;
 	min-height: 3.55rem;
 	padding: 0.18rem 0.1rem;
 	background: transparent;
@@ -314,7 +315,8 @@
 	}
 
 	.layer-tabs {
-		gap: 0.05rem;
+		/* No gap: the six content-sized tabs otherwise clip the last label at ~390px. */
+		gap: 0;
 	}
 
 	.layer-tab {
