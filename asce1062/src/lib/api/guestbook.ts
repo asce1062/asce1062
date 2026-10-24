@@ -6,6 +6,12 @@
 import { and, count, desc, eq, gte, isNotNull, isNull, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { Guestbook, GuestbookModerationLog } from "@/lib/db/schema";
+import {
+	normalizeAvatarState,
+	parseEntryStyle,
+	sanitizeEntryUrl,
+	serializeEntryStyle,
+} from "@/lib/api/guestbook-input";
 
 export interface EntryStyle {
 	bg: string;
@@ -62,9 +68,9 @@ export interface ClassificationResult {
 export interface CreateEntryInput {
 	name: string;
 	email: string;
-	url: string;
+	url: string | null;
 	message: string;
-	style?: string;
+	style?: string | null;
 	/** Serialized avatar state string. Only stored when avatarOptIn is true. */
 	avatarState?: string | null;
 	/** Whether the submitter opted to attach their avatar */
@@ -722,7 +728,7 @@ export async function createGuestEntry(
 
 	const classification = await classifyEntry({
 		name: entry.name,
-		url: entry.url,
+		url: entry.url ?? "",
 		message: trimmedMessage, // raw. classifyEntry normalizes internally
 		ipHash,
 		userAgentHash,
@@ -747,12 +753,13 @@ export async function createGuestEntry(
 	const result = await db.insert(Guestbook).values({
 		name: entry.name.trim().replace(/\s+/g, " "),
 		email: entry.email.trim() || null,
-		url: entry.url.trim() || null,
+		// Re-sanitized here so every caller gets the same storage guarantees.
+		url: sanitizeEntryUrl(entry.url),
 		message: trimmedMessage,
 		messageHash,
 		isSpam: classification.status === "hidden",
-		style: entry.style || null,
-		avatarState: entry.avatarOptIn ? entry.avatarState || null : null,
+		style: entry.style ? serializeEntryStyle(parseEntryStyle(entry.style)) : null,
+		avatarState: entry.avatarOptIn ? normalizeAvatarState(entry.avatarState) : null,
 		avatarOptIn: entry.avatarOptIn ?? false,
 		status: classification.status,
 		moderationReason: classification.reasons.length > 0 ? JSON.stringify(classification.reasons) : null,

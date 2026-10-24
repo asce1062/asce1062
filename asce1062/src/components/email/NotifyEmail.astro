@@ -5,7 +5,8 @@
  */
 import type { ClassificationResult } from "@/lib/api/guestbook";
 import { hexLight, hexDark } from "@/config/design-tokens";
-import { getPatternDataUri, parseEntryStyle, entryBorderCss } from "@/lib/email/helpers";
+import { getPatternDataUri, entryBorderCss } from "@/lib/email/helpers";
+import { parseEntryStyle } from "@/lib/api/guestbook-input";
 import { BASE_URL, MAX_ADMIN_PREVIEW_CHARS } from "@/config/email-config";
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 	email: string;
 	url: string;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarImageDataUri?: string | null;
 	classification: ClassificationResult;
 	entryId: number;

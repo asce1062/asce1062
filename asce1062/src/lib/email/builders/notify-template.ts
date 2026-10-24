@@ -18,9 +18,9 @@ import {
 export interface NotifyTemplateInput {
 	name: string;
 	email: string;
-	url: string;
+	url: string | null;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarState?: string | null;
 	classification: ClassificationResult;
 	entryId: number;

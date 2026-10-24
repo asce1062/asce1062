@@ -73,9 +73,9 @@ export type EmailResult =
 export interface NotifyInput {
 	name: string;
 	email: string;
-	url: string;
+	url: string | null;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarState?: string | null;
 	classification: ClassificationResult;
 	entryId: number;
@@ -88,7 +88,7 @@ export interface EntryCopyInput {
 	/** Guest's email address. Validated internally before sending */
 	email: string;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarState?: string | null;
 	/** Full classification so sendEntryCopy can apply spam guards internally */
 	classification: ClassificationResult;

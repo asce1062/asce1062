@@ -11,7 +11,7 @@ import { BASE_URL, MAX_COPY_MSG_CHARS, truncate, sanitizeUserText, wrapText } fr
 export interface EntryCopyTemplateInput {
 	name: string;
 	message: string;
-	style?: string;
+	style?: string | null;
 	avatarState?: string | null;
 	status: ModerationStatus;
 	entryId: number;

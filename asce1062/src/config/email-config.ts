@@ -33,11 +33,13 @@ const MAX_HEADER_CHARS = 120;
  * Rejects javascript:, data:, etc.
  * Returns undefined for invalid/empty values so callers can omit the link.
  */
-export function sanitizeUrl(url: string | undefined): string | undefined {
+export function sanitizeUrl(url: string | null | undefined): string | undefined {
 	if (!url) return undefined;
 	try {
-		const { protocol } = new URL(url);
-		return protocol === "https:" || protocol === "http:" ? url : undefined;
+		// Return the normalized href, not the input: the parser drops embedded
+		// newlines, which would otherwise forge lines in plain-text bodies.
+		const parsed = new URL(url);
+		return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : undefined;
 	} catch {
 		return undefined;
 	}

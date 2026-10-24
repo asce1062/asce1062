@@ -1,5 +1,6 @@
 ---
-import type { GuestEntry, EntryStyle } from "@/lib/api/guestbook";
+import type { GuestEntry } from "@/lib/api/guestbook";
+import { parseEntryStyle, sanitizeEntryUrl, serializeEntryStyle } from "@/lib/api/guestbook-input";
 import { formatDate } from "@/lib/content/utils";
 import EntryActions from "@/components/GuestBookEntryActions.astro";
 import Haunted from "@/components/Haunted.astro";
@@ -18,23 +19,10 @@ const hasAvatar = entry.avatarOptIn === true && typeof entry.avatarState === "st
 // Normal prose never has double spaces, but ASCII art relies on them for alignment
 const isAsciiArt = / {2}/.test(entry.message);
 
-// Parse style JSON with fallback defaults
-const defaults: EntryStyle = {
-	bg: "topography",
-	borderColor: "base-300",
-	borderWidth: "1px",
-	borderStyle: "solid",
-	borderRadius: "0.25rem",
-};
-
-let style: EntryStyle = defaults;
-if (entry.style) {
-	try {
-		style = { ...defaults, ...JSON.parse(entry.style) };
-	} catch {
-		// Invalid JSON. Use defaults
-	}
-}
+// Stored values are re-validated at render: rows written before the input
+// boundary existed may hold arbitrary style JSON or non-http(s) URLs.
+const style = parseEntryStyle(entry.style);
+const safeUrl = sanitizeEntryUrl(entry.url);
 
 // Build inline style object (Haunted forwards a flat camelCase style object, unlike the div element which takes the CSS string directly)
 const inlineStyles: Record<string, string> = {
@@ -71,7 +59,7 @@ const inlineStyles: Record<string, string> = {
 			<EntryActions
 				entryId={entry.id}
 				entryName={entry.name}
-				entryStyle={entry.style || ""}
+				entryStyle={entry.style ? serializeEntryStyle(style) : ""}
 				entryMessage={entry.message}
 				entryAvatarState={hasAvatar ? entry.avatarState : null}
 			/>
@@ -79,8 +67,8 @@ const inlineStyles: Record<string, string> = {
 		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 		<div class="entry-meta">
 			<h2>
-				{entry.url ? (
-					<a href={entry.url} target="_blank" rel="noopener noreferrer">
+				{safeUrl ? (
+					<a href={safeUrl} target="_blank" rel="noopener noreferrer">
 						{entry.name}
 					</a>
 				) : (

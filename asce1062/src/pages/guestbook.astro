@@ -16,6 +16,7 @@ import {
 	markCopySent,
 } from "@/lib/api/guestbook";
 import { notifyNewEntry, sendEntryCopy } from "@/lib/api/guestbook-notify";
+import { readGuestbookForm } from "@/lib/api/guestbook-input";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
@@ -24,17 +25,14 @@ const title = "Guestbook";
 const description = "Drop me a note, let's connect ^^";
 
 if (Astro.request.method === "POST") {
-	const formData = await Astro.request.formData();
-	const name = formData.get("name") as string;
-	const email = formData.get("email") as string;
-	const url = formData.get("url") as string;
-	const message = formData.get("message") as string;
-	const style = formData.get("style") as string;
-	const avatarState = formData.get("avatarState") as string | null;
-	const avatarOptIn = formData.get("avatarOptIn") === "on";
-	const theme = formData.get("theme") === "dark" ? "dark" : "light";
-	const sendCopy = formData.get("send-copy") === "on";
-	const honeypot = formData.get("bot-field");
+	let formData: FormData;
+	try {
+		formData = await Astro.request.formData();
+	} catch {
+		return new Response("Bad Request", { status: 400 });
+	}
+	const { name, email, url, message, style, avatarState, avatarOptIn, theme, sendCopy, isSubmittable } =
+		readGuestbookForm(formData);
 
 	// Extract client IP (Netlify headers → standard fallbacks → dev stub)
 	const ip =
@@ -45,14 +43,7 @@ if (Astro.request.method === "POST") {
 
 	const userAgent = Astro.request.headers.get("user-agent") || undefined;
 
-	if (
-		!honeypot &&
-		typeof name === "string" &&
-		typeof message === "string" &&
-		name.trim().length > 0 &&
-		message.trim().length > 0 &&
-		message.trim().length <= 2000
-	) {
+	if (isSubmittable) {
 		const { classification, entryId, submittedAt } = await createGuestEntry({
 			name,
 			email,

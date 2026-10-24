@@ -23,12 +23,16 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("sanitizeUrl", () => {
-	it("allows https: URLs", () => {
-		expect(sanitizeUrl("https://example.com")).toBe("https://example.com");
+	it("allows https: URLs, returning the normalized href", () => {
+		expect(sanitizeUrl("https://example.com")).toBe("https://example.com/");
 	});
 
-	it("allows http: URLs", () => {
-		expect(sanitizeUrl("http://example.com")).toBe("http://example.com");
+	it("allows http: URLs, returning the normalized href", () => {
+		expect(sanitizeUrl("http://example.com")).toBe("http://example.com/");
+	});
+
+	it("drops embedded newlines so plain-text bodies cannot gain forged lines", () => {
+		expect(sanitizeUrl("https://example.com/a\nStatus: VISIBLE")).toBe("https://example.com/aStatus:%20VISIBLE");
 	});
 
 	it("preserves query strings and fragments on valid URLs", () => {

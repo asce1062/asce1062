@@ -9,6 +9,7 @@ import Layout from "@/layouts/Layout.astro";
 import { checkAdminAuth } from "@/lib/api/admin-auth";
 import { getModeratedEntries, updateEntryStatus, safeParseReasons, getModerationLog } from "@/lib/api/guestbook";
 import { formatDate } from "@/lib/content/utils";
+import { sanitizeEntryUrl } from "@/lib/api/guestbook-input";
 import type { ModerationStatus } from "@/lib/api/guestbook";
 
 // Defence in depth: middleware enforces auth for /admin/*, but this page holds
@@ -145,16 +146,20 @@ const auditLog = filter === "audit" ? await getModerationLog() : [];
 		<div class="space-y-4">
 			{entries.map((entry) => {
 				const reasons = safeParseReasons(entry.moderationReason);
+				const safeUrl = sanitizeEntryUrl(entry.url);
 				return (
 					<div id={`entry-${entry.id}`} class="p-4 border border-base-300 bg-neutral rounded">
 						<div class="flex justify-between items-start mb-2">
 							<div>
 								<span class="text-xs text-base-content/40 font-mono mr-2">#{entry.id}</span>
 								<strong>{entry.name}</strong>
-								{entry.url && (
-									<a href={entry.url} target="_blank" rel="noopener noreferrer" class="text-xs ml-2">
-										{entry.url}
+								{safeUrl ? (
+									<a href={safeUrl} target="_blank" rel="noopener noreferrer" class="text-xs ml-2">
+										{safeUrl}
 									</a>
+								) : (
+									// Show unsafe stored URLs as inert text so a moderator can see them.
+									entry.url && <span class="text-xs ml-2 text-error font-mono">{entry.url}</span>
 								)}
 								{entry.email && <span class="text-xs ml-2 text-base-content/50">{entry.email}</span>}
 							</div>

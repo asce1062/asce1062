@@ -7,14 +7,15 @@
  */
 import type { ModerationStatus } from "@/lib/api/guestbook";
 import { hexLight, hexDark } from "@/config/design-tokens";
-import { getPatternDataUri, parseEntryStyle, entryBorderCss } from "@/lib/email/helpers";
+import { getPatternDataUri, entryBorderCss } from "@/lib/email/helpers";
+import { parseEntryStyle } from "@/lib/api/guestbook-input";
 import { SOCIAL } from "@/config/site-config";
 import { BASE_URL, GITHUB_ISSUES_URL, MAX_COPY_MSG_CHARS } from "@/config/email-config";
 
 interface Props {
 	name: string;
 	message: string;
-	style?: string; // JSON string, same format stored in DB
+	style?: string | null; // JSON string, same format stored in DB
 	avatarImageDataUri?: string | null;
 	status: ModerationStatus;
 	entryId: number;
