@@ -192,56 +192,34 @@ describe("checkAdminAuth", () => {
 		vi.clearAllMocks();
 	});
 
-	it("returns ok:true when a valid bearer token is in the Authorization header", async () => {
-		const request = makeRequest(ADMIN_URL, { authorization: "Bearer valid-token" });
-		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: true });
-	});
-
-	it("returns ok:false when the bearer token is invalid", async () => {
-		const request = makeRequest(ADMIN_URL, { authorization: "Bearer invalid-token" });
-		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
-	});
-
-	it("returns ok:false when the Authorization header is missing", async () => {
-		await expect(checkAdminAuth(makeRequest(ADMIN_URL), makeCookies())).resolves.toEqual({ ok: false });
-	});
-
-	it("returns ok:false when Authorization is not a bearer token", async () => {
-		const request = makeRequest(ADMIN_URL, { authorization: "Basic valid-token" });
-		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
-		expect(verify).not.toHaveBeenCalled();
-	});
-
-	it("rejects token query params instead of accepting or upgrading them", async () => {
-		const request = makeRequest(`${ADMIN_URL}?token=valid-token`);
-		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
-		expect(verify).not.toHaveBeenCalled();
-	});
-
-	it("returns ok:false when ADMIN_TOKEN_HASH is missing", async () => {
-		vi.stubEnv("ADMIN_TOKEN_HASH", undefined);
-		const request = makeRequest(ADMIN_URL, { authorization: "Bearer valid-token" });
-		await expect(checkAdminAuth(request, makeCookies())).resolves.toEqual({ ok: false });
+	// Admin auth is the signed session cookie only: the login form verifies the raw
+	// token once and sets the cookie. There is no bearer-token path.
+	it("returns ok:false without a session cookie", () => {
+		expect(checkAdminAuth(makeCookies())).toEqual({ ok: false });
 	});
 
 	it("returns ok:true when a signed admin session cookie is valid", async () => {
 		const session = await createSessionForTest();
-		await expect(checkAdminAuth(makeRequest(ADMIN_URL), makeCookies(session))).resolves.toEqual({ ok: true });
-	});
-
-	it("accepts a valid session cookie without running argon2 on a bearer header", async () => {
-		const session = await createSessionForTest();
-		vi.mocked(verify).mockClear();
-		const request = makeRequest(ADMIN_URL, { authorization: "Bearer anything" });
-		await expect(checkAdminAuth(request, makeCookies(session))).resolves.toEqual({ ok: true });
-		expect(verify).not.toHaveBeenCalled();
+		expect(checkAdminAuth(makeCookies(session))).toEqual({ ok: true });
 	});
 
 	it("returns ok:false when the signed admin session cookie is tampered", async () => {
 		const session = await createSessionForTest();
-		await expect(checkAdminAuth(makeRequest(ADMIN_URL), makeCookies(`${session}.tampered`))).resolves.toEqual({
-			ok: false,
-		});
+		expect(checkAdminAuth(makeCookies(`${session}.tampered`))).toEqual({ ok: false });
+	});
+
+	it("returns ok:false when ADMIN_TOKEN_HASH is missing, even with a session cookie", async () => {
+		const session = await createSessionForTest();
+		vi.stubEnv("ADMIN_TOKEN_HASH", undefined);
+		expect(checkAdminAuth(makeCookies(session))).toEqual({ ok: false });
+	});
+
+	it("never runs argon2: checking a session is a cheap HMAC comparison", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(verify).mockClear();
+		checkAdminAuth(makeCookies(session));
+		checkAdminAuth(makeCookies());
+		expect(verify).not.toHaveBeenCalled();
 	});
 });
 

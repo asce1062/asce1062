@@ -14,7 +14,7 @@ import type { ModerationStatus } from "@/lib/api/guestbook";
 
 // Defence in depth: middleware enforces auth for /admin/*, but this page holds
 // every entry's private data, so it re-checks rather than trusting routing alone.
-const auth = await checkAdminAuth(Astro.request, Astro.cookies);
+const auth = checkAdminAuth(Astro.cookies);
 if (!auth.ok) {
 	return Astro.redirect("/admin", 303);
 }

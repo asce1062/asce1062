@@ -23,7 +23,7 @@ const ADMIN_PAGES = [
 		icon: "icon-journal-bookmark",
 	},
 ];
-const auth = await checkAdminAuth(Astro.request, Astro.cookies);
+const auth = checkAdminAuth(Astro.cookies);
 
 // Handle POST actions
 let loginError = false;

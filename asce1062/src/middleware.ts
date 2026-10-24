@@ -9,7 +9,7 @@ import { checkAdminAuth, checkPostOrigin } from "@/lib/api/admin-auth";
  *  - Security headers applied to every response (including early returns)
  *
  * For /admin/* sub-pages only (not the /admin hub itself):
- *  - Auth enforcement: signed session cookie or bearer token checked; redirect to /admin on failure
+ *  - Auth enforcement: signed session cookie checked; redirect to /admin on failure
 
  */
 
@@ -63,7 +63,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return applyAdminHeaders(new Response("Forbidden", { status: 403 }));
 	}
 
-	const auth = await checkAdminAuth(request, cookies);
+	const auth = checkAdminAuth(cookies);
 
 	// Auth enforcement on sub-pages only. /admin handles its own login form
 	if (isAdminSubpage && !auth.ok) {

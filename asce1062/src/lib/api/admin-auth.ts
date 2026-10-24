@@ -42,11 +42,6 @@ function signSessionPayload(payload: string, tokenHash: string): string {
 	return createHmac("sha256", tokenHash).update(payload).digest("base64url");
 }
 
-function getBearerToken(request: Request): string {
-	const authHeader = request.headers.get("authorization") || "";
-	return authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
-}
-
 function normalizeToken(token: string | undefined): string {
 	if (!token) return "";
 	if (/[\r\n]/.test(token)) return "";
@@ -129,11 +124,11 @@ export function checkPostOrigin(request: Request): boolean {
 	}
 }
 
-/** Verify an incoming admin request via bearer token or signed session cookie. */
-export async function checkAdminAuth(request: Request, cookies: AstroCookies): Promise<{ ok: true } | { ok: false }> {
-	// Cookie first: an HMAC check is cheap, argon2 is deliberately expensive.
-	if (isValidSessionCookie(cookies)) return { ok: true };
-	const token = getBearerToken(request);
-	if (token && (await verifyAdminToken(token))) return { ok: true };
-	return { ok: false };
+/**
+ * Verify an incoming admin request by its signed session cookie (a cheap HMAC
+ * check). The raw token is verified with argon2 only by the login form, which
+ * then sets this cookie; there is no header-based login.
+ */
+export function checkAdminAuth(cookies: AstroCookies): { ok: true } | { ok: false } {
+	return isValidSessionCookie(cookies) ? { ok: true } : { ok: false };
 }
