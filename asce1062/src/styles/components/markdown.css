@@ -65,6 +65,11 @@ content in /blog and /notes.
 		}
 	}
 
+	/* A long unbroken word or URL (e.g. a footnote link) wraps instead of widening the page. */
+	article :where(p, li) {
+		overflow-wrap: break-word;
+	}
+
 	/* No added top gap on the first heading at the top of a page section. */
 	article > h1:first-child,
 	article > h2:first-child,

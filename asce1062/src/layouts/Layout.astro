@@ -253,7 +253,10 @@ const ICOMOON_TOKEN = "fxd10s";
 
 		<Sidebar />
 
-		<div class="sidebar-content-offset lg:ml-[var(--sidebar-current-width)] flex flex-col min-h-dvh">
+		<!-- overflow-clip: decorations that drift past the content column (Haunted creatures) are
+		     clipped at its edges instead of widening or lengthening the page. Unlike hidden, clip
+		     is not a scroll container, so sticky children keep working; fixed overlays escape it. -->
+		<div class="sidebar-content-offset lg:ml-[var(--sidebar-current-width)] flex flex-col min-h-dvh overflow-clip">
 			<div class="w-full content-prose mx-auto px-4 pt-4 md:px-8 md:pt-8">
 				<Header />
 			</div>
