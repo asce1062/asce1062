@@ -58,3 +58,29 @@ describe("deploy configuration contracts", () => {
 		expect(majorOf(netlifyNode)).toBeGreaterThan(majorOf(astro.engines.node));
 	});
 });
+
+describe("sitemap filter", () => {
+	it("drops top-level utility and admin pages but keeps tag pages with the same words", async () => {
+		const source = await read("astro.config.mjs");
+		const pattern = source.match(/filter: \(page\) => !(\/.+\/)\.test\(new URL\(page\)\.pathname\)/)?.[1];
+		expect(pattern).toBeTruthy();
+		const excluded = new Function(`return ${pattern}`)() as RegExp;
+		const kept = (path: string) => !excluded.test(path);
+
+		for (const path of [
+			"/404/",
+			"/success/",
+			"/search/",
+			"/offline/",
+			"/meta/",
+			"/admin/",
+			"/admin/guestbook/",
+			"/.well-known/change-password/",
+		]) {
+			expect(kept(path), path).toBe(false);
+		}
+		for (const path of ["/", "/about/", "/tags/meta/", "/tags/search/", "/blog/2026-03-13-x/", "/verify/"]) {
+			expect(kept(path), path).toBe(true);
+		}
+	});
+});

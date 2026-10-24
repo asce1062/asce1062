@@ -21,7 +21,7 @@ export default defineConfig({
 	integrations: [
 		sitemap({
 			// Utility, noindex and admin pages stay out of the sitemap (they also carry noindex).
-			filter: (page) => !/\/(404|success|search|offline|meta|admin|\.well-known)(\/|$)/.test(new URL(page).pathname),
+			filter: (page) => !/^\/(404|success|search|offline|meta|admin|\.well-known)(\/|$)/.test(new URL(page).pathname),
 			changefreq: "weekly",
 			priority: 0.7,
 			lastmod: new Date(),
