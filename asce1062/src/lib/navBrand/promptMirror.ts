@@ -1,3 +1,5 @@
+import { splitGraphemes } from "@/lib/textEffects/utils";
+
 export type TerminalPromptMirrorParts = {
 	beforeCaret: string;
 	cursorChar: string;
@@ -15,16 +17,20 @@ export function buildTerminalPromptMirrorParts(
 	caretPosition: number | null | undefined,
 	completion = ""
 ): TerminalPromptMirrorParts {
+	// Native caret offsets sit on code point boundaries, so slicing at the caret is
+	// safe. The cell under the block cursor must be a whole grapheme, though: a
+	// UTF-16 [0] would paint half an emoji.
 	const caret = Math.max(0, Math.min(value.length, caretPosition ?? value.length));
 	const beforeCaret = value.slice(0, caret);
 	const afterCaret = value.slice(caret);
-	const cursorChar = afterCaret[0] ?? completion[0] ?? " ";
-	const completionStart = afterCaret.length > 0 ? "" : completion.slice(1);
+	const nextGrapheme = splitGraphemes(afterCaret)[0];
+	const completionGrapheme = splitGraphemes(completion)[0];
+	const cursorChar = nextGrapheme ?? completionGrapheme ?? " ";
 
 	return {
 		beforeCaret,
 		cursorChar,
-		afterCaret: afterCaret.slice(1),
-		completionAfterCursor: completionStart,
+		afterCaret: nextGrapheme ? afterCaret.slice(nextGrapheme.length) : "",
+		completionAfterCursor: nextGrapheme || !completionGrapheme ? "" : completion.slice(completionGrapheme.length),
 	};
 }
