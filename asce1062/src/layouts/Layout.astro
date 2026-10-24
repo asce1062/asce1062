@@ -53,6 +53,11 @@ const rssURL = new URL("rss.xml", base).href;
 const pageDescription = description ?? SITE.description;
 const pageTitle = getPageTitle(title);
 const validFlavorIds = themeFlavors.map((flavor) => flavor.id);
+
+// IcoMoon cache-busting token. Must match the ?token on the font URLs in
+// public/fonts/icomoon/style.css (regenerated with each IcoMoon export).
+// /fonts/* is served immutable, so the stylesheet URL needs it too.
+const ICOMOON_TOKEN = "fxd10s";
 ---
 
 <!doctype html>
@@ -84,9 +89,15 @@ const validFlavorIds = themeFlavors.map((flavor) => flavor.id);
 		<link rel="preload" href="/fonts/0xProto/0xProto-Regular.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/0xProto/0xProto-Bold.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/0xProto/0xProto-Italic.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preload" href="/fonts/icomoon/fonts/icomoon.woff?fxd10s" as="font" type="font/woff" crossorigin />
+		<link
+			rel="preload"
+			href={`/fonts/icomoon/fonts/icomoon.woff?${ICOMOON_TOKEN}`}
+			as="font"
+			type="font/woff"
+			crossorigin
+		/>
 
-		<link href="/fonts/icomoon/style.css" rel="stylesheet" />
+		<link href={`/fonts/icomoon/style.css?${ICOMOON_TOKEN}`} rel="stylesheet" />
 		<Themes defaultTheme="dark" />
 
 		<!-- Early-apply cursor blink preference to prevent flash of unwanted animation.
