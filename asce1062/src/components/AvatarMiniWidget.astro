@@ -41,6 +41,7 @@ const { instanceId, canvasClass = "" } = Astro.props;
 			class="nav-avatar-btn avatar-mini-gender"
 			data-gender="male"
 			aria-label="Male avatar"
+			aria-pressed="false"
 			title="Male">
 			<span class="icon-male">
 				<span class="path1"></span>
@@ -56,6 +57,7 @@ const { instanceId, canvasClass = "" } = Astro.props;
 			class="nav-avatar-btn avatar-mini-gender"
 			data-gender="female"
 			aria-label="Female avatar"
+			aria-pressed="false"
 			title="Female">
 			<span class="icon-female">
 				<span class="path1"></span>
@@ -91,5 +93,7 @@ const { instanceId, canvasClass = "" } = Astro.props;
 			<i class="icon-floppy avatar-mini-save-icon"></i>
 			<i class="icon-check2 text-success avatar-mini-save-check hidden"></i>
 		</button>
+		<!-- Announces a save: the floppy -> check flash is visual only. -->
+		<span class="avatar-mini-status sr-only" role="status"></span>
 	</div>
 </div>

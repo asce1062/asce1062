@@ -49,6 +49,7 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 	const randomizeBtn = root.querySelector<HTMLButtonElement>(".avatar-mini-randomize");
 	const saveBtn = root.querySelector<HTMLButtonElement>(".avatar-mini-save");
 	const genderBtns = root.querySelectorAll<HTMLButtonElement>(".avatar-mini-gender");
+	const status = root.querySelector<HTMLElement>(".avatar-mini-status");
 
 	if (!canvas) return ac;
 
@@ -57,7 +58,26 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 	avatarStore.resetToSavedOrDefault({ dispatch: false });
 
 	function setActiveGender(g: Gender): void {
-		genderBtns.forEach((b) => b.classList.toggle("nav-avatar-btn--active", b.dataset.gender === g));
+		genderBtns.forEach((b) => {
+			const active = b.dataset.gender === g;
+			b.classList.toggle("nav-avatar-btn--active", active);
+			b.setAttribute("aria-pressed", String(active));
+		});
+	}
+	setActiveGender(avatarStore.gender);
+
+	let statusTimer: ReturnType<typeof setTimeout> | undefined;
+	signal.addEventListener("abort", () => clearTimeout(statusTimer), { once: true });
+
+	/** Announce through the status region. Cleared first so a repeated save is re-announced. */
+	function announce(message: string): void {
+		if (!status) return;
+		clearTimeout(statusTimer);
+		status.textContent = "";
+		statusTimer = setTimeout(() => {
+			status.textContent = message;
+			statusTimer = setTimeout(() => (status.textContent = ""), 3000);
+		}, 50);
 	}
 
 	// Sequence counter to discard stale async renders (e.g. rapid randomize/gender clicks).
@@ -102,6 +122,7 @@ export function bindAvatarMiniWidget(instanceId: string, options: MiniWidgetOpti
 			const saveIcon = saveBtn.querySelector<HTMLElement>(".avatar-mini-save-icon");
 			const checkIcon = saveBtn.querySelector<HTMLElement>(".avatar-mini-save-check");
 			if (saveIcon && checkIcon) flashCheckIcon(saveIcon, checkIcon);
+			announce("Avatar saved");
 		},
 		{ signal }
 	);
