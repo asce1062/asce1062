@@ -7,6 +7,10 @@ import path from "path";
 import { BLOG } from "@/config/site-config";
 import { sortByDate, getContentUrl } from "@/lib/content/utils";
 
+/** Escape a value for an HTML attribute inside the item description. */
+const escapeAttribute = (value: string): string =>
+	value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 // Dynamically import all blog images
 const images = import.meta.glob<{ default: ImageMetadata }>("../assets/blog/*.{jpg,jpeg,png,webp}", { eager: true });
 
@@ -50,7 +54,8 @@ export async function GET(context: { site: string | URL }) {
 		: new URL("/images/social-preview-no-bg.png", context.site).href;
 
 	// Get most recent date for <lastBuildDate> and <pubDate>
-	const lastBuildDate = sortedPosts[0]?.data.pubDate.toUTCString();
+	// Falls back to the build time so an empty collection never emits "undefined".
+	const lastBuildDate = (sortedPosts[0]?.data.pubDate ?? new Date()).toUTCString();
 
 	return rss({
 		title: BLOG.title,
@@ -59,7 +64,7 @@ export async function GET(context: { site: string | URL }) {
 		items: postsWithOptimizedImages.map((post) => ({
 			title: post.data.title,
 			pubDate: post.data.pubDate,
-			description: `<img src="${post.optimizedImageUrl}" alt="${post.data.image.alt}" /><br/><br/>${post.data.description}`,
+			description: `<img src="${escapeAttribute(post.optimizedImageUrl)}" alt="${escapeAttribute(post.data.image.alt)}" /><br/><br/>${post.data.description}`,
 			link: `${getContentUrl(post.id, "/blog")}/`,
 			categories: post.data.tags,
 		})),
