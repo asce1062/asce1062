@@ -457,11 +457,16 @@ function normalizeCompletionInput(input: string): string {
 	return input.toLowerCase().replace(/\s+/g, " ").trimStart();
 }
 
-const VERBOSE_TERMS = new Set(["--verbose", "-v", "verbose", "details", "more"]);
+const VERBOSE_FLAGS = new Set(["--verbose", "-v"]);
+const VERBOSE_TERMS = new Set([...VERBOSE_FLAGS, "verbose", "details", "more"]);
+/** Verbs whose remaining words are a free-text query, not command options. */
+const QUERY_VERBS = new Set(["find", "search", "lookup"]);
 
 function parseVerboseInput(input: string): { normalizedInput: string; verbose: boolean; argv: string[] } {
 	const argv = input.trim().split(/\s+/).filter(Boolean);
-	const keptArgs = argv.filter((arg) => !VERBOSE_TERMS.has(arg.toLowerCase()));
+	// "search more details" searches for those words: only explicit flags count there.
+	const verboseTerms = QUERY_VERBS.has(argv[0]?.toLowerCase() ?? "") ? VERBOSE_FLAGS : VERBOSE_TERMS;
+	const keptArgs = argv.filter((arg) => !verboseTerms.has(arg.toLowerCase()));
 	return {
 		normalizedInput: normalizeCommandInput(keptArgs.join(" ")),
 		verbose: keptArgs.length !== argv.length,

@@ -89,6 +89,12 @@ describe("resolveNavBrandCommandInput", () => {
 		expect(ambiguous).toEqual([]);
 	});
 
+	it("keeps words like 'more' and 'details' in a search query", () => {
+		expect(resolveNavBrandCommandInput("search more")?.query).toBe("more");
+		expect(resolveNavBrandCommandInput("find details here")?.query).toBe("details here");
+		expect(resolveNavBrandCommandInput("search astro --verbose")).toMatchObject({ query: "astro", verbose: true });
+	});
+
 	it("still accepts exact names, aliases and unambiguous prefixes", () => {
 		expect(resolveNavBrandCommandInput("fix")?.command.id).toBe("reset");
 		expect(resolveNavBrandCommandInput("hel")?.command.id).toBe("help");
