@@ -184,6 +184,65 @@
 	cursor: pointer;
 }
 
+/* Layer choices: <button aria-pressed> rendered by AvatarGenerator */
+.layer-item {
+	aspect-ratio: 1;
+	padding: 0;
+	border: 1px solid transparent;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	transition:
+		border-color var(--duration-base) var(--ease-out),
+		box-shadow var(--duration-base) var(--ease-out),
+		transform var(--duration-base) var(--ease-out);
+}
+
+.layer-item > canvas,
+.layer-item > img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+.layer-item:hover,
+.layer-item:focus-visible {
+	transform: scale(1.05);
+}
+
+.layer-item:not(.selected):hover,
+.layer-item:not(.selected):focus-visible {
+	border-color: var(--color-info);
+}
+
+.layer-item:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+.layer-item.selected {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.layer-item-number {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-family: "uni0553";
+	font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.layer-item:hover,
+	.layer-item:focus-visible {
+		transform: none;
+	}
+}
+
 /* Responsive Design */
 @media (max-width: 960px) {
 	.generator-layout {

@@ -199,56 +199,34 @@ import "@/styles/components/avatar.css";
 			if (!layer) return;
 
 			for (let i = 1; i <= layer.count; i++) {
-				const item = document.createElement("div");
+				// A real button: keyboard operable, named, and its selection is announced.
+				const item = document.createElement("button");
+				item.type = "button";
 				item.className = "layer-item";
-				item.style.cssText =
-					"aspect-ratio: 1; border: 1px solid transparent; cursor: pointer; transition: border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);";
 				item.dataset.index = i.toString();
+				const isSelected = state[currentLayer] === i;
+				item.classList.toggle("selected", isSelected);
+				item.setAttribute("aria-pressed", String(isSelected));
+				item.setAttribute("aria-label", `${layer.title} ${i}`);
 
-				// Highlight selected item
-				if (state[currentLayer] === i) {
-					item.classList.add("selected");
-					item.style.cssText += " border-color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary);";
-				}
-
-				// Render thumbnail
+				// Render thumbnail (decorative: the button carries the name)
 				if (currentLayer !== "background") {
 					const thumbnail = this.renderer.renderThumbnail(gender, layer.name, i, state["background"]);
-					thumbnail.style.cssText =
-						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
+					thumbnail.setAttribute("aria-hidden", "true");
 					item.appendChild(thumbnail);
 				} else {
 					const img = document.createElement("img");
-					img.style.cssText =
-						"width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; cursor: pointer;";
-					const path = getImagePath(gender, layer.name, i);
-					img.src = path;
-					img.alt = `${layer.title} ${i}`;
+					img.src = getImagePath(gender, layer.name, i);
+					img.alt = "";
 					item.appendChild(img);
 				}
 
 				// Add item number
 				const number = document.createElement("span");
 				number.className = "layer-item-number";
-				number.style.cssText =
-					"display: flex; flex-direction: column; align-items: center; transition: all 0.2s; font-family: uni0553; font-weight: 700;";
+				number.setAttribute("aria-hidden", "true");
 				number.textContent = i.toString();
 				item.appendChild(number);
-
-				// Add hover effects
-				item.addEventListener("mouseenter", () => {
-					if (!item.classList.contains("selected")) {
-						item.style.borderColor = "var(--color-info)";
-					}
-					item.style.transform = "scale(1.05)";
-				});
-
-				item.addEventListener("mouseleave", () => {
-					if (!item.classList.contains("selected")) {
-						item.style.borderColor = "transparent";
-					}
-					item.style.transform = "scale(1)";
-				});
 
 				// Handle click
 				item.addEventListener("click", async () => {
