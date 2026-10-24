@@ -21,10 +21,14 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 ---
 
 {tableOfContents && tableOfContents.length > 0 && (
-	<div
+	<nav
 		id="toc-container"
+		aria-labelledby="toc-title"
+		data-pagefind-ignore
 		class="table-of-contents sticky top-1 z-10 bg-base-100 mb-4 sm:mb-8 border-b border-base-300 transition-transform duration-300">
-		<h1 class="text-warning">Table of Contents</h1>
+		<h2 id="toc-title" class="toc-title">
+			Table of Contents
+		</h2>
 		<div class="mt-4">
 			<details id="toc-details">
 				<summary class="text-neutral-content hover:underline hover:decoration-wavy cursor-pointer">
@@ -63,7 +67,7 @@ function renderTocEntry(entry: TableOfContentsEntry) {
 				</ul>
 			</details>
 		</div>
-	</div>
+	</nav>
 )}
 
 <script>

@@ -67,7 +67,9 @@ const editDate = updatedDate ? formatDate(updatedDate, "long") : null;
 	readingTime={readingTime}
 	wordCount={wordCount || undefined}>
 	<article data-pagefind-body>
-		<h2 data-pagefind-meta="title">{title}</h2>
+		<h1 class="content-title" data-pagefind-meta="title">
+			{title}
+		</h1>
 		<span class="block mt-1 mb-3 text-sm">
 			<i>
 				<b data-pagefind-meta="date" data-pagefind-sort="date">
