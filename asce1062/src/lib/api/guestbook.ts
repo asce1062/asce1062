@@ -642,9 +642,10 @@ export async function countPendingEntries(): Promise<number> {
 /**
  * Update entry moderation status (admin action).
  *
- * Writes a row to GuestbookModerationLog before clearing any flags so the
- * original classifier output is always preserved for audit / analytics, even
- * when action === "approve_clear" nulls the Guestbook columns.
+ * The status change and its GuestbookModerationLog row are written in one batch,
+ * so the original classifier output is always preserved for audit / analytics,
+ * even when action === "approve_clear" nulls the Guestbook columns.
+ * Returns false (and writes nothing) when no entry has this id.
  *
  * Options:
  *  - `clearFlags`
@@ -660,7 +661,7 @@ export async function updateEntryStatus(
 	id: number,
 	status: ModerationStatus,
 	options?: { clearFlags?: boolean; moderatedBy?: string }
-): Promise<void> {
+): Promise<boolean> {
 	assertStatus(status);
 	const actor = options?.moderatedBy ?? MODERATED_BY.admin;
 	const clearFlags = options?.clearFlags ?? false;
@@ -671,35 +672,37 @@ export async function updateEntryStatus(
 
 	// Read current state before mutating. The log row needs the pre-action values.
 	const [current] = await db.select().from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
+	if (!current) return false;
 
-	// Apply the status change (and optionally clear flags) to the Guestbook row.
-	await db
-		.update(Guestbook)
-		.set({
-			status,
-			isSpam: status === "hidden",
-			moderatedAt: at,
-			moderatedBy: actor,
-			...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
-		})
-		.where(eq(Guestbook.id, id));
-
-	// Append an immutable audit row. Written after the update so a failed log
-	// insert never blocks the status change (best-effort audit).
-	await db.insert(GuestbookModerationLog).values({
-		entryId: id,
-		action,
-		fromStatus: current?.status ?? null,
-		toStatus: status,
-		reasonsBefore: current?.moderationReason ?? null,
-		scoreBefore: current?.moderationScore ?? null,
-		// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
-		// For "approve" / "hide" the flags are unchanged, so after === before.
-		reasonsAfter: clearFlags ? null : (current?.moderationReason ?? null),
-		scoreAfter: clearFlags ? null : (current?.moderationScore ?? null),
-		actor,
-		at,
-	});
+	// One batch (a single transaction on libsql): the status change and its audit
+	// row commit together or not at all.
+	await db.batch([
+		db
+			.update(Guestbook)
+			.set({
+				status,
+				isSpam: status === "hidden",
+				moderatedAt: at,
+				moderatedBy: actor,
+				...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
+			})
+			.where(eq(Guestbook.id, id)),
+		db.insert(GuestbookModerationLog).values({
+			entryId: id,
+			action,
+			fromStatus: current.status ?? null,
+			toStatus: status,
+			reasonsBefore: current.moderationReason ?? null,
+			scoreBefore: current.moderationScore ?? null,
+			// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
+			// For "approve" / "hide" the flags are unchanged, so after === before.
+			reasonsAfter: clearFlags ? null : (current.moderationReason ?? null),
+			scoreAfter: clearFlags ? null : (current.moderationScore ?? null),
+			actor,
+			at,
+		}),
+	]);
+	return true;
 }
 
 /**
