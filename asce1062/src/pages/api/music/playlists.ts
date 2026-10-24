@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import {
 	asRecord,
+	isPublicPlaylist,
 	jsonResponse,
 	navidromeErrorResponse,
 	readNumber,
@@ -25,7 +26,7 @@ function serializePlaylist(playlist: Record<string, unknown>) {
 		name: readString(playlist, "name") ?? "Untitled playlist",
 		comment: readString(playlist, "comment"),
 		owner: readString(playlist, "owner"),
-		public: playlist.public === true || playlist.public === "true",
+		public: isPublicPlaylist(playlist),
 		songCount: readNumber(playlist, "songCount"),
 		duration: readNumber(playlist, "duration"),
 		coverArt: readString(playlist, "coverArt") ?? readString(playlist, "id"),

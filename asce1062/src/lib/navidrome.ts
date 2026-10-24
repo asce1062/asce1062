@@ -13,7 +13,16 @@ import { createHash, randomBytes } from "node:crypto";
 const SUBSONIC_VERSION = "1.16.1";
 const SUBSONIC_CLIENT = "alexmbugua-website";
 
-export type SubsonicEndpoint = "getAlbumList2" | "getPlaylists" | "getPlaylist" | "getCoverArt" | "stream";
+/** JSON calls are small; fail fast rather than pin the function. */
+const JSON_TIMEOUT_MS = 8_000;
+/** Media: time allowed until upstream response headers arrive (not the whole body). */
+const MEDIA_HEADERS_TIMEOUT_MS = 8_000;
+/** How long the set of public playlist/track/cover ids is reused per warm instance. */
+const CATALOG_TTL_MS = 5 * 60_000;
+/** Navidrome ids (base62, al-/pl- prefixed cover ids). Anything else never reaches upstream. */
+const MUSIC_ID_RE = /^[A-Za-z0-9_.-]{1,128}$/;
+
+export type SubsonicEndpoint = "getPlaylists" | "getPlaylist" | "getCoverArt" | "stream";
 
 export interface NavidromeConfig {
 	baseUrl: string;
@@ -119,6 +128,7 @@ export async function subsonicFetchJson(
 		headers: {
 			Accept: "application/json",
 		},
+		signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
 	});
 
 	if (!response.ok) {
@@ -152,13 +162,24 @@ export function jsonResponse(data: unknown, init?: ResponseInit): Response {
 	});
 }
 
+/**
+ * Map a gateway failure to a client response. Details (upstream messages such as
+ * "Wrong username or password", missing env var names) are logged, never returned.
+ */
 export function navidromeErrorResponse(error: unknown): Response {
 	if (error instanceof NavidromeConfigError) {
-		return jsonResponse({ error: error.message }, { status: 500 });
+		console.error("Navidrome is not configured:", error.message);
+		return jsonResponse({ error: "Music service unavailable" }, { status: 503 });
 	}
 
 	if (error instanceof NavidromeApiError) {
-		return jsonResponse({ error: error.message }, { status: error.statusCode });
+		console.error("Navidrome request failed:", error.message);
+		return jsonResponse({ error: "Music service unavailable" }, { status: error.statusCode });
+	}
+
+	if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+		console.error("Navidrome request timed out:", error.message);
+		return jsonResponse({ error: "Music service timed out" }, { status: 504 });
 	}
 
 	console.error("Unexpected Navidrome route error:", error);
@@ -188,40 +209,121 @@ export function readNumber(record: Record<string, unknown>, key: string): number
 }
 
 export function requireMusicId(id: string | undefined): string | Response {
-	if (!id?.trim()) {
-		return jsonResponse({ error: "Missing music id" }, { status: 400 });
+	if (!id || !MUSIC_ID_RE.test(id)) {
+		return jsonResponse({ error: "Invalid music id" }, { status: 400 });
 	}
 
 	return id;
 }
 
+export function notFoundResponse(): Response {
+	return jsonResponse({ error: "Not found" }, { status: 404 });
+}
+
+export function isPublicPlaylist(playlist: Record<string, unknown>): boolean {
+	return playlist.public === true || playlist.public === "true";
+}
+
+/** Ids the public player may request: public playlists and what they contain. */
+export interface PublicCatalog {
+	playlistIds: ReadonlySet<string>;
+	trackIds: ReadonlySet<string>;
+	coverIds: ReadonlySet<string>;
+}
+
+async function loadPublicCatalog(): Promise<PublicCatalog> {
+	const list = await subsonicFetchJson("getPlaylists");
+	const publicPlaylists = readRecordArray(asRecord(list.playlists), "playlist").filter(isPublicPlaylist);
+	const playlistIds = new Set<string>();
+	const trackIds = new Set<string>();
+	const coverIds = new Set<string>();
+
+	const details = await Promise.all(
+		publicPlaylists.map((playlist) => {
+			const id = readString(playlist, "id");
+			return id ? subsonicFetchJson("getPlaylist", { id }).then((payload) => ({ id, payload })) : null;
+		})
+	);
+
+	for (const detail of details) {
+		if (!detail) continue;
+		const playlist = asRecord(detail.payload.playlist);
+		if (!playlist || !isPublicPlaylist(playlist)) continue;
+		playlistIds.add(detail.id);
+		// Matches the client: a playlist without coverArt uses its own id as the cover id.
+		coverIds.add(readString(playlist, "coverArt") ?? detail.id);
+		for (const track of readRecordArray(playlist, "entry")) {
+			const trackId = readString(track, "id");
+			if (trackId) trackIds.add(trackId);
+			const coverArt = readString(track, "coverArt");
+			if (coverArt) coverIds.add(coverArt);
+		}
+	}
+
+	return { playlistIds, trackIds, coverIds };
+}
+
+let catalogCache: { expiresAt: number; catalog: Promise<PublicCatalog> } | null = null;
+
+/**
+ * The public catalog, cached per warm function instance. A failed load is not
+ * cached, so the next request retries.
+ */
+export function getPublicCatalog(now: number = Date.now()): Promise<PublicCatalog> {
+	if (catalogCache && catalogCache.expiresAt > now) return catalogCache.catalog;
+	const catalog = loadPublicCatalog();
+	catalogCache = { expiresAt: now + CATALOG_TTL_MS, catalog };
+	catalog.catch(() => {
+		if (catalogCache?.catalog === catalog) catalogCache = null;
+	});
+	return catalog;
+}
+
+/** Test hook: forget the cached catalog. */
+export function resetPublicCatalogCache(): void {
+	catalogCache = null;
+}
+
 export async function proxySubsonicBinary(
 	endpoint: Extract<SubsonicEndpoint, "getCoverArt" | "stream">,
 	params: Record<string, string>,
-	requestHeaders?: Headers
+	request?: Request
 ): Promise<Response> {
 	const url = buildSubsonicUrl(endpoint, params);
 	const headers = new Headers();
-	const range = requestHeaders?.get("Range");
+	const range = request?.headers.get("Range");
 
 	// Audio seeking depends on forwarding Range and preserving partial-response headers.
 	if (range) {
 		headers.set("Range", range);
 	}
 
-	const upstream = await fetch(url, { headers });
+	// Abort upstream when the browser goes away, and give up if headers never
+	// arrive. The timer is cleared once streaming starts, so long tracks play on.
+	const controller = new AbortController();
+	const headersTimeout = setTimeout(() => controller.abort(), MEDIA_HEADERS_TIMEOUT_MS);
+	request?.signal.addEventListener("abort", () => controller.abort(), { once: true });
+	let upstream: Response;
+	try {
+		upstream = await fetch(url, { headers, signal: controller.signal });
+	} finally {
+		clearTimeout(headersTimeout);
+	}
 
 	if (!upstream.ok) {
-		return jsonResponse(
-			{ error: `Navidrome media request failed: ${upstream.status} ${upstream.statusText}` },
-			{ status: upstream.status === 404 ? 404 : 502 }
-		);
+		console.error(`Navidrome media request failed: ${endpoint} ${upstream.status} ${upstream.statusText}`);
+		await upstream.body?.cancel().catch(() => {});
+		// 404 and 416 (bad Range) mean something to the media element; anything else is upstream trouble.
+		const status = upstream.status === 404 || upstream.status === 416 ? upstream.status : 502;
+		return jsonResponse({ error: "Media unavailable" }, { status });
 	}
 
 	const responseHeaders = new Headers({
-		"Cache-Control": "no-store",
+		// Covers are immutable per id and safe to cache; streams stay uncached.
+		"Cache-Control": endpoint === "getCoverArt" ? "public, max-age=86400" : "no-store",
+		"X-Content-Type-Options": "nosniff",
 	});
-	const copiedHeaders = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"];
+	const copiedHeaders = ["Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified"];
 
 	for (const header of copiedHeaders) {
 		const value = upstream.headers.get(header);
