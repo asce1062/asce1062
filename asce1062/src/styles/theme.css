@@ -296,34 +296,6 @@ KEYFRAME ANIMATIONS
 ============================================
 */
 
-/* Phosphor glow pulse. Uses box-shadow so it doesn't affect layout. */
-@keyframes glow-pulse {
-	0% {
-		box-shadow:
-			0 0 6px color-mix(in oklab, var(--color-primary), transparent 70%),
-			0 0 12px color-mix(in oklab, var(--color-primary), transparent 80%);
-	}
-	100% {
-		box-shadow:
-			0 0 12px color-mix(in oklab, var(--color-primary), transparent 55%),
-			0 0 24px color-mix(in oklab, var(--color-primary), transparent 70%);
-	}
-}
-
-/* Accent glow pulse */
-@keyframes glow-pulse-accent {
-	0% {
-		box-shadow:
-			0 0 6px color-mix(in oklab, var(--color-accent), transparent 65%),
-			0 0 12px color-mix(in oklab, var(--color-accent), transparent 78%);
-	}
-	100% {
-		box-shadow:
-			0 0 14px color-mix(in oklab, var(--color-accent), transparent 50%),
-			0 0 28px color-mix(in oklab, var(--color-accent), transparent 65%);
-	}
-}
-
 /*
 ============================================
 LIGHT MODE OVERRIDE (default / unflavored)
