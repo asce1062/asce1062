@@ -14,21 +14,27 @@ const MIGRATION_FILE = /^\d{4}_[\w-]+\.sql$/;
  */
 export async function applyMigrations(client: Client, directory: URL): Promise<string[]> {
 	await client.execute(`CREATE TABLE IF NOT EXISTS "_migrations" ("name" text PRIMARY KEY, "appliedAt" text NOT NULL)`);
-	const applied = new Set(
-		(await client.execute(`SELECT "name" FROM "_migrations"`)).rows.map((row) => String(row.name))
-	);
-	const pending = (await readdir(directory)).filter((name) => MIGRATION_FILE.test(name) && !applied.has(name)).sort();
+	const candidates = (await readdir(directory)).filter((name) => MIGRATION_FILE.test(name)).sort();
+	const applied: string[] = [];
 
-	for (const name of pending) {
+	for (const name of candidates) {
 		const sql = await readFile(new URL(name, directory), "utf8");
 		const tx = await client.transaction("write");
 		try {
+			// Checked under the write lock, so a concurrent run that got here first
+			// is seen and its migration is skipped rather than applied twice.
+			const done = await tx.execute({ sql: `SELECT 1 FROM "_migrations" WHERE "name" = ?`, args: [name] });
+			if (done.rows.length > 0) {
+				await tx.commit();
+				continue;
+			}
 			await tx.executeMultiple(sql);
 			await tx.execute({
 				sql: `INSERT INTO "_migrations" ("name", "appliedAt") VALUES (?, ?)`,
 				args: [name, new Date().toISOString()],
 			});
 			await tx.commit();
+			applied.push(name);
 		} catch (err) {
 			// A rollback error would mask the migration error, which is the one to report.
 			await tx.rollback().catch(() => undefined);
@@ -37,5 +43,5 @@ export async function applyMigrations(client: Client, directory: URL): Promise<s
 			tx.close();
 		}
 	}
-	return pending;
+	return applied;
 }

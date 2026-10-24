@@ -57,6 +57,19 @@ describe("guestbook migrations", () => {
 		client.close();
 	});
 
+	it("applies each migration once when two runs race", async () => {
+		const client = temporaryClient();
+		const [first, second] = await Promise.all([
+			applyMigrations(client, MIGRATIONS),
+			applyMigrations(client, MIGRATIONS),
+		]);
+
+		expect([...first, ...second].sort()).toEqual(
+			(await client.execute(`SELECT "name" FROM "_migrations" ORDER BY "name"`)).rows.map((row) => row.name)
+		);
+		client.close();
+	});
+
 	it("brings a database created by the baseline alone up to date", async () => {
 		// Production predates the tracking table: the baseline was applied directly.
 		const client = temporaryClient();
