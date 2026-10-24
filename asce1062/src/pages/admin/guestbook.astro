@@ -19,34 +19,52 @@ if (!auth.ok) {
 	return Astro.redirect("/admin", 303);
 }
 
-// Handle moderation actions
-let actionMessage = "";
+const FILTERS = ["all", "pending", "hidden", "audit"] as const;
+type Filter = (typeof FILTERS)[number];
+const ACTIONS = ["approve", "approve-clear", "hide"] as const;
+type Action = (typeof ACTIONS)[number];
 
+const isFilter = (value: string | null): value is Filter => FILTERS.includes(value as Filter);
+const isAction = (value: string | null): value is Action => ACTIONS.includes(value as Action);
+
+const url = new URL(Astro.request.url);
+const requestedFilter = url.searchParams.get("filter");
+const filter: Filter = isFilter(requestedFilter) ? requestedFilter : "all";
+
+// Handle moderation actions: POST, then redirect (303) so a reload never repeats
+// the action and writes a duplicate audit row. The result travels in the query.
 if (Astro.request.method === "POST") {
 	const formData = await Astro.request.formData();
 	const entryId = Number(formData.get("entryId"));
 	const action = String(formData.get("action") ?? "");
 
-	if (
-		Number.isInteger(entryId) &&
-		entryId > 0 &&
-		(action === "approve" || action === "approve-clear" || action === "hide")
-	) {
+	if (Number.isInteger(entryId) && entryId > 0 && isAction(action)) {
 		const newStatus: ModerationStatus = action === "hide" ? "hidden" : "visible";
-		const clearFlags = action === "approve-clear";
-		await updateEntryStatus(entryId, newStatus, { clearFlags });
-		if (action === "approve-clear") {
-			actionMessage = `Entry #${entryId} approved and flags cleared.`;
-		} else {
-			actionMessage = `Entry #${entryId} ${action === "approve" ? "approved" : "hidden"}.`;
-		}
+		const updated = await updateEntryStatus(entryId, newStatus, { clearFlags: action === "approve-clear" });
+		const result = new URLSearchParams({ filter, result: updated ? action : "missing", entry: String(entryId) });
+		return Astro.redirect(`/admin/guestbook?${result}`, 303);
 	}
+	return Astro.redirect(`/admin/guestbook?filter=${filter}`, 303);
 }
 
+const resultAction = url.searchParams.get("result");
+const resultEntry = Number(url.searchParams.get("entry"));
+const RESULT_MESSAGES: Record<Action, string> = {
+	approve: "approved",
+	"approve-clear": "approved and flags cleared",
+	hide: "hidden",
+};
+const actionMessage =
+	Number.isInteger(resultEntry) && resultEntry > 0
+		? isAction(resultAction)
+			? `Entry #${resultEntry} ${RESULT_MESSAGES[resultAction]}.`
+			: resultAction === "missing"
+				? `Entry #${resultEntry} no longer exists.`
+				: ""
+		: "";
+
 // Fetch entries
-const url = new URL(Astro.request.url);
-const filter = (url.searchParams.get("filter") as "pending" | "hidden" | "all" | "audit") || "all";
-const entries = filter === "audit" ? [] : await getModeratedEntries(filter as "pending" | "hidden" | "all");
+const entries = filter === "audit" ? [] : await getModeratedEntries(filter);
 const auditLog = filter === "audit" ? await getModerationLog() : [];
 ---
 
