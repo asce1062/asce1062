@@ -61,8 +61,10 @@ This site writes twelve values to your browser's localStorage:
 - "flourish-burn404": "0" when the Doom-fire canvas effect on the 404 page has
   been disabled via the sidebar toggle; absent when enabled (on by default).
 - "avatar-state": your 8-bit avatar customisation (e.g.
-  "gender=male&avatar=3-54-12-14-15-21"). Only written if you use the
-  avatar builder at /8biticon; absent until you interact with it.
+  "gender=male&avatar=3-54-12-14-15-21"). Only written when you save an
+  avatar: in the builder at /8biticon, with the sidebar avatar's save
+  button, or by ticking "Include avatar" on the guestbook form; absent
+  until you do one of those.
 - "theme-flavor": your chosen color flavor (e.g. "crt-green", "amber").
   Absent when using the default warm void palette.
 - "theme-transition": your chosen page transition style (e.g. "scanline").
@@ -120,7 +122,7 @@ Read more at https://alexmbugua.me/privacy
 
 REASSERTION
 
-This policy was last reviewed and reasserted on 2026-06-10.
+This policy was last reviewed and reasserted on 2026-10-24.
 
 REFERENCE
 
