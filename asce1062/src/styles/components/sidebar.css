@@ -778,6 +778,8 @@ Nav Brand: Expanded / Collapsed header swap
 	opacity: 0;
 	overflow: hidden;
 	pointer-events: none;
+	/* Hidden from focus and assistive tech too, not just from sight */
+	visibility: hidden;
 }
 
 .nav-brand-collapsed-trigger {
@@ -1129,26 +1131,38 @@ All rules scoped to lg+ so mobile is completely unaffected.
 	max-height switches instantly (0s) so there's no vertical wipe (only the
 	opacity fade is visible). Both sides fade simultaneously.
 	*/
+	/*
+	visibility hides the inactive side from Tab and screen readers. Becoming
+	visible is instant; becoming hidden waits for the opacity fade to finish.
+	*/
 	.nav-brand-expanded-content {
 		overflow: hidden;
 		max-height: 6rem;
 		opacity: 1;
+		visibility: visible;
 		transition:
 			max-height 160ms var(--ease-out),
-			opacity 120ms var(--ease-out);
+			opacity 120ms var(--ease-out),
+			visibility 0s;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-expanded-content {
 		max-height: 0;
 		opacity: 0;
 		pointer-events: none;
+		visibility: hidden;
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 120ms var(--ease-out),
+			visibility 0s linear 120ms;
 	}
 
 	/* Header avatar (collapsed state only): fade in */
 	.nav-brand-collapsed-content {
 		transition:
 			max-height 160ms var(--ease-out),
-			opacity 150ms var(--ease-out);
+			opacity 150ms var(--ease-out),
+			visibility 0s linear 150ms;
 	}
 
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"]) .nav-brand-collapsed-content {
@@ -1156,6 +1170,11 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		opacity: 1;
 		overflow: visible;
 		pointer-events: auto;
+		visibility: visible;
+		transition:
+			max-height 160ms var(--ease-out),
+			opacity 150ms var(--ease-out),
+			visibility 0s;
 	}
 
 	/*
