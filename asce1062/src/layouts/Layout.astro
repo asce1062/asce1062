@@ -27,6 +27,8 @@ interface Props {
 	tags?: string[];
 	category?: string;
 	readingTime?: string;
+	/** Exact word count from the remark plugin (article JSON-LD) */
+	wordCount?: number;
 	/** Set to true to add noindex, nofollow to the page */
 	noIndex?: boolean;
 }
@@ -41,6 +43,7 @@ const {
 	tags,
 	category,
 	readingTime,
+	wordCount,
 	noIndex = false,
 } = Astro.props;
 
@@ -83,6 +86,7 @@ const ICOMOON_TOKEN = "fxd10s";
 			tags={tags}
 			category={category}
 			readingTime={readingTime}
+			wordCount={wordCount}
 		/>
 
 		<!-- Preload critical fonts before CSS is parsed to reduce FOUT window -->

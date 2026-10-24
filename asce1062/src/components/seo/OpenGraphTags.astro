@@ -27,6 +27,7 @@ interface Props {
 	tags?: string[];
 	category?: string;
 	readingTime?: string;
+	wordCount?: number;
 }
 
 const {
@@ -40,6 +41,7 @@ const {
 	tags,
 	category,
 	readingTime,
+	wordCount,
 } = Astro.props;
 const isArticle = type === "article";
 const siteUrl = SITE.url;
@@ -91,7 +93,7 @@ const blogPostingSchema = {
 		url: `${siteUrl}/blog`,
 	},
 	keywords: tags?.join(", "),
-	wordCount: estimatedWordCount,
+	wordCount: wordCount || estimatedWordCount,
 	timeRequired: readingTimeMinutes ? `PT${readingTimeMinutes}M` : undefined,
 	mainEntityOfPage: {
 		"@type": "WebPage",

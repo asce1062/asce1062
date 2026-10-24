@@ -48,10 +48,11 @@ const rendered = currentEntry ? await render(currentEntry) : null;
 const readingTimeData = rendered?.remarkPluginFrontmatter?.readingTime;
 const readingTime = readingTimeData?.text ?? "";
 const wordCount = readingTimeData?.words ?? 0;
-const editDate =
+const updatedDate =
 	currentEntry?.data && "updatedDate" in currentEntry.data && currentEntry.data.updatedDate
-		? formatDate(currentEntry.data.updatedDate as Date, "long")
+		? (currentEntry.data.updatedDate as Date)
 		: null;
+const editDate = updatedDate ? formatDate(updatedDate, "long") : null;
 ---
 
 <Layout
@@ -60,14 +61,18 @@ const editDate =
 	description={description}
 	type="article"
 	datePublished={new Date(date).toISOString()}
+	dateModified={updatedDate?.toISOString()}
 	tags={tags}
 	category={tags && tags.length > 0 ? tags[0] : undefined}
-	readingTime={readingTime}>
-	<article data-pagefind-body data-pagefind-sort="date">
+	readingTime={readingTime}
+	wordCount={wordCount || undefined}>
+	<article data-pagefind-body>
 		<h2 data-pagefind-meta="title">{title}</h2>
-		<span class="block mt-1 mb-3 text-sm" data-pagefind-meta="date" data-pagefind-sort="date:{date}">
+		<span class="block mt-1 mb-3 text-sm">
 			<i>
-				<b>{date}</b>
+				<b data-pagefind-meta="date" data-pagefind-sort="date">
+					{date}
+				</b>
 				{readingTime && (
 					<>
 						{" "}
