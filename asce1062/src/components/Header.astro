@@ -22,17 +22,15 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		</label>
 		<div class="float-right flex flex-col gap-2 -mt-2">
 			<ThemeSwitcher default="dark" />
-			{
-				!isSearchPage && (
-					<button
-						id="open-floating-search"
-						type="button"
-						class="float-right h-11 w-11 transition-[color,transform] duration-100 hover:text-accent hover:rotate-6 cursor-pointer flex items-center justify-center"
-						aria-label="Open search">
-						<i class="icon-search-heart" aria-hidden="true" />
-					</button>
-				)
-			}
+			{!isSearchPage && (
+				<button
+					id="open-floating-search"
+					type="button"
+					class="float-right h-11 w-11 transition-[color,transform] duration-100 hover:text-accent hover:rotate-6 cursor-pointer flex items-center justify-center"
+					aria-label="Open search">
+					<i class="icon-search-heart" aria-hidden="true" />
+				</button>
+			)}
 		</div>
 
 		<b>
@@ -54,35 +52,33 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 				<span class="group">
 					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
 						&#x24;HOME
-					</a> / <a
-						class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors"
-						href="/">
+					</a>{" "}
+					/{" "}
+					<a class="no-underline group-hover:bg-primary group-hover:text-primary-content transition-colors" href="/">
 						asce1062
 					</a>
 				</span>
-				{
-					link && link.length > 0 ? (
-						<span>
-							{link.map((data, index) => (
-								<span>
-									{" / "}
-									<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
-										{data}
-									</a>
-									{index === link.length - 1 && (
-										<span class="blink" aria-hidden="true">
-											_
-										</span>
-									)}
-								</span>
-							))}
-						</span>
-					) : (
-						<span class="blink" aria-hidden="true">
-							_
-						</span>
-					)
-				}
+				{link && link.length > 0 ? (
+					<span>
+						{link.map((data, index) => (
+							<span>
+								{" / "}
+								<a class="inline! no-underline" href={`/${link.slice(0, index + 1).join("/")}`}>
+									{data}
+								</a>
+								{index === link.length - 1 && (
+									<span class="blink" aria-hidden="true">
+										_
+									</span>
+								)}
+							</span>
+						))}
+					</span>
+				) : (
+					<span class="blink" aria-hidden="true">
+						_
+					</span>
+				)}
 			</span>
 		</b>
 	</div>

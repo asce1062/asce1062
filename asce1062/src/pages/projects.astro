@@ -25,22 +25,20 @@ const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PA
 		<li>Updated when I ship an update.</li>
 	</ul>
 	<Columns columns={2}>
-		{
-			projects.map((project: any) => (
-				<Card
-					name={project.name}
-					url={project.homepage || project.html_url}
-					repo={project.html_url}
-					description={project.description}
-					tools={project.languages?.map((lang: string) => ({ name: lang, icon: "" })) || []}
-					stars={project.stargazers_count}
-					forks={project.forks_count}
-					issues={project.open_issues_count}
-					contributors={project.contributors_count}
-					imagePath={"/src/assets/projects/" + project.name.toLowerCase()}
-				/>
-			))
-		}
+		{projects.map((project: any) => (
+			<Card
+				name={project.name}
+				url={project.homepage || project.html_url}
+				repo={project.html_url}
+				description={project.description}
+				tools={project.languages?.map((lang: string) => ({ name: lang, icon: "" })) || []}
+				stars={project.stargazers_count}
+				forks={project.forks_count}
+				issues={project.open_issues_count}
+				contributors={project.contributors_count}
+				imagePath={"/src/assets/projects/" + project.name.toLowerCase()}
+			/>
+		))}
 	</Columns>
 	<p>
 		you may also wish to view my occasional contributions to{" "}
@@ -49,7 +47,8 @@ const projects = await getFeaturedProjects("asce1062", import.meta.env.GITHUB_PA
 			target="_blank"
 			rel="noopener noreferrer">
 			other open-source repositories
-		</a> (might need a GitHub account to view).
+		</a>{" "}
+		(might need a GitHub account to view).
 	</p>
 	<br />
 	<GitHubContributions username="asce1062" />

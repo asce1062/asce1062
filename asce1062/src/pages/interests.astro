@@ -20,17 +20,27 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 		<h2>
 			This is an{" "}
 			<a href="https://chrisburnell.com/note/slash-interests/" target="_blank" rel="noopener noreferrer">
-				interests page</a
-			><sup><a href="https://slashpages.net/#interests" target="_blank" rel="noopener noreferrer">1</a></sup>.
+				interests page
+			</a>
+			<sup>
+				<a href="https://slashpages.net/#interests" target="_blank" rel="noopener noreferrer">
+					1
+				</a>
+			</sup>
+			.
 		</h2>
 		<!-- prettier-ignore-end -->
 		<section class="mb-10">
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/interests.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-heart"></i> Things I actually light up about.</h2>
+			<h2>
+				<i class="icon-heart"></i> Things I actually light up about.
+			</h2>
 			<p>
 				This is not a list of hobbies I vaguely dabble in. These are the things I return to on weekends, read about at
 				odd hours, and drag into conversations whether or not they are welcome.
@@ -42,9 +52,13 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls -la ~/interests/</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-collection"></i> The list</h2>
+			<h2>
+				<i class="icon-collection"></i> The list
+			</h2>
 			<div class="space-y-6 mt-4">
 				<div class="border-l-2 pl-4" style="border-color: var(--color-primary);">
 					<h3 class="badge badge-primary mb-2 font-bold">chip music &amp; trackers/</h3>
@@ -56,7 +70,10 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 					<p class="mt-0 mb-0 text-sm text-neutral-content">
 						Armed with a spreadsheet crossed with a sequencer, I've been composing chip music since the Amiga days. You
 						can hear most of it at{" "}
-						<a href="https://asce1062.github.io/" target="_blank" rel="noopener noreferrer">asce1062.github.io</a>.
+						<a href="https://asce1062.github.io/" target="_blank" rel="noopener noreferrer">
+							asce1062.github.io
+						</a>
+						.
 					</p>
 				</div>
 
@@ -71,26 +88,23 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 						messages buried in ROM nobody was supposed to find. Modding goes a step further. Understanding the game well
 						enough to change it, add to it, or break it in interesting ways. I have spent more hours than I should admit
 						in game memory and{" "}
-						{
-							uc && (
-								<a href={uc.url} target="_blank" rel="noopener noreferrer">
-									modding communities
-								</a>
-							)
-						}.
+						{uc && (
+							<a href={uc.url} target="_blank" rel="noopener noreferrer">
+								modding communities
+							</a>
+						)}
+						.
 					</p>
 					<p class="mt-0 mb-2">
 						Mobile hardware took this somewhere else entirely. Unlocking bootloaders, building custom kernels, porting
 						AOSP to devices the manufacturer stopped caring about. It is the same instinct applied to a different
 						substrate. If the vendor won't ship a security patch, build your own ROM. I published several custom Android
 						builds on{" "}
-						{
-							xda && (
-								<a href={xda.url} target="_blank" rel="noopener noreferrer">
-									XDA Forums
-								</a>
-							)
-						}{" "}
+						{xda && (
+							<a href={xda.url} target="_blank" rel="noopener noreferrer">
+								XDA Forums
+							</a>
+						)}{" "}
 						back when that was the only way to get a supported Android on hardware people still used every day.
 					</p>
 				</div>
@@ -105,8 +119,10 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 					</p>
 					<p class="mt-0 mb-0 text-sm text-neutral-content">
 						This site is my contribution. The source is{" "}
-						<a href="https://github.com/asce1062/asce1062" target="_blank" rel="noopener noreferrer">public</a>. That is
-						intentional. See also: <a href="/colophon">how it is built</a>.
+						<a href="https://github.com/asce1062/asce1062" target="_blank" rel="noopener noreferrer">
+							public
+						</a>
+						. That is intentional. See also: <a href="/colophon">how it is built</a>.
 					</p>
 				</div>
 
@@ -120,8 +136,7 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 					</p>
 					<p class="mt-0 mb-0 text-sm text-neutral-content">
 						If you found something on this site that shouldn't be there,
-						<i class="icon-bug"></i>,
-						<a href="/.well-known/security.txt"> here is where to go </a>.
+						<i class="icon-bug"></i>,<a href="/.well-known/security.txt"> here is where to go </a>.
 					</p>
 				</div>
 
@@ -133,35 +148,35 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 						progression loop, I'm probably in.
 					</p>
 					<p class="mt-0 mb-2">
-						<em>Borderlands</em> is the franchise I keep coming back to despite everything. The writing and gunplay in the
-						first two games set a bar the series has struggled to clear since, but I still show up. Right now I'm putting
-						time into <em>Teamfight Tactics</em> (made it to Diamond, Master next set?) and
+						<em>Borderlands</em> is the franchise I keep coming back to despite everything. The writing and gunplay in
+						the first two games set a bar the series has struggled to clear since, but I still show up. Right now I'm
+						putting time into <em>Teamfight Tactics</em> (made it to Diamond, Master next set?) and
 						<em>The First Descendant</em> (free-to-play looter shooter, exceptionally well executed).
 					</p>
 					<p class="mt-0 mb-0 text-sm text-neutral-content">
 						I make video content about games occasionally.{" "}
-						<a href="https://www.youtube.com/@asce1062" target="_blank" rel="noopener noreferrer">YouTube</a>.
-						{
-							steam && (
-								<>
-									Find me on{" "}
-									<a href={steam.url} target="_blank" rel="noopener noreferrer">
-										Steam
-									</a>
-								</>
-							)
-						}
-						{
-							psn && (
-								<>
-									{" "}
-									and{" "}
-									<a href={psn.url} target="_blank" rel="noopener noreferrer">
-										PSN
-									</a>
-								</>
-							)
-						}.
+						<a href="https://www.youtube.com/@asce1062" target="_blank" rel="noopener noreferrer">
+							YouTube
+						</a>
+						.
+						{steam && (
+							<>
+								Find me on{" "}
+								<a href={steam.url} target="_blank" rel="noopener noreferrer">
+									Steam
+								</a>
+							</>
+						)}
+						{psn && (
+							<>
+								{" "}
+								and{" "}
+								<a href={psn.url} target="_blank" rel="noopener noreferrer">
+									PSN
+								</a>
+							</>
+						)}
+						.
 					</p>
 				</div>
 
@@ -174,7 +189,10 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 					</p>
 					<p class="mt-0 mb-0 text-sm text-neutral-content">
 						Most of what I maintain is on{" "}
-						<a href="https://github.com/asce1062" target="_blank" rel="noopener noreferrer">GitHub</a>.
+						<a href="https://github.com/asce1062" target="_blank" rel="noopener noreferrer">
+							GitHub
+						</a>
+						.
 					</p>
 				</div>
 			</div>
@@ -184,9 +202,13 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/interests/music.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-boombox"></i> Music</h2>
+			<h2>
+				<i class="icon-boombox"></i> Music
+			</h2>
 			<p>
 				My musical tastes are pretty broad, and I find myself hopping from genre to genre as time ticks on. One month I
 				might be on an amapiano kick, the next I'll be obsessed with hip hop, and then I'll move on to drum and bass and
@@ -287,9 +309,13 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/interests/misc.txt</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-north-star"></i> Also in the orbit</h2>
+			<h2>
+				<i class="icon-north-star"></i> Also in the orbit
+			</h2>
 			<p class="text-neutral-content mb-4 text-sm">
 				Things I follow, read about, or get distracted by. In no particular order.
 			</p>
@@ -319,10 +345,16 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 						I'm particularly enjoying{" "}
 						<a href="https://itsamandafullworld.odoo.com/shop/game-chafu-2" target="_blank" rel="noopener noreferrer">
 							"Game Chafu"
-						</a>{" "}by{" "}
-						<a href="https://itsamandafullworld.odoo.com/" target="_blank" rel="noopener noreferrer">Manda</a>. See how
-						it's played on{" "}
-						<a href="https://youtu.be/4qcOspKct6Y" target="_blank" rel="noopener noreferrer">YouTube</a>.
+						</a>{" "}
+						by{" "}
+						<a href="https://itsamandafullworld.odoo.com/" target="_blank" rel="noopener noreferrer">
+							Manda
+						</a>
+						. See how it's played on{" "}
+						<a href="https://youtu.be/4qcOspKct6Y" target="_blank" rel="noopener noreferrer">
+							YouTube
+						</a>
+						.
 					</span>
 				</li>
 				<li>
@@ -339,7 +371,9 @@ const psn = SOCIAL.profiles.find((p) => p.name === "PSN Profile");
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<p>
 				If something on this list overlaps with something you are into, I would genuinely like to hear about it. Email

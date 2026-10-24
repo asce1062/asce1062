@@ -19,19 +19,17 @@ const { title, description, canonical, rssUrl, generator, noIndex = false } = As
 ---
 
 <meta charset="utf-8" />
-{
-	noIndex ? (
-		<>
-			<meta name="robots" content="noindex, nofollow" />
-			<meta name="googlebot" content="noindex, nofollow" />
-		</>
-	) : (
-		<>
-			<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-			<meta name="googlebot" content="index, follow, max-image-preview:large" />
-		</>
-	)
-}
+{noIndex ? (
+	<>
+		<meta name="robots" content="noindex, nofollow" />
+		<meta name="googlebot" content="noindex, nofollow" />
+	</>
+) : (
+	<>
+		<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+		<meta name="googlebot" content="index, follow, max-image-preview:large" />
+	</>
+)}
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="generator" content={generator} />
 <link rel="canonical" href={canonical} />

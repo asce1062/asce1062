@@ -137,27 +137,32 @@ status = 301
 # Content-Type headers for specific files
 [[headers]]
 for = "/rss.xml"
+
 [headers.values]
 Content-Type = "application/rss+xml; charset=UTF-8"
 
 [[headers]]
 for = "/sitemap-index.xml"
+
 [headers.values]
 Content-Type = "application/xml; charset=UTF-8"
 
 [[headers]]
 for = "/sitemap-0.xml"
+
 [headers.values]
 Content-Type = "application/xml; charset=UTF-8"
 
 [[headers]]
 for = "/robots.txt"
+
 [headers.values]
 Content-Type = "text/plain; charset=UTF-8"
 
 # Security headers for all pages
 [[headers]]
 for = "/*"
+
 [headers.values]
 # Content Security Policy - Protects against XSS and other injection attacks
 # Note: 'unsafe-inline' is needed for Astro's hydration and astro-themes
@@ -178,52 +183,62 @@ Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
 
 [[headers]]
 for = "/astro/*"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/*.js"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/*.css"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/fonts/*"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/*.woff2"
+
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
 for = "/**/*.png"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.jpg"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.webp"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 [[headers]]
 for = "/**/*.svg"
+
 [headers.values]
 Cache-Control = "public, max-age=604800"
 
 # API routes must not be cached by CDN or browsers (responses are dynamic)
 [[headers]]
 for = "/api/*"
+
 [headers.values]
 Cache-Control = "no-store"
 
@@ -237,6 +252,7 @@ package = "@netlify/plugin-sitemap"
 package = "@netlify/plugin-lighthouse"
 
 [plugins.inputs]
+
 # Lighthouse performance budgets
 [plugins.inputs.thresholds]
 performance = 0.9

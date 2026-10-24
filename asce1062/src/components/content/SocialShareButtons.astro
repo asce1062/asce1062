@@ -82,18 +82,16 @@ const shareLinks = [
 <div class="flex flex-col flex-wrap items-center justify-center gap-4 text-center">
 	<b class="italic">Share this post on:</b>
 	<div class="flex flex-wrap items-center justify-center gap-1">
-		{
-			shareLinks.map(({ url, icon, label }) => (
-				<a
-					href={url}
-					target={label.includes("Email") ? undefined : "_blank"}
-					rel={label.includes("Email") ? undefined : "noopener noreferrer"}
-					class="no-underline group scale-90 p-2 hover:rotate-6 sm:p-1"
-					aria-label={label}>
-					<i class={`${icon} text-2xl`} />
-				</a>
-			))
-		}
+		{shareLinks.map(({ url, icon, label }) => (
+			<a
+				href={url}
+				target={label.includes("Email") ? undefined : "_blank"}
+				rel={label.includes("Email") ? undefined : "noopener noreferrer"}
+				class="no-underline group scale-90 p-2 hover:rotate-6 sm:p-1"
+				aria-label={label}>
+				<i class={`${icon} text-2xl`} />
+			</a>
+		))}
 		<a
 			id="blog-share-btn"
 			data-url={url}

@@ -39,49 +39,47 @@ await Promise.all(
 <Layout
 	title={tag}
 	ogImage="images/social-preview.png"
-	description=`bleep bloop found ${totalCount} ${ totalCount == 1 ? "item" : "items"}`>
+	description=`bleep bloop found ${totalCount} ${totalCount == 1 ? "item" : "items"}`>
 	<div class="flex flex-col gap-4">
-		<p>found {totalCount} {totalCount == 1 ? "item" : "items"} tagged with <b>{tag}</b></p>
+		<p>
+			found {totalCount} {totalCount == 1 ? "item" : "items"} tagged with <b>{tag}</b>
+		</p>
 
-		{
-			posts.length > 0 && (
-				<div>
-					{notes.length > 0 && <h3>Blog Posts</h3>}
-					<Columns columns={1}>
-						{posts.map((post) => (
-							<ContentCard
-								name={post.data.title}
-								url={getContentUrl(post.id, "/blog")}
-								image={post.data.image.url}
-								description={post.data.description}
-								date={formatDate(post.data.pubDate, "short")}
-								tags={post.data.tags}
-								readingTime={readingTimes.get(post.id)}
-							/>
-						))}
-					</Columns>
-				</div>
-			)
-		}
+		{posts.length > 0 && (
+			<div>
+				{notes.length > 0 && <h3>Blog Posts</h3>}
+				<Columns columns={1}>
+					{posts.map((post) => (
+						<ContentCard
+							name={post.data.title}
+							url={getContentUrl(post.id, "/blog")}
+							image={post.data.image.url}
+							description={post.data.description}
+							date={formatDate(post.data.pubDate, "short")}
+							tags={post.data.tags}
+							readingTime={readingTimes.get(post.id)}
+						/>
+					))}
+				</Columns>
+			</div>
+		)}
 
-		{
-			notes.length > 0 && (
-				<div>
-					{posts.length > 0 && <h3>Notes</h3>}
-					<Columns columns={1}>
-						{notes.map((note) => (
-							<ContentCard
-								name={note.data.title}
-								url={getContentUrl(note.id, "/notes")}
-								description={note.data.description}
-								date={formatDate(note.data.pubDate, "long")}
-								tags={note.data.tags}
-								readingTime={readingTimes.get(note.id)}
-							/>
-						))}
-					</Columns>
-				</div>
-			)
-		}
+		{notes.length > 0 && (
+			<div>
+				{posts.length > 0 && <h3>Notes</h3>}
+				<Columns columns={1}>
+					{notes.map((note) => (
+						<ContentCard
+							name={note.data.title}
+							url={getContentUrl(note.id, "/notes")}
+							description={note.data.description}
+							date={formatDate(note.data.pubDate, "long")}
+							tags={note.data.tags}
+							readingTime={readingTimes.get(note.id)}
+						/>
+					))}
+				</Columns>
+			</div>
+		)}
 	</div>
 </Layout>

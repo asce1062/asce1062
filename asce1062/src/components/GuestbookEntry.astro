@@ -57,19 +57,17 @@ const inlineStyles: Record<string, string> = {
 		creatureOptions={{ animationTime: 4, numberOf: 12, distance: 400 }}
 		disableGlow={true}>
 		<div class="entry-top">
-			{
-				hasAvatar && (
-					<div class="entry-avatar-stamp" title="8-bit avatar">
-						<canvas
-							class="entry-avatar-canvas avatar-frame"
-							data-avatar-state={entry.avatarState}
-							width="48"
-							height="48"
-							aria-hidden="true"
-						/>
-					</div>
-				)
-			}
+			{hasAvatar && (
+				<div class="entry-avatar-stamp" title="8-bit avatar">
+					<canvas
+						class="entry-avatar-canvas avatar-frame"
+						data-avatar-state={entry.avatarState}
+						width="48"
+						height="48"
+						aria-hidden="true"
+					/>
+				</div>
+			)}
 			<EntryActions
 				entryId={entry.id}
 				entryName={entry.name}
@@ -81,15 +79,13 @@ const inlineStyles: Record<string, string> = {
 		<pre class:list={["entry-message", { "entry-message--art": isAsciiArt }]}>{entry.message}</pre>
 		<div class="entry-meta">
 			<h2>
-				{
-					entry.url ? (
-						<a href={entry.url} target="_blank" rel="noopener noreferrer">
-							{entry.name}
-						</a>
-					) : (
-						entry.name
-					)
-				}
+				{entry.url ? (
+					<a href={entry.url} target="_blank" rel="noopener noreferrer">
+						{entry.name}
+					</a>
+				) : (
+					entry.name
+				)}
 			</h2>
 			<time datetime={entry.timestamp.toISOString()}>{formattedDate}</time>
 		</div>

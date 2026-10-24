@@ -10,35 +10,33 @@ const currentPath = Astro.url.pathname;
 const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 ---
 
-{
-	!isSearchPage && (
-		<>
-			<div
-				id="floating-search-overlay"
-				class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-100 opacity-0 pointer-events-none transition-opacity duration-300"
-				aria-hidden="true"
-			/>
-			<div
-				id="floating-search-modal"
-				class="fixed left-0 right-0 lg:left-[var(--sidebar-current-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="floating-search-title">
-				<div class="flex items-center justify-between mb-4">
-					<h2 id="floating-search-title" class="m-0 leading-none">
-						<a href="/search">Search</a>
-					</h2>
-					<button id="close-floating-search" class="btn btn-frame btn-error btn-sm" aria-label="Close search">
-						<i class="icon-x-lg" />
-					</button>
-				</div>
-				<div id="pagefind-search-floating">
-					<SearchBox searchId="floating-searchbox" showTips={true} />
-				</div>
+{!isSearchPage && (
+	<>
+		<div
+			id="floating-search-overlay"
+			class="fixed inset-0 bg-[color-mix(in_oklab,var(--color-base-100)_70%,transparent)] z-100 opacity-0 pointer-events-none transition-opacity duration-300"
+			aria-hidden="true"
+		/>
+		<div
+			id="floating-search-modal"
+			class="fixed left-0 right-0 lg:left-[var(--sidebar-current-width)] mx-auto w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] lg:w-[calc(50%-4rem)] max-h-[calc(100vh-8rem)] overflow-y-auto p-5 z-101 bg-base-100 border border-base-300 opacity-0 pointer-events-none transition-opacity duration-300"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="floating-search-title">
+			<div class="flex items-center justify-between mb-4">
+				<h2 id="floating-search-title" class="m-0 leading-none">
+					<a href="/search">Search</a>
+				</h2>
+				<button id="close-floating-search" class="btn btn-frame btn-error btn-sm" aria-label="Close search">
+					<i class="icon-x-lg" />
+				</button>
 			</div>
-		</>
-	)
-}
+			<div id="pagefind-search-floating">
+				<SearchBox searchId="floating-searchbox" showTips={true} />
+			</div>
+		</div>
+	</>
+)}
 
 <script>
 	import { initSearchShortcut, initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";

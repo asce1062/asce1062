@@ -55,7 +55,7 @@ const editDate =
 
 <Layout
 	title={title}
-	ogImage=`open-graph${(Astro.url.pathname).slice(0, -1)}.png`
+	ogImage=`open-graph${Astro.url.pathname.slice(0, -1)}.png`
 	description={description}
 	type="article"
 	datePublished={new Date(date).toISOString()}
@@ -65,16 +65,16 @@ const editDate =
 	<article data-pagefind-body data-pagefind-sort="date">
 		<h2 data-pagefind-meta="title">{title}</h2>
 		<span class="block mt-1 mb-3 text-sm" data-pagefind-meta="date" data-pagefind-sort="date:{date}">
-			<i
-				><b>{date}</b>{
-					readingTime && (
-						<>
-							{" "}
-							• <span class="badge badge-accent">{readingTime}</span>
-						</>
-					)
-				} | {description}</i
-			>
+			<i>
+				<b>{date}</b>
+				{readingTime && (
+					<>
+						{" "}
+						• <span class="badge badge-accent">{readingTime}</span>
+					</>
+				)}{" "}
+				| {description}
+			</i>
 		</span>
 
 		{isBlog && image && <PreviewImage src={image} altText={alt || ""} />}
@@ -82,13 +82,12 @@ const editDate =
 		{!isBlog && <div class="mt-4" aria-hidden="true" />}
 
 		<span class="block mt-1 mb-1">
-			tags: {
-				tags.map((tag) => (
-					<a class="mr-2 italic" href={`/tags/${tag}`} data-pagefind-meta="tag">
-						{tag}
-					</a>
-				))
-			}
+			tags:{" "}
+			{tags.map((tag) => (
+				<a class="mr-2 italic" href={`/tags/${tag}`} data-pagefind-meta="tag">
+					{tag}
+				</a>
+			))}
 		</span>
 		<hr class="w-full h-[1.25px] my-4 border-0 bg-base-300" />
 
@@ -96,28 +95,26 @@ const editDate =
 
 		<slot />
 
-		{
-			(wordCount > 0 || editDate) && (
-				<>
-					<hr class="my-4 border-dashed border-base-300" />
-					<div class="flex flex-wrap justify-between gap-4 text-sm text-neutral-content">
-						{editDate ? (
-							<span>
-								<i class="icon-pencil-square mr-1" /> {editDate}
-							</span>
-						) : (
-							<span />
-						)}
-						{wordCount > 0 && (
-							<span>
-								<i class="icon-pencil mr-1" />
-								{wordCount}
-							</span>
-						)}
-					</div>
-				</>
-			)
-		}
+		{(wordCount > 0 || editDate) && (
+			<>
+				<hr class="my-4 border-dashed border-base-300" />
+				<div class="flex flex-wrap justify-between gap-4 text-sm text-neutral-content">
+					{editDate ? (
+						<span>
+							<i class="icon-pencil-square mr-1" /> {editDate}
+						</span>
+					) : (
+						<span />
+					)}
+					{wordCount > 0 && (
+						<span>
+							<i class="icon-pencil mr-1" />
+							{wordCount}
+						</span>
+					)}
+				</div>
+			</>
+		)}
 
 		<hr class="my-4 border-dashed border-base-300" />
 

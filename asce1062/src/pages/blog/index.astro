@@ -28,18 +28,16 @@ await Promise.all(
 		<li>A place to capture, organize, distill and express what I consume.</li>
 	</ul>
 	<Columns columns={1}>
-		{
-			posts.map((post) => (
-				<ContentCard
-					name={post.data.title}
-					url={getContentUrl(post.id, "/blog")}
-					image={post.data.image.url}
-					description={post.data.description}
-					date={formatDate(post.data.pubDate, "long")}
-					tags={post.data.tags}
-					readingTime={readingTimes.get(post.id)}
-				/>
-			))
-		}
+		{posts.map((post) => (
+			<ContentCard
+				name={post.data.title}
+				url={getContentUrl(post.id, "/blog")}
+				image={post.data.image.url}
+				description={post.data.description}
+				date={formatDate(post.data.pubDate, "long")}
+				tags={post.data.tags}
+				readingTime={readingTimes.get(post.id)}
+			/>
+		))}
 	</Columns>
 </Layout>

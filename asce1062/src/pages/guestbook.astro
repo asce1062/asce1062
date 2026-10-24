@@ -118,9 +118,11 @@ const entries = await getGuestEntries();
 	<p>{description}</p>
 	<p>
 		In the spirit of the beautifully chaotic, handcrafted web of yesteryear, when we all had personal homepages filled
-		with <span class="blink">blinking text</span>, dubious counters <strong>
+		with <span class="blink">blinking text</span>, dubious counters{" "}
+		<strong>
 			Visitor# <span id="counter">000000</span>
-		</strong>, way too many <marquee>marquee tags</marquee> and
+		</strong>
+		, way too many <marquee>marquee tags</marquee> and
 		<span class="faded-text">color faded text (not just to impress recruiters)</span>, I've decided to bring back the
 		classic guestbook.
 	</p>
@@ -136,31 +138,32 @@ const entries = await getGuestEntries();
 			<p>
 				<label>
 					Name
-					<br /><input class="input-allowed" type="text" name="name" required />
+					<br />
+					<input class="input-allowed" type="text" name="name" required />
 				</label>
 			</p>
 			<p>
 				<label>
 					Email <small>(optional, not published)</small>
-					<br /><input class="input-allowed" type="email" name="email" id="email-input" />
+					<br />
+					<input class="input-allowed" type="email" name="email" id="email-input" />
 				</label>
 			</p>
 			<p>
 				<label>
 					URL <small>(optional, linked from Name)</small>
-					<br /><input
-						class="input-allowed"
-						type="url"
-						name="url"
-						placeholder="https://example.com"
-						pattern="https://.*"
-					/>
+					<br />
+					<input class="input-allowed" type="url" name="url" placeholder="https://example.com" pattern="https://.*" />
 				</label>
 			</p>
 			<p aria-hidden="true">
 				<label>
-					Subject <small>(please <b>skip</b> this field if you're real)</small>
-					<br /><input
+					Subject{" "}
+					<small>
+						(please <b>skip</b> this field if you're real)
+					</small>
+					<br />
+					<input
 						class="input-honeypot"
 						type="text"
 						name="bot-field"
@@ -168,11 +171,16 @@ const entries = await getGuestEntries();
 						autocomplete="off"
 						placeholder="Leave me be!"
 					/>
-					<small>Are you sure you want to type in here? <b>I won't get your message</b>!</small>
+					<small>
+						Are you sure you want to type in here? <b>I won't get your message</b>!
+					</small>
 				</label>
 			</p>
 			<p>
-				<label class="message" for="message-textarea"> Message </label>
+				<label class="message" for="message-textarea">
+					{" "}
+					Message{" "}
+				</label>
 			</p>
 
 			<input type="hidden" id="style-input" name="style" />
@@ -187,7 +195,9 @@ const entries = await getGuestEntries();
 							<div class="customizer-row">
 								<select id="pattern-select" class="input-allowed pattern-select">
 									<option value="none">None</option>
-									{patterns.map((p) => <option value={p}>{toTitleCase(p)}</option>)}
+									{patterns.map((p) => (
+										<option value={p}>{toTitleCase(p)}</option>
+									))}
 								</select>
 								<div id="pattern-swatch" class="pattern-swatch"></div>
 							</div>
@@ -197,21 +207,19 @@ const entries = await getGuestEntries();
 						<div class="customizer-section">
 							<h4>Border Radius</h4>
 							<div class="flex gap-2">
-								{
-									radiusValues.map((r) => (
-										<div
-											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
-											data-radius={r}
-											title={r}>
-											<div class="pe-3 pt-2">
-												<div
-													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
-													style={`border-start-end-radius: ${r}`}
-												/>
-											</div>
+								{radiusValues.map((r) => (
+									<div
+										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+										data-radius={r}
+										title={r}>
+										<div class="pe-3 pt-2">
+											<div
+												class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+												style={`border-start-end-radius: ${r}`}
+											/>
 										</div>
-									))
-								}
+									</div>
+								))}
 							</div>
 						</div>
 
@@ -222,8 +230,9 @@ const entries = await getGuestEntries();
 								<kbd
 									id="border-width-label"
 									class="kbd kbd-sm absolute bottom-full mb-1 -translate-x-1/2 text-[0.625rem]"
-									style="left: calc(14.29% + 0.446rem);">1px</kbd
-								>
+									style="left: calc(14.29% + 0.446rem);">
+									1px
+								</kbd>
 								<input
 									id="border-width-slider"
 									type="range"
@@ -240,11 +249,9 @@ const entries = await getGuestEntries();
 						<div class="customizer-section">
 							<h4>Border Color</h4>
 							<div class="customizer-row">
-								{
-									swatchColors.map((c) => (
-										<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
-									))
-								}
+								{swatchColors.map((c) => (
+									<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
+								))}
 							</div>
 						</div>
 
@@ -252,27 +259,25 @@ const entries = await getGuestEntries();
 						<div class="customizer-section">
 							<h4>Border Style</h4>
 							<div class="flex gap-2">
-								{
-									borderStyles.map((s) => (
-										<div
-											class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
-											data-border-style={s}
-											title={s}>
-											<div class="pe-3 pt-2">
-												{s === "none" ? (
-													<div class="h-6 w-8 flex items-center justify-center text-base-content/40">
-														<i class="icon-x-lg -mt-1 -ml-1" />
-													</div>
-												) : (
-													<div
-														class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
-														style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
-													/>
-												)}
-											</div>
+								{borderStyles.map((s) => (
+									<div
+										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
+										data-border-style={s}
+										title={s}>
+										<div class="pe-3 pt-2">
+											{s === "none" ? (
+												<div class="h-6 w-8 flex items-center justify-center text-base-content/40">
+													<i class="icon-x-lg -mt-1 -ml-1" />
+												</div>
+											) : (
+												<div
+													class="h-6 w-8 border-e-2 border-t-2 border-base-content/20"
+													style={`border-style: ${s}; border-start-end-radius: 0.25rem${s === "double" ? "; border-block-start-width: 4px; border-inline-end-width: 4px" : ""}`}
+												/>
+											)}
 										</div>
-									))
-								}
+									</div>
+								))}
 							</div>
 						</div>
 
@@ -285,7 +290,9 @@ const entries = await getGuestEntries();
 								<small>Include avatar in this entry</small>
 							</label>
 							<p id="avatar-random-notice" class="avatar-random-notice" style="display:none">
-								<small><i class="icon-info-circle"></i> No avatar customized. A random one will be generated.</small>
+								<small>
+									<i class="icon-info-circle"></i> No avatar customized. A random one will be generated.
+								</small>
 							</p>
 						</div>
 
@@ -322,7 +329,8 @@ const entries = await getGuestEntries();
 
 			<p>
 				<label class="consent">
-					<input type="checkbox" class="checkbox" required /><small>
+					<input type="checkbox" class="checkbox" required />
+					<small>
 						I consent to this message being stored in a self-hosted database with honeypot and pattern-based spam
 						filtering.
 					</small>
@@ -330,19 +338,22 @@ const entries = await getGuestEntries();
 			</p>
 			<p id="send-copy-row" style="display:none">
 				<label class="consent">
-					<input type="checkbox" class="checkbox" name="send-copy" id="send-copy-checkbox" /><small>
-						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span></small
-					>
+					<input type="checkbox" class="checkbox" name="send-copy" id="send-copy-checkbox" />
+					<small>
+						Receive a copy of this entry @ <span class="badge badge-info" id="send-copy-email"></span>
+					</small>
 				</label>
 			</p>
 			<p>
-				<button type="submit" class="btn btn-frame font-retro btn-success"
-					><span class="font-retro text-success-content">Sign Guestbook</span>
+				<button type="submit" class="btn btn-frame font-retro btn-success">
+					<span class="font-retro text-success-content">Sign Guestbook</span>
 				</button>
 			</p>
 		</form>
 		<PrivacyPolicy />
-		{entries.map((entry) => <GuestbookEntry entry={entry} />)}
+		{entries.map((entry) => (
+			<GuestbookEntry entry={entry} />
+		))}
 	</div>
 	<ShareNotification id="entry-action-notification" message="Copied!" />
 </Layout>

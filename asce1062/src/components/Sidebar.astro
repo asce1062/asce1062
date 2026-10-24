@@ -65,47 +65,55 @@ const eggVariantsJson = JSON.stringify(
 				data-navbrand-tone="normal"
 				aria-label="Open terminal">
 				<span class="nav-brand-line nav-brand-email-copy" data-navbrand-copy-email={SOCIAL.email} title="Copy email">
-					<span class="nav-brand-chrome">┌─[</span><span id="nav-brand-name" class="nav-brand-name">alex</span><span
-						class="nav-brand-chrome">@</span
-					><span class="nav-brand-host">alexmbugua.me</span><span class="nav-brand-chrome">]</span>
+					<span class="nav-brand-chrome">┌─[</span>
+					<span id="nav-brand-name" class="nav-brand-name">
+						alex
+					</span>
+					<span class="nav-brand-chrome">@</span>
+					<span class="nav-brand-host">alexmbugua.me</span>
+					<span class="nav-brand-chrome">]</span>
 				</span>
 				<span class="nav-brand-line">
-					<span class="nav-brand-chrome">│ </span><span
+					<span class="nav-brand-chrome">│ </span>
+					<span
 						id="nav-brand-greeting"
 						class="nav-brand-greeting"
 						aria-live="polite"
 						data-text-effect="decrypt, glitch-lock-on, typing"
 						data-text-effect-triggers="load, hover, activate, resume, route-enter, idle-return, random-effect, random-time"
-						data-text-effect-interval-ms="33410"
-						>·
+						data-text-effect-interval-ms="33410">
+						·
 					</span>
 				</span>
 				<span class="nav-brand-line" id="nav-brand-sub-row">
-					<span class="nav-brand-chrome">│ </span><span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"
-					></span>
+					<span class="nav-brand-chrome">│ </span>
+					<span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"></span>
 				</span>
 				<!-- this stays lightweight and only advertises terminal intent.
 				`src/scripts/navBrand.ts` listens for interaction here
 				and dispatches the shared `navbrand:open-terminal` event; the modal task
 				owns the actual terminal window lifecycle. -->
 				<span class="nav-brand-line nav-brand-teaser-line">
-					<span class="nav-brand-chrome">│ </span><span
+					<span class="nav-brand-chrome">│ </span>
+					<span
 						id="nav-brand-teaser"
 						class="nav-brand-teaser-text"
 						data-text-effect="glitch-lock-on, typing"
-						data-text-effect-triggers="load, resume, route-enter, idle-return, random-effect">open terminal</span
-					>
+						data-text-effect-triggers="load, resume, route-enter, idle-return, random-effect">
+						open terminal
+					</span>
 				</span>
 				<span class="nav-brand-line">
-					<span class="nav-brand-chrome">└─</span><span class="nav-brand-prompt-char">$</span><span
-						class="nav-brand-chrome">
-						~
-					</span><span
+					<span class="nav-brand-chrome">└─</span>
+					<span class="nav-brand-prompt-char">$</span>
+					<span class="nav-brand-chrome">~</span>
+					<span
 						id="nav-brand-visit-count"
 						class="nav-brand-visit-count"
 						data-text-effect="typing"
-						data-text-effect-triggers="load, resume, route-enter, idle-return">visit 1</span
-					>
+						data-text-effect-triggers="load, resume, route-enter, idle-return">
+						visit 1
+					</span>
 				</span>
 			</button>
 		</div>
@@ -129,100 +137,96 @@ const eggVariantsJson = JSON.stringify(
 	</div>
 
 	<nav class="nav-body" aria-label="Main navigation">
-		{
-			grouped.map(({ label, items }) =>
-				items.length > 0 ? (
-					<div class="nav-section" data-collapsed-hidden={items[0]?.section !== "main" ? "" : undefined}>
-						<div class="nav-section-label">
-							<span class="badge badge-secondary badge-sm">&#x276F;</span>
-							<span class="nav-section-name">{label}</span>
-						</div>
-						<ul class="nav-list" role="list">
-							{items.map((link) => {
-								const active = isActive(link.href);
-								return (
-									<li>
-										<b>
-											{link.action === "open-music" ? (
-												<button
-													type="button"
-													class="nav-link"
-													aria-label={link.ariaLabel}
-													data-tooltip={link.name}
-													data-music-player-trigger>
-													<i class={`${link.icon} nav-icon`} aria-hidden="true" />
-													<span class="nav-text">{link.name}</span>
-												</button>
-											) : (
-												<a
-													class:list={["nav-link", { "nav-link--active": active }]}
-													href={link.href}
-													aria-label={link.ariaLabel}
-													aria-current={active ? "page" : undefined}
-													data-tooltip={link.name}
-													{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-													{link.multiPathIcon && link.pathCount ? (
-														<span class={`${link.icon} nav-icon`} aria-hidden="true">
-															{Array.from({ length: link.pathCount }, (_, i) => (
-																<span class={`path${i + 1}`} />
-															))}
-														</span>
-													) : (
-														<i class={`${link.icon} nav-icon`} aria-hidden="true" />
-													)}
-													<span class="nav-text">{link.name}</span>
-												</a>
-											)}
-										</b>
-									</li>
-								);
-							})}
-						</ul>
-					</div>
-				) : null
-			)
-		}
-
-		<!-- Options section: user-controlled site preferences. Hidden in collapsed mode. -->
-		{
-			sidebarOptions.length > 0 && (
-				<div class="nav-section" data-collapsed-hidden>
+		{grouped.map(({ label, items }) =>
+			items.length > 0 ? (
+				<div class="nav-section" data-collapsed-hidden={items[0]?.section !== "main" ? "" : undefined}>
 					<div class="nav-section-label">
 						<span class="badge badge-secondary badge-sm">&#x276F;</span>
-						<span class="nav-section-name">options</span>
+						<span class="nav-section-name">{label}</span>
 					</div>
-					<div class="nav-options-list">
-						{sidebarOptions.map((option) => (
-							<div class="nav-option">
-								<div class="nav-option-control">
-									<div class="nav-option-label-group">
-										<i class={`${option.icon} nav-icon`} aria-hidden="true" />
-										<label class="nav-option-label" for={option.id}>
-											{option.label}
-										</label>
-										<sup
-											class="nav-option-info-btn no-underline hover:bg-transparent text-info hover:text-info cursor-default"
-											aria-label="More info"
-											aria-describedby={`${option.id}-helper`}>
-											<i class="icon-info-circle" aria-hidden="true" />
-										</sup>
-									</div>
-									<input
-										type="checkbox"
-										id={option.id}
-										class="toggle toggle-xs"
-										aria-describedby={`${option.id}-helper`}
-									/>
-								</div>
-								<p id={`${option.id}-helper`} class="nav-option-helper">
-									{option.description}
-								</p>
-							</div>
-						))}
-					</div>
+					<ul class="nav-list" role="list">
+						{items.map((link) => {
+							const active = isActive(link.href);
+							return (
+								<li>
+									<b>
+										{link.action === "open-music" ? (
+											<button
+												type="button"
+												class="nav-link"
+												aria-label={link.ariaLabel}
+												data-tooltip={link.name}
+												data-music-player-trigger>
+												<i class={`${link.icon} nav-icon`} aria-hidden="true" />
+												<span class="nav-text">{link.name}</span>
+											</button>
+										) : (
+											<a
+												class:list={["nav-link", { "nav-link--active": active }]}
+												href={link.href}
+												aria-label={link.ariaLabel}
+												aria-current={active ? "page" : undefined}
+												data-tooltip={link.name}
+												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+												{link.multiPathIcon && link.pathCount ? (
+													<span class={`${link.icon} nav-icon`} aria-hidden="true">
+														{Array.from({ length: link.pathCount }, (_, i) => (
+															<span class={`path${i + 1}`} />
+														))}
+													</span>
+												) : (
+													<i class={`${link.icon} nav-icon`} aria-hidden="true" />
+												)}
+												<span class="nav-text">{link.name}</span>
+											</a>
+										)}
+									</b>
+								</li>
+							);
+						})}
+					</ul>
 				</div>
-			)
-		}
+			) : null
+		)}
+
+		<!-- Options section: user-controlled site preferences. Hidden in collapsed mode. -->
+		{sidebarOptions.length > 0 && (
+			<div class="nav-section" data-collapsed-hidden>
+				<div class="nav-section-label">
+					<span class="badge badge-secondary badge-sm">&#x276F;</span>
+					<span class="nav-section-name">options</span>
+				</div>
+				<div class="nav-options-list">
+					{sidebarOptions.map((option) => (
+						<div class="nav-option">
+							<div class="nav-option-control">
+								<div class="nav-option-label-group">
+									<i class={`${option.icon} nav-icon`} aria-hidden="true" />
+									<label class="nav-option-label" for={option.id}>
+										{option.label}
+									</label>
+									<sup
+										class="nav-option-info-btn no-underline hover:bg-transparent text-info hover:text-info cursor-default"
+										aria-label="More info"
+										aria-describedby={`${option.id}-helper`}>
+										<i class="icon-info-circle" aria-hidden="true" />
+									</sup>
+								</div>
+								<input
+									type="checkbox"
+									id={option.id}
+									class="toggle toggle-xs"
+									aria-describedby={`${option.id}-helper`}
+								/>
+							</div>
+							<p id={`${option.id}-helper`} class="nav-option-helper">
+								{option.description}
+							</p>
+						</div>
+					))}
+				</div>
+			</div>
+		)}
 
 		<!-- Flavor picker: optional color overlays on dark mode. Hidden in collapsed mode. -->
 		<div class="nav-section" data-collapsed-hidden>
@@ -231,19 +235,17 @@ const eggVariantsJson = JSON.stringify(
 				<span class="nav-section-name">theme</span>
 			</div>
 			<div class="nav-flavor-picker" role="group" aria-label="Color flavor">
-				{
-					FLAVORS.map((flavor) => (
-						<button
-							type="button"
-							class="nav-flavor-swatch"
-							data-flavor-btn={flavor}
-							aria-label={FLAVOR_LABELS[flavor]}
-							aria-pressed="false"
-							title={FLAVOR_LABELS[flavor]}
-							style={`--swatch: ${FLAVOR_SWATCHES[flavor]}`}
-						/>
-					))
-				}
+				{FLAVORS.map((flavor) => (
+					<button
+						type="button"
+						class="nav-flavor-swatch"
+						data-flavor-btn={flavor}
+						aria-label={FLAVOR_LABELS[flavor]}
+						aria-pressed="false"
+						title={FLAVOR_LABELS[flavor]}
+						style={`--swatch: ${FLAVOR_SWATCHES[flavor]}`}
+					/>
+				))}
 			</div>
 		</div>
 

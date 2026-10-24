@@ -35,22 +35,25 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">cat ~/sps/PRIVACY</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-shield-check"></i> SPS Privacy Policy</h2>
+			<h2>
+				<i class="icon-shield-check"></i> SPS Privacy Policy
+			</h2>
 			<p>
-				This policy covers the <b>Self Prompting System</b> ("SPS") Discord application, a private engineering tool. In this
-				policy, "the operator" means the person who runs SPS and is responsible for it, and "authorized users" means the people
-				the operator has explicitly allowed to use its Discord interface.
+				This policy covers the <b>Self Prompting System</b> ("SPS") Discord application, a private engineering tool. In
+				this policy, "the operator" means the person who runs SPS and is responsible for it, and "authorized users"
+				means the people the operator has explicitly allowed to use its Discord interface.
 			</p>
 			<p>
-				SPS is separate from this website. The <a href="/privacy/">website privacy policy</a> covers alexmbugua.me and its
-				guestbook, and none of the guestbook's storage, spam filtering, or vendor arrangements apply to SPS.
+				SPS is separate from this website. The <a href="/privacy/">website privacy policy</a> covers alexmbugua.me and
+				its guestbook, and none of the guestbook's storage, spam filtering, or vendor arrangements apply to SPS.
 			</p>
 			<p>
-				Effective <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>. Read it alongside the <a
-					href="/sps/terms/">SPS Terms of Service</a
-				>.
+				Effective <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>. Read it alongside the{" "}
+				<a href="/sps/terms/">SPS Terms of Service</a>.
 			</p>
 		</section>
 
@@ -58,9 +61,13 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps status</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-hourglass-split"></i> Where things stand</h2>
+			<h2>
+				<i class="icon-hourglass-split"></i> Where things stand
+			</h2>
 			<p>
 				SPS is a Windows-first orchestration system that runs locally and carries out engineering work through Claude
 				Code CLI and Codex CLI workflows, using the operator's existing personal subscription sign-ins to those tools.
@@ -71,10 +78,12 @@ const retention = [
 				one private server, and one channel, and it works in two stages:
 			</p>
 			<ul>
-				<li><b>Status notices</b> are live. SPS posts private progress notices about project and run state.</li>
 				<li>
-					<b>Operator controls</b> (feedback, run control, candidate review, and export) are enabled by the operator. Until
-					they are enabled, SPS does not accept feedback, control, or review requests from Discord.
+					<b>Status notices</b> are live. SPS posts private progress notices about project and run state.
+				</li>
+				<li>
+					<b>Operator controls</b> (feedback, run control, candidate review, and export) are enabled by the operator.
+					Until they are enabled, SPS does not accept feedback, control, or review requests from Discord.
 				</li>
 			</ul>
 		</section>
@@ -83,9 +92,13 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps help</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-discord"></i> What the Discord interface is for</h2>
+			<h2>
+				<i class="icon-discord"></i> What the Discord interface is for
+			</h2>
 			<p>
 				It is meant only for authorized users, not for the public. It posts progress notices, and when operator controls
 				are enabled, it lets authorized users:
@@ -102,26 +115,34 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps schema --records</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-database"></i> What SPS records</h2>
+			<h2>
+				<i class="icon-database"></i> What SPS records
+			</h2>
 			<ul>
 				<li>
 					<b>Discord identifiers:</b> your user ID, and the server, channel, and interaction IDs for each interaction.
 				</li>
 				<li>
-					<b>What you submit:</b> the text you enter in slash commands, including feedback. This is content you write, and
-					it is recorded as submitted.
+					<b>What you submit:</b> the text you enter in slash commands, including feedback. This is content you write,
+					and it is recorded as submitted.
 				</li>
-				<li><b>Timestamps</b> for interactions and the actions they trigger.</li>
+				<li>
+					<b>Timestamps</b> for interactions and the actions they trigger.
+				</li>
 				<li>
 					<b>Action dispositions and operator decisions</b>, such as whether a run was paused, or which revision of a
 					candidate was accepted.
 				</li>
-				<li><b>References to engineering evidence</b> and audit records associated with a run.</li>
 				<li>
-					<b>Minimal replay and erasure receipts:</b> small hashed records that stop expired or repeated Discord events from
-					restoring data that has already been erased. They are hashed, but they are not anonymous.
+					<b>References to engineering evidence</b> and audit records associated with a run.
+				</li>
+				<li>
+					<b>Minimal replay and erasure receipts:</b> small hashed records that stop expired or repeated Discord events
+					from restoring data that has already been erased. They are hashed, but they are not anonymous.
 				</li>
 			</ul>
 			<p>
@@ -135,9 +156,13 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps schema --exclude</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-circle-slash"></i> What it does not collect</h2>
+			<h2>
+				<i class="icon-circle-slash"></i> What it does not collect
+			</h2>
 			<p>
 				SPS processes only explicit slash commands and review-button actions. It does not ingest ordinary channel
 				messages or their attachments, and the Discord message-content intent is disabled, so general conversation in
@@ -149,23 +174,28 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps trace --data-flow</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-diagram-3"></i> Where data goes</h2>
+			<h2>
+				<i class="icon-diagram-3"></i> Where data goes
+			</h2>
 			<p>Not all of it stays on one computer:</p>
 			<ul>
-				<li><b>Local computer:</b> controller state is stored on the computer where SPS runs.</li>
 				<li>
-					<b>Model providers:</b> explicit feedback can enter the context of later tasks run through Claude Code CLI (<b
-						>Anthropic</b
-					>) or Codex CLI (<b>OpenAI</b>), under the operator's personal subscription sign-ins. Once sent, it is handled
-					under that provider's own terms, privacy policy, and history controls.
+					<b>Local computer:</b> controller state is stored on the computer where SPS runs.
 				</li>
 				<li>
-					<b>Discord:</b> every interaction passes through Discord. Progress notices containing project and run state are
-					posted to the configured private channel, where anyone who can view that channel can read them. Review responses,
-					which carry candidate content, verification evidence, and required integration proof, are sent as ephemeral responses
-					shown only to the person who asked for them.
+					<b>Model providers:</b> explicit feedback can enter the context of later tasks run through Claude Code CLI (
+					<b>Anthropic</b>) or Codex CLI (<b>OpenAI</b>), under the operator's personal subscription sign-ins. Once
+					sent, it is handled under that provider's own terms, privacy policy, and history controls.
+				</li>
+				<li>
+					<b>Discord:</b> every interaction passes through Discord. Progress notices containing project and run state
+					are posted to the configured private channel, where anyone who can view that channel can read them. Review
+					responses, which carry candidate content, verification evidence, and required integration proof, are sent as
+					ephemeral responses shown only to the person who asked for them.
 				</li>
 			</ul>
 		</section>
@@ -174,9 +204,13 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps where --state</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-hdd"></i> Storage</h2>
+			<h2>
+				<i class="icon-hdd"></i> Storage
+			</h2>
 			<p>
 				SPS keeps its state in a SQLite database, along with artifact and evidence files, in a protected per-user
 				runtime location on the computer where SPS runs, outside the project's source repository. Windows file
@@ -196,25 +230,31 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">sps retention --show</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-clock-history"></i> Retention</h2>
+			<h2>
+				<i class="icon-clock-history"></i> Retention
+			</h2>
 			<table class="w-full text-sm my-4">
 				<thead>
 					<tr class="bg-base-200">
-						<th scope="col" class="p-2 text-left text-warning border border-base-300">Record</th>
-						<th scope="col" class="p-2 text-left text-warning border border-base-300">Kept for</th>
+						<th scope="col" class="p-2 text-left text-warning border border-base-300">
+							Record
+						</th>
+						<th scope="col" class="p-2 text-left text-warning border border-base-300">
+							Kept for
+						</th>
 					</tr>
 				</thead>
 				<tbody>
-					{
-						retention.map((row, i) => (
-							<tr class={i % 2 === 0 ? "bg-base-200/50" : "bg-base-100"}>
-								<td class="p-2 align-top border border-base-300">{row.record}</td>
-								<td class="p-2 text-left align-top border border-base-300">{row.period}</td>
-							</tr>
-						))
-					}
+					{retention.map((row, i) => (
+						<tr class={i % 2 === 0 ? "bg-base-200/50" : "bg-base-100"}>
+							<td class="p-2 align-top border border-base-300">{row.record}</td>
+							<td class="p-2 text-left align-top border border-base-300">{row.period}</td>
+						</tr>
+					))}
 				</tbody>
 			</table>
 			<p>
@@ -232,29 +272,33 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">mail -s "SPS request" {SOCIAL.email}</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-envelope-at"></i> Access, correction, and deletion</h2>
+			<h2>
+				<i class="icon-envelope-at"></i> Access, correction, and deletion
+			</h2>
 			<p>
-				To ask for a copy of SPS records about you, or to have them corrected or deleted, email the operator at <a
-					href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a
-				>. Include your Discord user ID, the channel, and the approximate date of the interaction. Never send passwords,
-				tokens, or other credentials. You don't need to open a public issue for this.
+				To ask for a copy of SPS records about you, or to have them corrected or deleted, email the operator at{" "}
+				<a href={`mailto:${SOCIAL.email}`}>{SOCIAL.email}</a>. Include your Discord user ID, the channel, and the
+				approximate date of the interaction. Never send passwords, tokens, or other credentials. You don't need to open
+				a public issue for this.
 			</p>
 			<ul>
 				<li>
-					<b>Access:</b> the operator can export controller records, checked artifacts and evidence, project memory, and matching
-					inbox requests into a protected local ZIP file.
+					<b>Access:</b> the operator can export controller records, checked artifacts and evidence, project memory, and
+					matching inbox requests into a protected local ZIP file.
 				</li>
 				<li>
-					<b>Correction:</b> feedback is corrected by recording a new authenticated feedback event, not by editing the original.
-					Project memory is corrected through a reviewed revision.
+					<b>Correction:</b> feedback is corrected by recording a new authenticated feedback event, not by editing the
+					original. Project memory is corrected through a reviewed revision.
 				</li>
 				<li>
-					<b>Deletion:</b> erasing a managed project requires stopping SPS services, an erasure plan bound by hash to the
-					records it covers, and an explicit confirmation. It cancels remaining work for that project and removes managed
-					controller data, project memory, the SPS-owned integration clone, associated exports, and targeted inbox payloads.
-					The bot can also delete notices it posted, after checking that it owns them.
+					<b>Deletion:</b> erasing a managed project requires stopping SPS services, an erasure plan bound by hash to
+					the records it covers, and an explicit confirmation. It cancels remaining work for that project and removes
+					managed controller data, project memory, the SPS-owned integration clone, associated exports, and targeted
+					inbox payloads. The bot can also delete notices it posted, after checking that it owns them.
 				</li>
 			</ul>
 			<p>
@@ -274,27 +318,33 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">ls ~/sps/third-party/</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-link-45deg"></i> Third-party privacy information</h2>
+			<h2>
+				<i class="icon-link-45deg"></i> Third-party privacy information
+			</h2>
 			<ul>
 				<li>
-					<a href="https://discord.com/privacy" target="_blank" rel="noopener noreferrer">Discord Privacy Policy</a>
+					<a href="https://discord.com/privacy" target="_blank" rel="noopener noreferrer">
+						Discord Privacy Policy
+					</a>
 				</li>
 				<li>
-					<a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer"
-						>Anthropic Privacy Policy</a
-					>
+					<a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer">
+						Anthropic Privacy Policy
+					</a>
 				</li>
 				<li>
-					<a href="https://code.claude.com/docs/en/data-usage" target="_blank" rel="noopener noreferrer"
-						>Claude Code data usage</a
-					>
+					<a href="https://code.claude.com/docs/en/data-usage" target="_blank" rel="noopener noreferrer">
+						Claude Code data usage
+					</a>
 				</li>
 				<li>
-					<a href="https://openai.com/policies/privacy-policy/" target="_blank" rel="noopener noreferrer"
-						>OpenAI Privacy Policy</a
-					>
+					<a href="https://openai.com/policies/privacy-policy/" target="_blank" rel="noopener noreferrer">
+						OpenAI Privacy Policy
+					</a>
 				</li>
 			</ul>
 		</section>
@@ -303,14 +353,20 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-success font-bold">$</span>
 				<span class="ml-1 text-warning">git log -- ~/sps/PRIVACY</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
-			<h2><i class="icon-calendar-event"></i> Changes</h2>
+			<h2>
+				<i class="icon-calendar-event"></i> Changes
+			</h2>
 			<p>
 				Material changes will be reflected on this page with an updated date, and authorized users will also be notified
 				when this policy changes.
 			</p>
-			<p>Last updated <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>.</p>
+			<p>
+				Last updated <time datetime={effectiveDate.iso}>{effectiveDate.label}</time>.
+			</p>
 		</section>
 
 		<hr class="my-8 border-base-300" />
@@ -319,7 +375,9 @@ const retention = [
 			<p class="text-xs text-neutral-content mb-2">
 				<span class="text-error font-bold">$</span>
 				<span class="ml-1 text-warning">exit</span>
-				<span class="blink" aria-hidden="true">_</span>
+				<span class="blink" aria-hidden="true">
+					_
+				</span>
 			</p>
 			<div class="flex flex-wrap gap-3 mt-4">
 				<a href="/sps/terms/" class="link-action no-underline">

@@ -57,8 +57,7 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 	</head>
 	<body style={`margin:0;padding:0;${bodyBgCss}font-family:'Courier New',Courier,monospace;`}>
 		<!-- Preheader: inbox preview text. Hidden visually in all email clients -->
-		<div
-			style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+		<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
 			Here's a copy of your guestbook entry - {previewMsg.slice(0, 90)}
 		</div>
 		<table
@@ -98,27 +97,23 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 									<tr>
 										<td style={`${borderCss}${cardBgCss}padding:16px;`}>
 											<!-- Avatar stamp -->
-											{
-												avatarImageDataUri && (
-													<div style="line-height:0;margin-bottom:16px;">
-														<img
-															src={avatarImageDataUri}
-															width="48"
-															height="48"
-															alt="8-bit avatar"
-															style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${C["base-100"]};border:2px solid ${C["warning"]};box-shadow:3px 3px 0 ${C["base-content"]};padding:1px;`}
-														/>
-													</div>
-												)
-											}
+											{avatarImageDataUri && (
+												<div style="line-height:0;margin-bottom:16px;">
+													<img
+														src={avatarImageDataUri}
+														width="48"
+														height="48"
+														alt="8-bit avatar"
+														style={`display:block;width:48px;height:48px;flex-shrink:0;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;background:${C["base-100"]};border:2px solid ${C["warning"]};box-shadow:3px 3px 0 ${C["base-content"]};padding:1px;`}
+													/>
+												</div>
+											)}
 											<!--
 												max-height + overflow-y:auto for clients that support it.
 												Server-side truncation at MAX_COPY_MSG_CHARS is the safety net for clients that don't.
 											-->
 											<pre
-												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${C["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}
-												>{previewMsg}{truncated && <span style={`color:${C["muted"]};font-style:italic;`}> … (truncated)</span>}</pre
-											>
+												style={`margin:0;padding:0;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:400;color:${C["base-content"]};white-space:pre-wrap;word-break:break-word;line-height:1.6;max-height:320px;overflow-y:auto;background:transparent;border:none;`}>{previewMsg}{truncated && <span style={`color:${C["muted"]};font-style:italic;`}> … (truncated)</span>}</pre>
 										</td>
 									</tr>
 								</table>
@@ -126,53 +121,49 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 						</tr>
 
 						<!-- Action row: view link (visible only), pending review notice (pending) -->
-						{
-							status === "visible" && (
+						{status === "visible" && (
+							<tr>
+								<td style="padding-top:20px;text-align:center;">
+									<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0 auto;">
+										<tr>
+											<td style={`background:${C["success"]};`}>
+												<a
+													href={entryUrl}
+													style={`display:block;padding:8px 20px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${C["success-content"]};`}>
+													View on guestbook &rarr;
+												</a>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						)}
+						{status === "pending" && (
+							<Fragment>
 								<tr>
-									<td style="padding-top:20px;text-align:center;">
-										<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="margin:0 auto;">
-											<tr>
-												<td style={`background:${C["success"]};`}>
-													<a
-														href={entryUrl}
-														style={`display:block;padding:8px 20px;font-size:13px;text-decoration:none;font-family:'Courier New',Courier,monospace;font-weight:bold;color:${C["success-content"]};`}>
-														View on guestbook &rarr;
-													</a>
-												</td>
-											</tr>
-										</table>
+									<td style="padding-top:14px;">
+										<p
+											style={`margin:0;font-size:12px;color:${C["warning"]};font-family:'Courier New',Courier,monospace;`}>
+											&#9888;&#65039; Your entry is pending review. It will appear on the guestbook once approved.
+										</p>
 									</td>
 								</tr>
-							)
-						}
-						{
-							status === "pending" && (
-								<Fragment>
-									<tr>
-										<td style="padding-top:14px;">
-											<p
-												style={`margin:0;font-size:12px;color:${C["warning"]};font-family:'Courier New',Courier,monospace;`}>
-												&#9888;&#65039; Your entry is pending review. It will appear on the guestbook once approved.
-											</p>
-										</td>
-									</tr>
-									<tr>
-										<td
-											style={`padding-top:14px;text-align:center;font-size:12px;color:${C["neutral-content"]};font-family:'Courier New',Courier,monospace;`}>
-											Questions? Get in touch:&nbsp;
-											<a href={`mailto:${SOCIAL.email}`} style={`color:${C["link"]};text-decoration:none;`}>
-												{SOCIAL.email}
-											</a>
-											&nbsp;or&nbsp;
-											<a href={GITHUB_ISSUES_URL} style={`color:${C["link"]};text-decoration:none;`}>
-												open a GitHub issue
-											</a>
-											.
-										</td>
-									</tr>
-								</Fragment>
-							)
-						}
+								<tr>
+									<td
+										style={`padding-top:14px;text-align:center;font-size:12px;color:${C["neutral-content"]};font-family:'Courier New',Courier,monospace;`}>
+										Questions? Get in touch:&nbsp;
+										<a href={`mailto:${SOCIAL.email}`} style={`color:${C["link"]};text-decoration:none;`}>
+											{SOCIAL.email}
+										</a>
+										&nbsp;or&nbsp;
+										<a href={GITHUB_ISSUES_URL} style={`color:${C["link"]};text-decoration:none;`}>
+											open a GitHub issue
+										</a>
+										.
+									</td>
+								</tr>
+							</Fragment>
+						)}
 
 						<!-- Footer -->
 						<tr>
