@@ -11,16 +11,18 @@ import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
 import type { AstroUserConfig } from "astro";
 import { transformerCopyButton } from "@rehype-pretty/transformers";
 
+type RehypePluginEntry = NonNullable<NonNullable<Parameters<typeof unified>[0]>["rehypePlugins"]>[number];
+
 /**
  * Custom remark plugin that calculates reading time and word count.
  * Writes directly to Astro's frontmatter.
  * @see https://docs.astro.build/en/recipes/reading-time/
  */
 function remarkReadingTime() {
-	return function (tree: any, { data }: any) {
-		const textOnPage = toString(tree);
-		const readingTime = getReadingTime(textOnPage);
-		data.astro.frontmatter.readingTime = readingTime;
+	return function (tree: unknown, file: { data: Record<string, unknown> }) {
+		// Astro places the page frontmatter on file.data.astro before remark plugins run.
+		const astro = file.data.astro as { frontmatter: Record<string, unknown> };
+		astro.frontmatter.readingTime = getReadingTime(toString(tree));
 	};
 }
 
@@ -64,11 +66,12 @@ const markdownConfig: AstroUserConfig["markdown"] = {
 		],
 		rehypePlugins: [
 			rehypeSlug, // Add id attrs to headings (must run before extractToc)
-			extractToc, // Attach TOC to vfile.data.toc (reads ids set by rehypeSlug)
-			[withTocExport, { name: "tableOfContents" }], // Export TOC as named export for MDX
-			// rehype-accessible-emojis types don't satisfy Astro's strict rehype plugin
-			// signature cast required. Tracked upstream in the plugin's type declarations.
-			rehypeAccessibleEmojis as any,
+			// The next three plugins type their transformer as Node -> Node, which does not
+			// satisfy Astro's Root -> Root plugin signature; they work at runtime, so cast to
+			// the config's own plugin entry type.
+			extractToc as RehypePluginEntry, // Attach TOC to vfile.data.toc (reads ids set by rehypeSlug)
+			[withTocExport, { name: "tableOfContents" }] as RehypePluginEntry, // Export TOC as named export for MDX
+			rehypeAccessibleEmojis as RehypePluginEntry,
 			[
 				rehypeExternalLinks,
 				{
