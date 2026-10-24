@@ -68,7 +68,7 @@ const entries = filter === "audit" ? [] : await getModeratedEntries(filter);
 const auditLog = filter === "audit" ? await getModerationLog() : [];
 ---
 
-<Layout title="Guestbook Moderation" description="Admin: review guestbook entries">
+<Layout noIndex title="Guestbook Moderation" description="Admin: review guestbook entries">
 	<div class="flex items-center justify-between mb-6 gap-4">
 		<h2>Guestbook Moderation</h2>
 		<a href="/admin" class="btn btn-error btn-sm btn-frame">
