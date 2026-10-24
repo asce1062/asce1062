@@ -98,6 +98,8 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		// Creature layer sits behind the content (z-index 0, no pointer events)
 		creatureLayer = document.createElement("div");
 		creatureLayer.className = "haunted-creatures";
+		// Decorative: some creature SVGs carry no aria-hidden of their own.
+		creatureLayer.setAttribute("aria-hidden", "true");
 		el.prepend(creatureLayer);
 
 		const svgStr = CREATURES[creature];
