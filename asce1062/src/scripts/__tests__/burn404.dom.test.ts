@@ -22,8 +22,10 @@ function stubCanvasContext(): void {
 		getImageData: (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4) }),
 		putImageData: () => {},
 	};
-	vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
-		fakeContext as unknown as CanvasRenderingContext2D
+	// getContext is overloaded per context type; typing the whole signature avoids
+	// mockReturnValue binding to the last (WebGPU) overload.
+	vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+		(() => fakeContext) as unknown as HTMLCanvasElement["getContext"]
 	);
 }
 
