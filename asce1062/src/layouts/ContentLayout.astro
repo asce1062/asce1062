@@ -55,7 +55,7 @@ const editDate =
 
 <Layout
 	title={title}
-	ogImage=`open-graph${Astro.url.pathname.slice(0, -1)}.png`
+	ogImage=`open-graph${Astro.url.pathname.replace(/\/$/, "")}.png`
 	description={description}
 	type="article"
 	datePublished={new Date(date).toISOString()}

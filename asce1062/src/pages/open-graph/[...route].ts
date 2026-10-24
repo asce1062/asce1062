@@ -13,8 +13,8 @@ async function getOGRoute() {
 	// Create pages object with blog post paths as keys
 	const blogPages = Object.fromEntries(
 		posts.map((post) => {
-			// Remove .mdx extension from id to match URL structure
-			const path = `/blog/${post.id.replace(".mdx", "")}`;
+			// Glob loader ids are the filename without extension, matching the URL
+			const path = `/blog/${post.id}`;
 			return [path, { frontmatter: post.data }];
 		})
 	);
@@ -22,7 +22,7 @@ async function getOGRoute() {
 	// Add note paths
 	const notePages = Object.fromEntries(
 		notes.map((note) => {
-			const path = `/notes/${note.id.replace(".mdx", "")}`;
+			const path = `/notes/${note.id}`;
 			return [path, { frontmatter: note.data }];
 		})
 	);
