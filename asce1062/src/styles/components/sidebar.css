@@ -540,10 +540,11 @@ Also accessible to screen readers via aria-describedby on the toggle input.
 	}
 }
 
-/* On hover-capable devices: reveal when info button is hovered or keyboard-focused */
+/* On hover-capable devices: reveal when the info icon is hovered, or when the
+   option's own control has keyboard focus (the info icon is not focusable) */
 @media (hover: hover) {
 	.nav-option-control:has(.nav-option-info-btn:hover) + .nav-option-helper,
-	.nav-option-control:has(.nav-option-info-btn:focus-visible) + .nav-option-helper {
+	.nav-option-control:has(input:focus-visible) + .nav-option-helper {
 		display: block;
 	}
 }
