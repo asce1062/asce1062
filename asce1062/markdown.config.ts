@@ -26,33 +26,6 @@ function remarkReadingTime() {
 	};
 }
 
-interface HastNode {
-	type: string;
-	tagName?: string;
-	properties?: Record<string, unknown>;
-	children?: HastNode[];
-}
-
-/**
- * GFM footnotes are appended to the end of the document root. In MDX files that
- * wrap their content in a layout component (<ContentLayout>...</ContentLayout>),
- * that puts the footnotes after the layout: below the site footer and outside
- * the article. Move the section to the end of the layout's children so it
- * renders with the post body.
- */
-function rehypeFootnotesIntoLayout() {
-	return function (tree: HastNode) {
-		const children = tree.children ?? [];
-		const footnotesIndex = children.findIndex(
-			(node) => node.type === "element" && node.tagName === "section" && node.properties?.dataFootnotes !== undefined
-		);
-		const layout = children.findLast((node) => node.type === "mdxJsxFlowElement");
-		if (footnotesIndex === -1 || !layout) return;
-		const [footnotes] = children.splice(footnotesIndex, 1);
-		layout.children = [...(layout.children ?? []), footnotes];
-	};
-}
-
 /**
  * Rehype Pretty Code configuration
  * @see https://rehype-pretty.pages.dev/
@@ -92,7 +65,6 @@ const markdownConfig: AstroUserConfig["markdown"] = {
 			remarkReadingTime, // Calculates readingTime (text, minutes, time, words)
 		],
 		rehypePlugins: [
-			rehypeFootnotesIntoLayout as RehypePluginEntry, // Footnotes inside the MDX layout, not after it
 			rehypeSlug, // Add id attrs to headings (must run before extractToc)
 			// The next three plugins type their transformer as Node -> Node, which does not
 			// satisfy Astro's Root -> Root plugin signature; they work at runtime, so cast to

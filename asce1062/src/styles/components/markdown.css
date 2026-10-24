@@ -70,11 +70,6 @@ content in /blog and /notes.
 		overflow-wrap: break-word;
 	}
 
-	/* Links are inline-block, which sizes to the unbroken word: only `anywhere` lets them wrap. */
-	article :where(p, li) a {
-		overflow-wrap: anywhere;
-	}
-
 	/* No added top gap on the first heading at the top of a page section. */
 	article > h1:first-child,
 	article > h2:first-child,
