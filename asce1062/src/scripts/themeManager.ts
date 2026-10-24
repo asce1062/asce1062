@@ -137,15 +137,28 @@ export function getCurrentTheme(): Theme {
 }
 
 /**
+ * Paint a theme on the root element without touching storage: data-theme plus
+ * color-scheme (scrollbars, form controls), the same attributes astro-themes sets.
+ */
+export function paintTheme(theme: Theme): void {
+	document.documentElement.setAttribute("data-theme", theme);
+	document.documentElement.style.colorScheme = theme;
+}
+
+/**
  * Apply a theme. Pass persist: false to avoid writing to localStorage
  * (e.g. when the theme is forced by a URL parameter).
  */
 export function setTheme(theme: Theme, persist: boolean = true): Theme {
-	if (persist) {
-		setPref(PREF_KEYS.theme, theme);
+	if (!persist) {
+		// Not "set-theme": astro-themes stores whatever that event carries, which
+		// would turn a ?theme= link into the visitor's saved preference.
+		paintTheme(theme);
+		return theme;
 	}
+	setPref(PREF_KEYS.theme, theme);
 	document.documentElement.setAttribute("data-theme", theme);
-	// astro-themes integration
+	// astro-themes integration: persists, paints data-theme-preference and color-scheme
 	document.dispatchEvent(new CustomEvent("set-theme", { detail: theme }));
 	return theme;
 }
