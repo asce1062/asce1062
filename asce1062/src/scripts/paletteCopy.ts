@@ -24,17 +24,6 @@ export function initPaletteCopy(): void {
 	oklchButtons.forEach((btn) => {
 		btn.addEventListener("click", () => handleOklchCopy(btn));
 	});
-
-	// Tab labels - keyboard support for Enter/Space
-	const tabLabels = document.querySelectorAll<HTMLLabelElement>(".tab-label");
-	tabLabels.forEach((label) => {
-		label.addEventListener("keydown", (e) => {
-			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
-				label.click();
-			}
-		});
-	});
 }
 
 /**

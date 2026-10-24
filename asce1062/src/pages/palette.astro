@@ -38,33 +38,33 @@ import "@/styles/components/palette.css";
 			<!-- Tab labels -->
 			<div class="flex gap-2 border-b border-base-300 mb-6" role="tablist" aria-label="Palette views">
 				<label
+					id="swatches-tab-label"
 					for="swatches-tab"
 					role="tab"
 					aria-controls="swatches-view"
-					tabindex="0"
 					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
 					<i class="icon-palette" aria-hidden="true"></i> Swatches
 				</label>
 				<label
+					id="ingredients-tab-label"
 					for="ingredients-tab"
 					role="tab"
 					aria-controls="ingredients-view"
-					tabindex="0"
 					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
 					<i class="icon-palette2" aria-hidden="true"></i> Ingredients
 				</label>
 				<label
+					id="flavors-tab-label"
 					for="flavors-tab"
 					role="tab"
 					aria-controls="flavors-view"
-					tabindex="0"
 					class="tab-label cursor-pointer px-4 py-2 border-b-2 border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
 					<i class="icon-flask-florence" aria-hidden="true"></i> Flavors
 				</label>
 			</div>
 
 			<!-- Swatches View -->
-			<div id="swatches-view" class="view-panel" role="tabpanel" aria-labelledby="swatches-tab">
+			<div id="swatches-view" class="view-panel" role="tabpanel" aria-labelledby="swatches-tab-label">
 				<Columns columns={3}>
 					{colorRoles.map((role) => (
 						<div
@@ -138,7 +138,7 @@ import "@/styles/components/palette.css";
 			</div>
 
 			<!-- Ingredients View -->
-			<div id="ingredients-view" class="view-panel" role="tabpanel" aria-labelledby="ingredients-tab">
+			<div id="ingredients-view" class="view-panel" role="tabpanel" aria-labelledby="ingredients-tab-label">
 				<p class="text-sm text-neutral-content mb-4">
 					OKLCH values for light and dark themes. Toggle theme with <kbd>Ctrl/Cmd + Shift + L</kbd>
 				</p>
@@ -189,7 +189,7 @@ import "@/styles/components/palette.css";
 			</div>
 
 			<!-- Flavors View -->
-			<div id="flavors-view" class="view-panel" role="tabpanel" aria-labelledby="flavors-tab">
+			<div id="flavors-view" class="view-panel" role="tabpanel" aria-labelledby="flavors-tab-label">
 				<p class="text-sm text-neutral-content mb-4">
 					Flavor overrides layered on top of the base light and dark themes. Sidebar swatches persist with{" "}
 					<code>theme-flavor</code>.
@@ -278,4 +278,5 @@ import "@/styles/components/palette.css";
 
 <script>
 	import "@/scripts/paletteCopy";
+	import "@/scripts/paletteTabs";
 </script>
