@@ -131,8 +131,9 @@ export function checkPostOrigin(request: Request): boolean {
 
 /** Verify an incoming admin request via bearer token or signed session cookie. */
 export async function checkAdminAuth(request: Request, cookies: AstroCookies): Promise<{ ok: true } | { ok: false }> {
+	// Cookie first: an HMAC check is cheap, argon2 is deliberately expensive.
+	if (isValidSessionCookie(cookies)) return { ok: true };
 	const token = getBearerToken(request);
 	if (token && (await verifyAdminToken(token))) return { ok: true };
-	if (isValidSessionCookie(cookies)) return { ok: true };
 	return { ok: false };
 }
