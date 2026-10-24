@@ -105,7 +105,11 @@ content in /blog and /notes.
   ============================================
   */
 
-	details:not(.table-of-contents details) > :nth-child(n + 2),
+	details:not(.table-of-contents details) > :nth-child(n + 2) {
+		@apply pl-4 border-l p-2;
+		border-color: var(--color-warning);
+	}
+
 	/*
   ============================================
   Tables
