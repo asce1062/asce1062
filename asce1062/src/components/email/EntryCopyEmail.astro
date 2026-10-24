@@ -10,7 +10,7 @@ import { hexLight, hexDark } from "@/config/design-tokens";
 import { getPatternDataUri, entryBorderCss } from "@/lib/email/helpers";
 import { parseEntryStyle } from "@/lib/api/guestbook-input";
 import { SOCIAL } from "@/config/site-config";
-import { BASE_URL, GITHUB_ISSUES_URL, MAX_COPY_MSG_CHARS } from "@/config/email-config";
+import { BASE_URL, GITHUB_ISSUES_URL, MAX_COPY_MSG_CHARS, sanitizeUserText, truncate } from "@/config/email-config";
 
 interface Props {
 	name: string;
@@ -45,8 +45,10 @@ const cardBgCss = patternDataUri
 const entryUrl = `${BASE_URL}/guestbook#entry-${entryId}`;
 
 // Truncate before render. Server-side safety net for clients that don't support max-height/overflow-y
-const previewMsg = message.length > MAX_COPY_MSG_CHARS ? message.slice(0, MAX_COPY_MSG_CHARS) + "…" : message;
-const truncated = message.length > MAX_COPY_MSG_CHARS;
+// Same sanitizing and code-point truncation as the plain-text part.
+const cleanMessage = sanitizeUserText(message);
+const previewMsg = truncate(cleanMessage, MAX_COPY_MSG_CHARS);
+const truncated = previewMsg !== cleanMessage;
 ---
 
 <!doctype html>
@@ -59,7 +61,7 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 	<body style={`margin:0;padding:0;${bodyBgCss}font-family:'Courier New',Courier,monospace;`}>
 		<!-- Preheader: inbox preview text. Hidden visually in all email clients -->
 		<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
-			Here's a copy of your guestbook entry - {previewMsg.slice(0, 90)}
+			Here's a copy of your guestbook entry - {truncate(previewMsg, 90)}
 		</div>
 		<table
 			role="presentation"
@@ -156,10 +158,14 @@ const truncated = message.length > MAX_COPY_MSG_CHARS;
 										<a href={`mailto:${SOCIAL.email}`} style={`color:${C["link"]};text-decoration:none;`}>
 											{SOCIAL.email}
 										</a>
-										&nbsp;or&nbsp;
-										<a href={GITHUB_ISSUES_URL} style={`color:${C["link"]};text-decoration:none;`}>
-											open a GitHub issue
-										</a>
+										{GITHUB_ISSUES_URL && (
+											<>
+												&nbsp;or&nbsp;
+												<a href={GITHUB_ISSUES_URL} style={`color:${C["link"]};text-decoration:none;`}>
+													open a GitHub issue
+												</a>
+											</>
+										)}
 										.
 									</td>
 								</tr>

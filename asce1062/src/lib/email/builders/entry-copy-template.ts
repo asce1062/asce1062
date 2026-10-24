@@ -6,7 +6,7 @@
 import type { ModerationStatus } from "@/lib/api/guestbook";
 import EntryCopyEmail from "@/components/email/EntryCopyEmail.astro";
 import { renderEmailHtml } from "@/lib/email/render";
-import { BASE_URL, MAX_COPY_MSG_CHARS, truncate, sanitizeUserText, wrapText } from "@/config/email-config";
+import { BASE_URL, MAX_COPY_MSG_CHARS, truncate, sanitizeUserText, singleLine, wrapText } from "@/config/email-config";
 
 export interface EntryCopyTemplateInput {
 	name: string;
@@ -34,13 +34,13 @@ export async function renderEntryCopyEmail(
 		const p = new URLSearchParams(input.avatarState);
 		const gender = p.get("gender");
 		const avatar = p.get("avatar");
-		return gender && avatar ? `${BASE_URL}/api/avatar.png?gender=${gender}&avatar=${avatar}` : null;
+		return gender && avatar ? `${BASE_URL}/api/avatar.png?${new URLSearchParams({ gender, avatar })}` : null;
 	})();
 
 	const html = await renderEmailHtml(EntryCopyEmail, { ...input, avatarImageDataUri });
 
 	const text = [
-		`Hi ${input.name},`,
+		`Hi ${singleLine(input.name)},`,
 		"",
 		`You opted in to receive a copy of your guestbook entry on ${siteHost}.`,
 		"",

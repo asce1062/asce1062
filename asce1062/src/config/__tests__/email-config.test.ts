@@ -12,6 +12,7 @@ import { describe, it, expect } from "vitest";
 import {
 	sanitizeUrl,
 	sanitizeHeaderValue,
+	singleLine,
 	parseEmailAddress,
 	sanitizeUserText,
 	truncate,
@@ -326,5 +327,45 @@ describe("wrapText", () => {
 		const text = "ab cd ef";
 		const result = wrapText(text, 3);
 		expect(result).toContain("\n");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Unicode line separators, control characters and bidi overrides
+// ---------------------------------------------------------------------------
+
+describe("sanitizeHeaderValue (unicode)", () => {
+	it("replaces U+2028/U+2029/U+0085 and C0/C1 controls with spaces", () => {
+		expect(sanitizeHeaderValue("a b c\u0085d\u0000e\u001Bf")).toBe("a b c d e f");
+	});
+
+	it("strips bidi override and isolate controls that can spoof a name", () => {
+		expect(sanitizeHeaderValue("Ada‮gnp.exe")).toBe("Adagnp.exe");
+		expect(sanitizeHeaderValue("⁦Ada⁩")).toBe("Ada");
+	});
+
+	it("never splits a surrogate pair when truncating", () => {
+		const value = `${"a".repeat(119)}🚀🚀`;
+		const result = sanitizeHeaderValue(value) ?? "";
+		expect(Array.from(result)).toHaveLength(120);
+		expect(result.endsWith("🚀")).toBe(true);
+		expect(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/.test(result)).toBe(false);
+	});
+});
+
+describe("singleLine", () => {
+	it("collapses any line break into one space so a field cannot add lines", () => {
+		expect(singleLine("Ada\r\nStatus: VISIBLE Review: ok")).toBe("Ada Status: VISIBLE Review: ok");
+	});
+
+	it("strips bidi overrides and trims", () => {
+		expect(singleLine("  Ada‮  ")).toBe("Ada");
+	});
+});
+
+describe("truncate (code points)", () => {
+	it("cuts on code point boundaries", () => {
+		expect(truncate("ab🚀cd", 3)).toBe("ab🚀…");
+		expect(truncate("🚀🚀", 2)).toBe("🚀🚀");
 	});
 });

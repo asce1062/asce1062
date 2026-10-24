@@ -12,6 +12,7 @@ import {
 	sanitizeHeaderValue,
 	sanitizeUrl,
 	sanitizeUserText,
+	singleLine,
 	wrapText,
 } from "@/config/email-config";
 
@@ -56,21 +57,24 @@ export async function renderNotifyEmail(
 		const p = new URLSearchParams(input.avatarState);
 		const gender = p.get("gender");
 		const avatar = p.get("avatar");
-		return gender && avatar ? `${BASE_URL}/api/avatar.png?gender=${gender}&avatar=${avatar}` : null;
+		return gender && avatar ? `${BASE_URL}/api/avatar.png?${new URLSearchParams({ gender, avatar })}` : null;
 	})();
 
 	const html = await renderEmailHtml(NotifyEmail, { ...input, url: safeUrl, avatarImageDataUri });
 
+	// User fields are collapsed onto one line so they cannot forge "Status:" lines.
+	const textName = singleLine(input.name);
+	const textEmail = singleLine(input.email);
 	const text = [
-		`New guestbook entry from ${input.name}`,
+		`New guestbook entry from ${textName}`,
 		"",
 		`Status:  ${classification.status.toUpperCase()}`,
 		`Score:   ${classification.score}`,
 		`Reasons: ${reasons}`,
 		"",
 		"--- Entry Details ---",
-		`Name:    ${input.name}`,
-		input.email ? `Email:   ${input.email}` : null,
+		`Name:    ${textName}`,
+		textEmail ? `Email:   ${textEmail}` : null,
 		safeUrl ? `URL:     ${safeUrl}` : null,
 		`Time:    ${input.submittedAt.toISOString()}`,
 		"",
