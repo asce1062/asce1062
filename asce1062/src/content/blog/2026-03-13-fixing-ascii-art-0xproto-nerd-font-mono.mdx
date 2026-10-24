@@ -21,7 +21,7 @@ import ContentLayout from "@/layouts/ContentLayout.astro";
     currentPost={frontmatter.permalink}
     tableOfContents={tableOfContents}>
 
-# Fixing ASCII Art Rendering in 0xProto with NerdFontMono
+## Fixing ASCII Art Rendering in 0xProto with NerdFontMono
 <br/>
 `fc-query 0xProto`.
 
@@ -30,7 +30,7 @@ Here's how I fixed it, and how you can do the same for any developer typeface.
 <br/>
 ---
 <br/>
-## `$ whatis nerd-fonts`
+### `$ whatis nerd-fonts`
 
 [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts) is an open source project that takes popular developer fonts
 and patches them with thousands of additional glyphs crucially the full **Unicode Box Drawing** and **Block Elements** ranges.
@@ -49,7 +49,7 @@ is rendered at exactly the same advance width as a regular letter. That's what k
 
 ---
 <br/>
-## `$ cat ~/why-we-needed-this.md`
+### `$ cat ~/why-we-needed-this.md`
 
 The base 0xProto ships with full Box Drawing coverage but **zero Block Elements**
 I only discovered this gap when ASCII art on some [fonts](https://github.com/patorjk/figlet.js) like ***ANSI Shadow***–style
@@ -67,7 +67,7 @@ Swapping the font files fixed the rendering without touching a single line of CS
 
 ---
 <br/>
-## `$ ls ~/download-options/`
+### `$ ls ~/download-options/`
 
 Nerd Fonts releases ship `.ttf` files only. Grab the **Mono** variant for the typeface you need:
 
@@ -85,7 +85,7 @@ or directly from the [GitHub releases](https://github.com/ryanoasis/nerd-fonts/r
 
 ---
 <br/>
-## `$ convert ttf woff2`
+### `$ convert ttf woff2`
 
 Nerd Fonts provides TTF only. For web serving, **WOFF2** (TTF + Brotli compression) is the modern standard.
 Roughly 30% smaller than TTF and supported by 97%+ of browsers.
@@ -135,7 +135,7 @@ The browser picks the first format it can decode (effectively every modern brows
 
 ---
 <br/>
-## `$ cat ~/LICENSE-notes.md`
+### `$ cat ~/LICENSE-notes.md`
 
 Both 0xProto and Nerd Fonts are released under the **[SIL Open Font License 1.1](https://openfontlicense.org/)**.
 The OFL explicitly permits:
@@ -153,7 +153,7 @@ See also: [Licensing & Disclaimer](/notes/2026-03-12-licensing).
 
 ---
 <br/>
-## `$ echo $TLDR`
+### `$ echo $TLDR`
 
 1. ***Audit*** your font for <em>missing Unicode ranges</em> before assuming a rendering bug is CSS, browser or operating system related. <u>fontTools</u> makes this trivial.
 2. Use **NerdFontMono** for monospace web contexts; the `default` and `Propo` variants <u>will</u> cause alignment drift.

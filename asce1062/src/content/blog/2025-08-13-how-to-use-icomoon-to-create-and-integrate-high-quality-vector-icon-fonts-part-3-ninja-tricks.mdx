@@ -22,7 +22,7 @@ import ImageView from "@/components/ui/ImageView.astro";
     currentPost={frontmatter.permalink}
     tableOfContents={tableOfContents}>
 
-# Part 3: Ninja Tricks.
+## Part 3: Ninja Tricks.
 
 <br/>
 This is the grand finale in our 3 part series on IcoMoon and icon fonts.<br/>
@@ -30,7 +30,7 @@ In this post, we’ll cover pro-level tips or, as I like to call them, ninja tri
 
 <br/>
 <br/>
-# **#1: Adding More Icon Sets**
+## **#1: Adding More Icon Sets**
 IcoMoon ships with a few sets preloaded, but you can load many more, some free, some paid.
 
 - In the Selection view, click Icon Library at the top right.
@@ -47,7 +47,7 @@ IcoMoon ships with a few sets preloaded, but you can load many more, some free, 
 
 <br/>
 <br/>
-# **#2: Editing Icons Inside IcoMoon**
+## **#2: Editing Icons Inside IcoMoon**
 Need to rotate, flip, resize, or rename an icon before adding it to your font? IcoMoon has a built in Edit Mode.
 
 - From the Selection view, click the Edit (pencil) icon.
@@ -72,7 +72,7 @@ Need to rotate, flip, resize, or rename an icon before adding it to your font? I
 
 <br/>
 <br/>
-# **#3: Importing Your Own SVG Icons (and Public Icon Sets)**
+## **#3: Importing Your Own SVG Icons (and Public Icon Sets)**
 If the icon you need isn’t already in IcoMoon, or you’d like to tap into other free icon libraries, you can bring your own.
 
 - Create or open your icon in a vector editor (e.g. Adobe Illustrator, Figma, Gimp, Inkscape).
@@ -94,7 +94,7 @@ If the icon you need isn’t already in IcoMoon, or you’d like to tap into oth
 
 <br/>
 <br/>
-# **#4: Renaming Your Font**
+## **#4: Renaming Your Font**
 By default IcoMoon maintains the original icon names from your uploaded SVGs.<br/>
 That means when you import icons from outside libraries like [Devicons](https://devicon.dev/), you’ll often see names such as `javascript-plain`, `nodejs-original`, or whatever the file was named during the import.
 
@@ -111,7 +111,7 @@ In the modal, update the **Names** field (e.g. change `javascript-plain` → `ja
 
 <br/>
 <br/>
-# **#5: Saving Your Session**
+## **#5: Saving Your Session**
 When using IcoMoon, your modifications will automatically get saved in your browser's cache (using IndexedDB).
 
 It does not get uploaded to your user account on IcoMoon's servers. If you clear your browser's cache, this data will be lost.
@@ -135,7 +135,7 @@ You may import this file both via the **Import Icons** button in the app, or via
 
 <br/>
 <br/>
-# **#6: Changing an Icon with JavaScript / jQuery**
+## **#6: Changing an Icon with JavaScript / jQuery**
 This one puzzled me recently, so I thought I’d save you the trouble. Let’s say you have an icon in your HTML, and you want to change it dynamically. For example, toggling between a pause icon and a play icon on a button.
 
 With IcoMoon’s newer class-based approach, we don’t have to mess with HTML entities. We can just swap out icon classes directly.
@@ -189,7 +189,7 @@ The best part? This approach is cleaner, easier to read, and works seamlessly wi
 
 <br/>
 <br/>
-# **#7: Sass Mixin Magic for Icon Classes (with Pseudo-Element Support)**
+## **#7: Sass Mixin Magic for Icon Classes (with Pseudo-Element Support)**
 Using [Sass](https://sass-lang.com/) with icon fonts makes your workflow faster, cleaner, and much more maintainable.<br/>
 You can also create mixins that work both for inline icons and pseudo-elements (`::before` / `::after`).
 
@@ -286,11 +286,11 @@ btn.addEventListener('click', () => {
   btn.classList.toggle('is-playing');
   btn.textContent = btn.classList.contains('is-playing') ? 'Pause' : 'Play';
 });
-    ```
+```
 This approach keeps your CSS lean and your icon usage consistent.
 
 <br/>
-# **Wrapping Up**
+## **Wrapping Up**
 That’s a wrap on our three part dive into IcoMoon and icon fonts. We’ve covered some nifty tricks to help you take full control of your icons. From importing and editing, to keeping your styles clean and consistent.<br/>
 Keep an eye out for future installments where we’ll explore advanced moves like ligatures, custom character mapping, and other ways to squeeze even more magic out of icon fonts.
 </ContentLayout>

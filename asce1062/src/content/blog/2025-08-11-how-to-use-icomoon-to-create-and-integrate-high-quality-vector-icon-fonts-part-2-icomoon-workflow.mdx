@@ -21,7 +21,7 @@ import ImageView from "@/components/ui/ImageView.astro";
     currentPost={frontmatter.permalink}
     tableOfContents={tableOfContents}>
 
-# Part 2: IcoMoon Workflow: How to Create & Manage Custom Icon Fonts Easily.
+## Part 2: IcoMoon Workflow: How to Create & Manage Custom Icon Fonts Easily.
 
 <br/>
 In [Part 1](/blog/2025-08-01-how-to-use-icomoon-to-create-and-integrate-high-quality-vector-icon-fonts-part-1) of this series, we covered the basics of getting started with IcoMoon: picking icons, generating your font, and integrating it into your project.
@@ -30,7 +30,7 @@ Now it’s time to dive into the fun stuff: **a workflow that keeps your icon fo
 
 <br/>
 <br/>
-# **Decide on Icons Early in the Design Stage**
+## **Decide on Icons Early in the Design Stage**
 
 Before you even touch a text editor, make the decision to use an icon font. This isn’t just a developer thing, it’s a design choice. Whether you’re the designer or you’re collaborating with one, agreeing to use icons from IcoMoon early on will save a ton of headaches later.
 
@@ -38,7 +38,7 @@ That said… what if you just can’t find the perfect icon? No problem. IcoMoon
 
 <br/>
 <br/>
-# **My IcoMoon Workflow**
+## **My IcoMoon Workflow**
 Once I have the design direction ready and I’m ready to start building the site, here’s the process I follow:
 
 1. Identify all the icons in the design
@@ -58,7 +58,7 @@ Once I have the design direction ready and I’m ready to start building the sit
 
 <br/>
 <br/>
-# **Updating Your Icon Font Later**
+## **Updating Your Icon Font Later**
 Design change? Client requests a new icon? No sweat. If you’ve kept your IcoMoon folder untouched, you can:
 
 - Reopen your original selection in IcoMoon
@@ -72,7 +72,7 @@ Design change? Client requests a new icon? No sweat. If you’ve kept your IcoMo
 
 <br/>
 <br/>
-# **Integrating with SASS for Extra Convenience**
+## **Integrating with SASS for Extra Convenience**
 These days, I write all my styles in `SASS`, which makes managing icon fonts even easier.
 
 1. Define variables in `_variables.scss`
@@ -104,7 +104,7 @@ $icon-github: "\efc4"; // Unicode for your github icon
 
 <br/>
 <br/>
-# **Creating a Silent Extendable Icon Class**
+## **Creating a Silent Extendable Icon Class**
 For ultimate reusability, I like to make a silent extendable `%icon` class
 ```scss title="SASS"
 %icon {

@@ -21,7 +21,7 @@ import ContentLayout from "@/layouts/ContentLayout.astro";
     currentPost={frontmatter.permalink}
     tableOfContents={tableOfContents}>
 
-# The shape of a small auth system
+## The shape of a small auth system
 <br/>
 The raw admin token was doing too many jobs.
 
@@ -47,7 +47,7 @@ The password-hashing side of this is its own topic, so I wrote that separately:
 ---
 <br/>
 
-## `$ cat ~/old-flow.md`
+### `$ cat ~/old-flow.md`
 
 The old flow was simple:
 
@@ -101,7 +101,7 @@ For this site, that means:
 ---
 <br/>
 
-## `$ cat ~/migration-goals.md`
+### `$ cat ~/migration-goals.md`
 
 The migration had a narrow scope, and I wanted to keep it that way.
 
@@ -118,7 +118,7 @@ The point was to remove the sharp edges without turning a guestbook moderation p
 ---
 <br/>
 
-## `$ grep ADMIN_TOKEN_HASH src/lib/api/admin-auth.ts`
+### `$ grep ADMIN_TOKEN_HASH src/lib/api/admin-auth.ts`
 
 The new auth utility reads a hash, normalizes the submitted token, then asks `@node-rs/argon2` to verify it.
 
@@ -198,7 +198,7 @@ class of bad attempts.
 ---
 <br/>
 
-## `$ cat ~/session-cookie.txt`
+### `$ cat ~/session-cookie.txt`
 
 The new cookie is named for what it is:
 
@@ -298,7 +298,7 @@ Here, the smaller design is acceptable because the constraints are small and exp
 ---
 <br/>
 
-## `$ sed -n '44,67p' src/middleware.ts`
+### `$ sed -n '44,67p' src/middleware.ts`
 
 The old middleware had a special path for token upgrades:
 
@@ -359,7 +359,7 @@ Bearer token first. Session cookie second. Query string never enters the convers
 ---
 <br/>
 
-## `$ rg "query token" src/__tests__ src/lib/api/__tests__`
+### `$ rg "query token" src/__tests__ src/lib/api/__tests__`
 
 Removing query-string token upgrades looked like a small change, but it carried a lot of weight.
 
@@ -435,7 +435,7 @@ This is a summary of the migration:
 ---
 <br/>
 
-## `$ npm run hash:admin-token`
+### `$ npm run hash:admin-token`
 
 A hash-based auth flow is only useful if generating the hash is hard to mess up.
 
@@ -489,7 +489,7 @@ need escaping there.
 ---
 <br/>
 
-## `$ npm test -- admin-auth middleware`
+### `$ npm test -- admin-auth middleware`
 
 The tests now describe the threat model.
 
@@ -556,7 +556,7 @@ This split felt right:
 ---
 <br/>
 
-## `$ cat ~/deployment-notes.md`
+### `$ cat ~/deployment-notes.md`
 
 The migration has a few deployment rules worth writing down.
 
@@ -626,7 +626,7 @@ That is intentional. The replacement is the login form or an explicit bearer hea
 ---
 <br/>
 
-## `$ echo $LESSON`
+### `$ echo $LESSON`
 
 The thing about small admin systems is that they rarely stay "temporary".
 
