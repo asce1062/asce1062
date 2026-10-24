@@ -69,7 +69,9 @@ import Expand from "@/components/ui/Expand.astro";
 					<em>8-bit avatar customization</em>
 				</b>{" "}
 				(if you've saved an avatar). These persist across visits by design so you shouldn't have to reconfigure your
-				preferences every time you open the site.
+				preferences every time you open the site. Two short-lived <code>sessionStorage</code> values (a visit marker and
+				the last page before going offline) are cleared when you close the tab, and the service worker keeps an offline
+				copy of this site's own pages.
 			</p>
 			<p>
 				The{" "}

@@ -44,8 +44,9 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 			<p>
 				The only things written to your browser are twelve <code>localStorage</code> values: theme, match-device-theme,
 				cursor-blink, stars-bg, matrix-bg, flourish-burn404, theme-flavor, theme-transition, sidebar-collapsed,
-				nav-brand-visits, nav-brand-last-visit, and your avatar customization. No cookies. No session identifiers.
-				Nothing that follows you around.
+				nav-brand-visits, nav-brand-last-visit, and your avatar customization; two <code>sessionStorage</code> values
+				that are cleared when you close the tab; and the offline copy of this site's own pages kept by its service
+				worker. No cookies. No session identifiers. Nothing that follows you around.
 			</p>
 		</section>
 
@@ -214,9 +215,15 @@ import PrivacyPolicy from "@/components/PrivacyPolicy.astro";
 				</li>
 			</ol>
 			<p>
-				These are stored in <code>localStorage</code>, not <code>sessionStorage</code>. That means they persist across
-				browser restarts by design so your preferences stick between visits without you having to re-configure them
-				every time.
+				These twelve are stored in <code>localStorage</code>, so they persist across browser restarts by design and your
+				preferences stick between visits without you having to re-configure them every time.
+			</p>
+			<p>
+				Two more values live in <code>sessionStorage</code> and disappear when you close the tab:
+				<code>nav-brand-visited</code> (marks that this tab's visit was already counted, so moving between pages does
+				not count again) and <code>offline_last_page</code> (the address of the page you were on, so the offline page
+				can take you back once the connection returns). The service worker also keeps this site's own pages and assets
+				in your browser's cache so the site works offline; nothing from other sites is stored.
 			</p>
 			<p>
 				You can clear them at any time via your browser's developer tools (<kbd>Application</kbd> →{" "}
