@@ -35,6 +35,7 @@ import { runShuffleRenderer } from "./effects/shuffle";
 import { runGlitchRenderer } from "./effects/glitch";
 import { runTypewriterRenderer } from "./effects/typewriter";
 import { activeEffects, clearActiveEffect } from "./activeEffects";
+import { ensureTextEffectSurface, readTextEffectText, setTextEffectLabel, writeTextEffectText } from "./surface";
 
 /** Optional root dataset hook so consumers can style active effects in CSS. */
 function setRootEffect(
@@ -140,7 +141,7 @@ function isReducedMotionRequested(explicit?: boolean): boolean {
 }
 
 function applyReducedMotionFallback(el: HTMLElement, stableText: string): void {
-	el.textContent = stableText;
+	writeTextEffectText(el, stableText);
 	el.dataset.textEffectStableText = stableText;
 	el.dataset.greetingTarget = stableText;
 }
@@ -182,8 +183,8 @@ export function resetTextEffect(
 	clearActiveEffect(el);
 	setRootEffect(options.rootEl, "none", options.rootEffectDataset);
 
-	const target = el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent ?? "";
-	el.textContent = target;
+	const target = el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? readTextEffectText(el);
+	writeTextEffectText(el, target);
 }
 
 export async function runTextTransition(options: TextTransitionOptions): Promise<boolean> {
@@ -212,7 +213,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 	clearActiveEffect(el);
 
 	const fromText =
-		options.fromText ?? el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent ?? "";
+		options.fromText ?? el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? readTextEffectText(el);
 	const toText = options.toText;
 	const mode = options.mode ?? "enter-only";
 	const { enterEffect, exitEffect } = resolveTransitionEffects(options);
@@ -246,6 +247,10 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 		(standaloneEffect === "shuffle" && shuffleOptions?.restore === false) ||
 		standaloneEffect === "typewriter";
 
+	// Effects draw into an aria-hidden frame; assistive tech reads the target text.
+	const frame = ensureTextEffectSurface(el);
+	setTextEffectLabel(el, targetStableText);
+
 	let cancelled = false;
 	let activeRenderer: EffectRendererHandle | null = null;
 	const transitionHandle: ActiveEffectHandle = {
@@ -261,7 +266,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 			if (cancelled || effect === "none") return;
 			setRootEffect(rootEl, effect, rootEffectDataset);
 			activeRenderer = runPhaseRenderer({
-				el,
+				el: frame,
 				effect,
 				text,
 				durationMs,
@@ -284,7 +289,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 
 		if (mode === "standalone") {
 			await runPhase(standaloneEffect, fromText || toText);
-			if (!cancelled && !skipFinalRestore) el.textContent = targetStableText;
+			if (!cancelled && !skipFinalRestore) writeTextEffectText(el, targetStableText);
 			return;
 		}
 
@@ -310,7 +315,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 			await runPhase(enterEffect, toText);
 		}
 
-		if (!cancelled) el.textContent = targetStableText;
+		if (!cancelled) writeTextEffectText(el, targetStableText);
 	})();
 
 	activeEffects.set(el, transitionHandle);
@@ -319,7 +324,7 @@ export async function runTextTransition(options: TextTransitionOptions): Promise
 	if (activeEffects.get(el) === transitionHandle) {
 		activeEffects.delete(el);
 		setRootEffect(rootEl, "none", rootEffectDataset);
-		if (!skipFinalRestore) el.textContent = targetStableText;
+		if (!skipFinalRestore) writeTextEffectText(el, targetStableText);
 		onComplete?.();
 	}
 	return true;
@@ -374,10 +379,7 @@ export function playTextEffect(options: {
 	if (!options.el) return false;
 	const metadata = options.effect !== "none" ? TEXT_EFFECTS[options.effect] : null;
 	const fromText =
-		options.el.dataset.textEffectStableText ??
-		options.el.dataset.greetingTarget ??
-		options.el.textContent ??
-		options.text;
+		options.el.dataset.textEffectStableText ?? options.el.dataset.greetingTarget ?? readTextEffectText(options.el);
 	const hasChangedStableText = Boolean(metadata && metadata.role === "enter" && fromText && fromText !== options.text);
 	const mode =
 		metadata?.role === "exit" || metadata?.role === "standalone"

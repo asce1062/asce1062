@@ -30,7 +30,7 @@ import "@/styles/components/terminal-modal.css";
 			<h2 id="terminal-modal-title" class="terminal-window__title">
 				stellar console
 			</h2>
-			<div class="terminal-window__presence" aria-live="polite">
+			<div class="terminal-window__presence">
 				<p class="terminal-window__presence-line">
 					<span id="terminal-modal-presence-badge" class="badge badge-warning badge-sm">
 						last seen
@@ -102,7 +102,7 @@ import "@/styles/components/terminal-modal.css";
 	</div>
 
 	<div class="terminal-window__body">
-		<div id="terminal-modal-log" class="terminal-window__log" aria-live="polite"></div>
+		<div id="terminal-modal-log" class="terminal-window__log" role="log" aria-label="Terminal output"></div>
 		<form id="terminal-modal-form" class="terminal-window__prompt-form" novalidate>
 			<label class="terminal-window__prompt" for="terminal-modal-input">
 				<span class="terminal-window__prompt-text">alex@alexmbugua.me //</span>

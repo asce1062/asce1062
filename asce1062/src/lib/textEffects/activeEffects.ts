@@ -1,4 +1,5 @@
 import type { ActiveEffectHandle, IntervalHandle } from "./types";
+import { getTextEffectFrame } from "./surface";
 
 export const activeEffects = new WeakMap<HTMLElement, ActiveEffectHandle>();
 export const triggerHandlers = new WeakMap<
@@ -30,8 +31,12 @@ export function registerPostEffectStop(el: HTMLElement, stop: () => void): void 
 }
 
 export function stopPostEffect(el: HTMLElement): void {
-	postEffectStops.get(el)?.();
-	postEffectStops.delete(el);
+	// Effects render into the host's frame, so post-effect work is keyed by it.
+	for (const target of [el, getTextEffectFrame(el)]) {
+		if (!target) continue;
+		postEffectStops.get(target)?.();
+		postEffectStops.delete(target);
+	}
 }
 
 export function clearActiveEffect(el: HTMLElement): void {

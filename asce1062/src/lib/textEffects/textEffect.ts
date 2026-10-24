@@ -190,3 +190,4 @@ export * from "./utils";
 export * from "./config";
 export * from "./transition";
 export * from "./triggers";
+export * from "./surface";

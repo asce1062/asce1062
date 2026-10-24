@@ -516,6 +516,12 @@ Global Utility Styles
 	}
 }
 
+/* A text effect's screen-reader label repeats the visible text: keep it out of
+   selections so copying a line does not paste it twice. */
+[data-text-effect-label] {
+	user-select: none;
+}
+
 /* Ensure iframe displays properly */
 iframe {
 	color-scheme: auto;

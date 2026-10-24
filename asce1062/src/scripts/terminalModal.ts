@@ -78,9 +78,13 @@ import {
 import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 import {
 	bindTextEffectTriggers,
+	ensureTextEffectSurface,
 	playTextEffect,
 	readTextEffectConfig,
+	readTextEffectText,
 	resetTextEffect,
+	writeTextEffectText,
+	type TextEffectKind,
 } from "@/lib/textEffects/textEffect";
 import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
@@ -618,7 +622,7 @@ function clearSequenceTimers(): void {
 
 function getCurrentAtmosphereText(el: HTMLElement | null): string {
 	if (!el) return "";
-	return el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent?.trim() ?? "";
+	return el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? readTextEffectText(el).trim();
 }
 
 function resolveTerminalAtmosphere(reason: TerminalAtmosphereReason): string {
@@ -754,9 +758,9 @@ function resetTerminalRuntime(elements: TerminalModalElements): void {
 
 	if (elements.atmosphere) {
 		resetTextEffect(elements.atmosphere);
-		elements.atmosphere.textContent = "restoring context";
 		elements.atmosphere.dataset.textEffectStableText = "restoring context";
 		elements.atmosphere.dataset.greetingTarget = "restoring context";
+		writeTextEffectText(elements.atmosphere, "restoring context");
 	}
 
 	syncPromptMirror(elements);
@@ -794,9 +798,9 @@ function resetTerminalSession(elements: TerminalModalElements): void {
 
 	if (elements.atmosphere) {
 		resetTextEffect(elements.atmosphere);
-		elements.atmosphere.textContent = "restoring context";
 		elements.atmosphere.dataset.textEffectStableText = "restoring context";
 		elements.atmosphere.dataset.greetingTarget = "restoring context";
+		writeTextEffectText(elements.atmosphere, "restoring context");
 	}
 
 	syncPromptMirror(elements);
@@ -905,8 +909,10 @@ function createEntryElement(entry: TerminalEntry): HTMLElement {
 		return spacer;
 	}
 
+	// The font tag and ASCII art are pictures, not text: keep them out of the live log.
 	if (entry.kind === "system-font") {
 		const line = document.createElement("p");
+		line.setAttribute("aria-hidden", "true");
 		line.className = `terminal-window__system-font terminal-window__system-art-line--${entry.colorRole}`;
 		line.dataset.entryId = entry.id;
 		line.textContent = `[${entry.font}]`;
@@ -915,6 +921,7 @@ function createEntryElement(entry: TerminalEntry): HTMLElement {
 
 	if (entry.kind === "system-art") {
 		const line = document.createElement("pre");
+		line.setAttribute("aria-hidden", "true");
 		line.className = `terminal-window__system-art terminal-window__system-art-line terminal-window__system-art-line--${entry.colorRole}`;
 		line.dataset.entryId = entry.id;
 		line.textContent = entry.text;
@@ -968,30 +975,33 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 	}
 
 	elements.log.innerHTML = "";
-	for (const entry of _entries) {
-		elements.log.append(createEntryElement(entry));
-	}
-
-	if (!isReducedMotion()) {
-		const startIndex = animateFromId ? _entries.findIndex((entry) => entry.id === animateFromId) : -1;
-		if (startIndex > -1) {
-			const targets = Array.from(elements.log.querySelectorAll<HTMLElement>("[data-terminal-entry-text]")).slice(
-				startIndex
-			);
-			targets.forEach((target, index) => {
-				const entry = _entries[startIndex + index];
-				const effect = entry && "effect" in entry ? (entry.effect ?? null) : null;
-				if (!effect) return;
-
-				window.setTimeout(() => {
-					playTextEffect({
-						el: target,
-						effect,
-						text: target.textContent ?? "",
-					});
-				}, index * 85);
-			});
+	const startIndex =
+		animateFromId && !isReducedMotion() ? _entries.findIndex((entry) => entry.id === animateFromId) : -1;
+	const animated: Array<{ target: HTMLElement; effect: TextEffectKind; delayMs: number }> = [];
+	let textIndex = 0;
+	_entries.forEach((entry, index) => {
+		const node = createEntryElement(entry);
+		const target = node.querySelector<HTMLElement>("[data-terminal-entry-text]");
+		if (startIndex > -1 && index >= startIndex && target) {
+			const effect = "effect" in entry ? (entry.effect ?? null) : null;
+			if (effect) {
+				// Split before the node enters the live log, so it is announced once.
+				ensureTextEffectSurface(target);
+				animated.push({ target, effect, delayMs: textIndex * 85 });
+			}
+			textIndex++;
 		}
+		elements.log?.append(node);
+	});
+
+	for (const { target, effect, delayMs } of animated) {
+		window.setTimeout(() => {
+			playTextEffect({
+				el: target,
+				effect,
+				text: readTextEffectText(target),
+			});
+		}, delayMs);
 	}
 
 	elements.log.scrollTop = elements.log.scrollHeight;
@@ -1001,18 +1011,19 @@ function appendRenderedEntry(elements: TerminalModalElements, entry: TerminalEnt
 	if (!elements.log) return;
 
 	const node = createEntryElement(entry);
+	const target = node.querySelector<HTMLElement>("[data-terminal-entry-text]");
+	const effect = "effect" in entry ? (entry.effect ?? null) : null;
+	const animate = Boolean(target && effect && !isReducedMotion());
+	// Split before the node enters the live log, so it is announced once.
+	if (animate && target) ensureTextEffectSurface(target);
 	elements.log.append(node);
 
-	if (!isReducedMotion()) {
-		const target = node.querySelector<HTMLElement>("[data-terminal-entry-text]");
-		const effect = "effect" in entry ? (entry.effect ?? null) : null;
-		if (target && effect) {
-			playTextEffect({
-				el: target,
-				effect,
-				text: target.textContent ?? "",
-			});
-		}
+	if (animate && target && effect) {
+		playTextEffect({
+			el: target,
+			effect,
+			text: readTextEffectText(target),
+		});
 	}
 
 	elements.log.scrollTop = elements.log.scrollHeight;

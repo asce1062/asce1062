@@ -63,7 +63,8 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 	<div class="ascii-widget-scroll">
 		<!-- animation container for about/404; sidebar uses .nav-easter-egg instead -->
 		<div id={`${widgetId}-wrap`} class="inline-block relative">
-			<pre id={`${widgetId}-art`} class:list={["pre-art ascii-widget-art", artClass]}></pre>
+			<!-- art is a picture of text: screen readers would spell out every glyph -->
+			<pre id={`${widgetId}-art`} class:list={["pre-art ascii-widget-art", artClass]} aria-hidden="true"></pre>
 		</div>
 	</div>
 </div>

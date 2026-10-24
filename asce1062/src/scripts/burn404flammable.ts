@@ -158,6 +158,9 @@ function collectTextOps(node: Text, ops: AnchorOps): void {
 	const parent = node.parentElement;
 	const text = node.textContent ?? "";
 	if (!parent || !text.trim()) return;
+	// Screen-reader-only text (e.g. a text effect's stable label) is clipped, but
+	// its range rects still report glyph boxes: it is not ink.
+	if (parent.closest(".sr-only, [data-text-effect-label]")) return;
 	const style = window.getComputedStyle(parent);
 	if (!isRendered(style)) return;
 

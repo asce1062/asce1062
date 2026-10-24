@@ -32,6 +32,7 @@ import {
 	scheduleHoverReplayUnlock,
 } from "./activeEffects";
 import { runTextTransition, playTextEffect } from "./transition";
+import { readTextEffectText } from "./surface";
 
 /**
  * Trigger-driven binding API for generic flourish targets.
@@ -106,7 +107,7 @@ export function bindTextEffectTriggers(options: {
 	const textReader =
 		getText ??
 		((node: HTMLElement) =>
-			node.dataset.textEffectStableText ?? node.dataset.greetingTarget ?? node.textContent?.trim() ?? "");
+			node.dataset.textEffectStableText ?? node.dataset.greetingTarget ?? readTextEffectText(node).trim());
 	const useRandomEffect = shouldHandleTextEffectTrigger(normalizedTriggers, "random-effect");
 	const shouldBindTap =
 		shouldHandleTextEffectTrigger(normalizedTriggers, "tap") ||
@@ -145,7 +146,7 @@ export function bindTextEffectTriggers(options: {
 		const selectedEffect = resolveTextEffectKind(candidateEffects, useRandomEffect, Math.random());
 		const metadata = TEXT_EFFECTS[selectedEffect];
 		const fromText =
-			options.fromText ?? el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? el.textContent ?? text;
+			options.fromText ?? el.dataset.textEffectStableText ?? el.dataset.greetingTarget ?? readTextEffectText(el);
 		const shouldLoop = options.forceLoop || (trigger !== "load" && metadata.role === "enter");
 
 		if (shouldLoop && metadata.role === "enter") {
@@ -336,7 +337,7 @@ export function bindTextEffectTriggers(options: {
 	if (shouldHandleTextEffectTrigger(normalizedTriggers, "content-change") && typeof MutationObserver !== "undefined") {
 		let lastObservedText = textReader(el, "content-change");
 		const observer = new MutationObserver(() => {
-			const nextText = (el.textContent ?? "").trim();
+			const nextText = readTextEffectText(el).trim();
 			if (!nextText || nextText === lastObservedText || hasActiveEffect(el)) return;
 			const fromText = lastObservedText;
 			lastObservedText = nextText;
