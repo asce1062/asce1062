@@ -50,6 +50,13 @@ import "@/styles/components/avatar.css";
 		private layerTabs: NodeListOf<Element>;
 		private layerContent: HTMLElement | null;
 
+		/** Removes the window listener so the controller (and its image cache) can be collected. */
+		private abort: AbortController;
+
+		destroy(): void {
+			this.abort.abort();
+		}
+
 		constructor() {
 			// Initialize renderer and state manager
 			this.renderer = new AvatarRenderer("avatar-canvas", "loading-indicator");
@@ -59,6 +66,7 @@ import "@/styles/components/avatar.css";
 			this.genderRadios = document.querySelectorAll('input[name="gender"]');
 			this.layerTabs = document.querySelectorAll(".layer-tab");
 			this.layerContent = document.getElementById("layer-content");
+			this.abort = new AbortController();
 
 			// Set state change callback
 			this.stateManager.setOnStateChange(() => this.onStateChange());
@@ -116,27 +124,31 @@ import "@/styles/components/avatar.css";
 			downloadBtn?.addEventListener("click", () => this.download());
 
 			// External avatar changes (e.g. sidebar mini widget randomize/gender)
-			window.addEventListener(AVATAR_CHANGE_EVENT, (e) => {
-				// Skip events that this controller itself triggered to avoid re-entrant loops.
-				if (this.stateManager.isUpdating) return;
-				const { gender, state } = (e as CustomEvent<{ gender: Gender; state: AvatarState }>).detail;
-				const prevGender = this.stateManager.getGender();
-				this.stateManager.applyExternalChange(gender, state);
-				// If gender changed, sync tab highlights and preload new image set before rendering.
-				if (prevGender !== gender) {
-					this.layerTabs.forEach((tab, index) => {
-						tab.classList.toggle("active", index === 0);
-						(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
-					});
-					this.renderer.preloadImages(gender).then(() => {
+			window.addEventListener(
+				AVATAR_CHANGE_EVENT,
+				(e) => {
+					// Skip events that this controller itself triggered to avoid re-entrant loops.
+					if (this.stateManager.isUpdating) return;
+					const { gender, state } = (e as CustomEvent<{ gender: Gender; state: AvatarState }>).detail;
+					const prevGender = this.stateManager.getGender();
+					this.stateManager.applyExternalChange(gender, state);
+					// If gender changed, sync tab highlights and preload new image set before rendering.
+					if (prevGender !== gender) {
+						this.layerTabs.forEach((tab, index) => {
+							tab.classList.toggle("active", index === 0);
+							(tab as HTMLElement).setAttribute("aria-selected", String(index === 0));
+						});
+						this.renderer.preloadImages(gender).then(() => {
+							this.renderLayerItems();
+							this.renderer.renderAvatar(gender, state).catch(() => {});
+						});
+					} else {
 						this.renderLayerItems();
 						this.renderer.renderAvatar(gender, state).catch(() => {});
-					});
-				} else {
-					this.renderLayerItems();
-					this.renderer.renderAvatar(gender, state).catch(() => {});
-				}
-			});
+					}
+				},
+				{ signal: this.abort.signal }
+			);
 		}
 
 		/**
@@ -287,10 +299,17 @@ import "@/styles/components/avatar.css";
 		const avatarCanvas = document.getElementById("avatar-canvas");
 		if (!avatarCanvas) return;
 
+		controllerInstance?.destroy();
 		controllerInstance = new AvatarGeneratorController();
 		setupAvatarShare();
 	}
 
 	// astro:page-load fires on initial load and after every view transition.
 	document.addEventListener("astro:page-load", initAvatarGenerator);
+	// Leaving /8biticon: drop the controller's window listener, or every later
+	// sidebar avatar change re-rendered the detached generator.
+	document.addEventListener("astro:before-swap", () => {
+		controllerInstance?.destroy();
+		controllerInstance = null;
+	});
 </script>

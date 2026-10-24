@@ -19,8 +19,16 @@ import { getRandomState } from "@/data/avatarConfig";
 import { bindAvatarMiniWidget } from "@/scripts/avatarMiniWidget";
 import { avatarStore } from "@/scripts/avatarStore";
 
-// Aborted and re-created on each page-load to prevent listener accumulation across navigations.
+// Aborted and re-created on each page-load, and aborted when leaving the page, so
+// the avatar-state listener does not keep rendering a detached guestbook canvas.
 let _ac: AbortController | null = null;
+
+if (typeof document !== "undefined") {
+	document.addEventListener("astro:before-swap", () => {
+		_ac?.abort();
+		_ac = null;
+	});
+}
 
 export function initGuestbookAvatarWidget(): void {
 	_ac?.abort();

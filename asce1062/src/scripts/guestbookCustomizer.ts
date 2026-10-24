@@ -14,7 +14,21 @@ const defaults: EntryStyle = {
 	borderRadius: "0.25rem",
 };
 
+// One controller per guestbook visit: aborted on re-init and when leaving the page.
+let _ac: AbortController | null = null;
+
+if (typeof document !== "undefined") {
+	document.addEventListener("astro:before-swap", () => {
+		_ac?.abort();
+		_ac = null;
+	});
+}
+
 export function initGuestbookCustomizer() {
+	_ac?.abort();
+	_ac = new AbortController();
+	const { signal } = _ac;
+
 	const hiddenInput = document.getElementById("style-input") as HTMLInputElement | null;
 	const panel = document.getElementById("customizer-panel") as HTMLElement | null;
 	const doneBtn = document.getElementById("customizer-done") as HTMLButtonElement | null;
@@ -38,12 +52,16 @@ export function initGuestbookCustomizer() {
 
 	doneBtn?.addEventListener("click", () => closePanel());
 
-	document.addEventListener("click", (e) => {
-		const el = e.target as HTMLElement;
-		if (!body!.hidden && !panel!.contains(el) && !randomBtn?.contains(el)) {
-			closePanel();
-		}
-	});
+	document.addEventListener(
+		"click",
+		(e) => {
+			const el = e.target as HTMLElement;
+			if (!body!.hidden && !panel!.contains(el) && !randomBtn?.contains(el)) {
+				closePanel();
+			}
+		},
+		{ signal }
+	);
 
 	function pick<T>(arr: T[]): T {
 		return arr[Math.floor(Math.random() * arr.length)];
