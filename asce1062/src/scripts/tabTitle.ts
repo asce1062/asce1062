@@ -65,6 +65,9 @@ if (typeof document !== "undefined") {
 
 	document.addEventListener("visibilitychange", () => {
 		if (document.visibilityState === "hidden") {
+			// "hidden" can repeat without a "visible" in between (bfcache restore);
+			// never leave an older rotation running.
+			if (rotateTimer !== null) clearInterval(rotateTimer);
 			const hideTime = Date.now();
 			let prevTier = getTier(0);
 			let idx = 0;
