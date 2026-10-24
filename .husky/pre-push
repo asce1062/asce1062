@@ -3,6 +3,14 @@
 # Change to the project directory where node_modules and package.json are located
 cd asce1062
 
-# Regenerate ascii-art.json and stage it if it changed
-npm run generate:ascii
-git add src/data/ascii-art.json
+# ascii-art.json is generated and committed. Staging it here would not add it to
+# the push (the commits already exist), so fail on drift and ask for a commit.
+npm run generate:ascii --silent
+if ! git diff --quiet -- src/data/ascii-art.json; then
+  echo "pre-push: src/data/ascii-art.json is out of date. Commit the regenerated file and push again." >&2
+  exit 1
+fi
+
+# Type-check .astro and .ts (including tests). Vitest strips types, so a type
+# error can pass the pre-commit test run.
+npm run check --silent
