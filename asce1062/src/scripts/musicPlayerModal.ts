@@ -591,6 +591,8 @@ function updateNowFile() {
 		const distance = Math.max(0, refs.nowFile.scrollWidth - viewport.clientWidth);
 		viewport.style.setProperty("--music-now-file-scroll-distance", `${distance}px`);
 		viewport.classList.toggle("is-scrolling", distance > 0);
+		// Full title on hover/AT when the line is truncated or scrolling
+		viewport.title = distance > 0 ? (refs.nowFile.textContent ?? "") : "";
 		viewport.classList.toggle("is-playing", Boolean(currentTrack));
 	});
 	controlsAbortController?.signal.addEventListener("abort", () => window.cancelAnimationFrame(scrollFrame), {

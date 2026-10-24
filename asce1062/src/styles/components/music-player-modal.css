@@ -231,6 +231,16 @@
 	animation: music-now-file-scroll 8s linear infinite alternate;
 }
 
+/* Reduced motion: no marquee; truncate with an ellipsis (full title in the tooltip). */
+@media (prefers-reduced-motion: reduce) {
+	.music-now-file-text.is-scrolling span {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		animation: none;
+	}
+}
+
 @keyframes music-now-file-scroll {
 	from {
 		transform: translateX(0);
