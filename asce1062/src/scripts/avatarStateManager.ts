@@ -16,6 +16,7 @@
 import type { Gender, AvatarState } from "@/data/avatarConfig";
 import { avatarConfig, getDefaultState, getRandomState } from "@/data/avatarConfig";
 import { avatarStore } from "@/scripts/avatarStore";
+import { parseAvatarState } from "@/scripts/avatarRenderCore";
 
 export class AvatarStateManager {
 	private currentGender: Gender;
@@ -144,29 +145,31 @@ export class AvatarStateManager {
 	 */
 	private loadFromURL(): void {
 		const url = new URL(window.location.href);
-		const genderParam = url.searchParams.get("gender") as Gender;
+		const genderParam = url.searchParams.get("gender");
 		const avatarParam = url.searchParams.get("avatar");
 
 		// No URL params → store state is already correct. Nothing to do.
 		if (!genderParam && !avatarParam) return;
 
-		if (genderParam && (genderParam === "male" || genderParam === "female")) {
-			this.currentGender = genderParam;
+		if (genderParam === "male" || genderParam === "female") {
+			// Layer counts differ by gender (clothes: 65 male, 59 female), so switching
+			// gender starts from that gender's defaults, never the other one's values.
+			if (genderParam !== this.currentGender) {
+				this.currentGender = genderParam;
+				this.currentState = getDefaultState(genderParam);
+			}
 			this.genderRadios.forEach((radio) => {
 				const input = radio as HTMLInputElement;
 				input.checked = input.value === genderParam;
 			});
 		}
 
+		// Same strict parser as storage and the server: whole state or nothing, integers in range.
 		if (avatarParam) {
-			const parts = avatarParam.split("-").map(Number);
-			const layers = avatarConfig[this.currentGender];
-			if (parts.length === layers.length) {
-				layers.forEach((layer, i) => {
-					const v = parts[i];
-					if (v >= 1 && v <= layer.count) this.currentState[layer.name] = v;
-				});
-			}
+			const parsed = parseAvatarState(
+				new URLSearchParams({ gender: this.currentGender, avatar: avatarParam }).toString()
+			);
+			if (parsed) this.currentState = parsed.state;
 		}
 
 		// Sync URL state into store (no persist. share links don't overwrite saved avatar).

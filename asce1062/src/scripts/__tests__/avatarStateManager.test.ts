@@ -117,6 +117,38 @@ describe("AvatarStateManager", () => {
 		expect(manager.getState()).toEqual(makeState([4, 20, 10, 12, 3, 2]));
 	});
 
+	it("switches to the URL gender's defaults instead of keeping the other gender's values", async () => {
+		// Saved male clothes 62 does not exist for female (59 options).
+		localStorage.setItem(PREF_KEYS.avatarState, serializeAvatarState("male", makeState([1, 62, 1, 1, 1, 1])));
+		setupBrowser("https://example.com/8biticon?gender=female");
+		localStorage.setItem(PREF_KEYS.avatarState, serializeAvatarState("male", makeState([1, 62, 1, 1, 1, 1])));
+		const { AvatarStateManager } = await loadModules();
+
+		const manager = new AvatarStateManager("male");
+
+		expect(manager.getGender()).toBe("female");
+		expect(manager.getState()).toEqual(getDefaultState("female"));
+	});
+
+	it("ignores a URL avatar with non-integer or out-of-range values", async () => {
+		setupBrowser("https://example.com/8biticon?gender=male&avatar=1.5-2-3-4-5-6");
+		const { AvatarStateManager } = await loadModules();
+
+		const manager = new AvatarStateManager("male");
+
+		expect(manager.getState()).toEqual(getDefaultState("male"));
+	});
+
+	it("applies a valid URL avatar", async () => {
+		setupBrowser("https://example.com/8biticon?gender=female&avatar=4-20-10-12-3-2");
+		const { AvatarStateManager } = await loadModules();
+
+		const manager = new AvatarStateManager("male");
+
+		expect(manager.getGender()).toBe("female");
+		expect(manager.getState()).toEqual(makeState([4, 20, 10, 12, 3, 2]));
+	});
+
 	it("does not write exploratory layer changes into the browser URL", async () => {
 		const { AvatarStateManager } = await loadModules();
 		const manager = new AvatarStateManager("male");
