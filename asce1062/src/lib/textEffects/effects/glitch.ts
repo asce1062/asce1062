@@ -1,6 +1,7 @@
 import type { EffectRendererHandle, GlitchEffectOptions } from "../types";
 import { DEFAULT_GLITCH_COUNT, DEFAULT_GLITCH_SHIMMER_INTERVAL_MS, DEFAULT_GLITCH_ITEMS } from "../constants";
 import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
+import { registerPostEffectStop } from "../activeEffects";
 
 function setCharAt(chars: readonly string[], index: number, ch: string): string[] {
 	const next = [...chars];
@@ -36,7 +37,6 @@ export function runGlitchRenderer(
 	let frame = 0;
 	let settled = false;
 	let revealInterval: ReturnType<typeof globalThis.setInterval> | null = null;
-	let shimmerTimers: ReturnType<typeof globalThis.setTimeout>[] = [];
 	let resolvePromise: () => void = () => {};
 
 	const promise = new Promise<void>((resolve) => {
@@ -47,47 +47,56 @@ export function runGlitchRenderer(
 		return chars.map((char) => (/\s/.test(char) ? char : pickChar()));
 	}
 
-	function scheduleShimmer() {
+	let shimmerTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
+
+	/** Stop the post-reveal shimmer (and anything still pending). */
+	const stopShimmer = (): void => {
+		settled = true;
+		if (shimmerTimer !== null) globalThis.clearTimeout(shimmerTimer);
+		shimmerTimer = null;
+	};
+
+	/** One pending shimmer step at a time; the chain ends once stopped or detached. */
+	function later(step: () => void, ms: number): void {
+		shimmerTimer = globalThis.setTimeout(() => {
+			shimmerTimer = null;
+			if (settled || el.isConnected === false) return;
+			step();
+		}, ms);
+	}
+
+	function scheduleShimmer(): void {
 		if (settled) return;
-		const idleMs = Math.floor(Math.random() * shimmerIntervalMs);
-		const t0 = globalThis.setTimeout(() => {
-			if (settled) return;
-			if (nonSpaceIndices.length === 0) {
-				scheduleShimmer();
-				return;
-			}
-			const pos = nonSpaceIndices[Math.floor(Math.random() * nonSpaceIndices.length)]!;
-			el.textContent = setCharAt(chars, pos, pickChar()).join("");
-
-			const t1 = globalThis.setTimeout(
-				() => {
-					if (settled) return;
-					el.textContent = text;
-
-					const t2 = globalThis.setTimeout(
-						() => {
-							if (settled) return;
-							el.textContent = setCharAt(chars, pos, pickChar()).join("");
-
-							const t3 = globalThis.setTimeout(
-								() => {
-									if (settled) return;
-									el.textContent = text;
-									scheduleShimmer();
-								},
-								Math.floor(Math.random() * 300)
-							);
-							shimmerTimers.push(t3);
-						},
-						Math.floor(Math.random() * 100)
-					);
-					shimmerTimers.push(t2);
-				},
-				Math.floor(Math.random() * 100)
-			);
-			shimmerTimers.push(t1);
-		}, idleMs);
-		shimmerTimers.push(t0);
+		later(
+			() => {
+				if (nonSpaceIndices.length === 0) {
+					scheduleShimmer();
+					return;
+				}
+				const pos = nonSpaceIndices[Math.floor(Math.random() * nonSpaceIndices.length)]!;
+				el.textContent = setCharAt(chars, pos, pickChar()).join("");
+				later(
+					() => {
+						el.textContent = text;
+						later(
+							() => {
+								el.textContent = setCharAt(chars, pos, pickChar()).join("");
+								later(
+									() => {
+										el.textContent = text;
+										scheduleShimmer();
+									},
+									Math.floor(Math.random() * 300)
+								);
+							},
+							Math.floor(Math.random() * 100)
+						);
+					},
+					Math.floor(Math.random() * 100)
+				);
+			},
+			Math.floor(Math.random() * shimmerIntervalMs)
+		);
 	}
 
 	// Start with fully randomized text
@@ -120,7 +129,12 @@ export function runGlitchRenderer(
 			revealInterval = null;
 			el.textContent = text;
 			resolvePromise();
-			if (shimmer) scheduleShimmer();
+			if (shimmer) {
+				// The effect is "done" for the engine once resolved, so its cancel() is no
+				// longer reachable: register a separate stop for the next effect or a swap.
+				registerPostEffectStop(el, stopShimmer);
+				scheduleShimmer();
+			}
 		}
 	}, stepMs);
 
@@ -133,8 +147,7 @@ export function runGlitchRenderer(
 				globalThis.clearInterval(revealInterval);
 				revealInterval = null;
 			}
-			for (const t of shimmerTimers) globalThis.clearTimeout(t);
-			shimmerTimers = [];
+			stopShimmer();
 			resolvePromise();
 		},
 	};
