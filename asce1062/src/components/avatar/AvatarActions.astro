@@ -5,7 +5,7 @@
 import ShareNotification from "@/components/ShareNotification.astro";
 ---
 
-<div class="avatar-icon-actions" aria-label="Avatar quick actions">
+<div class="avatar-icon-actions" role="group" aria-label="Avatar quick actions">
 	<button
 		id="save-avatar-btn"
 		type="button"
@@ -14,9 +14,9 @@ import ShareNotification from "@/components/ShareNotification.astro";
 		aria-label="Save avatar to use site-wide">
 		<i class="icon-floppy text-2xl"></i>
 	</button>
-	<a id="share-btn" class="icon hover:-rotate-6 cursor-pointer" aria-label="Share Avatar">
-		<i class="icon-share text-2xl"></i>
-	</a>
+	<button id="share-btn" type="button" class="icon hover:-rotate-6 cursor-pointer p-0" aria-label="Share avatar">
+		<i class="icon-share text-2xl" aria-hidden="true"></i>
+	</button>
 </div>
 
 <div class="action-buttons">
