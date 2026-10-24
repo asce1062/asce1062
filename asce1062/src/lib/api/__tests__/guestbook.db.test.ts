@@ -1,5 +1,5 @@
 /**
- * guestbook.ts against a real libsql database built from the baseline migration.
+ * guestbook.ts against a real libsql database built from the migrations.
  *
  * The other guestbook tests mock the DB, which hid the timestamp-format bug that
  * kept rate limiting from ever firing. These run the real query path end to end.
@@ -13,12 +13,10 @@ const { databasePath } = vi.hoisted(() => ({
 vi.mock("@/lib/db/client", async () => {
 	const { createClient } = await import("@libsql/client");
 	const { drizzle } = await import("drizzle-orm/libsql");
-	const { readFile } = await import("node:fs/promises");
+	const { applyMigrations } = await import("@/lib/db/migrate");
 	const schema = await import("@/lib/db/schema");
 	const client = createClient({ url: `file:${databasePath}` });
-	await client.executeMultiple(
-		await readFile(new URL("../../../../db/migrations/0000_guestbook_baseline.sql", import.meta.url), "utf8")
-	);
+	await applyMigrations(client, new URL("../../../../db/migrations/", import.meta.url));
 	return { databaseClient: client, databaseTarget: databasePath, db: drizzle(client, { schema }) };
 });
 

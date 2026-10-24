@@ -1,9 +1,7 @@
-import { readFile } from "node:fs/promises";
 import { databaseClient, databaseTarget } from "../src/lib/db/client";
+import { applyMigrations } from "../src/lib/db/migrate";
 
-const migrationUrl = new URL("./migrations/0000_guestbook_baseline.sql", import.meta.url);
-const migration = await readFile(migrationUrl, "utf8");
-
-console.warn(`Applying non-destructive guestbook baseline to ${databaseTarget}`);
-await databaseClient.executeMultiple(migration);
+console.warn(`Applying pending guestbook migrations to ${databaseTarget}`);
+const applied = await applyMigrations(databaseClient, new URL("./migrations/", import.meta.url));
+console.warn(applied.length > 0 ? `Applied: ${applied.join(", ")}` : "Already up to date");
 databaseClient.close();

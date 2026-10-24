@@ -1,17 +1,26 @@
 import { createClient } from "@libsql/client";
 import { gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
-import { readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { resolveDatabaseConfig } from "../client";
+import { applyMigrations } from "../migrate";
 import { Guestbook, GuestbookModerationLog } from "../schema";
 
+const MIGRATIONS = new URL("../../../../db/migrations/", import.meta.url);
 const temporaryDatabases: string[] = [];
 
+function temporaryClient() {
+	const databasePath = join(tmpdir(), `guestbook-${crypto.randomUUID()}.db`);
+	temporaryDatabases.push(databasePath);
+	return createClient({ url: `file:${databasePath}` });
+}
+
 afterEach(async () => {
-	await Promise.all(temporaryDatabases.splice(0).map((path) => rm(path, { force: true })));
+	await Promise.all(temporaryDatabases.splice(0).map((path) => rm(path, { force: true, recursive: true })));
 });
 
 describe("database configuration", () => {
@@ -35,17 +44,54 @@ describe("database configuration", () => {
 	});
 });
 
+describe("guestbook migrations", () => {
+	it("applies each migration once and records it", async () => {
+		const client = temporaryClient();
+		const first = await applyMigrations(client, MIGRATIONS);
+		const second = await applyMigrations(client, MIGRATIONS);
+
+		expect(first[0]).toBe("0000_guestbook_baseline.sql");
+		expect(second).toEqual([]);
+		const recorded = await client.execute(`SELECT "name" FROM "_migrations" ORDER BY "name"`);
+		expect(recorded.rows.map((row) => row.name)).toEqual(first);
+		client.close();
+	});
+
+	it("brings a database created by the baseline alone up to date", async () => {
+		// Production predates the tracking table: the baseline was applied directly.
+		const client = temporaryClient();
+		const baseline = await readFile(new URL("0000_guestbook_baseline.sql", MIGRATIONS), "utf8");
+		await client.executeMultiple(baseline);
+
+		await expect(applyMigrations(client, MIGRATIONS)).resolves.toContain("0000_guestbook_baseline.sql");
+		client.close();
+	});
+
+	it("rolls back a failed migration and leaves it unrecorded", async () => {
+		const directory = await mkdtemp(join(tmpdir(), "migrations-"));
+		temporaryDatabases.push(directory);
+		await writeFile(join(directory, "0000_ok.sql"), `CREATE TABLE "a" ("id" integer);`);
+		await writeFile(
+			join(directory, "0001_bad.sql"),
+			`CREATE TABLE "b" ("id" integer); INSERT INTO "missing" VALUES (1);`
+		);
+		const client = temporaryClient();
+
+		await expect(applyMigrations(client, pathToFileURL(`${directory}/`))).rejects.toThrow(
+			"Migration 0001_bad.sql failed"
+		);
+		const tables = await client.execute(`SELECT "name" FROM sqlite_master WHERE type = 'table' AND "name" = 'b'`);
+		const recorded = await client.execute(`SELECT "name" FROM "_migrations"`);
+		expect(tables.rows).toHaveLength(0);
+		expect(recorded.rows.map((row) => row.name)).toEqual(["0000_ok.sql"]);
+		client.close();
+	});
+});
+
 describe("guestbook database baseline", () => {
 	it("creates compatible tables and round-trips dates, booleans, and moderation logs", async () => {
-		const databasePath = join(tmpdir(), `guestbook-${crypto.randomUUID()}.db`);
-		temporaryDatabases.push(databasePath);
-		const client = createClient({ url: `file:${databasePath}` });
-		const migration = await readFile(
-			new URL("../../../../db/migrations/0000_guestbook_baseline.sql", import.meta.url),
-			"utf8"
-		);
-
-		await client.executeMultiple(migration);
+		const client = temporaryClient();
+		await applyMigrations(client, MIGRATIONS);
 		await client.execute("PRAGMA foreign_keys = ON");
 		const database = drizzle(client);
 		const timestamp = new Date("2026-07-22T12:34:56.789Z");
@@ -76,14 +122,8 @@ describe("guestbook database baseline", () => {
 	// sorts before "T", so a row stored by the SQL default never falls inside a
 	// same-day window. Inserts that omit the timestamp must still store ISO.
 	it("stores omitted timestamps as ISO so same-day window queries match", async () => {
-		const databasePath = join(tmpdir(), `guestbook-${crypto.randomUUID()}.db`);
-		temporaryDatabases.push(databasePath);
-		const client = createClient({ url: `file:${databasePath}` });
-		const migration = await readFile(
-			new URL("../../../../db/migrations/0000_guestbook_baseline.sql", import.meta.url),
-			"utf8"
-		);
-		await client.executeMultiple(migration);
+		const client = temporaryClient();
+		await applyMigrations(client, MIGRATIONS);
 		const database = drizzle(client);
 
 		const [entry] = await database.insert(Guestbook).values({ name: "Window", message: "Same day" }).returning();
