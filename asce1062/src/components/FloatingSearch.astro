@@ -39,21 +39,19 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 )}
 
 <script>
-	import { initSearchShortcut, initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
+	import { initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
 
 	// AbortController prevents event listeners from accumulating across
 	// Astro soft navigations. document/window persist across navigations
 	// so without cleanup each astro:page-load adds another set of listeners.
 	let _ac: AbortController | null = null;
 	let _ro: ResizeObserver | null = null;
-	let _shortcutCleanup: (() => void) | null = null;
 	let _slashShortcutCleanup: (() => void) | null = null;
 
 	function initFloatingSearch() {
 		// Tear down previous listeners and observer before re-init
 		_ac?.abort();
 		_ro?.disconnect();
-		_shortcutCleanup?.();
 		_slashShortcutCleanup?.();
 		_ac = new AbortController();
 		const { signal } = _ac;
@@ -130,7 +128,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			overlay.classList.add("opacity-0", "pointer-events-none");
 			modal.classList.add("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "";
-			_opener?.focus();
+			if (_opener?.isConnected) _opener.focus();
 			_opener = null;
 		}
 
@@ -156,7 +154,6 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		// Register Ctrl+K / Cmd+K shortcut to open the floating search
 		// Only register if we're NOT on the search page (since openBtn won't exist on search page)
 		if (openBtn) {
-			_shortcutCleanup = initSearchShortcut('#floating-searchbox input[type="text"]');
 			_slashShortcutCleanup = initSlashSearchShortcut(() => {
 				if (modal.classList.contains("pointer-events-none")) {
 					openSearch();
@@ -166,16 +163,21 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 				const searchInput = modal.querySelector('input[type="text"]') as HTMLInputElement | null;
 				searchInput?.focus();
 			});
-			// Also open modal when shortcut is pressed (if modal is closed)
+			// Ctrl/Cmd+K: one handler. Open the modal when closed (capturing the opener
+			// before focus moves), otherwise focus its input. A second handler used to
+			// focus the hidden input first, so the opener became that hidden input.
 			document.addEventListener(
 				"keydown",
 				(e) => {
 					if (!e.key) return;
 					const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-					if (e.key.toLowerCase() === "k" && isCtrlOrCmd && modal.classList.contains("pointer-events-none")) {
-						e.preventDefault();
+					if (e.key.toLowerCase() !== "k" || !isCtrlOrCmd) return;
+					e.preventDefault();
+					if (modal.classList.contains("pointer-events-none")) {
 						openSearch();
+						return;
 					}
+					(modal.querySelector('input[type="text"]') as HTMLInputElement | null)?.focus();
 				},
 				{ signal }
 			);
