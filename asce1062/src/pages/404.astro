@@ -168,9 +168,16 @@ const variantsJson = JSON.stringify(variants404);
 
 	function init404(): void {
 		_teardown?.();
+		_teardown = null;
+		// This listener outlives the 404 page; /about has its own neofetch setup.
+		if (!document.querySelector("[data-page-404]")) return;
 		// replayOnDice: art is visible on load, animate immediately on dice click.
 		_teardown = setupAsciiWidget("neofetch", { replayOnDice: true });
 	}
 
 	document.addEventListener("astro:page-load", init404);
+	document.addEventListener("astro:before-swap", () => {
+		_teardown?.();
+		_teardown = null;
+	});
 </script>
