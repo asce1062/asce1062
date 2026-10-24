@@ -1,5 +1,5 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 import fs from "fs";
@@ -27,7 +27,7 @@ const imageMap = Object.entries(images).reduce(
 );
 
 export async function GET(context: { site: string | URL }) {
-	const blog = await getCollection("blog");
+	const blog = await getPublishedEntries("blog");
 	const sortedPosts = sortByDate(blog);
 
 	// Process images to get optimized URLs

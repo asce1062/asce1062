@@ -1,5 +1,5 @@
 import { OGImageRoute } from "astro-og-canvas";
-import { getCollection } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import type { APIRoute, GetStaticPathsOptions } from "astro";
 
 // Explicitly enable prerendering for static build
@@ -7,8 +7,8 @@ export const prerender = true;
 
 // Helper function to get OG route configuration
 async function getOGRoute() {
-	const posts = await getCollection("blog");
-	const notes = await getCollection("notes");
+	const posts = await getPublishedEntries("blog");
+	const notes = await getPublishedEntries("notes");
 
 	// Create pages object with blog post paths as keys
 	const blogPages = Object.fromEntries(

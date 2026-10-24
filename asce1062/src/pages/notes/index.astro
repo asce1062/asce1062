@@ -2,11 +2,12 @@
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import ContentCard from "@/components/ContentCard.astro";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { sortByDate, getContentUrl, formatDate } from "@/lib/content/utils";
 import { NOTEBOOK } from "@/config/site-config";
 
-const allNotes = await getCollection("notes");
+const allNotes = await getPublishedEntries("notes");
 const notes = sortByDate(allNotes);
 
 const readingTimes = new Map<string, string>();

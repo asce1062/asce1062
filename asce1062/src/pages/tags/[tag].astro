@@ -2,12 +2,13 @@
 import Layout from "@/layouts/Layout.astro";
 import ContentCard from "@/components/ContentCard.astro";
 import Columns from "@/components/ui/Columns.astro";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { sortByDate, getAllTags, getContentUrl, formatDate } from "@/lib/content/utils";
 
 export async function getStaticPaths() {
-	const allPosts = await getCollection("blog");
-	const allNotes = await getCollection("notes");
+	const allPosts = await getPublishedEntries("blog");
+	const allNotes = await getPublishedEntries("notes");
 	const sortedPosts = sortByDate(allPosts);
 	const sortedNotes = sortByDate(allNotes);
 

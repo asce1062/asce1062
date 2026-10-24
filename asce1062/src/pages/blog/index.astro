@@ -2,10 +2,11 @@
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import ContentCard from "@/components/ContentCard.astro";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { sortByDate, formatDate, getContentUrl } from "@/lib/content/utils";
 
-const allPosts = await getCollection("blog");
+const allPosts = await getPublishedEntries("blog");
 const posts = sortByDate(allPosts);
 
 // Pre-render to get reading time from remark plugin

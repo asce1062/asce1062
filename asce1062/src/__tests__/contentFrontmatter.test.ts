@@ -24,3 +24,22 @@ describe.each(["blog", "notes"])("%s frontmatter", (collection) => {
 		}
 	});
 });
+
+describe("draft handling", () => {
+	it("reads collections only through getPublishedEntries, which drops drafts", async () => {
+		const { readdir } = await import("node:fs/promises");
+		const srcRoot = new URL("../", import.meta.url);
+		const files = (await readdir(srcRoot, { recursive: true }))
+			.filter((file) => /\.(astro|ts|mdx)$/.test(file) && !file.includes("__tests__"))
+			.filter((file) => file !== "lib/content/published.ts");
+
+		const offenders: string[] = [];
+		for (const file of files) {
+			if ((await readFile(new URL(file, srcRoot), "utf8")).includes("getCollection(")) offenders.push(file);
+		}
+		expect(offenders).toEqual([]);
+
+		const helper = await readFile(new URL("lib/content/published.ts", srcRoot), "utf8");
+		expect(helper).toMatch(/getCollection\(collection, \(\{ data \}\) => !data\.draft\)/);
+	});
+});

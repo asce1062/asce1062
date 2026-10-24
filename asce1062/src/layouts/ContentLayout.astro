@@ -4,7 +4,8 @@ import PreviewImage from "@/components/PreviewImage.astro";
 import SocialShareButtons from "@/components/content/SocialShareButtons.astro";
 import TableOfContentsComponent from "@/components/content/TableOfContents.astro";
 import ContentNavigation from "@/components/content/ContentNavigation.astro";
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 import { formatDate } from "@/lib/content/utils";
 import type { TableOfContents } from "@/types";
 import "@/styles/global.css";
@@ -30,7 +31,7 @@ const isBlog = collection === "blog";
 const basePath = isBlog ? "/blog" : "/notes";
 
 // Get entries from the appropriate collection and sort by date
-const allEntries = await getCollection(collection);
+const allEntries = await getPublishedEntries(collection);
 const sortedEntries = allEntries.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 // Find current entry using permalink

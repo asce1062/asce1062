@@ -3,10 +3,11 @@
  * Dynamic Blog Post Route
  * Renders blog posts from content collection
  */
-import { getCollection, render } from "astro:content";
+import { render } from "astro:content";
+import { getPublishedEntries } from "@/lib/content/published";
 
 export async function getStaticPaths() {
-	const blogEntries = await getCollection("blog");
+	const blogEntries = await getPublishedEntries("blog");
 
 	return blogEntries.map((entry) => ({
 		params: { slug: entry.id.replace(".mdx", "") },
