@@ -133,8 +133,11 @@ describe("readGuestbookForm", () => {
 		);
 	});
 
-	it("is not submittable when the honeypot is filled", () => {
-		expect(readGuestbookForm(form({ name: "Ada", message: "Hi", "bot-field": "x" })).isSubmittable).toBe(false);
+	it("is not submittable when the honeypot is filled, and reports it as a bot", () => {
+		const fields = readGuestbookForm(form({ name: "Ada", message: "Hi", "bot-field": "x" }));
+		expect(fields.isSubmittable).toBe(false);
+		expect(fields.isBot).toBe(true);
+		expect(readGuestbookForm(form({ name: "Ada", message: "Hi" })).isBot).toBe(false);
 	});
 
 	it("only keeps the avatar state when the submitter opted in", () => {

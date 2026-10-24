@@ -116,6 +116,8 @@ export interface GuestbookFormFields {
 	avatarOptIn: boolean;
 	theme: "light" | "dark";
 	sendCopy: boolean;
+	/** The honeypot field was filled in */
+	isBot: boolean;
 	/** Name and message present and within limits, honeypot empty */
 	isSubmittable: boolean;
 }
@@ -132,6 +134,7 @@ export function readGuestbookForm(formData: FormData): GuestbookFormFields {
 	const email = field(formData, "email").trim();
 	const style = field(formData, "style");
 	const avatarOptIn = formData.get("avatarOptIn") === "on";
+	const isBot = field(formData, "bot-field").length > 0;
 
 	return {
 		name,
@@ -143,8 +146,9 @@ export function readGuestbookForm(formData: FormData): GuestbookFormFields {
 		avatarOptIn,
 		theme: formData.get("theme") === "dark" ? "dark" : "light",
 		sendCopy: formData.get("send-copy") === "on",
+		isBot,
 		isSubmittable:
-			!field(formData, "bot-field") &&
+			!isBot &&
 			name.length > 0 &&
 			name.length <= ENTRY_LIMITS.name &&
 			message.length > 0 &&

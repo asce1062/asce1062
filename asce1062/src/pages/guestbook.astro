@@ -16,13 +16,16 @@ import {
 	markCopySent,
 } from "@/lib/api/guestbook";
 import { notifyNewEntry, sendEntryCopy } from "@/lib/api/guestbook-notify";
-import { readGuestbookForm } from "@/lib/api/guestbook-input";
+import { ENTRY_LIMITS, readGuestbookForm } from "@/lib/api/guestbook-input";
 import { patterns, swatchColors, radiusValues, borderStyles, toTitleCase } from "@/config/guestbook";
 import "@/styles/components/guestbook.css";
 
 const image = "/src/assets/guestbook/guestbook.png";
 const title = "Guestbook";
 const description = "Drop me a note, let's connect ^^";
+
+// Shown above the form when the server rejects a submission the browser let through
+let submitError = "";
 
 if (Astro.request.method === "POST") {
 	let formData: FormData;
@@ -31,8 +34,14 @@ if (Astro.request.method === "POST") {
 	} catch {
 		return new Response("Bad Request", { status: 400 });
 	}
-	const { name, email, url, message, style, avatarState, avatarOptIn, theme, sendCopy, isSubmittable } =
+	const { name, email, url, message, style, avatarState, avatarOptIn, theme, sendCopy, isBot, isSubmittable } =
 		readGuestbookForm(formData);
+
+	// Bots get the same page back; people get told what to change.
+	if (!isSubmittable && !isBot) {
+		Astro.response.status = 400;
+		submitError = `Please enter a name (up to ${ENTRY_LIMITS.name} characters) and a message (up to ${ENTRY_LIMITS.message} characters).`;
+	}
 
 	// Extract client IP (Netlify headers → standard fallbacks → dev stub)
 	const ip =
@@ -124,27 +133,39 @@ const entries = await getGuestEntries();
 			<li>All messages are subject to moderation and may be removed after the fact.</li>
 			<li>Be kind. Spam and abuse will be removed.</li>
 		</ul>
+		{submitError && (
+			<p class="mb-4 p-3 bg-error/10 border border-error text-sm" role="alert">
+				{submitError}
+			</p>
+		)}
 		<form id="form" method="POST">
 			<input type="hidden" name="theme" id="theme-input" value="light" />
 			<p>
 				<label>
 					Name
 					<br />
-					<input class="input-allowed" type="text" name="name" required />
+					<input class="input-allowed" type="text" name="name" maxlength={ENTRY_LIMITS.name} required />
 				</label>
 			</p>
 			<p>
 				<label>
 					Email <small>(optional, not published)</small>
 					<br />
-					<input class="input-allowed" type="email" name="email" id="email-input" />
+					<input class="input-allowed" type="email" name="email" id="email-input" maxlength={ENTRY_LIMITS.email} />
 				</label>
 			</p>
 			<p>
 				<label>
 					URL <small>(optional, linked from Name)</small>
 					<br />
-					<input class="input-allowed" type="url" name="url" placeholder="https://example.com" pattern="https://.*" />
+					<input
+						class="input-allowed"
+						type="url"
+						name="url"
+						placeholder="https://example.com"
+						pattern="https://.*"
+						maxlength={ENTRY_LIMITS.url}
+					/>
 				</label>
 			</p>
 			<p aria-hidden="true">
@@ -312,7 +333,7 @@ const entries = await getGuestEntries();
 					name="message"
 					rows="4"
 					required
-					maxlength="2000"
+					maxlength={ENTRY_LIMITS.message}
 					class="block p-2.5 w-full text-sm textarea-styled"
 					placeholder="Say hi, write a poem, or sketch some ASCII art..."></textarea>
 				<!-- prettier-ignore-end -->
