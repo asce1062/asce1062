@@ -304,9 +304,20 @@ export function getPublicCatalog(now: number = Date.now()): Promise<PublicCatalo
  * cover id that changed when a playlist was edited, should not 404 for minutes.
  */
 export async function isInPublicCatalog(kind: CatalogKind, id: string, now: number = Date.now()): Promise<boolean> {
-	if ((await getPublicCatalog(now))[kind].has(id)) return true;
+	const current = await getPublicCatalog(now);
+	if (current[kind].has(id)) return true;
 	if (catalogCache && now - catalogCache.loadedAt < CATALOG_MISS_REFRESH_MS) return false;
-	return (await loadIntoCache(now))[kind].has(id);
+	// Refresh without evicting: only a successful load replaces the cached catalog,
+	// so an upstream hiccup during a miss keeps serving the last good one (and 404s).
+	try {
+		const fresh = await loadPublicCatalog();
+		catalogCache = { loadedAt: now, catalog: Promise.resolve(fresh) };
+		return fresh[kind].has(id);
+	} catch (error) {
+		console.error("Navidrome catalog refresh failed; keeping the previous catalog:", error);
+		catalogCache = { loadedAt: now, catalog: Promise.resolve(current) };
+		return false;
+	}
 }
 
 /** Test hook: forget the cached catalog. */
