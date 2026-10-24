@@ -171,30 +171,12 @@ export default defineConfig({
 				// Netlify appends ?dpl=<deploy-id> to some transformed asset URLs.
 				ignoreURLParametersMatching: [/^theme$/, /^dpl$/, /^utm_\w+/i, /^fbclid$/i, /^ref$/i],
 
-				// Offline fallback
-				navigateFallback: "/offline/index.html",
-				navigateFallbackDenylist: [
-					/^\/api\//, // API routes. Always hit the network, never serve fallback
-					/\.xml(\?.*)?$/, // Don't intercept XML files (RSS, sitemap)
-					/\.txt(\?.*)?$/, // Don't intercept text files (robots.txt, humans.txt)
-					/\.pdf(\?.*)?$/, // Don't intercept PDF files
-					/\.json(\?.*)?$/, // Don't intercept JSON files (pubvendors.json, etc.)
-					/\.pgp(\?.*)?$/, // Don't intercept PGP key files
-					/\.sig(\?.*)?$/, // Don't intercept signature files
-					/\.(?:css|js|mjs|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot|otf)(\?.*)?$/, // Asset URLs, including deploy query params
-					/^\/.well-known\//, // Don't intercept .well-known resources
-					/^\/rss$/, // Allow /rss → /rss.xml redirect
-					/^\/feed$/, // Allow /feed → /rss.xml redirect
-					/^\/atom\.xml$/, // Allow /atom.xml → /rss.xml redirect
-					/^\/sitemap$/, // Allow /sitemap → /sitemap-index.xml redirect
-					/^\/why$/, // Allow /why → /notes/2026-03-12-guiding-principles redirect
-					/^\/licensing$/, // Allow /licensing → /notes/2026-03-12-licensing redirect
-					/^\/blog\/\d{4}\/\d{2}\/\d{2}\//, // Allow legacy blog patterns /blog/YYYY/MM/DD/slug
-					/^\/search/, // Allow search page with or without query parameters
-					/^\/8biticon/, // Allow avatar generator with or without query parameters
-					/^\/guestbook/, // SSR route. Do not cache/intercept
-					/^\/admin/, // SSR routes. Do not cache/intercept
-				],
+				// Offline fallback lives in runtimeCaching (navigation route), not
+				// navigateFallback. navigateFallback is an app-shell setting: it answers
+				// every non-precached navigation with the offline page even when online,
+				// which broke slashless URLs (/about), redirects (/sps) and SSR routes.
+				// Must be null, not omitted: vite-plugin-pwa defaults it to "index.html".
+				navigateFallback: null,
 
 				// Precaching configuration
 				// Explicitly set globDirectory to dist/ so Workbox scans the correct
@@ -213,6 +195,16 @@ export default defineConfig({
 				],
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
 				runtimeCaching: [
+					// Navigations not in the precache (slashless URLs, redirects, SSR pages,
+					// query-string pages) go to the network; the offline page is served only
+					// when the network fails. Must stay first so it wins over asset routes.
+					{
+						urlPattern: ({ request }) => request.mode === "navigate",
+						handler: "NetworkOnly",
+						options: {
+							precacheFallback: { fallbackURL: "/offline/index.html" },
+						},
+					},
 					// API routes. Never cache, always hit the network
 					{
 						urlPattern: /^\/api\//,
