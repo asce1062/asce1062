@@ -3,7 +3,6 @@
   "ignoreDependencies": [
     "pagefind",
     "lightningcss",
-    "@netlify/plugin-sitemap",
     "@netlify/plugin-lighthouse",
     "autoprefixer",
     "postcss-nesting",
