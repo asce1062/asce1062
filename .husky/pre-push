@@ -5,8 +5,9 @@ cd asce1062
 
 # ascii-art.json is generated and committed. Staging it here would not add it to
 # the push (the commits already exist), so fail on drift and ask for a commit.
-npm run generate:ascii --silent
-if ! git diff --quiet -- src/data/ascii-art.json; then
+npm run generate:ascii --silent || exit 1
+# Against HEAD, not the index: what gets pushed is the committed file.
+if ! git diff --quiet HEAD -- src/data/ascii-art.json; then
   echo "pre-push: src/data/ascii-art.json is out of date. Commit the regenerated file and push again." >&2
   exit 1
 fi
