@@ -10,11 +10,9 @@
  *   data-theme attribute          - fallback; reflects what's painted on screen
  *   "dark"                        - site default
  *
- * getCurrentTheme()   	- what is currently displayed, including URL overrides.
- *                       	Use for icon sync and toggle display state.
- * resolveActiveTheme() - what the theme should be per stored preferences.
- *                        Does NOT consider URL params; URL overrides are
- *                        presentation-only (embed/screenshot) and not persisted.
+ * getCurrentTheme() - what is currently displayed, including URL overrides.
+ *                     Use for icon sync and toggle display state. URL overrides
+ *                     are presentation-only (embed/screenshot) and not persisted.
  *
  * localStorage is the source of truth for persistence. data-theme is a derived
  * value set by our own setTheme() and by the astro-themes early-init script.
@@ -81,18 +79,6 @@ export function disableMatchDeviceTheme(): void {
 }
 
 /**
- * Derive the correct active theme from stored preferences.
- * Use for runtime decisions: "what should the theme be right now?"
- * Does NOT consider URL params. URL overrides are presentation-only.
- */
-export function resolveActiveTheme(): Theme {
-	if (isMatchDeviceTheme()) return getSystemTheme();
-	const stored = getPref(PREF_KEYS.theme);
-	if (stored === "light" || stored === "dark") return stored;
-	return "dark";
-}
-
-/**
  * Read the URL theme override, if present.
  * Returns the theme if ?theme=light or ?theme=dark, otherwise null.
  */
@@ -119,7 +105,7 @@ export function getFlavorFromUrl(): Flavor | null {
 /**
  * Get the currently displayed theme, including URL overrides.
  * Priority: URL param > localStorage > data-theme attribute > "dark" (default)
- * Use for icon sync and toggle display state. For theme logic use resolveActiveTheme().
+ * Use for icon sync and toggle display state.
  */
 export function getCurrentTheme(): Theme {
 	const urlTheme = getThemeFromUrl();
@@ -161,15 +147,6 @@ export function setTheme(theme: Theme, persist: boolean = true): Theme {
 	// astro-themes integration: persists, paints data-theme-preference and color-scheme
 	document.dispatchEvent(new CustomEvent("set-theme", { detail: theme }));
 	return theme;
-}
-
-/**
- * Toggle between light and dark, persist the new value, and return it.
- */
-export function toggleTheme(): Theme {
-	const prevTheme = getCurrentTheme();
-	hasManualThemeOverride = true;
-	return setTheme(prevTheme === "light" ? "dark" : "light");
 }
 
 /**
