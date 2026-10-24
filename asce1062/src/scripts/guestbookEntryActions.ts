@@ -11,12 +11,18 @@ const NOTIFICATION_ID = "entry-action-notification";
 // Astro soft navigations (initEntryActions is called on every astro:page-load).
 let _ac: AbortController | null = null;
 
-/** Close all open action menus */
+/**
+ * Close all open action menus. A menu that holds focus hands it back to its
+ * trigger, or hiding it would drop keyboard focus to <body>.
+ */
 function closeAllMenus(): void {
 	document.querySelectorAll<HTMLButtonElement>(".entry-actions-trigger[aria-expanded='true']").forEach((trigger) => {
 		trigger.setAttribute("aria-expanded", "false");
 		const menu = trigger.nextElementSibling as HTMLElement | null;
-		if (menu) menu.hidden = true;
+		if (!menu) return;
+		const hadFocus = menu.contains(document.activeElement);
+		menu.hidden = true;
+		if (hadFocus) trigger.focus();
 	});
 }
 
@@ -189,19 +195,32 @@ export function initEntryActions(): void {
 		{ signal }
 	);
 
-	// Keyboard: Escape closes menus; ArrowUp/ArrowDown navigate open menus
+	// Keyboard, only while a menu is open: Escape closes it, ArrowUp/ArrowDown navigate.
+	// Escape elsewhere (search, terminal, music player) is left to its owner.
 	document.addEventListener(
 		"keydown",
 		(e) => {
+			const openMenu = document.querySelector<HTMLElement>(".entry-actions-menu:not([hidden])");
+			if (!openMenu) return;
+
 			if (e.key === "Escape") {
 				closeAllMenus();
 				return;
 			}
 
-			if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-				const openMenu = document.querySelector<HTMLElement>(".entry-actions-menu:not([hidden])");
-				if (openMenu) handleMenuKeyNav(e, openMenu);
-			}
+			if (e.key === "ArrowDown" || e.key === "ArrowUp") handleMenuKeyNav(e, openMenu);
+		},
+		{ signal }
+	);
+
+	// Tabbing out of an open menu closes it (focus has already moved on).
+	document.addEventListener(
+		"focusin",
+		(e) => {
+			const openMenu = document.querySelector<HTMLElement>(".entry-actions-menu:not([hidden])");
+			const trigger = openMenu?.previousElementSibling;
+			const target = e.target as Node | null;
+			if (openMenu && !openMenu.contains(target) && trigger !== target) closeAllMenus();
 		},
 		{ signal }
 	);
