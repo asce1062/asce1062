@@ -187,9 +187,12 @@ const entries = await getGuestEntries();
 					<div slot="content" class="p-4">
 						<!-- Background Pattern -->
 						<div class="customizer-section">
-							<h4>Background Pattern</h4>
+							<h4 id="customizer-pattern-label">Background Pattern</h4>
 							<div class="customizer-row">
-								<select id="pattern-select" class="input-allowed pattern-select">
+								<select
+									id="pattern-select"
+									class="input-allowed pattern-select"
+									aria-labelledby="customizer-pattern-label">
 									<option value="none">None</option>
 									{patterns.map((p) => (
 										<option value={p}>{toTitleCase(p)}</option>
@@ -201,12 +204,15 @@ const entries = await getGuestEntries();
 
 						<!-- Border Radius -->
 						<div class="customizer-section">
-							<h4>Border Radius</h4>
-							<div class="flex gap-2">
+							<h4 id="customizer-radius-label">Border Radius</h4>
+							<div class="flex gap-2" role="group" aria-labelledby="customizer-radius-label">
 								{radiusValues.map((r) => (
-									<div
+									<button
+										type="button"
 										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
 										data-radius={r}
+										aria-pressed="false"
+										aria-label={`Radius ${r}`}
 										title={r}>
 										<div class="pe-3 pt-2">
 											<div
@@ -214,14 +220,14 @@ const entries = await getGuestEntries();
 												style={`border-start-end-radius: ${r}`}
 											/>
 										</div>
-									</div>
+									</button>
 								))}
 							</div>
 						</div>
 
 						<!-- Border Width -->
 						<div class="customizer-section">
-							<h4>Border Width</h4>
+							<h4 id="customizer-width-label">Border Width</h4>
 							<div class="relative mt-6 mb-1">
 								<kbd
 									id="border-width-label"
@@ -231,6 +237,8 @@ const entries = await getGuestEntries();
 								</kbd>
 								<input
 									id="border-width-slider"
+									aria-labelledby="customizer-width-label"
+									aria-valuetext="1px"
 									type="range"
 									min="0"
 									max="7"
@@ -243,22 +251,33 @@ const entries = await getGuestEntries();
 
 						<!-- Border Color -->
 						<div class="customizer-section">
-							<h4>Border Color</h4>
-							<div class="customizer-row">
+							<h4 id="customizer-color-label">Border Color</h4>
+							<div class="customizer-row" role="group" aria-labelledby="customizer-color-label">
 								{swatchColors.map((c) => (
-									<div class="color-swatch" data-border-color={c} style={`background-color: var(--color-${c})`} />
+									<button
+										type="button"
+										class="color-swatch"
+										data-border-color={c}
+										aria-pressed="false"
+										aria-label={toTitleCase(c)}
+										title={toTitleCase(c)}
+										style={`background-color: var(--color-${c})`}
+									/>
 								))}
 							</div>
 						</div>
 
 						<!-- Border Style -->
 						<div class="customizer-section">
-							<h4>Border Style</h4>
-							<div class="flex gap-2">
+							<h4 id="customizer-style-label">Border Style</h4>
+							<div class="flex gap-2" role="group" aria-labelledby="customizer-style-label">
 								{borderStyles.map((s) => (
-									<div
+									<button
+										type="button"
 										class="option-card rounded-field bg-base-200 hover:bg-base-300 cursor-pointer overflow-hidden transition-colors"
 										data-border-style={s}
+										aria-pressed="false"
+										aria-label={`Border ${s}`}
 										title={s}>
 										<div class="pe-3 pt-2">
 											{s === "none" ? (
@@ -272,7 +291,7 @@ const entries = await getGuestEntries();
 												/>
 											)}
 										</div>
-									</div>
+									</button>
 								))}
 							</div>
 						</div>

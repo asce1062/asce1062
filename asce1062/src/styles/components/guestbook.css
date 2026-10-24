@@ -273,8 +273,26 @@
 	border-color: var(--color-primary);
 }
 
+/* Customizer options are <button aria-pressed>: drop UA chrome, keep a focus ring */
+.option-card {
+	padding: 0;
+	border: 0;
+	color: inherit;
+}
+
+.option-card:focus-visible,
+.color-swatch:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+.option-card:focus-visible > div > div {
+	border-color: var(--color-primary);
+}
+
 /* Border color swatches */
 .color-swatch {
+	padding: 0;
 	width: 1.75rem;
 	height: 1.75rem;
 	border-radius: 0rem;

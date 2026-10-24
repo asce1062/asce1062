@@ -81,7 +81,10 @@ export function initGuestbookCustomizer() {
 	function updateWidthUI() {
 		const idx = widthSteps.indexOf(state.borderWidth);
 		if (idx === -1) return;
-		if (widthSlider) widthSlider.value = String(idx);
+		if (widthSlider) {
+			widthSlider.value = String(idx);
+			widthSlider.setAttribute("aria-valuetext", state.borderWidth);
+		}
 		if (widthLabel) {
 			widthLabel.textContent = state.borderWidth;
 			const pct = idx / 7;
@@ -103,6 +106,14 @@ export function initGuestbookCustomizer() {
 		updateAll();
 	});
 
+	/** Mark one option of a group selected, for sight (class) and assistive tech (aria-pressed). */
+	function selectOption(groupAttr: string, selected: Element | null) {
+		document.querySelectorAll(`[${groupAttr}]`).forEach((option) => {
+			option.classList.toggle("selected", option === selected);
+			option.setAttribute("aria-pressed", String(option === selected));
+		});
+	}
+
 	// Hover preview helpers
 	function previewStyle(prop: string, value: string) {
 		if (!textareaWrapper) return;
@@ -117,12 +128,13 @@ export function initGuestbookCustomizer() {
 	document.querySelectorAll<HTMLElement>("[data-radius]").forEach((el) => {
 		el.addEventListener("click", () => {
 			state.borderRadius = el.dataset.radius!;
-			document.querySelectorAll("[data-radius]").forEach((e) => e.classList.remove("selected"));
-			el.classList.add("selected");
+			selectOption("data-radius", el);
 			updateAll();
 		});
 		el.addEventListener("mouseenter", () => previewStyle("border-radius", el.dataset.radius!));
 		el.addEventListener("mouseleave", restorePreview);
+		el.addEventListener("focus", () => previewStyle("border-radius", el.dataset.radius!));
+		el.addEventListener("blur", restorePreview);
 	});
 
 	// Border width slider
@@ -136,20 +148,20 @@ export function initGuestbookCustomizer() {
 	document.querySelectorAll<HTMLElement>("[data-border-color]").forEach((el) => {
 		el.addEventListener("click", () => {
 			state.borderColor = el.dataset.borderColor!;
-			document.querySelectorAll("[data-border-color]").forEach((e) => e.classList.remove("selected"));
-			el.classList.add("selected");
+			selectOption("data-border-color", el);
 			updateAll();
 		});
 		el.addEventListener("mouseenter", () => previewStyle("border-color", `var(--color-${el.dataset.borderColor})`));
 		el.addEventListener("mouseleave", restorePreview);
+		el.addEventListener("focus", () => previewStyle("border-color", `var(--color-${el.dataset.borderColor})`));
+		el.addEventListener("blur", restorePreview);
 	});
 
 	// Border style options
 	document.querySelectorAll<HTMLElement>("[data-border-style]").forEach((el) => {
 		el.addEventListener("click", () => {
 			state.borderStyle = el.dataset.borderStyle!;
-			document.querySelectorAll("[data-border-style]").forEach((e) => e.classList.remove("selected"));
-			el.classList.add("selected");
+			selectOption("data-border-style", el);
 			// double needs >= 3px to show the gap between lines
 			if (state.borderStyle === "double") {
 				const w = parseFloat(state.borderWidth);
@@ -161,20 +173,19 @@ export function initGuestbookCustomizer() {
 		});
 		el.addEventListener("mouseenter", () => previewStyle("border-style", el.dataset.borderStyle!));
 		el.addEventListener("mouseleave", restorePreview);
+		el.addEventListener("focus", () => previewStyle("border-style", el.dataset.borderStyle!));
+		el.addEventListener("blur", restorePreview);
 	});
 
 	// Sync all UI controls to match current state
 	function syncUI() {
 		if (patternSelect) patternSelect.value = state.bg;
 
-		document.querySelectorAll("[data-radius]").forEach((e) => e.classList.remove("selected"));
-		document.querySelector(`[data-radius="${state.borderRadius}"]`)?.classList.add("selected");
+		selectOption("data-radius", document.querySelector(`[data-radius="${state.borderRadius}"]`));
 
-		document.querySelectorAll("[data-border-color]").forEach((e) => e.classList.remove("selected"));
-		document.querySelector(`[data-border-color="${state.borderColor}"]`)?.classList.add("selected");
+		selectOption("data-border-color", document.querySelector(`[data-border-color="${state.borderColor}"]`));
 
-		document.querySelectorAll("[data-border-style]").forEach((e) => e.classList.remove("selected"));
-		document.querySelector(`[data-border-style="${state.borderStyle}"]`)?.classList.add("selected");
+		selectOption("data-border-style", document.querySelector(`[data-border-style="${state.borderStyle}"]`));
 	}
 
 	// Randomize
