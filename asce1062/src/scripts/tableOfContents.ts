@@ -36,9 +36,12 @@
  *   Burst scroll events within a single paint cycle collapse into one DOM
  *   write via a single pending requestAnimationFrame.
  *
- * details toggle event.
- *   isDetailsOpen is tracked reactively via the native toggle event, not by
- *   re-querying the DOM on every scroll tick.
+ * details.open is read at decision time, not tracked from the toggle event.
+ *   Opening the floating TOC grows it, and Chrome's scroll anchoring scrolls
+ *   the page down to keep the reading position. That scroll is handled before
+ *   the asynchronous toggle event fires, so a flag set on toggle still reads
+ *   "closed": the jump looked like a scroll down, hid the TOC, and toggle then
+ *   showed it again (a visible up-and-down flicker).
  *
  * AbortController lifecycle.
  *   All listeners (scroll, details toggle, link clicks) are tied to one
@@ -95,7 +98,6 @@ export function init(): void {
 
 	// ── Per-init state ──
 	let hidden = false;
-	let isDetailsOpen = details?.open ?? false;
 	let lastScrollY = Math.max(0, window.scrollY);
 	let rafPending = false;
 	let suppressRevealUntilY: number | null = null;
@@ -122,7 +124,6 @@ export function init(): void {
 		details.addEventListener(
 			"toggle",
 			() => {
-				isDetailsOpen = details.open;
 				if (details.open) setHidden(false);
 				updateAnchorOffset();
 			},
@@ -186,8 +187,8 @@ export function init(): void {
 					return;
 				}
 
-				// When details is open, always stay visible.
-				if (isDetailsOpen) {
+				// When details is open, always stay visible. Read live: see header.
+				if (details?.open) {
 					setHidden(false);
 					lastScrollY = Math.max(0, window.scrollY);
 					return;
