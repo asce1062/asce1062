@@ -54,7 +54,7 @@ function makeRequest(path: string, method = "GET"): Request {
  * `redirect()` returns a real Response with a Location header so tests can
  * assert on the redirect target, and `applyAdminHeaders` can write to it.
  */
-function makeContext(path: string, method = "GET") {
+function makeContext(path: string, method = "GET", routePattern?: string) {
 	const request = makeRequest(path, method);
 	const cookies = {
 		get: vi.fn(),
@@ -65,7 +65,7 @@ function makeContext(path: string, method = "GET") {
 	};
 	const next = vi.fn(async () => new Response("OK", { status: 200 }));
 	const redirect = vi.fn((url: string, status = 302) => new Response(null, { status, headers: { Location: url } }));
-	return { request, cookies, next, redirect } as unknown as Parameters<typeof onRequest>[0] & {
+	return { request, cookies, next, redirect, routePattern } as unknown as Parameters<typeof onRequest>[0] & {
 		next: typeof next;
 		redirect: typeof redirect;
 	};
@@ -103,6 +103,47 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.restoreAllMocks();
+});
+
+// ---------------------------------------------------------------------------
+// Percent-encoded paths. Astro decodes the pathname before routing, so the raw
+// request path alone must never decide whether a request is an admin request.
+// ---------------------------------------------------------------------------
+
+describe("percent-encoded admin paths", () => {
+	it("enforces auth on /%61dmin/guestbook routed to /admin/guestbook", async () => {
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+		const ctx = makeContext("/%61dmin/guestbook", "GET", "/admin/guestbook");
+		const response = await handler(ctx, ctx.next);
+		expect(ctx.next).not.toHaveBeenCalled();
+		expect(response.status).toBe(303);
+		expect(response.headers.get("Location")).toBe("/admin");
+		assertSecurityHeaders(response);
+	});
+
+	it("enforces auth on double-encoded /%2561dmin/guestbook", async () => {
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+		const ctx = makeContext("/%2561dmin/guestbook", "GET", "/admin/guestbook");
+		const response = await handler(ctx, ctx.next);
+		expect(ctx.next).not.toHaveBeenCalled();
+		expect(response.status).toBe(303);
+	});
+
+	it("rejects a cross-origin POST to an encoded admin path", async () => {
+		vi.mocked(checkPostOrigin).mockReturnValue(false);
+		const ctx = makeContext("/%61dmin/guestbook", "POST", "/admin/guestbook");
+		const response = await handler(ctx, ctx.next);
+		expect(response.status).toBe(403);
+		assertSecurityHeaders(response);
+	});
+
+	it("applies admin headers to the encoded hub /%61dmin", async () => {
+		vi.mocked(checkAdminAuth).mockResolvedValue({ ok: false });
+		const ctx = makeContext("/%61dmin", "GET", "/admin");
+		const response = await handler(ctx, ctx.next);
+		expect(ctx.next).toHaveBeenCalledOnce();
+		assertSecurityHeaders(response);
+	});
 });
 
 // ---------------------------------------------------------------------------
