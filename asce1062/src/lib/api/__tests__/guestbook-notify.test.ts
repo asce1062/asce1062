@@ -1,6 +1,6 @@
 /**
  * Unit tests for guestbook-notify.ts
- * sendEntryCopy spam guards (4 ordered guards)
+ * sendEntryCopy visibility policy and recipient validation
  * sendEmail retry/resilience via notifyNewEntry
  *
  * Key constraints:
@@ -68,7 +68,7 @@ function makeEntryCopyInput(overrides?: Partial<EntryCopyInput>): EntryCopyInput
 		message: "Hello!",
 		style: "default",
 		avatarState: null,
-		classification: makeClassification(),
+		status: "visible",
 		entryId: 42,
 		theme: "light",
 		submittedAt: SUBMITTED_AT,
@@ -112,198 +112,33 @@ afterEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// sendEntryCopy Guard 1: hidden or hard reason → skipped_spam
+// sendEntryCopy: only visible entries are copied
 // ---------------------------------------------------------------------------
 
-describe("sendEntryCopy Guard 1: hidden status or hard reason", () => {
-	it("returns skipped_spam when status is hidden", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({ status: "hidden", hasHardReason: true }),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_spam");
+describe("sendEntryCopy visibility policy", () => {
+	it.each(["pending", "hidden"] as const)("skips a %s entry without contacting Resend", async (status) => {
+		const fetchMock = vi.fn();
+		vi.stubGlobal("fetch", fetchMock);
+		const result = await sendEntryCopy(makeEntryCopyInput({ status }));
+		expect(result).toEqual({ ok: false, reason: "skipped_not_visible" });
+		expect(fetchMock).not.toHaveBeenCalled();
+		expect(renderEntryCopyEmail).not.toHaveBeenCalled();
 	});
 
-	it("returns skipped_spam when hasHardReason is true even with pending status", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({ status: "pending", hasHardReason: true }),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_spam");
-	});
-
-	it("returns skipped_spam when hasHardReason is true with visible status", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({ status: "visible", hasHardReason: true }),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_spam");
-	});
-
-	it("does NOT skip when status is pending and hasHardReason is false", async () => {
-		// Should fall through Guard 1 (may be caught by Guards 2-4 or succeed)
+	it("sends a visible entry to the guest", async () => {
 		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({ status: "pending", hasHardReason: false }),
-			})
-		);
-		// Guard 1 was NOT triggered? result is not skipped_spam
-		expect(result.ok === true || (result.ok === false && result.reason !== "skipped_spam")).toBe(true);
+		const result = await sendEntryCopy(makeEntryCopyInput({ status: "visible" }));
+		expect(result.ok).toBe(true);
+		const [, init] = vi.mocked(global.fetch).mock.calls[0] as [string, RequestInit];
+		expect(JSON.parse(String(init.body))).toMatchObject({ to: ["alice@example.com"] });
 	});
 });
 
 // ---------------------------------------------------------------------------
-// sendEntryCopy Guard 2: rate_limited + non-visible → skipped_rate_limited
+// sendEntryCopy: invalid recipient
 // ---------------------------------------------------------------------------
 
-describe("sendEntryCopy Guard 2: rate_limited non-visible", () => {
-	it("returns skipped_rate_limited for pending + rate_limited", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: ["rate_limited"],
-				}),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_rate_limited");
-	});
-
-	it("returns skipped_rate_limited for hidden + rate_limited (hidden caught by Guard 1 first)", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "hidden",
-					reasons: ["rate_limited"],
-					hasHardReason: false,
-				}),
-			})
-		);
-		// Guard 1 catches hidden entries. the result reason can be skipped_spam
-		expect(result.ok).toBe(false);
-	});
-
-	it("does NOT skip a visible entry with rate_limited reason. visibility was earned", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "visible",
-					reasons: ["rate_limited"],
-				}),
-			})
-		);
-		if (!result.ok) {
-			expect(result.reason).not.toBe("skipped_rate_limited");
-		}
-	});
-});
-
-// ---------------------------------------------------------------------------
-// sendEntryCopy Guard 3: pending + only link-drop reasons → skipped_pending_probe
-// ---------------------------------------------------------------------------
-
-describe("sendEntryCopy Guard 3: pending link-drop probing", () => {
-	it("returns skipped_pending_probe for pending + link_only", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: ["link_only"],
-				}),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_pending_probe");
-	});
-
-	it("returns skipped_pending_probe for pending + multiple_urls", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: ["multiple_urls"],
-				}),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_pending_probe");
-	});
-
-	it("returns skipped_pending_probe for pending + both link-drop reasons", async () => {
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: ["link_only", "multiple_urls"],
-				}),
-			})
-		);
-		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.reason).toBe("skipped_pending_probe");
-	});
-
-	it("does NOT skip a pending entry with empty reasons array (Guard 3 check: reasons.length > 0)", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: [], // empty reasons → Guard 3 does NOT trigger
-				}),
-			})
-		);
-		// Guard 3 was NOT triggered
-		if (!result.ok) {
-			expect(result.reason).not.toBe("skipped_pending_probe");
-		}
-	});
-
-	it("does NOT skip a pending entry that has a non-link reason alongside link_only", async () => {
-		// Mixed reasons → some non-link reason present → not all reasons are link-drop
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "pending",
-					reasons: ["link_only", "spam_phrase"], // spam_phrase is not in COPY_SKIP_PENDING_REASONS
-				}),
-			})
-		);
-		if (!result.ok) {
-			expect(result.reason).not.toBe("skipped_pending_probe");
-		}
-	});
-
-	it("does NOT skip a visible entry with link_only reason. visible status passes Guard 3", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
-		const result = await sendEntryCopy(
-			makeEntryCopyInput({
-				classification: makeClassification({
-					status: "visible",
-					reasons: ["link_only"],
-				}),
-			})
-		);
-		if (!result.ok) {
-			expect(result.reason).not.toBe("skipped_pending_probe");
-		}
-	});
-});
-
-// ---------------------------------------------------------------------------
-// sendEntryCopy Guard 4: invalid recipient
-// ---------------------------------------------------------------------------
-
-describe("sendEntryCopy Guard 4: recipient validation", () => {
+describe("sendEntryCopy recipient validation", () => {
 	it("returns invalid_recipient for an email without @", async () => {
 		const result = await sendEntryCopy(makeEntryCopyInput({ email: "not-an-email" }));
 		expect(result.ok).toBe(false);
@@ -326,7 +161,7 @@ describe("sendEntryCopy Guard 4: recipient validation", () => {
 		if (!result.ok) expect(result.reason).toBe("invalid_recipient");
 	});
 
-	it("proceeds past Guard 4 for a valid email", async () => {
+	it("proceeds past recipient validation for a valid email", async () => {
 		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(makeOkFetchResponse()));
 		await sendEntryCopy(makeEntryCopyInput({ email: "alice@example.com" }));
 		// Passed all guards. fetch was called (result is from sendEmail)

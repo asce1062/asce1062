@@ -63,7 +63,11 @@ describe("guestbook migrations", () => {
 		const baseline = await readFile(new URL("0000_guestbook_baseline.sql", MIGRATIONS), "utf8");
 		await client.executeMultiple(baseline);
 
-		await expect(applyMigrations(client, MIGRATIONS)).resolves.toContain("0000_guestbook_baseline.sql");
+		await expect(applyMigrations(client, MIGRATIONS)).resolves.toEqual(
+			expect.arrayContaining(["0000_guestbook_baseline.sql", "0001_guestbook_copy_theme.sql"])
+		);
+		const columns = await client.execute(`SELECT "name" FROM pragma_table_info('Guestbook')`);
+		expect(columns.rows.map((row) => row.name)).toContain("copyTheme");
 		client.close();
 	});
 

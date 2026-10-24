@@ -27,17 +27,18 @@
  *  - Idempotency keys are stable across retries and include the submission timestamp
  *    to prevent reuse if the DB is reset and entry IDs are recycled.
  *
- * Spam/probing guards for entry copy:
- *  - Never send a copy for entries classified as "hidden" or with hard spam reasons.
- *  - Skip pending entries that have only link-drop signals to avoid confirming deliverability to link droppers.
- *  - Skip entries with rate_limited reason that aren't visible to avoid confirming deliverability to brute-force probers.
- * - Always validate the recipient address before sending.
+ * Entry copy policy:
+ *  - Copies go only to entries that are visible. The recipient address is never
+ *    verified, so mailing an entry the classifier held would let anyone send that
+ *    content from this domain to any inbox. Held entries get their copy when an
+ *    admin approves them (guestbook-copy.ts).
+ *  - Always validate the recipient address before sending.
  *
  * In guestbook.ts see:
  * 	- markAdminNotified
- * 	- markCopySent
+ * 	- claimUnsentCopy / releaseCopyClaim (via guestbook-copy.ts)
  */
-import type { ClassificationResult } from "./guestbook";
+import type { ClassificationResult, ModerationStatus } from "./guestbook";
 import { SOCIAL } from "@/config/site-config";
 import { parseEmailAddress, sanitizeHeaderValue } from "@/config/email-config";
 import { renderNotifyEmail } from "@/lib/email/builders/notify-template";
@@ -63,16 +64,6 @@ const MAX_SEND_DEADLINE_MS = 8_000;
 /** Do not start an attempt with less time than this left in the budget. */
 const MIN_ATTEMPT_MS = 500;
 
-/**
- * Pending-only reasons that suggest deliverability probing.
- * Copy emails are suppressed when:
- * 	- The entry is pending AND
- * 	- All flagged reasons are in this set
- * Legit users posting a link deserve the copy.
- * Pure link-drop entries are likely probing whether the address is live.
- */
-const COPY_SKIP_PENDING_REASONS = new Set(["link_only", "multiple_urls"]);
-
 export type EmailResult =
 	{ ok: true; rid?: string } | { ok: false; reason: string; status?: number; code?: string; rid?: string };
 
@@ -96,11 +87,11 @@ export interface EntryCopyInput {
 	message: string;
 	style?: string | null;
 	avatarState?: string | null;
-	/** Full classification so sendEntryCopy can apply spam guards internally */
-	classification: ClassificationResult;
+	/** Current moderation status. Only visible entries are copied. */
+	status: ModerationStatus;
 	entryId: number;
 	theme: "light" | "dark";
-	/** Same submittedAt as NotifyInput. Used in the idempotency key. */
+	/** When the entry was submitted. Used in the idempotency key. */
 	submittedAt: Date;
 }
 
@@ -357,36 +348,13 @@ export async function notifyNewEntry(input: NotifyInput): Promise<EmailResult> {
 /**
  * Send an entry copy to the guest who opted in.
  *
- * Spam guards (applied in order):
- *  1. status === "hidden" or hasHardReason → skip (never confirm deliverability to hard spammers)
- *  2. rate_limited reason + non-visible status → skip (brute-force submission probing defense)
- *  3. status === "pending" AND all reasons are link-drop signals → skip (link-drop probing)
- *  4. Invalid/missing recipient address → skip
+ * Skips entries that are not visible (pending and hidden wait for approval)
+ * and invalid or missing recipient addresses.
  */
 export async function sendEntryCopy(input: EntryCopyInput): Promise<EmailResult> {
 	const tag = `[guestbook-notify:entry_copy:${input.entryId}]`;
-	const { classification } = input;
+	if (input.status !== "visible") return { ok: false, reason: "skipped_not_visible" };
 
-	// Guard 1: hard spam / hidden
-	if (classification.status === "hidden" || classification.hasHardReason) {
-		return { ok: false, reason: "skipped_spam" };
-	}
-
-	// Guard 2: rate-limited non-visible entries (brute-force probing defense)
-	if (classification.reasons.includes("rate_limited") && classification.status !== "visible") {
-		return { ok: false, reason: "skipped_rate_limited" };
-	}
-
-	// Guard 3: pending entries that look like deliverability probing via links
-	if (
-		classification.status === "pending" &&
-		classification.reasons.length > 0 &&
-		classification.reasons.every((r) => COPY_SKIP_PENDING_REASONS.has(r))
-	) {
-		return { ok: false, reason: "skipped_pending_probe" };
-	}
-
-	// Guard 4: recipient validation
 	const recipientEmail = parseEmailAddress(input.email);
 	if (!recipientEmail) return { ok: false, reason: "invalid_recipient" };
 
@@ -411,7 +379,6 @@ export async function sendEntryCopy(input: EntryCopyInput): Promise<EmailResult>
 			message: input.message,
 			style: input.style,
 			avatarState: input.avatarState ?? null,
-			status: classification.status,
 			entryId: input.entryId,
 			theme: input.theme,
 		});

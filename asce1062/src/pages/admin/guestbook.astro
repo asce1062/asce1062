@@ -8,6 +8,7 @@ export const prerender = false;
 import Layout from "@/layouts/Layout.astro";
 import { checkAdminAuth } from "@/lib/api/admin-auth";
 import { getModeratedEntries, updateEntryStatus, safeParseReasons, getModerationLog } from "@/lib/api/guestbook";
+import { deliverRequestedCopy } from "@/lib/api/guestbook-copy";
 import { formatDate } from "@/lib/content/utils";
 import { sanitizeEntryUrl } from "@/lib/api/guestbook-input";
 import type { ModerationStatus } from "@/lib/api/guestbook";
@@ -42,6 +43,12 @@ if (Astro.request.method === "POST") {
 		const newStatus: ModerationStatus = action === "hide" ? "hidden" : "visible";
 		const updated = await updateEntryStatus(entryId, newStatus, { clearFlags: action === "approve-clear" });
 		const result = new URLSearchParams({ filter, result: updated ? action : "missing", entry: String(entryId) });
+		// A copy the guest asked for goes out once the entry is approved. Awaited:
+		// the function stops once the redirect is sent.
+		if (updated && newStatus === "visible") {
+			const copy = await deliverRequestedCopy(entryId);
+			if (copy) result.set("copy", copy.ok ? "sent" : "failed");
+		}
 		return Astro.redirect(`/admin/guestbook?${result}`, 303);
 	}
 	return Astro.redirect(`/admin/guestbook?filter=${filter}`, 303);
@@ -54,10 +61,15 @@ const RESULT_MESSAGES: Record<Action, string> = {
 	"approve-clear": "approved and flags cleared",
 	hide: "hidden",
 };
+const COPY_MESSAGES = new Map([
+	["sent", " Their requested copy was emailed."],
+	["failed", " Their requested copy could not be emailed. Check the function logs."],
+]);
+const copyMessage = COPY_MESSAGES.get(url.searchParams.get("copy") ?? "") ?? "";
 const actionMessage =
 	Number.isInteger(resultEntry) && resultEntry > 0
 		? isAction(resultAction)
-			? `Entry #${resultEntry} ${RESULT_MESSAGES[resultAction]}.`
+			? `Entry #${resultEntry} ${RESULT_MESSAGES[resultAction]}.${copyMessage}`
 			: resultAction === "missing"
 				? `Entry #${resultEntry} no longer exists.`
 				: ""

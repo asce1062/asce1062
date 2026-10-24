@@ -3,7 +3,6 @@
  * Email sent to the guest when they opt in to receive a copy of their entry.
  * HTML is rendered from EntryCopyEmail.astro. This file owns subject + plain-text.
  */
-import type { ModerationStatus } from "@/lib/api/guestbook";
 import EntryCopyEmail from "@/components/email/EntryCopyEmail.astro";
 import { renderEmailHtml } from "@/lib/email/render";
 import { BASE_URL, MAX_COPY_MSG_CHARS, truncate, sanitizeUserText, singleLine, wrapText } from "@/config/email-config";
@@ -13,7 +12,6 @@ export interface EntryCopyTemplateInput {
 	message: string;
 	style?: string | null;
 	avatarState?: string | null;
-	status: ModerationStatus;
 	entryId: number;
 	theme: "light" | "dark";
 }
@@ -48,11 +46,7 @@ export async function renderEntryCopyEmail(
 		wrapText(truncate(sanitizeUserText(input.message), MAX_COPY_MSG_CHARS)),
 		"---",
 		"",
-		input.status === "pending"
-			? "Your entry is pending review. It will appear on the guestbook once approved."
-			: input.status === "hidden"
-				? "Your entry was flagged for review and may not appear on the guestbook."
-				: `View your entry: ${entryUrl}`,
+		`View your entry: ${entryUrl}`,
 		"",
 		`${BASE_URL}/guestbook`,
 	].join("\n");

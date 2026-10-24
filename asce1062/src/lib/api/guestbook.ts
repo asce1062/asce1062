@@ -75,6 +75,8 @@ export interface CreateEntryInput {
 	avatarState?: string | null;
 	/** Whether the submitter opted to attach their avatar */
 	avatarOptIn?: boolean;
+	/** Site theme for the guest's requested copy. Null or omitted when no copy was asked for. */
+	copyTheme?: "light" | "dark" | null;
 	ip?: string;
 	userAgent?: string;
 }
@@ -777,10 +779,14 @@ export async function createGuestEntry(
 		url: sanitizeEntryUrl(entry.url),
 		message: trimmedMessage,
 		messageHash,
+		// The same instant the classification windows and email idempotency keys use.
+		timestamp: now,
 		isSpam: classification.status === "hidden",
 		style: entry.style ? serializeEntryStyle(parseEntryStyle(entry.style)) : null,
 		avatarState: entry.avatarOptIn ? normalizeAvatarState(entry.avatarState) : null,
 		avatarOptIn: entry.avatarOptIn ?? false,
+		// A copy needs somewhere to go.
+		copyTheme: entry.email.trim() ? (entry.copyTheme ?? null) : null,
 		status: classification.status,
 		moderationReason: classification.reasons.length > 0 ? JSON.stringify(classification.reasons) : null,
 		moderationScore: classification.score,
@@ -904,7 +910,58 @@ export async function markAdminNotified(entryId: number): Promise<void> {
 	await db.update(Guestbook).set({ adminNotifiedAt: new Date() }).where(eq(Guestbook.id, entryId));
 }
 
-/** Mark entry copy email as sent. */
-export async function markCopySent(entryId: number): Promise<void> {
-	await db.update(Guestbook).set({ copySentAt: new Date() }).where(eq(Guestbook.id, entryId));
+export interface ClaimedCopy {
+	id: number;
+	name: string;
+	email: string;
+	message: string;
+	style: string | null;
+	avatarState: string | null;
+	theme: "light" | "dark";
+	submittedAt: Date;
+	/** The copySentAt value written by the claim. Pass it to releaseCopyClaim on failure. */
+	claimedAt: Date;
+}
+
+/**
+ * Atomically claim the copy a guest asked for: sets copySentAt only if the entry
+ * is visible, has an address and a copy request, and no copy went out yet.
+ * Exactly one concurrent caller gets the row (a double-clicked Approve sends
+ * once). Held entries return null until approved.
+ */
+export async function claimUnsentCopy(entryId: number): Promise<ClaimedCopy | null> {
+	const claimedAt = new Date();
+	const [row] = await db
+		.update(Guestbook)
+		.set({ copySentAt: claimedAt })
+		.where(
+			and(
+				eq(Guestbook.id, entryId),
+				eq(Guestbook.status, "visible"),
+				isNotNull(Guestbook.copyTheme),
+				isNotNull(Guestbook.email),
+				isNull(Guestbook.copySentAt)
+			)
+		)
+		.returning();
+	if (!row?.email || !row.copyTheme) return null;
+	return {
+		id: row.id,
+		name: row.name,
+		email: row.email,
+		message: row.message,
+		style: row.style,
+		avatarState: row.avatarState,
+		theme: row.copyTheme,
+		submittedAt: row.timestamp,
+		claimedAt,
+	};
+}
+
+/** Undo a claim whose send failed, so a later approval can try again. */
+export async function releaseCopyClaim(entryId: number, claimedAt: Date): Promise<void> {
+	await db
+		.update(Guestbook)
+		.set({ copySentAt: null })
+		.where(and(eq(Guestbook.id, entryId), eq(Guestbook.copySentAt, claimedAt)));
 }

@@ -39,6 +39,9 @@ export const Guestbook = sqliteTable(
 		moderatedBy: text("moderatedBy"),
 		moderationVersion: integer("moderationVersion").default(1),
 		adminNotifiedAt: dateText("adminNotifiedAt"),
+		// Set when the guest asked for a copy: the site theme the copy renders in.
+		// Visible entries get it on submit, held entries when an admin approves them.
+		copyTheme: text("copyTheme", { enum: ["light", "dark"] }),
 		copySentAt: dateText("copySentAt"),
 		avatarState: text("avatarState"),
 		avatarOptIn: integer("avatarOptIn", { mode: "boolean" }),
