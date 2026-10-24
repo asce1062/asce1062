@@ -72,6 +72,7 @@ export class AsciiVisualizerController {
 	private idleTick = 0;
 	private theme: AsciiVisualizerTheme = THEMES.DEFAULT;
 	private isPlaying = false;
+	private isVisible = true;
 	// Peak decay buffer: bars fall by at most 1 row per frame for a smooth VU-meter feel
 	private previousHeights: number[] = new Array(COLS).fill(0);
 	// Cell-level render cache: skip DOM writes when char/color/shadow are unchanged
@@ -152,8 +153,23 @@ export class AsciiVisualizerController {
 		}
 	}
 
+	/**
+	 * Hidden (player minimized or never opened): stop both loops; nothing is on
+	 * screen. Visible: resume the loop that matches the playback state.
+	 */
+	setVisible(visible: boolean): void {
+		this.isVisible = visible;
+		if (visible) {
+			this.setPlaying(this.isPlaying);
+		} else {
+			this.stopActive();
+			this.stopIdle();
+		}
+	}
+
 	setPlaying(playing: boolean): void {
 		this.isPlaying = playing;
+		if (!this.isVisible) return;
 		if (this.prefersReducedMotion()) {
 			this.stopActive();
 			this.stopIdle();
