@@ -1,0 +1,1 @@
+import{i as e,n as t}from"./keyboardShortcuts.BKLE92pk.js";var n=`#page-searchbox .pagefind-ui__search-input`,r=[];document.addEventListener(`astro:page-load`,()=>{document.getElementById(`page-searchbox`)&&(r=[t(n),e(()=>document.querySelector(n)?.focus())])}),document.addEventListener(`astro:before-swap`,()=>{for(let e of r)e();r=[]});

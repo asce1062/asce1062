@@ -1,0 +1,1 @@
+import{t as e}from"./iframeTheme.DXrETK7Q.js";e({id:`github-contributions`,updateMethod:`src-query`,queryParam:`scheme`,queryValues:{dark:`dark`,light:`light`}});

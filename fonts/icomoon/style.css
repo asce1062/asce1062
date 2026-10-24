@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?go71d9');
-  src:  url('fonts/icomoon.eot?go71d9#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.woff?go71d9') format('woff'),
-    url('fonts/icomoon.ttf?go71d9') format('truetype'),
-    url('fonts/icomoon.svg?go71d9#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?fxd10s');
+  src:  url('fonts/icomoon.eot?fxd10s#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.woff?fxd10s') format('woff'),
+    url('fonts/icomoon.ttf?fxd10s') format('truetype'),
+    url('fonts/icomoon.svg?fxd10s#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -126,6 +126,27 @@
 }
 .icon-git-commit:before {
   content: "\e991";
+}
+.icon-exclamation-triangle:before {
+  content: "\e9e2";
+}
+.icon-robot:before {
+  content: "\e9e3";
+}
+.icon-person-check:before {
+  content: "\e9e5";
+}
+.icon-clock-history:before {
+  content: "\e9e6";
+}
+.icon-hdd:before {
+  content: "\e9e7";
+}
+.icon-database:before {
+  content: "\e9e8";
+}
+.icon-file-earmark-text:before {
+  content: "\e9e9";
 }
 .icon-droplet:before {
   content: "\e9de";
