@@ -1,13 +1,11 @@
 import type { APIRoute } from "astro";
 import {
-	asRecord,
+	getPublicCatalog,
 	isPublicPlaylist,
 	jsonResponse,
 	navidromeErrorResponse,
 	readNumber,
-	readRecordArray,
 	readString,
-	subsonicFetchJson,
 } from "@/lib/navidrome";
 
 /**
@@ -37,11 +35,10 @@ function serializePlaylist(playlist: Record<string, unknown>) {
 
 export const GET: APIRoute = async () => {
 	try {
-		const payload = await subsonicFetchJson("getPlaylists");
-		const playlistsRoot = asRecord(payload.playlists);
-		const playlists = readRecordArray(playlistsRoot, "playlist")
-			.map(serializePlaylist)
-			.filter((playlist) => playlist.id && playlist.public);
+		// Served from the same catalog that gates /playlist, /stream and /cover, so
+		// the list never offers something those routes would refuse.
+		const catalog = await getPublicCatalog();
+		const playlists = catalog.playlists.map(serializePlaylist).filter((playlist) => playlist.id);
 
 		return jsonResponse({ playlists });
 	} catch (error) {

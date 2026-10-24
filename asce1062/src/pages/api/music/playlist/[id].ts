@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import {
 	asRecord,
-	getPublicCatalog,
+	isInPublicCatalog,
 	isPublicPlaylist,
 	jsonResponse,
 	navidromeErrorResponse,
@@ -46,7 +46,7 @@ export const GET: APIRoute = async ({ params }) => {
 	if (id instanceof Response) return id;
 
 	try {
-		if (!(await getPublicCatalog()).playlistIds.has(id)) return notFoundResponse();
+		if (!(await isInPublicCatalog("playlistIds", id))) return notFoundResponse();
 		const payload = await subsonicFetchJson("getPlaylist", { id });
 		const playlist = asRecord(payload.playlist);
 		const tracks = readRecordArray(playlist, "entry")

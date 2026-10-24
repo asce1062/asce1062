@@ -26,8 +26,11 @@ function subsonic(body: Record<string, unknown>): Response {
 	return Response.json({ "subsonic-response": { status: "ok", ...body } });
 }
 
-function fakeNavidrome(url: string | URL): Response {
-	const { pathname, searchParams } = new URL(url);
+type FetchInput = string | URL | Request;
+const urlOf = (input: FetchInput): URL => new URL(input instanceof Request ? input.url : input);
+
+function fakeNavidrome(url: FetchInput): Response {
+	const { pathname, searchParams } = urlOf(url);
 	const endpoint = pathname.replace(/^\/rest\/|\.view$/g, "");
 	const id = searchParams.get("id") ?? "";
 	switch (endpoint) {
@@ -121,5 +124,53 @@ describe("error responses", () => {
 		const misconfigured = await getPlaylists(context());
 		expect(misconfigured.status).toBe(503);
 		expect(JSON.stringify(await misconfigured.json())).not.toMatch(/NAVIDROME_/);
+	});
+});
+
+describe("catalog resilience", () => {
+	it("skips a playlist whose detail call fails instead of failing every route", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const extra = { id: "pl-broken", name: "Broken", public: true };
+		vi.mocked(fetch).mockImplementation(async (url: FetchInput) => {
+			const parsed = urlOf(url);
+			if (parsed.pathname.endsWith("getPlaylists.view"))
+				return subsonic({ playlists: { playlist: [...PLAYLISTS, extra] } });
+			if (parsed.searchParams.get("id") === "pl-broken") return new Response("upstream error", { status: 500 });
+			return fakeNavidrome(url);
+		});
+
+		const body = await (await getPlaylists(context())).json();
+		expect(body.playlists.map((p: { id: string }) => p.id)).toEqual(["pl-public"]);
+		expect((await getStream(context("tr-public"))).status).toBe(206);
+	});
+
+	it("refreshes once on a miss so a newly public playlist is reachable", async () => {
+		vi.useFakeTimers();
+		try {
+			await getPlaylists(context()); // warm the cache
+			PLAYLISTS[1].public = true;
+			vi.advanceTimersByTime(31_000);
+
+			expect((await getPlaylist(context("pl-private"))).status).toBe(200);
+		} finally {
+			PLAYLISTS[1].public = false;
+			vi.useRealTimers();
+		}
+	});
+});
+
+describe("cover revalidation", () => {
+	it("forwards If-None-Match and passes a 304 through", async () => {
+		vi.mocked(fetch).mockImplementation(async (url: FetchInput, init?: RequestInit) => {
+			if (urlOf(url).pathname.endsWith("getCoverArt.view")) {
+				const matches = new Headers(init?.headers).get("If-None-Match") === '"v1"';
+				return matches ? new Response(null, { status: 304, headers: { ETag: '"v1"' } }) : fakeNavidrome(url);
+			}
+			return fakeNavidrome(url);
+		});
+
+		const response = await getCover(context("al-public", { "If-None-Match": '"v1"' }));
+		expect(response.status).toBe(304);
+		expect(response.headers.get("ETag")).toBe('"v1"');
 	});
 });

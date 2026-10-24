@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import {
-	getPublicCatalog,
+	isInPublicCatalog,
 	navidromeErrorResponse,
 	notFoundResponse,
 	proxySubsonicBinary,
@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ params, request }) => {
 	if (id instanceof Response) return id;
 
 	try {
-		if (!(await getPublicCatalog()).coverIds.has(id)) return notFoundResponse();
+		if (!(await isInPublicCatalog("coverIds", id))) return notFoundResponse();
 		return await proxySubsonicBinary("getCoverArt", { id, size: "640" }, request);
 	} catch (error) {
 		return navidromeErrorResponse(error);

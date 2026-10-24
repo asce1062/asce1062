@@ -226,32 +226,46 @@ export function isPublicPlaylist(playlist: Record<string, unknown>): boolean {
 
 /** Ids the public player may request: public playlists and what they contain. */
 export interface PublicCatalog {
+	/** Raw Subsonic records of the public playlists, in Navidrome's order */
+	playlists: readonly Record<string, unknown>[];
 	playlistIds: ReadonlySet<string>;
 	trackIds: ReadonlySet<string>;
 	coverIds: ReadonlySet<string>;
 }
 
+export type CatalogKind = "playlistIds" | "trackIds" | "coverIds";
+
 async function loadPublicCatalog(): Promise<PublicCatalog> {
 	const list = await subsonicFetchJson("getPlaylists");
 	const publicPlaylists = readRecordArray(asRecord(list.playlists), "playlist").filter(isPublicPlaylist);
+	const playlists: Record<string, unknown>[] = [];
 	const playlistIds = new Set<string>();
 	const trackIds = new Set<string>();
 	const coverIds = new Set<string>();
 
-	const details = await Promise.all(
-		publicPlaylists.map((playlist) => {
-			const id = readString(playlist, "id");
-			return id ? subsonicFetchJson("getPlaylist", { id }).then((payload) => ({ id, payload })) : null;
+	// allSettled: one playlist failing (deleted mid-load, upstream hiccup) must not
+	// take the whole player down; it is simply left out until the next load.
+	const details = await Promise.allSettled(
+		publicPlaylists.map(async (summary) => {
+			const id = readString(summary, "id");
+			if (!id) throw new Error("playlist without id");
+			return { id, summary, payload: await subsonicFetchJson("getPlaylist", { id }) };
 		})
 	);
 
 	for (const detail of details) {
-		if (!detail) continue;
-		const playlist = asRecord(detail.payload.playlist);
+		if (detail.status === "rejected") {
+			console.error("Navidrome playlist skipped from public catalog:", detail.reason);
+			continue;
+		}
+		const { id, summary, payload } = detail.value;
+		const playlist = asRecord(payload.playlist);
 		if (!playlist || !isPublicPlaylist(playlist)) continue;
-		playlistIds.add(detail.id);
+		playlists.push(summary);
+		playlistIds.add(id);
 		// Matches the client: a playlist without coverArt uses its own id as the cover id.
-		coverIds.add(readString(playlist, "coverArt") ?? detail.id);
+		coverIds.add(readString(summary, "coverArt") ?? id);
+		coverIds.add(readString(playlist, "coverArt") ?? id);
 		for (const track of readRecordArray(playlist, "entry")) {
 			const trackId = readString(track, "id");
 			if (trackId) trackIds.add(trackId);
@@ -260,23 +274,39 @@ async function loadPublicCatalog(): Promise<PublicCatalog> {
 		}
 	}
 
-	return { playlistIds, trackIds, coverIds };
+	return { playlists, playlistIds, trackIds, coverIds };
 }
 
-let catalogCache: { expiresAt: number; catalog: Promise<PublicCatalog> } | null = null;
+/** A miss may refresh the catalog early, but at most this often. */
+const CATALOG_MISS_REFRESH_MS = 30_000;
 
-/**
- * The public catalog, cached per warm function instance. A failed load is not
- * cached, so the next request retries.
- */
-export function getPublicCatalog(now: number = Date.now()): Promise<PublicCatalog> {
-	if (catalogCache && catalogCache.expiresAt > now) return catalogCache.catalog;
+let catalogCache: { loadedAt: number; catalog: Promise<PublicCatalog> } | null = null;
+
+function loadIntoCache(now: number): Promise<PublicCatalog> {
 	const catalog = loadPublicCatalog();
-	catalogCache = { expiresAt: now + CATALOG_TTL_MS, catalog };
+	catalogCache = { loadedAt: now, catalog };
+	// A failed load is not cached, so the next request retries.
 	catalog.catch(() => {
 		if (catalogCache?.catalog === catalog) catalogCache = null;
 	});
 	return catalog;
+}
+
+/** The public catalog, cached per warm function instance. */
+export function getPublicCatalog(now: number = Date.now()): Promise<PublicCatalog> {
+	if (catalogCache && now - catalogCache.loadedAt < CATALOG_TTL_MS) return catalogCache.catalog;
+	return loadIntoCache(now);
+}
+
+/**
+ * Whether an id is publicly servable. On a miss against a catalog older than
+ * CATALOG_MISS_REFRESH_MS, reload once first: a playlist just made public, or a
+ * cover id that changed when a playlist was edited, should not 404 for minutes.
+ */
+export async function isInPublicCatalog(kind: CatalogKind, id: string, now: number = Date.now()): Promise<boolean> {
+	if ((await getPublicCatalog(now))[kind].has(id)) return true;
+	if (catalogCache && now - catalogCache.loadedAt < CATALOG_MISS_REFRESH_MS) return false;
+	return (await loadIntoCache(now))[kind].has(id);
 }
 
 /** Test hook: forget the cached catalog. */
@@ -297,17 +327,32 @@ export async function proxySubsonicBinary(
 	if (range) {
 		headers.set("Range", range);
 	}
+	// Let the browser revalidate cached covers (ETag/Last-Modified are passed back).
+	for (const name of ["If-None-Match", "If-Modified-Since"]) {
+		const value = request?.headers.get(name);
+		if (value) headers.set(name, value);
+	}
 
 	// Abort upstream when the browser goes away, and give up if headers never
 	// arrive. The timer is cleared once streaming starts, so long tracks play on.
 	const controller = new AbortController();
 	const headersTimeout = setTimeout(() => controller.abort(), MEDIA_HEADERS_TIMEOUT_MS);
+	if (request?.signal.aborted) controller.abort();
 	request?.signal.addEventListener("abort", () => controller.abort(), { once: true });
 	let upstream: Response;
 	try {
 		upstream = await fetch(url, { headers, signal: controller.signal });
 	} finally {
 		clearTimeout(headersTimeout);
+	}
+
+	if (upstream.status === 304) {
+		const notModified = new Headers({ "Cache-Control": "public, max-age=86400" });
+		for (const name of ["ETag", "Last-Modified"]) {
+			const value = upstream.headers.get(name);
+			if (value) notModified.set(name, value);
+		}
+		return new Response(null, { status: 304, headers: notModified });
 	}
 
 	if (!upstream.ok) {

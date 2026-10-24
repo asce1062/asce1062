@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import {
-	getPublicCatalog,
+	isInPublicCatalog,
 	navidromeErrorResponse,
 	notFoundResponse,
 	proxySubsonicBinary,
@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ params, request }) => {
 	if (id instanceof Response) return id;
 
 	try {
-		if (!(await getPublicCatalog()).trackIds.has(id)) return notFoundResponse();
+		if (!(await isInPublicCatalog("trackIds", id))) return notFoundResponse();
 		return await proxySubsonicBinary("stream", { id }, request);
 	} catch (error) {
 		return navidromeErrorResponse(error);
