@@ -24,15 +24,20 @@ const colours = [
 		<span class="block pt-2 text-xs italic">
 			{siteMetadata.commitHash && (
 				<>
-					<i class="icon-git-commit text-base inline-block translate-y-1" />{" "}
+					<i class="icon-git-commit text-base inline-block translate-y-1" aria-hidden="true" />{" "}
 					<a href={siteMetadata.commitUrl} target="_blank" rel="noopener noreferrer">
 						{siteMetadata.commitHash}
-					</a>
+					</a>{" "}
+					•{" "}
 				</>
-			)}{" "}
-			•{" "}
-			<a class="decoration-wavy decoration-1" href={siteMetadata.astroUrl} target="_blank" rel="noopener noreferrer">
-				<i class="icon-astro"></i>
+			)}
+			<a
+				class="decoration-wavy decoration-1"
+				href={siteMetadata.astroUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="Built with Astro">
+				<i class="icon-astro" aria-hidden="true"></i>
 			</a>{" "}
 			• {new Date(siteMetadata.buildTime).toLocaleDateString()}
 		</span>
