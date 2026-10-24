@@ -1,7 +1,56 @@
 /**
  * GitHub API utilities
  * Handles fetching and processing GitHub repository data
+ *
+ * Failure policy: these run at build time, and a failed request fails the
+ * build so Netlify keeps serving the last good deploy. Pages never ship
+ * empty or partial GitHub data. Transient failures (network errors, 5xx, rate
+ * limits that say when to retry) are retried first.
  */
+
+const MAX_ATTEMPTS = 3;
+const MAX_RETRY_WAIT_MS = 60_000;
+const REQUEST_TIMEOUT_MS = 30_000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Wait before a retry, or null when the response is not worth retrying. */
+function retryDelay(response: Response, attempt: number): number | null {
+	const retryAfter = Number(response.headers.get("Retry-After"));
+	const backoff = 1000 * 2 ** (attempt - 1);
+	if (response.status >= 500 || response.status === 429) {
+		return Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : backoff;
+	}
+	// 403 is only transient as a secondary rate limit, which sends Retry-After.
+	if (response.status === 403 && retryAfter > 0) return retryAfter * 1000;
+	return null;
+}
+
+/**
+ * Fetch a GitHub API URL, retrying transient failures. Throws when the request
+ * still fails, naming the URL and status.
+ */
+async function githubFetch(url: string, headers: Record<string, string>): Promise<Response> {
+	for (let attempt = 1; ; attempt++) {
+		let response: Response;
+		try {
+			response = await fetch(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+		} catch (error) {
+			// Network errors and timeouts
+			if (attempt >= MAX_ATTEMPTS) throw new Error(`GitHub API request failed: ${url}`, { cause: error });
+			await sleep(1000 * 2 ** (attempt - 1));
+			continue;
+		}
+		if (response.ok) return response;
+
+		const delay = retryDelay(response, attempt);
+		await response.body?.cancel();
+		if (delay === null || attempt >= MAX_ATTEMPTS || delay > MAX_RETRY_WAIT_MS) {
+			throw new Error(`GitHub API error: ${response.status} ${response.statusText} (${url})`);
+		}
+		await sleep(delay);
+	}
+}
 
 /**
  * Get standard GitHub API headers
@@ -81,17 +130,10 @@ export async function fetchGitHubRepos(username: string, token?: string): Promis
 
 	// Fetch all pages
 	while (hasMore) {
-		const response = await fetch(
+		const response = await githubFetch(
 			`https://api.github.com/users/${username}/repos?per_page=100&page=${page}&sort=pushed`,
-			{
-				headers,
-			}
+			headers
 		);
-
-		if (!response.ok) {
-			throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-		}
-
 		const repos = await response.json();
 
 		if (repos.length === 0) {
@@ -114,50 +156,35 @@ export async function fetchGitHubRepos(username: string, token?: string): Promis
  * Fetch contributors count for a repository
  */
 async function fetchRepoContributorsCount(owner: string, repo: string, token?: string): Promise<number> {
-	const headers = getGitHubHeaders(token);
+	const response = await githubFetch(
+		`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=1&anon=true`,
+		getGitHubHeaders(token)
+	);
+	// 204: the repository is empty
+	if (response.status === 204) return 0;
 
-	try {
-		const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=1&anon=true`, {
-			headers,
-		});
-		if (!response.ok) return 0;
-
-		// GitHub returns the total count in the Link header
-		const linkHeader = response.headers.get("Link");
-		if (linkHeader) {
-			const lastMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
-			if (lastMatch) {
-				return parseInt(lastMatch[1], 10);
-			}
+	// GitHub returns the total count in the Link header
+	const linkHeader = response.headers.get("Link");
+	if (linkHeader) {
+		const lastMatch = linkHeader.match(/page=(\d+)>; rel="last"/);
+		if (lastMatch) {
+			return parseInt(lastMatch[1], 10);
 		}
-
-		// If no Link header, count from response (only 1 page)
-		const contributors = await response.json();
-		return Array.isArray(contributors) ? contributors.length : 0;
-	} catch (error) {
-		console.error(`Failed to fetch contributors for ${owner}/${repo}:`, error);
-		return 0;
 	}
+
+	// If no Link header, count from response (only 1 page)
+	const contributors = await response.json();
+	return Array.isArray(contributors) ? contributors.length : 0;
 }
 
 /**
  * Fetch languages for a repository
  */
 async function fetchRepoLanguages(languagesUrl: string, token?: string): Promise<string[]> {
-	const headers = getGitHubHeaders(token);
-
-	try {
-		const response = await fetch(languagesUrl, { headers });
-		if (!response.ok) return [];
-
-		const languages = await response.json();
-		// Returns object like { "TypeScript": 12345, "JavaScript": 6789 }
-		// We just need the language names
-		return Object.keys(languages);
-	} catch (error) {
-		console.error(`Failed to fetch languages from ${languagesUrl}:`, error);
-		return [];
-	}
+	const response = await githubFetch(languagesUrl, getGitHubHeaders(token));
+	// Returns object like { "TypeScript": 12345, "JavaScript": 6789 }
+	// We just need the language names
+	return Object.keys(await response.json());
 }
 
 /**
@@ -325,7 +352,7 @@ export interface ChangelogOptions {
 
 /**
  * Fetch ALL commits for a repository by paginating through the API.
- * Returns empty array on failure (graceful degradation).
+ * Throws if any page fails: a partial history is not shipped.
  */
 export async function fetchAllGitHubCommits(
 	owner: string,
@@ -340,41 +367,19 @@ export async function fetchAllGitHubCommits(
 	let page = 1;
 	let hasMore = true;
 
-	try {
-		while (hasMore && allCommits.length < maxCommits) {
-			const response = await fetch(
-				`https://api.github.com/repos/${owner}/${repo}/commits?per_page=${perPage}&page=${page}`,
-				{ headers }
-			);
+	while (hasMore && allCommits.length < maxCommits) {
+		const response = await githubFetch(
+			`https://api.github.com/repos/${owner}/${repo}/commits?per_page=${perPage}&page=${page}`,
+			headers
+		);
+		const commits: GitHubCommit[] = await response.json();
 
-			if (!response.ok) {
-				// If first page fails, return empty. Otherwise return what we have.
-				if (page === 1) {
-					console.warn(`GitHub commits API returned ${response.status} for ${owner}/${repo}`);
-					return [];
-				}
-				break;
-			}
-
-			const commits: GitHubCommit[] = await response.json();
-
-			if (commits.length === 0) {
-				hasMore = false;
-			} else {
-				allCommits.push(...commits);
-				page++;
-
-				// Stop if we got fewer than requested (last page)
-				if (commits.length < perPage) {
-					hasMore = false;
-				}
-			}
-		}
-		return allCommits.slice(0, maxCommits);
-	} catch (error) {
-		console.error(`Failed to fetch commits for ${owner}/${repo}:`, error);
-		return allCommits.length > 0 ? allCommits : [];
+		allCommits.push(...commits);
+		page++;
+		// Stop if we got fewer than requested (last page)
+		hasMore = commits.length === perPage;
 	}
+	return allCommits.slice(0, maxCommits);
 }
 
 /**
@@ -386,34 +391,28 @@ export async function getChangelogEntries(
 	repo: string,
 	token?: string,
 	options: ChangelogOptions = {}
-): Promise<{ entries: ChangelogEntry[]; success: boolean; totalCount: number }> {
+): Promise<ChangelogEntry[]> {
 	const commits = await fetchAllGitHubCommits(owner, repo, token, {
 		maxCommits: options.maxCommits || 1000,
 	});
 
-	if (commits.length > 0) {
-		const entries: ChangelogEntry[] = commits.map((commit) => {
-			const messageLines = commit.commit.message.split("\n");
-			const title = messageLines[0];
-			// Body is everything after the first line (skip empty line after title)
-			const bodyLines = messageLines.slice(1).filter((line, index) => !(index === 0 && line.trim() === ""));
-			const body = bodyLines.length > 0 ? bodyLines.join("\n").trim() : null;
+	return commits.map((commit) => {
+		const messageLines = commit.commit.message.split("\n");
+		const title = messageLines[0];
+		// Body is everything after the first line (skip empty line after title)
+		const bodyLines = messageLines.slice(1).filter((line, index) => !(index === 0 && line.trim() === ""));
+		const body = bodyLines.length > 0 ? bodyLines.join("\n").trim() : null;
 
-			return {
-				id: `commit-${commit.sha}`,
-				title,
-				body,
-				date: commit.commit.author.date,
-				url: commit.html_url,
-				shortSha: commit.sha.substring(0, 7),
-				author: commit.commit.author.name,
-			};
-		});
-
-		return { entries, success: true, totalCount: entries.length };
-	}
-
-	return { entries: [], success: false, totalCount: 0 };
+		return {
+			id: `commit-${commit.sha}`,
+			title,
+			body,
+			date: commit.commit.author.date,
+			url: commit.html_url,
+			shortSha: commit.sha.substring(0, 7),
+			author: commit.commit.author.name,
+		};
+	});
 }
 
 /**

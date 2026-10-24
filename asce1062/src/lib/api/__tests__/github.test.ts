@@ -246,3 +246,135 @@ describe("fetchGitHubRepos", () => {
 		expect(global.fetch).toHaveBeenCalledTimes(1);
 	});
 });
+
+// ---------------------------------------------------------------------------
+// Failure policy: a failed request fails the build, transient ones retry first
+// ---------------------------------------------------------------------------
+
+describe("GitHub failure policy", () => {
+	const json = (body: unknown, init: ResponseInit = { status: 200 }) => new Response(JSON.stringify(body), init);
+	const commit = (sha: string) => ({
+		sha,
+		html_url: `https://github.com/o/r/commit/${sha}`,
+		commit: { message: `title ${sha}\n\nbody ${sha}`, author: { name: "Alex", date: "2026-10-24T10:00:00Z" } },
+	});
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+		vi.stubGlobal("fetch", vi.fn());
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.unstubAllGlobals();
+		vi.resetAllMocks();
+	});
+
+	/** Run a call to completion, letting retry backoff timers fire. */
+	async function settle<T>(promise: Promise<T>): Promise<T> {
+		const outcome = promise.then(
+			(value) => ({ value }),
+			(error: unknown) => ({ error })
+		);
+		await vi.runAllTimersAsync();
+		const result = await outcome;
+		if ("error" in result) throw result.error;
+		return result.value;
+	}
+
+	it("retries a 5xx and a network error, then succeeds", async () => {
+		const { fetchGitHubRepos } = await import("@/lib/api/github");
+		vi.mocked(global.fetch)
+			.mockResolvedValueOnce(new Response(null, { status: 502, statusText: "Bad Gateway" }))
+			.mockRejectedValueOnce(new TypeError("fetch failed"))
+			.mockResolvedValueOnce(json([{ name: "a" }]))
+			.mockResolvedValueOnce(json([]));
+
+		await expect(settle(fetchGitHubRepos("u"))).resolves.toHaveLength(1);
+		expect(global.fetch).toHaveBeenCalledTimes(4);
+	});
+
+	it("gives up after three attempts", async () => {
+		const { fetchGitHubRepos } = await import("@/lib/api/github");
+		vi.mocked(global.fetch).mockResolvedValue(new Response(null, { status: 503, statusText: "Unavailable" }));
+
+		await expect(settle(fetchGitHubRepos("u"))).rejects.toThrow("GitHub API error: 503");
+		expect(global.fetch).toHaveBeenCalledTimes(3);
+	});
+
+	it("does not retry a 403 rate limit without Retry-After (it resets in up to an hour)", async () => {
+		const { fetchGitHubRepos } = await import("@/lib/api/github");
+		vi.mocked(global.fetch).mockResolvedValue(new Response(null, { status: 403, statusText: "Forbidden" }));
+
+		await expect(settle(fetchGitHubRepos("u"))).rejects.toThrow("GitHub API error: 403");
+		expect(global.fetch).toHaveBeenCalledTimes(1);
+	});
+
+	it("retries a secondary rate limit after its Retry-After", async () => {
+		const { fetchGitHubRepos } = await import("@/lib/api/github");
+		vi.mocked(global.fetch)
+			.mockResolvedValueOnce(new Response(null, { status: 403, headers: { "Retry-After": "2" } }))
+			.mockResolvedValueOnce(json([]));
+
+		await expect(settle(fetchGitHubRepos("u"))).resolves.toEqual([]);
+		expect(global.fetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("fails the changelog when a later page fails instead of shipping a partial history", async () => {
+		const { getChangelogEntries } = await import("@/lib/api/github");
+		vi.mocked(global.fetch)
+			.mockResolvedValueOnce(json(Array.from({ length: 100 }, (_, i) => commit(`sha${i}`))))
+			.mockResolvedValue(new Response(null, { status: 401, statusText: "Unauthorized" }));
+
+		await expect(settle(getChangelogEntries("o", "r"))).rejects.toThrow("GitHub API error: 401");
+	});
+
+	it("maps commits to changelog entries", async () => {
+		const { getChangelogEntries } = await import("@/lib/api/github");
+		vi.mocked(global.fetch).mockResolvedValueOnce(json([commit("abcdef1234")]));
+
+		await expect(settle(getChangelogEntries("o", "r"))).resolves.toEqual([
+			{
+				id: "commit-abcdef1234",
+				title: "title abcdef1234",
+				body: "body abcdef1234",
+				date: "2026-10-24T10:00:00Z",
+				url: "https://github.com/o/r/commit/abcdef1234",
+				shortSha: "abcdef1",
+				author: "Alex",
+			},
+		]);
+	});
+
+	it("fails project enrichment instead of showing empty languages", async () => {
+		const { enrichReposWithLanguages } = await import("@/lib/api/github");
+		const repo = {
+			name: "r",
+			html_url: "https://github.com/o/r",
+			languages_url: "https://api.github.com/repos/o/r/languages",
+		};
+		vi.mocked(global.fetch).mockImplementation(async (url) =>
+			String(url).endsWith("/languages")
+				? new Response(null, { status: 404, statusText: "Not Found" })
+				: json([{ login: "a" }])
+		);
+
+		await expect(settle(enrichReposWithLanguages([repo as never]))).rejects.toThrow("GitHub API error: 404");
+	});
+
+	it("counts an empty repository (204) as zero contributors", async () => {
+		const { enrichReposWithLanguages } = await import("@/lib/api/github");
+		const repo = {
+			name: "r",
+			html_url: "https://github.com/o/r",
+			languages_url: "https://api.github.com/repos/o/r/languages",
+		};
+		vi.mocked(global.fetch).mockImplementation(async (url) =>
+			String(url).endsWith("/languages") ? json({ TypeScript: 10 }) : new Response(null, { status: 204 })
+		);
+
+		await expect(settle(enrichReposWithLanguages([repo as never]))).resolves.toMatchObject([
+			{ languages: ["TypeScript"], contributors_count: 0 },
+		]);
+	});
+});
