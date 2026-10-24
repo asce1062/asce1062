@@ -405,6 +405,15 @@
 	animation: entry-highlight 1.5s ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	/* Mark the linked entry without the fade */
+	.entry--highlighted {
+		animation: none;
+		outline: 2px solid var(--color-accent);
+		outline-offset: 4px;
+	}
+}
+
 @keyframes entry-highlight {
 	0%,
 	20% {

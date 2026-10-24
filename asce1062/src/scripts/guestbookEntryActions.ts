@@ -117,10 +117,19 @@ function handleAnchorHighlight(): void {
 	const hash = window.location.hash;
 	if (!hash.startsWith("#entry-")) return;
 
-	const target = document.querySelector(hash);
+	// getElementById, not querySelector(hash): a malformed hash (#entry-a/b) is an
+	// invalid selector and threw, aborting the rest of the guestbook init.
+	let id: string;
+	try {
+		id = decodeURIComponent(hash.slice(1));
+	} catch {
+		return;
+	}
+	const target = document.getElementById(id);
 	if (!target) return;
 
-	target.scrollIntoView({ behavior: "smooth", block: "center" });
+	const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
 	target.classList.add("entry--highlighted");
 	target.addEventListener(
 		"animationend",
