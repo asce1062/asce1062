@@ -49,7 +49,14 @@ import Layout from "@/layouts/Layout.astro";
 			if (redirectTimer !== null) return;
 			updateStatus(true);
 			stopPolling();
-			redirectTimer = setTimeout(() => OfflineManager.tryRedirectToLastPage(), 1000);
+			redirectTimer = setTimeout(async () => {
+				// A failed redirect (last page unreachable) must not end recovery for good.
+				if (!(await OfflineManager.tryRedirectToLastPage())) {
+					redirectTimer = null;
+					updateStatus(false);
+					stopPolling = OfflineManager.startPolling(() => handleConnectionRestored());
+				}
+			}, 1000);
 		}
 
 		retryBtn?.addEventListener("click", () => window.location.reload());
@@ -59,7 +66,7 @@ import Layout from "@/layouts/Layout.astro";
 			() => updateStatus(false)
 		);
 		// Periodic server polling (every 2.5s) as fallback for unreliable online event
-		const stopPolling = OfflineManager.startPolling(() => handleConnectionRestored());
+		let stopPolling = OfflineManager.startPolling(() => handleConnectionRestored());
 
 		updateStatus(OfflineManager.isOnline());
 

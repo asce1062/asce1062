@@ -83,7 +83,10 @@ function initNav(): void {
 
 			// Keep Tab inside the open drawer (plus the hamburger that closes it).
 			if (e.key === "Tab") {
-				const stops = [...(hamburger ? [hamburger] : []), ...focusableIn(menu)];
+				// DOM order (the sidebar precedes the header), so first/last really are the ends.
+				const stops = [...(hamburger ? [hamburger] : []), ...focusableIn(menu)].sort((a, b) =>
+					a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+				);
 				if (stops.length === 0) return;
 				const first = stops[0];
 				const last = stops[stops.length - 1];
