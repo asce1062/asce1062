@@ -250,5 +250,45 @@ import "@/styles/components/music-player-modal.css";
 </div>
 
 <script>
-	import "@/scripts/musicPlayerModal";
+	// The player (~32 KiB) loads on first use; the window starts hidden. On import
+	// it boots itself (the page is already loaded) and from then on handles its
+	// triggers, the "music-player:open" event and astro:page-load on its own.
+	let player: Promise<unknown> | null = null;
+	let playerReady = false;
+
+	function loadPlayer() {
+		player ??= import("@/scripts/musicPlayerModal")
+			.then(() => {
+				playerReady = true;
+			})
+			.catch((error: unknown) => {
+				player = null;
+				throw error;
+			});
+		return player;
+	}
+
+	function openOnFirstUse(event: Event) {
+		if (playerReady) return;
+		if (event instanceof KeyboardEvent && event.key !== "Enter" && event.key !== " ") return;
+		const target = event.target;
+		if (!(target instanceof Element) || !target.closest("[data-music-player-trigger]")) return;
+		event.preventDefault();
+		loadPlayer()
+			.then(() => document.dispatchEvent(new Event("music-player:open")))
+			.catch((error: unknown) => console.error("[music] could not load the player", error));
+	}
+
+	document.addEventListener("click", openOnFirstUse);
+	document.addEventListener("keydown", openOnFirstUse);
+
+	// Start the download when a trigger is about to be used.
+	function prefetchOnIntent(event: Event) {
+		if (event.target instanceof Element && event.target.closest("[data-music-player-trigger]")) {
+			void loadPlayer().catch(() => {});
+		}
+	}
+
+	document.addEventListener("pointerover", prefetchOnIntent, { passive: true });
+	document.addEventListener("focusin", prefetchOnIntent);
 </script>
