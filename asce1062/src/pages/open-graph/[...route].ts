@@ -49,9 +49,9 @@ async function getOGRoute() {
 				},
 			},
 			fonts: [
-				"public/fonts/0xProto/0xProto-Regular.ttf",
-				"public/fonts/0xProto/0xProto-Bold.ttf",
-				"public/fonts/0xProto/0xProto-Italic.ttf",
+				"src/assets/fonts/0xProto/0xProto-Regular.ttf",
+				"src/assets/fonts/0xProto/0xProto-Bold.ttf",
+				"src/assets/fonts/0xProto/0xProto-Italic.ttf",
 			],
 		}),
 	});

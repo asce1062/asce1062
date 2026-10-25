@@ -27,6 +27,7 @@
     "prepare": "husky || true",
     "hash:admin-token": "node scripts/hash-admin-token.mjs",
     "generate:ascii": "node scripts/generate-ascii.mjs",
+    "fonts:subset": "node scripts/subset-fonts.mjs",
     "db:setup": "tsx --env-file-if-exists=.env db/setup.ts",
     "db:seed": "npm run db:setup && tsx --env-file-if-exists=.env db/seed.ts",
     "db:import-csv": "npm run db:setup && tsx --env-file-if-exists=.env db/import-csv.ts"
@@ -91,6 +92,7 @@
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.2",
     "prettier-plugin-toml": "^4.1.0",
+    "subset-font": "^2.8.0",
     "tsx": "^4.23.15",
     "vitest": "^5.0.5"
   },

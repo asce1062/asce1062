@@ -14,34 +14,45 @@
   ============================================
   */
 
+	/*
+	0xProto is split by scripts/subset-fonts.mjs: the per-weight files hold every
+	text glyph (~50 KiB each); the ~880 KiB of Nerd Font icons live in one file the
+	browser fetches only for a page that renders an icon (see unicode-range).
+	*/
 	@font-face {
 		font-family: "0xProto";
-		src:
-			url("/fonts/0xProto/0xProto-Regular.woff2") format("woff2"),
-			url("/fonts/0xProto/0xProto-Regular.ttf") format("truetype");
+		src: url("/fonts/0xProto/0xProto-Regular.woff2") format("woff2");
 		font-weight: 400;
 		font-style: normal;
 		font-display: swap;
+		unicode-range: U+0000-D7FF, U+F900-FFFF;
 	}
 
 	@font-face {
 		font-family: "0xProto";
-		src:
-			url("/fonts/0xProto/0xProto-Bold.woff2") format("woff2"),
-			url("/fonts/0xProto/0xProto-Bold.ttf") format("truetype");
+		src: url("/fonts/0xProto/0xProto-Bold.woff2") format("woff2");
 		font-weight: 700;
 		font-style: normal;
 		font-display: swap;
+		unicode-range: U+0000-D7FF, U+F900-FFFF;
 	}
 
 	@font-face {
 		font-family: "0xProto";
-		src:
-			url("/fonts/0xProto/0xProto-Italic.woff2") format("woff2"),
-			url("/fonts/0xProto/0xProto-Italic.ttf") format("truetype");
+		src: url("/fonts/0xProto/0xProto-Italic.woff2") format("woff2");
 		font-weight: 400;
 		font-style: italic;
 		font-display: swap;
+		unicode-range: U+0000-D7FF, U+F900-FFFF;
+	}
+
+	@font-face {
+		font-family: "0xProto";
+		src: url("/fonts/0xProto/0xProto-Icons.woff2") format("woff2");
+		font-weight: 400 700;
+		font-style: normal;
+		font-display: swap;
+		unicode-range: U+E000-F8FF, U+F0000-10FFFF;
 	}
 
 	@font-face {

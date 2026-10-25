@@ -188,10 +188,14 @@ export default defineConfig({
 				globDirectory: fileURLToPath(new URL("dist/", import.meta.url)),
 				globPatterns: [
 					"**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg}",
-					"**/fonts/**/*.{woff2,ttf,eot,woff}", // Include fonts in precache
+					// Only the formats browsers use; legacy ttf/eot/svg fallbacks are never fetched
+					"**/fonts/**/*.{woff2,woff}",
 				],
 				globIgnores: [
 					"**/fonts/icomoon/**", // Exclude icomoon backup directory
+					"**/fonts/**/*.{ttf,eot,svg}",
+					// Nerd Font icons (~880 KiB): fetched via unicode-range only when a page needs them
+					"**/fonts/0xProto/0xProto-Icons.woff2",
 					"**/8bit/img/**", // Large avatar assets - cache at runtime
 				],
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
