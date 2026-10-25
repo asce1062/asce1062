@@ -255,6 +255,7 @@ import "@/styles/components/music-player-modal.css";
 	// triggers, the "music-player:open" event and astro:page-load on its own.
 	let player: Promise<unknown> | null = null;
 	let playerReady = false;
+	let openQueued = false;
 
 	function loadPlayer() {
 		player ??= import("@/scripts/musicPlayerModal")
@@ -274,9 +275,15 @@ import "@/styles/components/music-player-modal.css";
 		const target = event.target;
 		if (!(target instanceof Element) || !target.closest("[data-music-player-trigger]")) return;
 		event.preventDefault();
+		// Repeated triggers while it downloads open it once.
+		if (openQueued) return;
+		openQueued = true;
 		loadPlayer()
 			.then(() => document.dispatchEvent(new Event("music-player:open")))
-			.catch((error: unknown) => console.error("[music] could not load the player", error));
+			.catch((error: unknown) => console.error("[music] could not load the player", error))
+			.finally(() => {
+				openQueued = false;
+			});
 	}
 
 	document.addEventListener("click", openOnFirstUse);

@@ -208,6 +208,7 @@ import "@/styles/components/terminal-modal.css";
 	// listens for that event itself and re-inits on each astro:page-load.
 	let terminal: Promise<typeof import("@/scripts/terminalModal")> | null = null;
 	let terminalReady = false;
+	let openQueued = false;
 
 	function loadTerminal() {
 		terminal ??= import("@/scripts/terminalModal")
@@ -224,11 +225,16 @@ import "@/styles/components/terminal-modal.css";
 	}
 
 	document.addEventListener(NAVBRAND_OPEN_TERMINAL_EVENT, (event) => {
-		if (terminalReady) return;
+		// Repeated triggers while it downloads open it once.
+		if (terminalReady || openQueued) return;
+		openQueued = true;
 		const { detail } = event as CustomEvent<NavBrandTerminalOpenDetail>;
 		loadTerminal()
 			.then(() => document.dispatchEvent(new CustomEvent(NAVBRAND_OPEN_TERMINAL_EVENT, { detail })))
-			.catch((error: unknown) => console.error("[terminal] could not load", error));
+			.catch((error: unknown) => console.error("[terminal] could not load", error))
+			.finally(() => {
+				openQueued = false;
+			});
 	});
 
 	// Start the download when a trigger is about to be used.

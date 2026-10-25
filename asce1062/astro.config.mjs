@@ -223,6 +223,8 @@ export default defineConfig({
 						handler: "NetworkFirst",
 						options: {
 							cacheName: "pages-cache",
+							// A stalled connection falls back to the cached copy instead of hanging.
+							networkTimeoutSeconds: 3,
 							expiration: {
 								maxEntries: 50,
 								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days

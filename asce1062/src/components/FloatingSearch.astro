@@ -124,7 +124,11 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			const box = modal.querySelector<HTMLElement>("[data-pagefind-ui]");
 			if (!box) return;
 			void initPagefindSearch(box).then((searchInput) => {
-				if (!modal.inert) requestAnimationFrame(() => searchInput?.focus());
+				if (!searchInput) {
+					box.textContent = "Search could not load. Check your connection and try again.";
+					return;
+				}
+				if (!modal.inert) requestAnimationFrame(() => searchInput.focus());
 			});
 		}
 

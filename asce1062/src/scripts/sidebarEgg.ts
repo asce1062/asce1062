@@ -41,6 +41,8 @@ function initSidebarEgg(): void {
 						if (isDice && brandName) brandName.textContent = v.text.toLowerCase();
 					},
 				});
+				// The controls work now (the markup ships the egg inert).
+				if (widgetTeardown) container.inert = false;
 			});
 		},
 		{ rootMargin: "200px" }

@@ -70,6 +70,7 @@ async function buildSearch(el: HTMLElement): Promise<HTMLInputElement | null> {
 		return null;
 	}
 
+	el.replaceChildren(); // clear a previous failure message before building
 	const elSelector = [
 		...(el.id ? [`#${el.id}`] : []),
 		...[...el.classList.values()].map((c) => `.${c}`),

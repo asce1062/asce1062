@@ -249,8 +249,9 @@ const grouped = navSections.map((s) => ({
 		</div>
 
 		<!-- ASCII easter egg. visible on overscroll. Hidden in collapsed mode.
-		     Not aria-hidden: its dice/copy buttons are focusable; AsciiWidget hides the art itself. -->
-		<div class="nav-easter-egg" data-collapsed-hidden>
+		     Inert until src/scripts/sidebarEgg.ts has loaded its art: the dice/copy buttons do nothing before that.
+		     AsciiWidget hides the art itself from assistive tech. -->
+		<div class="nav-easter-egg" data-collapsed-hidden inert>
 			<!-- Variants are loaded by src/scripts/sidebarEgg.ts when the egg nears the viewport -->
 			<AsciiWidget widgetId="nav-egg" artClass="nav-egg-art" />
 		</div>
