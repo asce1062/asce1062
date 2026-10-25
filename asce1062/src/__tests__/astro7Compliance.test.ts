@@ -23,9 +23,30 @@ describe("Astro 7 migration contracts", () => {
 		// (/about, /sps, /guestbook) even while online.
 		// null, not omitted: vite-plugin-pwa defaults a missing value to "index.html".
 		expect(workbox).toMatch(/navigateFallback:\s*null,/);
-		expect(workbox).toMatch(/request\.mode === "navigate",\s*handler:\s*"NetworkOnly",/);
-		expect(workbox).toMatch(/precacheFallback:\s*{\s*fallbackURL:\s*"\/offline\/index\.html"\s*}/);
+		expect(workbox.match(/precacheFallback:\s*{\s*fallbackURL:\s*"\/offline\/index\.html"\s*}/g)).toHaveLength(2);
 		expect(source).toMatch(/devOptions:\s*{[\s\S]*?navigateFallback:\s*"\/offline"/);
+	});
+
+	it("never caches admin, guestbook or search pages and caches other pages network-first", async () => {
+		const source = await readFile(projectFile("astro.config.mjs"), "utf8");
+		const workbox = source.slice(source.indexOf("workbox: {"), source.indexOf("devOptions: {"));
+		const privateRoute = workbox.indexOf(String.raw`/^\/(admin|guestbook|search)(\/|$)/`);
+		const pageRoute = workbox.indexOf(`handler: "NetworkFirst"`);
+
+		// First match wins: the network-only rule must come before the caching one.
+		expect(privateRoute).toBeGreaterThan(-1);
+		expect(pageRoute).toBeGreaterThan(privateRoute);
+		expect(workbox.slice(privateRoute, pageRoute)).toMatch(/handler:\s*"NetworkOnly"/);
+		// Redirects arrive as status 0 opaque redirects and must not be replayed.
+		expect(workbox.slice(pageRoute)).toMatch(/cacheableResponse:\s*{\s*statuses:\s*\[200\]\s*}/);
+	});
+
+	it("precaches the app shell, not every page and image", async () => {
+		const source = await readFile(projectFile("astro.config.mjs"), "utf8");
+		const patterns = source.slice(source.indexOf("globPatterns: ["), source.indexOf("globIgnores: ["));
+
+		expect(patterns).not.toMatch(/\*\*\/\*\.\{[^}]*(html|png|jpg|webp)/);
+		expect(patterns).toContain(`"{index,about/index,hello/index,now/index,offline/index}.html"`);
 	});
 
 	it("uses explicit JSX spaces around multiline homepage links", async () => {

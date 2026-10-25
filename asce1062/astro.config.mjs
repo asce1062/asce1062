@@ -186,33 +186,54 @@ export default defineConfig({
 				// vite-plugin-pwa would otherwise use — producing "no files matched"
 				// warnings and an empty precache manifest.
 				globDirectory: fileURLToPath(new URL("dist/", import.meta.url)),
+				// Precache the app shell only. Images (~74 MiB of originals and posts)
+				// and the manifest screenshots are runtime-cached on demand below.
 				globPatterns: [
-					"**/*.{css,js,html,svg,png,ico,txt,xml,webp,jpg}",
+					"astro/**/*.{js,css}",
 					// Only the formats browsers use; legacy ttf/eot/svg fallbacks are never fetched
 					"**/fonts/**/*.{woff2,woff}",
+					"icons/favicon-*.png", // favicon.ico and the PWA icons come from includeAssets
+					// Pages that work offline from the first visit; others are cached as visited
+					"{index,about/index,hello/index,now/index,offline/index}.html",
 				],
 				globIgnores: [
-					"**/fonts/icomoon/**", // Exclude icomoon backup directory
-					"**/fonts/**/*.{ttf,eot,svg}",
+					"**/fonts/icomoon/**", // Requested with a ?<token> query, so runtime-cached instead
 					// Nerd Font icons (~880 KiB): fetched via unicode-range only when a page needs them
 					"**/fonts/0xProto/0xProto-Icons.woff2",
-					"**/8bit/img/**", // Large avatar assets - cache at runtime
 				],
 				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit
 				runtimeCaching: [
-					// Navigations not in the precache (slashless URLs, redirects, SSR pages,
-					// query-string pages) go to the network; the offline page is served only
-					// when the network fails. Must stay first so it wins over asset routes.
+					// Navigations not in the precache go to the network; the offline page is
+					// served only when the network fails. These two must stay first so they
+					// win over the asset routes.
+					// Admin, guestbook and search are never cached (private or always-live).
 					{
-						urlPattern: ({ request }) => request.mode === "navigate",
+						urlPattern: ({ request, url }) =>
+							request.mode === "navigate" && /^\/(admin|guestbook|search)(\/|$)/.test(url.pathname),
 						handler: "NetworkOnly",
 						options: {
 							precacheFallback: { fallbackURL: "/offline/index.html" },
 						},
 					},
+					// Every other page is cached as it is read, so visited pages work offline.
+					// Only plain 200s are stored: redirects (/sps, slashless URLs) come back as
+					// opaque redirects (status 0) and must not be replayed from the cache.
+					{
+						urlPattern: ({ request }) => request.mode === "navigate",
+						handler: "NetworkFirst",
+						options: {
+							cacheName: "pages-cache",
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+							},
+							cacheableResponse: { statuses: [200] },
+							precacheFallback: { fallbackURL: "/offline/index.html" },
+						},
+					},
 					// API routes. Never cache, always hit the network
 					{
-						urlPattern: /^\/api\//,
+						urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
 						handler: "NetworkOnly",
 					},
 					// GitHub OpenGraph images for project cards
@@ -230,9 +251,9 @@ export default defineConfig({
 							},
 						},
 					},
-					// Local fonts (all fonts except icomoon backup directory)
+					// Local fonts, plus the icomoon stylesheet (versioned by its ?<token> query)
 					{
-						urlPattern: /\/fonts\/.*\.(ttf|woff|woff2|eot|otf|svg)(\?.*)?$/i,
+						urlPattern: /\/fonts\/.*\.(ttf|woff|woff2|eot|otf|svg|css)(\?.*)?$/i,
 						handler: "CacheFirst",
 						options: {
 							cacheName: "local-fonts-cache",
