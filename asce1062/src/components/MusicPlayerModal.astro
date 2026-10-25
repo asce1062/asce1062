@@ -85,7 +85,16 @@ import "@/styles/components/music-player-modal.css";
 							<span id="music-now-file">waiting_signal.mp3</span>
 						</span>
 					</div>
-					<img id="music-cover" class="music-cover" src="/images/album-art.png" alt="" />
+					<!-- lazy: the player starts closed, and an eager image downloads even under
+					     display: none, competing with each page's LCP image. -->
+					<img
+						id="music-cover"
+						class="music-cover"
+						src="/images/album-art.png"
+						alt=""
+						loading="lazy"
+						decoding="async"
+					/>
 					<div
 						id="music-signal-label"
 						class="music-signal-label"
