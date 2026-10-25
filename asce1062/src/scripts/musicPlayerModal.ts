@@ -1331,10 +1331,10 @@ async function bootMusicPage() {
 	const vizContainer = document.getElementById("music-ascii-visualizer");
 	if (vizContainer instanceof HTMLElement) {
 		visualizer = new AsciiVisualizerController();
-		visualizer.mount(vizContainer);
-		visualizer.setFlavor(activeFlavor);
 		// Only animate once the player is actually shown.
 		visualizer.setVisible(isMusicOpen);
+		visualizer.mount(vizContainer);
+		visualizer.setFlavor(activeFlavor);
 	}
 
 	controlsAbortController = new AbortController();

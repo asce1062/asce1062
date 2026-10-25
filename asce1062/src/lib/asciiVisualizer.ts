@@ -91,6 +91,9 @@ export class AsciiVisualizerController {
 		this.lastColor = [];
 		this.lastShadow = [];
 
+		// Built off-document and inserted once: 384 live appends each invalidated
+		// page style, which made mounting a long task on every page load.
+		const grid = document.createDocumentFragment();
 		for (let row = 0; row < ROWS; row++) {
 			const rowEl = document.createElement("div");
 			const spans: HTMLSpanElement[] = [];
@@ -100,12 +103,13 @@ export class AsciiVisualizerController {
 				rowEl.appendChild(span);
 				spans.push(span);
 			}
-			container.appendChild(rowEl);
+			grid.appendChild(rowEl);
 			this.spanGrid.push(spans);
 			this.lastChar.push(new Array(COLS).fill(""));
 			this.lastColor.push(new Array(COLS).fill(""));
 			this.lastShadow.push(new Array(COLS).fill(""));
 		}
+		container.appendChild(grid);
 
 		this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		this.motionListener = (e: MediaQueryListEvent) => {
@@ -125,11 +129,8 @@ export class AsciiVisualizerController {
 		};
 		this.motionQuery.addEventListener("change", this.motionListener);
 
-		if (this.prefersReducedMotion()) {
-			this.renderStaticIdle();
-		} else {
-			this.startIdle();
-		}
+		// Start whichever loop the current visibility calls for (none while hidden).
+		this.setVisible(this.isVisible);
 	}
 
 	connect(audioEl: HTMLAudioElement): void {
