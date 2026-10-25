@@ -493,6 +493,9 @@ Global Utility Styles
 	max-width: calc(var(--sidebar-current-width) + var(--content-width));
 	@apply px-4 md:px-8 mx-auto;
 	color: var(--color-base-content);
+	/* Long URLs wrap inside the column. `anywhere` (not `break-word`) also shrinks
+	   the min-content width of inline-block links, so they cannot widen the page. */
+	overflow-wrap: anywhere;
 	transition:
 		max-width var(--duration-base) var(--ease-out),
 		padding-left var(--duration-base) var(--ease-out);
@@ -507,6 +510,13 @@ Global Utility Styles
 
 .footnotes li {
 	margin-bottom: 0.75rem;
+}
+
+/* A wrapped inline-block link pushes trailing punctuation onto its own line;
+   flow footnote links inline so a long URL wraps like the text around it. */
+.footnotes a:not([data-footnote-backref]) {
+	display: inline;
+	box-decoration-break: clone;
 }
 
 @media (min-width: 1024px) {
