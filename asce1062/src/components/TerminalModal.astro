@@ -192,7 +192,7 @@ import "@/styles/components/terminal-modal.css";
 
 <script>
 	import { initTerminalShortcut } from "@/scripts/keyboardShortcuts";
-	import "@/scripts/terminalModal";
+	import { NAVBRAND_OPEN_TERMINAL_EVENT, type NavBrandTerminalOpenDetail } from "@/lib/navBrand/terminalEvents";
 
 	let terminalShortcutCleanup: (() => void) | null = null;
 
@@ -202,4 +202,43 @@ import "@/styles/components/terminal-modal.css";
 	}
 
 	document.addEventListener("astro:page-load", bindTerminalShortcut);
+
+	// The terminal (~60 KiB with its ASCII art) loads on first use: every way of
+	// opening it dispatches NAVBRAND_OPEN_TERMINAL_EVENT. Once loaded, the module
+	// listens for that event itself and re-inits on each astro:page-load.
+	let terminal: Promise<typeof import("@/scripts/terminalModal")> | null = null;
+	let terminalReady = false;
+
+	function loadTerminal() {
+		terminal ??= import("@/scripts/terminalModal")
+			.then((module) => {
+				module.initTerminalModal();
+				terminalReady = true;
+				return module;
+			})
+			.catch((error: unknown) => {
+				terminal = null;
+				throw error;
+			});
+		return terminal;
+	}
+
+	document.addEventListener(NAVBRAND_OPEN_TERMINAL_EVENT, (event) => {
+		if (terminalReady) return;
+		const { detail } = event as CustomEvent<NavBrandTerminalOpenDetail>;
+		loadTerminal()
+			.then(() => document.dispatchEvent(new CustomEvent(NAVBRAND_OPEN_TERMINAL_EVENT, { detail })))
+			.catch((error: unknown) => console.error("[terminal] could not load", error));
+	});
+
+	// Start the download when a trigger is about to be used.
+	function prefetchOnIntent() {
+		for (const trigger of document.querySelectorAll<HTMLElement>("[data-navbrand-terminal-trigger]")) {
+			const prefetch = () => void loadTerminal().catch(() => {});
+			trigger.addEventListener("pointerenter", prefetch, { once: true });
+			trigger.addEventListener("focus", prefetch, { once: true });
+		}
+	}
+
+	document.addEventListener("astro:page-load", prefetchOnIntent);
 </script>

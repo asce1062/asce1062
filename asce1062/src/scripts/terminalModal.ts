@@ -1721,7 +1721,7 @@ function bindTerminalAtmosphereEffects(elements: TerminalModalElements): void {
 	});
 }
 
-function initTerminalModal(): void {
+export function initTerminalModal(): void {
 	_abortController?.abort();
 	_abortController = new AbortController();
 	const { signal } = _abortController;
