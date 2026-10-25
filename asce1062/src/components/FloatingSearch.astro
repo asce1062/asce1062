@@ -33,7 +33,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 				</button>
 			</div>
 			<div id="pagefind-search-floating">
-				<SearchBox searchId="floating-searchbox" showTips={true} />
+				<SearchBox searchId="floating-searchbox" showTips={true} deferred />
 			</div>
 		</div>
 	</>
@@ -41,6 +41,7 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 
 <script>
 	import { initSlashSearchShortcut } from "@/scripts/keyboardShortcuts";
+	import { initPagefindSearch, preloadPagefindUi } from "@/scripts/pagefindSearch";
 
 	// AbortController prevents event listeners from accumulating across
 	// Astro soft navigations. document/window persist across navigations
@@ -118,10 +119,12 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 			modal.classList.remove("opacity-0", "pointer-events-none");
 			document.body.style.overflow = "hidden";
 
-			// Focus on search input after opacity transition starts
-			requestAnimationFrame(() => {
-				const searchInput = modal?.querySelector('input[type="text"]') as HTMLInputElement | null;
-				searchInput?.focus();
+			// The search UI is built on first open; focus its input once it exists,
+			// unless the modal was closed again while it loaded.
+			const box = modal.querySelector<HTMLElement>("[data-pagefind-ui]");
+			if (!box) return;
+			void initPagefindSearch(box).then((searchInput) => {
+				if (!modal.inert) requestAnimationFrame(() => searchInput?.focus());
 			});
 		}
 
@@ -139,6 +142,10 @@ const isSearchPage = currentPath === "/search" || currentPath === "/search/";
 		// Event listeners (all tied to signal for automatic cleanup)
 		if (openBtn) {
 			openBtn.addEventListener("click", () => openSearch(openBtn), { signal });
+			// Start the download as soon as the button is likely to be used.
+			const preload = () => void preloadPagefindUi().catch(() => {});
+			openBtn.addEventListener("pointerenter", preload, { signal, once: true });
+			openBtn.addEventListener("focus", preload, { signal, once: true });
 		}
 		closeBtn.addEventListener("click", closeSearch, { signal });
 		overlay.addEventListener("click", closeSearch, { signal });

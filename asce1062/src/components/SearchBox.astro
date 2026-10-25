@@ -15,9 +15,11 @@ interface Props {
 	readonly className?: string;
 	/** Whether to autofocus the search input */
 	readonly autofocus?: boolean;
+	/** Build the search UI only when the owner asks for it (see SearchField) */
+	readonly deferred?: boolean;
 }
 
-const { searchId, showTips = true, className = "", autofocus = false } = Astro.props;
+const { searchId, showTips = true, className = "", autofocus = false, deferred = false } = Astro.props;
 ---
 
 <div class={className}>
@@ -59,5 +61,5 @@ const { searchId, showTips = true, className = "", autofocus = false } = Astro.p
 			</Expand>
 		</div>
 	)}
-	<SearchField id={searchId} autofocus={autofocus} />
+	<SearchField id={searchId} autofocus={autofocus} deferred={deferred} />
 </div>

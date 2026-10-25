@@ -1,6 +1,5 @@
 ---
-import "@pagefind/default-ui/css/ui.css";
-import "@/styles/components/search.css";
+// Pagefind's UI and styles are loaded on demand by src/scripts/pagefindSearch.ts.
 // Path join function to replace node:path
 function joinPath(base: string, path: string): string {
 	const normalizedBase = base.endsWith("/") ? base : base + "/";
@@ -12,126 +11,33 @@ interface Props {
 	readonly id?: string;
 	readonly className?: string;
 	readonly autofocus?: boolean;
+	/** Build the UI only when asked (the floating modal does it on first open). */
+	readonly deferred?: boolean;
 }
 
-const { id, className, autofocus = false } = Astro.props as Props;
+const { id, className, autofocus = false, deferred = false } = Astro.props as Props;
 const bundlePath = joinPath(import.meta.env.BASE_URL || "/", "pagefind/");
 const divProps = {
 	...(id ? { id } : {}),
 	...(className ? { class: className } : {}),
 	"data-autofocus": autofocus.toString(),
+	...(deferred ? { "data-pagefind-deferred": "" } : {}),
 };
 ---
 
 <div {...divProps} data-pagefind-ui data-bundle-path={bundlePath}></div>
 
 <script>
-	import { PagefindUI } from "@pagefind/default-ui";
+	import { initPagefindSearch } from "@/scripts/pagefindSearch";
 
-	/**
-	 * Initialize Pagefind search with Intersection Observer for lazy loading
-	 * Only loads when the search element is in the viewport
-	 */
-	function initializePagefind() {
-		const allSelector = "[data-pagefind-ui]";
-		for (const el of document.querySelectorAll(allSelector)) {
-			// Skip if already initialized
-			if (el.hasAttribute("data-pagefind-initialized")) {
-				continue;
-			}
-
-			// Mark as initialized
-			el.setAttribute("data-pagefind-initialized", "true");
-
-			const elSelector = [
-				...(el.id ? [`#${el.id}`] : []),
-				...[...el.classList.values()].map((c) => `.${c}`),
-				allSelector,
-			].join("");
-			const bundlePath = el.getAttribute("data-bundle-path") || undefined;
-			const autofocus = el.getAttribute("data-autofocus") === "true";
-
-			new PagefindUI({
-				element: elSelector,
-				bundlePath,
-				showImages: false,
-				showSubResults: true,
-				debounceTimeoutMs: 120,
-				autofocus: autofocus,
-				showEmptyFilters: false,
-				sort: {
-					date: "desc",
-				},
-				translations: {
-					placeholder: "Search",
-					zero_results: "No matches found",
-					search_label: "Search site",
-					clear_search: "Clear",
-				},
-			});
-
-			// handle query param linking
-			const input = el.querySelector("input[type='text']");
-			if (input instanceof HTMLInputElement) {
-				const inputId = el.id ? `${el.id}-input` : undefined;
-				if (inputId && !input.id) {
-					input.id = inputId;
-				}
-				if (!input.name) {
-					input.name = "q";
-				}
-			}
-			// Only the dedicated /search box mirrors its query in ?q=. The floating
-			// modal lives on every page and must not rewrite (or read) their URLs.
-			if (el.id !== "page-searchbox") continue;
-
-			const url = new URL(window.location.href);
-			const params = new URLSearchParams(url.search);
-			const query = params.get("q");
-
-			if (query && input) {
-				(input as HTMLInputElement).value = query;
-				input.dispatchEvent(new Event("input", { bubbles: true }));
-			}
-
-			input?.addEventListener("input", (e) => {
-				const val = (e.target as HTMLInputElement).value;
-				const url = new URL(window.location.href);
-				const params = new URLSearchParams(url.search);
-
-				if (val.trim()) {
-					params.set("q", val);
-					window.history.replaceState({}, "", `${url.pathname}?${params}`);
-				} else {
-					params.delete("q");
-					const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
-					window.history.replaceState({}, "", newUrl);
-				}
-			});
-
-			// handle clear button click
-			const clearButton = el.querySelector(".pagefind-ui__search-clear");
-			clearButton?.addEventListener("click", () => {
-				const url = new URL(window.location.href);
-				const params = new URLSearchParams(url.search);
-				params.delete("q");
-				const newUrl = params.toString() ? `${url.pathname}?${params}` : url.pathname;
-				window.history.replaceState({}, "", newUrl);
-			});
-		}
-	}
-
+	// Build boxes that are visible on load (the /search page). Deferred boxes are
+	// built by their owner when shown, so the UI is not downloaded on every page.
 	function setupSearch() {
-		const searchElements = document.querySelectorAll("[data-pagefind-ui]");
-		if (searchElements.length === 0) return;
-
-		// Use requestIdleCallback for non-critical initialization
-		if ("requestIdleCallback" in window) {
-			requestIdleCallback(() => initializePagefind(), { timeout: 2000 });
-		} else {
-			// Fallback for browsers without requestIdleCallback
-			setTimeout(initializePagefind, 1);
-		}
+		const boxes = document.querySelectorAll<HTMLElement>("[data-pagefind-ui]:not([data-pagefind-deferred])");
+		if (boxes.length === 0) return;
+		const init = () => boxes.forEach((el) => void initPagefindSearch(el));
+		if ("requestIdleCallback" in window) requestIdleCallback(init, { timeout: 2000 });
+		else setTimeout(init, 1);
 	}
 
 	document.addEventListener("astro:page-load", setupSearch);
