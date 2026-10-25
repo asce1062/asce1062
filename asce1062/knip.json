@@ -1,13 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreDependencies": [
-    "pagefind",
-    "lightningcss",
-    "@netlify/plugin-lighthouse",
-    "autoprefixer",
-    "postcss-nesting",
-    "lint-staged"
-  ],
+  "ignoreDependencies": ["pagefind", "lightningcss", "autoprefixer", "postcss-nesting", "lint-staged"],
   "ignore": ["public/fonts/**", "public/**/demo-files/**"],
 
   "entry": [

@@ -256,30 +256,10 @@ for = "/api/*"
 [headers.values]
 Cache-Control = "no-store"
 
-# Netlify Plugins
+# Netlify Plugins: none.
 # The sitemap comes from @astrojs/sitemap (sitemap-index.xml); a second
 # generator would also write sitemap.xml and shadow the redirect below.
-# Lighthouse on every deploy (mobile profile), same pages and targets as the
-# local `npm run lighthouse` (lighthouserc.cjs). Scores are reported, not
-# enforced: set fail_deploy_on_score_thresholds to "true" once they hold.
-# SEO is 100 on production only; deploy previews are noindex by design.
-[[plugins]]
-package = "@netlify/plugin-lighthouse"
-
-[plugins.inputs]
-fail_deploy_on_score_thresholds = "false"
-
-[plugins.inputs.thresholds]
-performance = 0.9
-accessibility = 1
-best-practices = 0.95
-seo = 1
-
-[[plugins.inputs.audits]]
-path = "/"
-
-[[plugins.inputs.audits]]
-path = "blog/"
-
-[[plugins.inputs.audits]]
-path = "blog/2026-05-19-password-security-with-argon2id/"
+# Lighthouse is checked with `npm run lighthouse` (lighthouserc.cjs), not
+# @netlify/plugin-lighthouse: its latest release (6.0.4) still bundles
+# Lighthouse 9, whose axe-core cannot parse the theme's oklch() colours and
+# whose SEO score still uses the retired 48px tap-target audit.

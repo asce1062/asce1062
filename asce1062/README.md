@@ -381,12 +381,8 @@ The site is configured via `netlify.toml` with:
 
 - 404 fallback to `/404.html`
 
-**Netlify Plugins:**
-
-1. **@netlify/plugin-sitemap** - Automatically generates sitemap
-2. **@netlify/plugin-lighthouse** - Runs performance audits with 90% thresholds
-3. **netlify-plugin-checklinks** - Validates internal links (skips 404 pages)
-4. **netlify-plugin-submit-sitemap** - Auto-submits sitemap to Google, Bing, and Yandex
+**Netlify Plugins:** none. The sitemap comes from `@astrojs/sitemap`, and Lighthouse runs
+locally with `npm run lighthouse` (Lighthouse CI against `dist/`, targets in `lighthouserc.cjs`).
 
 **Environment Variables:**
 
