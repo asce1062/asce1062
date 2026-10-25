@@ -92,14 +92,15 @@ const shareLinks = [
 				<i class={`${icon} text-2xl`} />
 			</a>
 		))}
-		<a
+		<button
+			type="button"
 			id="blog-share-btn"
 			data-url={url}
 			data-title={title}
-			class="no-underline group scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer"
+			class="no-underline group scale-90 p-2 hover:-rotate-6 sm:p-1 cursor-pointer text-(--color-link) hover:bg-primary hover:text-primary-content active:translate-y-[0.5px]"
 			aria-label="Share or copy link">
-			<i class="icon-share text-2xl"></i>
-		</a>
+			<i class="icon-share text-2xl" aria-hidden="true"></i>
+		</button>
 	</div>
 </div>
 

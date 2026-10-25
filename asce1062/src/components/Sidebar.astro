@@ -210,10 +210,10 @@ const eggVariantsJson = JSON.stringify(
 									<label class="nav-option-label" for={option.id}>
 										{option.label}
 									</label>
+									{/* Hover cue only: the toggle itself is described by the helper text */}
 									<sup
 										class="nav-option-info-btn no-underline hover:bg-transparent text-info hover:text-info cursor-default"
-										aria-label="More info"
-										aria-describedby={`${option.id}-helper`}>
+										aria-hidden="true">
 										<i class="icon-info-circle" aria-hidden="true" />
 									</sup>
 								</div>
@@ -254,8 +254,9 @@ const eggVariantsJson = JSON.stringify(
 			</div>
 		</div>
 
-		<!-- ASCII easter egg. visible on overscroll. Hidden in collapsed mode. -->
-		<div class="nav-easter-egg" aria-hidden="true" data-collapsed-hidden>
+		<!-- ASCII easter egg. visible on overscroll. Hidden in collapsed mode.
+		     Not aria-hidden: its dice/copy buttons are focusable; AsciiWidget hides the art itself. -->
+		<div class="nav-easter-egg" data-collapsed-hidden>
 			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
 		</div>
 	</nav>
