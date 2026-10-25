@@ -1,6 +1,6 @@
 ---
 import type { ImageMetadata } from "astro";
-import { Image } from "astro:assets";
+import { Picture } from "astro:assets";
 
 interface Props {
 	src: string;
@@ -11,17 +11,21 @@ const { src, altText } = Astro.props;
 const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{jpeg,jpg,png,gif}");
 ---
 
-<!-- Always the first thing under the title: the page's LCP element, so never lazy. -->
+<!-- Always the first thing under the title: the page's LCP element, so never lazy.
+     AVIF first (about half the bytes of WebP here), WebP for older browsers.
+     sizes matches the box: full content width on mobile, 816px at most. -->
 <span
 	class="relative flex items-center justify-center overflow-hidden h-72 my-4 w-full"
 	style="box-shadow: var(--elevation-3);">
-	<Image
+	<Picture
 		src={images[src]()}
 		alt={altText}
 		title={altText}
+		formats={["avif", "webp"]}
+		pictureAttributes={{ class: "contents" }}
 		class="m-auto my-4 block bg-cover h-72 object-cover opacity-100 transition-transform duration-300 hover:scale-105"
-		widths={[480, 816, 1632]}
-		sizes="(min-width: 768px) 816px, 100vw"
+		widths={[480, 720, 816, 1632]}
+		sizes="(min-width: 768px) 816px, calc(100vw - 40px)"
 		loading="eager"
 		fetchpriority="high"
 	/>
