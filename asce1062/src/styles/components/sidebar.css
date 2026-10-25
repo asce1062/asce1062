@@ -947,9 +947,8 @@ All rules scoped to lg+ so mobile is completely unaffected.
 	/*
 	─────────────────────────────────────────────────────────
 	Bookmark Pullout tab (desktop only)
-	Left edge sits at the sidebar's current right edge.
-	clip-path hides all but a ~3px sliver by default.
-	On hover/focus the clip path opens rightward (slides out).
+	Tucked behind the sidebar's right edge with a 10px sliver showing.
+	On hover/focus it slides right to reveal the whole tab.
 	─────────────────────────────────────────────────────────
 	*/
 	.nav-collapse-tab {
@@ -965,23 +964,45 @@ All rules scoped to lg+ so mobile is completely unaffected.
 		*/
 		left: calc(var(--sidebar-current-width) - 14px);
 		z-index: 39; /* behind sidebar (z-40). Sidebar masks the inset portion */
+		isolation: isolate;
 
-		width: 1.5rem;
+		/*
+		The visible tab is 1.5rem wide and drawn by ::before. The extra 14px of
+		transparent padding on the right is hit area only, so the exposed
+		clickable part is 24px wide (WCAG 2.5.8 target size) while the tab
+		still shows just a 10px sliver over the empty gutter. The padding also
+		covers the tab's right border so the icon centres inside the border.
+		*/
+		--tab-border: 1.875px;
+		width: calc(1.5rem + 14px);
 		height: 2.75rem;
-		padding: 0;
+		padding: 0 calc(14px + var(--tab-border)) 0 0;
+
+		background: none;
+		border: none;
+		color: color-mix(in oklab, var(--color-accent) 80%, var(--color-base-content));
+
+		cursor: w-resize;
+		outline: none;
+
+		transition:
+			transform var(--duration-fast) var(--ease-out),
+			left var(--duration-base) var(--ease-out);
+	}
+
+	.nav-collapse-tab::before {
+		content: "";
+		position: absolute;
+		inset: 0 14px 0 0;
+		z-index: -1;
 
 		background-color: var(--color-base-100);
-		border: 1.875px solid color-mix(in oklab, var(--color-accent) 10%, var(--color-base-300));
-		color: color-mix(in oklab, var(--color-accent) 80%, var(--color-base-content));
+		border: var(--tab-border) solid color-mix(in oklab, var(--color-accent) 10%, var(--color-base-300));
 		border-left: none;
 		box-shadow: var(--glow-identity);
 		/* No border-radius */
 
-		cursor: w-resize;
-
 		transition:
-			transform var(--duration-fast) var(--ease-out),
-			left var(--duration-base) var(--ease-out),
 			background-color var(--duration-fast) var(--ease-out),
 			border-color var(--duration-fast) var(--ease-out);
 	}
@@ -990,11 +1011,15 @@ All rules scoped to lg+ so mobile is completely unaffected.
 	.nav-collapse-tab:hover,
 	.nav-collapse-tab:focus-visible {
 		transform: translateX(14px);
+	}
+
+	.nav-collapse-tab:hover::before,
+	.nav-collapse-tab:focus-visible::before {
 		background-color: var(--color-base-200);
 		border-color: var(--color-accent);
 	}
 
-	.nav-collapse-tab:focus-visible {
+	.nav-collapse-tab:focus-visible::before {
 		outline: 2px solid var(--color-accent);
 		outline-offset: 2px;
 	}
@@ -1235,6 +1260,7 @@ Reduced Motion
 	.nav-body,
 	.nav-option-info-btn,
 	.nav-collapse-tab,
+	.nav-collapse-tab::before,
 	.sidebar-content-offset {
 		transition: none;
 	}
