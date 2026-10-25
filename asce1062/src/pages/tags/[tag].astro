@@ -50,8 +50,9 @@ await Promise.all(
 			<div>
 				{notes.length > 0 && <h3>Blog Posts</h3>}
 				<Columns columns={1}>
-					{posts.map((post) => (
+					{posts.map((post, index) => (
 						<ContentCard
+							priority={index === 0}
 							name={post.data.title}
 							url={getContentUrl(post.id, "/blog")}
 							image={post.data.image.url}

@@ -29,8 +29,9 @@ await Promise.all(
 		<li>A place to capture, organize, distill and express what I consume.</li>
 	</ul>
 	<Columns columns={1}>
-		{posts.map((post) => (
+		{posts.map((post, index) => (
 			<ContentCard
+				priority={index === 0}
 				name={post.data.title}
 				url={getContentUrl(post.id, "/blog")}
 				image={post.data.image.url}

@@ -11,6 +11,7 @@ const { src, altText } = Astro.props;
 const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{jpeg,jpg,png,gif}");
 ---
 
+<!-- Always the first thing under the title: the page's LCP element, so never lazy. -->
 <span
 	class="relative flex items-center justify-center overflow-hidden h-72 my-4 w-full"
 	style="box-shadow: var(--elevation-3);">
@@ -19,7 +20,9 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 		alt={altText}
 		title={altText}
 		class="m-auto my-4 block bg-cover h-72 object-cover opacity-100 transition-transform duration-300 hover:scale-105"
-		loading="lazy"
-		decoding="async"
+		widths={[480, 816, 1632]}
+		sizes="(min-width: 768px) 816px, 100vw"
+		loading="eager"
+		fetchpriority="high"
 	/>
 </span>

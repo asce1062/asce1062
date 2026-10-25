@@ -10,9 +10,11 @@ interface Props {
 	date: string;
 	tags: string[];
 	readingTime?: string;
+	/** The first card of a list is above the fold: load its image eagerly. */
+	priority?: boolean;
 }
 
-const { name, url, image, description, date, tags, readingTime } = Astro.props;
+const { name, url, image, description, date, tags, readingTime, priority = false } = Astro.props;
 const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{jpeg,jpg,png,gif}");
 ---
 
@@ -26,7 +28,10 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 			src={images[image]()}
 			alt={description}
 			class="w-full h-48 md:w-36 md:h-auto md:min-h-full object-cover"
-			loading="lazy"
+			widths={[288, 480, 960]}
+			sizes="(min-width: 768px) 144px, 100vw"
+			loading={priority ? "eager" : "lazy"}
+			fetchpriority={priority ? "high" : undefined}
 			decoding="async"
 		/>
 	) : null}
