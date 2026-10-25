@@ -10,6 +10,8 @@ import { toString } from "mdast-util-to-string";
 import type { Options as RehypePrettyCodeOptions } from "rehype-pretty-code";
 import type { AstroUserConfig } from "astro";
 import { transformerCopyButton } from "@rehype-pretty/transformers";
+import { bundledThemes } from "shiki/themes";
+import type { ThemeRegistrationRaw } from "shiki";
 
 type RehypePluginEntry = NonNullable<NonNullable<Parameters<typeof unified>[0]>["rehypePlugins"]>[number];
 
@@ -27,13 +29,47 @@ function remarkReadingTime() {
 }
 
 /**
+ * Rose Pine token colors that fall below WCAG AA (4.5:1) on their own code
+ * background, replaced by the same hue and chroma at the nearest OKLCH
+ * lightness that reaches ~4.6:1. Dawn is low-contrast by design: 7 of its 9
+ * token colors failed, its gold at 2.05:1.
+ */
+const AA_TOKEN_COLORS: Record<"rose-pine" | "rose-pine-dawn", Record<string, string>> = {
+	"rose-pine": {
+		"#31748f": "#488aa6", // 3.38 -> 4.60
+		"#6e6a86": "#837f9c", // 3.42 -> 4.61
+	},
+	"rose-pine-dawn": {
+		"#797593": "#6f6b89", // 4.02 -> 4.64
+		"#ea9d34": "#9c6203", // 2.05 -> 4.61
+		"#d7827e": "#a85855", // 2.60 -> 4.61
+		"#56949f": "#397882", // 3.14 -> 4.61
+		"#907aa9": "#7b6693", // 3.47 -> 4.63
+		"#9893a5": "#716d7e", // 2.73 -> 4.61
+		"#b4637a": "#a6566d", // 3.84 -> 4.61
+	},
+};
+
+export async function loadAccessibleTheme(name: keyof typeof AA_TOKEN_COLORS): Promise<ThemeRegistrationRaw> {
+	const { tokenColors = [], ...theme } = (await bundledThemes[name]()).default;
+	const replacements = AA_TOKEN_COLORS[name];
+	// Shiki reads token rules from `settings` or `tokenColors`; the raw type requires `settings`.
+	const settings = tokenColors.map((token) => {
+		const foreground = token.settings.foreground?.toLowerCase();
+		const replacement = foreground ? replacements[foreground] : undefined;
+		return replacement ? { ...token, settings: { ...token.settings, foreground: replacement } } : token;
+	});
+	return { ...theme, settings };
+}
+
+/**
  * Rehype Pretty Code configuration
  * @see https://rehype-pretty.pages.dev/
  */
 const prettyCodeOptions: RehypePrettyCodeOptions = {
 	theme: {
-		dark: "rose-pine",
-		light: "rose-pine-dawn",
+		dark: await loadAccessibleTheme("rose-pine"),
+		light: await loadAccessibleTheme("rose-pine-dawn"),
 	},
 	transformers: [
 		transformerCopyButton({
