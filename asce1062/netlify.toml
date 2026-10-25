@@ -259,15 +259,27 @@ Cache-Control = "no-store"
 # Netlify Plugins
 # The sitemap comes from @astrojs/sitemap (sitemap-index.xml); a second
 # generator would also write sitemap.xml and shadow the redirect below.
-# Run Lighthouse performance audits
+# Lighthouse on every deploy (mobile profile), same pages and targets as the
+# local `npm run lighthouse` (lighthouserc.cjs). Scores are reported, not
+# enforced: set fail_deploy_on_score_thresholds to "true" once they hold.
+# SEO is 100 on production only; deploy previews are noindex by design.
 [[plugins]]
 package = "@netlify/plugin-lighthouse"
 
 [plugins.inputs]
+fail_deploy_on_score_thresholds = "false"
 
-# Lighthouse performance budgets
 [plugins.inputs.thresholds]
 performance = 0.9
-accessibility = 0.9
-best-practices = 0.9
-seo = 0.9
+accessibility = 1
+best-practices = 0.95
+seo = 1
+
+[[plugins.inputs.audits]]
+path = "/"
+
+[[plugins.inputs.audits]]
+path = "blog/"
+
+[[plugins.inputs.audits]]
+path = "blog/2026-05-19-password-security-with-argon2id/"

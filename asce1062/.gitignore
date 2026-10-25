@@ -2,6 +2,9 @@
 # build output
 dist/
 
+# Lighthouse CI reports (npm run lighthouse)
+.lighthouseci/
+
 # generated types
 .astro/
 
