@@ -89,16 +89,9 @@ const ICOMOON_TOKEN = "fxd10s";
 			wordCount={wordCount}
 		/>
 
-		<!-- Preload critical fonts before CSS is parsed to reduce FOUT window -->
+		<!-- Preload only the body font: it paints the page's main text (the LCP element).
+		     Bold, italic and the icon font load from CSS so they do not compete with it. -->
 		<link rel="preload" href="/fonts/0xProto/0xProto-Regular.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preload" href="/fonts/0xProto/0xProto-Bold.woff2" as="font" type="font/woff2" crossorigin />
-		<link
-			rel="preload"
-			href={`/fonts/icomoon/fonts/icomoon.woff?${ICOMOON_TOKEN}`}
-			as="font"
-			type="font/woff"
-			crossorigin
-		/>
 
 		<link href={`/fonts/icomoon/style.css?${ICOMOON_TOKEN}`} rel="stylesheet" />
 		<Themes defaultTheme="dark" />
