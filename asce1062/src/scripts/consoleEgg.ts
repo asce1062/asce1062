@@ -196,8 +196,14 @@ async function printEgg(): Promise<void> {
 	console.log(parts.join(""), ...styles);
 }
 
+/** The console is never urgent: print (and fetch the art) once the page has settled. */
+function schedulePrintEgg(): void {
+	if ("requestIdleCallback" in window) requestIdleCallback(() => void printEgg(), { timeout: 4000 });
+	else setTimeout(() => void printEgg(), 2000);
+}
+
 // astro:page-load fires on both initial load and every soft navigation (ClientRouter),
 // so this single listener covers all cases without double-firing.
 // Using a named function reference means re-evaluating this module (unlikely in Astro's
 // bundling model) would not stack duplicate listeners.
-document.addEventListener("astro:page-load", printEgg);
+document.addEventListener("astro:page-load", schedulePrintEgg);
