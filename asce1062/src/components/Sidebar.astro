@@ -62,9 +62,14 @@ const eggVariantsJson = JSON.stringify(
 				data-navbrand-terminal-source="sidebar-expanded"
 				data-navbrand-state="arrival"
 				data-navbrand-effect="none"
-				data-navbrand-tone="normal"
-				aria-label="Open terminal">
-				<span class="nav-brand-line nav-brand-email-copy" data-navbrand-copy-email={SOCIAL.email} title="Copy email">
+				data-navbrand-tone="normal">
+				<!-- The accessible name is the visible greeting + "open terminal";
+				     the prompt chrome around them is decorative. -->
+				<span
+					class="nav-brand-line nav-brand-email-copy"
+					data-navbrand-copy-email={SOCIAL.email}
+					title="Copy email"
+					aria-hidden="true">
 					<span class="nav-brand-chrome">┌─[</span>
 					<span id="nav-brand-name" class="nav-brand-name">
 						alex
@@ -74,7 +79,9 @@ const eggVariantsJson = JSON.stringify(
 					<span class="nav-brand-chrome">]</span>
 				</span>
 				<span class="nav-brand-line">
-					<span class="nav-brand-chrome">│ </span>
+					<span class="nav-brand-chrome" aria-hidden="true">
+						│{" "}
+					</span>
 					<span
 						id="nav-brand-greeting"
 						class="nav-brand-greeting"
@@ -86,7 +93,9 @@ const eggVariantsJson = JSON.stringify(
 					</span>
 				</span>
 				<span class="nav-brand-line" id="nav-brand-sub-row">
-					<span class="nav-brand-chrome">│ </span>
+					<span class="nav-brand-chrome" aria-hidden="true">
+						│{" "}
+					</span>
 					<span id="nav-brand-sub" class="nav-brand-sub" aria-hidden="true"></span>
 				</span>
 				<!-- this stays lightweight and only advertises terminal intent.
@@ -94,7 +103,9 @@ const eggVariantsJson = JSON.stringify(
 				and dispatches the shared `navbrand:open-terminal` event; the modal task
 				owns the actual terminal window lifecycle. -->
 				<span class="nav-brand-line nav-brand-teaser-line">
-					<span class="nav-brand-chrome">│ </span>
+					<span class="nav-brand-chrome" aria-hidden="true">
+						│{" "}
+					</span>
 					<span
 						id="nav-brand-teaser"
 						class="nav-brand-teaser-text"
@@ -103,7 +114,7 @@ const eggVariantsJson = JSON.stringify(
 						open terminal
 					</span>
 				</span>
-				<span class="nav-brand-line">
+				<span class="nav-brand-line" aria-hidden="true">
 					<span class="nav-brand-chrome">└─</span>
 					<span class="nav-brand-prompt-char">$</span>
 					<span class="nav-brand-chrome">~</span>
@@ -151,12 +162,7 @@ const eggVariantsJson = JSON.stringify(
 								<li>
 									<b>
 										{link.action === "open-music" ? (
-											<button
-												type="button"
-												class="nav-link"
-												aria-label={link.ariaLabel}
-												data-tooltip={link.name}
-												data-music-player-trigger>
+											<button type="button" class="nav-link" data-tooltip={link.name} data-music-player-trigger>
 												<i class={`${link.icon} nav-icon`} aria-hidden="true" />
 												<span class="nav-text">{link.name}</span>
 											</button>
@@ -164,7 +170,6 @@ const eggVariantsJson = JSON.stringify(
 											<a
 												class:list={["nav-link", { "nav-link--active": active }]}
 												href={link.href}
-												aria-label={link.ariaLabel}
 												aria-current={active ? "page" : undefined}
 												data-tooltip={link.name}
 												{...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>

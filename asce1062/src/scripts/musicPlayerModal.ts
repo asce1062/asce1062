@@ -1043,7 +1043,11 @@ function setPlayerFlavor(flavor: MusicPlayerFlavor) {
 	} else {
 		refs?.terminal.removeAttribute("data-flavor");
 	}
-	if (refs?.flavorButton) refs.flavorButton.textContent = `\u00A0${activeFlavor}\u00A0`;
+	if (refs?.flavorButton) {
+		refs.flavorButton.textContent = `\u00A0${activeFlavor}\u00A0`;
+		// The accessible name starts with the visible flavor (WCAG 2.5.3 label in name).
+		refs.flavorButton.setAttribute("aria-label", `${activeFlavor}: change music player theme flavor`);
+	}
 	visualizer?.setFlavor(activeFlavor);
 }
 
