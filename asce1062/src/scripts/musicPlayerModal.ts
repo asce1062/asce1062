@@ -190,7 +190,8 @@ async function fetchJson(path: string) {
 	const payload = await response.json().catch(() => ({}));
 
 	if (!response.ok) {
-		throw new Error(payload.error || `Request failed: ${response.status}`);
+		// Non-string errors come from proxies/platform pages, not our API: never show "[object Object]".
+		throw new Error(text(payload.error, `Request failed: ${response.status}`));
 	}
 
 	return payload;
