@@ -74,3 +74,9 @@ export const GuestbookModerationLog = sqliteTable(
 	},
 	(table) => [index("ix_mod_log_entry").on(table.entryId)]
 );
+
+/** Single row (id 1): the admin session generation that logout increments. */
+export const AdminSession = sqliteTable("AdminSession", {
+	id: integer("id").primaryKey(),
+	generation: integer("generation").notNull().default(0),
+});

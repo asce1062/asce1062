@@ -63,7 +63,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return applyAdminHeaders(new Response("Forbidden", { status: 403 }));
 	}
 
-	const auth = checkAdminAuth(cookies);
+	const auth = await checkAdminAuth(cookies);
 
 	// Auth enforcement on sub-pages only. /admin handles its own login form
 	if (isAdminSubpage && !auth.ok) {

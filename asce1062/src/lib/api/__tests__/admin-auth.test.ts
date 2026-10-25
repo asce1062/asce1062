@@ -13,12 +13,20 @@ vi.mock("@node-rs/argon2", () => ({
 	verify: vi.fn(async (hash: string, token: string) => hash === "$argon2id$valid-hash" && token === "valid-token"),
 }));
 
+vi.mock("@/lib/api/admin-session-store", () => ({
+	getAdminSessionGeneration: vi.fn(async () => 0),
+	incrementAdminSessionGeneration: vi.fn(async () => undefined),
+}));
+
+import { createHmac } from "node:crypto";
 import { verify } from "@node-rs/argon2";
+import { getAdminSessionGeneration, incrementAdminSessionGeneration } from "@/lib/api/admin-session-store";
 import {
 	checkAdminAuth,
 	checkPostOrigin,
 	clearAdminSessionCookie,
 	createAdminSessionCookie,
+	revokeAdminSessions,
 	verifyAdminToken,
 } from "@/lib/api/admin-auth";
 
@@ -50,7 +58,7 @@ function makeRequest(
 
 async function createSessionForTest(): Promise<string> {
 	const cookies = makeCookies();
-	createAdminSessionCookie(cookies);
+	await createAdminSessionCookie(cookies);
 	const [, storedValue] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string, object];
 	return storedValue;
 }
@@ -190,36 +198,122 @@ describe("checkAdminAuth", () => {
 	afterEach(() => {
 		vi.unstubAllEnvs();
 		vi.clearAllMocks();
+		vi.useRealTimers();
+		vi.mocked(getAdminSessionGeneration).mockResolvedValue(0);
 	});
 
 	// Admin auth is the signed session cookie only: the login form verifies the raw
 	// token once and sets the cookie. There is no bearer-token path.
-	it("returns ok:false without a session cookie", () => {
-		expect(checkAdminAuth(makeCookies())).toEqual({ ok: false });
+	it("returns ok:false without a session cookie", async () => {
+		await expect(checkAdminAuth(makeCookies())).resolves.toEqual({ ok: false });
 	});
 
 	it("returns ok:true when a signed admin session cookie is valid", async () => {
 		const session = await createSessionForTest();
-		expect(checkAdminAuth(makeCookies(session))).toEqual({ ok: true });
+		await expect(checkAdminAuth(makeCookies(session))).resolves.toEqual({ ok: true });
 	});
 
 	it("returns ok:false when the signed admin session cookie is tampered", async () => {
 		const session = await createSessionForTest();
-		expect(checkAdminAuth(makeCookies(`${session}.tampered`))).toEqual({ ok: false });
+		await expect(checkAdminAuth(makeCookies(`${session}.tampered`))).resolves.toEqual({ ok: false });
+	});
+
+	it("returns ok:false when the generation field is altered (it is covered by the signature)", async () => {
+		const session = await createSessionForTest();
+		const [version, expiresAt, , nonce, signature] = session.split(".");
+		await expect(checkAdminAuth(makeCookies(`${version}.${expiresAt}.1.${nonce}.${signature}`))).resolves.toEqual({
+			ok: false,
+		});
 	});
 
 	it("returns ok:false when ADMIN_TOKEN_HASH is missing, even with a session cookie", async () => {
 		const session = await createSessionForTest();
 		vi.stubEnv("ADMIN_TOKEN_HASH", undefined);
-		expect(checkAdminAuth(makeCookies(session))).toEqual({ ok: false });
+		await expect(checkAdminAuth(makeCookies(session))).resolves.toEqual({ ok: false });
+	});
+
+	it("returns ok:false once the session has expired", async () => {
+		vi.useFakeTimers();
+		const session = await createSessionForTest();
+		vi.advanceTimersByTime(7 * 24 * 60 * 60 * 1000 + 1);
+		await expect(checkAdminAuth(makeCookies(session))).resolves.toEqual({ ok: false });
+	});
+
+	it("returns ok:false after logout moved the generation on (stale session)", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(getAdminSessionGeneration).mockResolvedValue(1);
+		await expect(checkAdminAuth(makeCookies(session))).resolves.toEqual({ ok: false });
+	});
+
+	it("fails closed when the generation cannot be read, flagging the genuine cookie as unavailable", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(getAdminSessionGeneration).mockRejectedValue(new Error("database unavailable"));
+		await expect(checkAdminAuth(makeCookies(session))).resolves.toEqual({ ok: false, unavailable: true });
+	});
+
+	it("never flags a forged cookie as unavailable, even while the database is down", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(getAdminSessionGeneration).mockRejectedValue(new Error("database unavailable"));
+		await expect(checkAdminAuth(makeCookies(session.replace(/[^.]+$/, "forged")))).resolves.toEqual({ ok: false });
+	});
+
+	it.each([
+		["a 4-part v2 cookie", (s: string) => s.split(".").toSpliced(2, 1).join(".")],
+		["an extra segment", (s: string) => `${s}.extra`],
+		["a non-numeric generation", (s: string) => s.split(".").with(2, "x").join(".")],
+		["a negative generation", (s: string) => s.split(".").with(2, "-1").join(".")],
+		["a non-numeric expiry", (s: string) => s.split(".").with(1, "soon").join(".")],
+		["an unsafe-integer expiry", (s: string) => s.split(".").with(1, "9".repeat(20)).join(".")],
+		["an empty nonce", (s: string) => s.split(".").with(3, "").join(".")],
+		["an empty signature", (s: string) => s.split(".").with(4, "").join(".")],
+	])("rejects %s without reading the generation", async (_label, mutate) => {
+		const session = await createSessionForTest();
+		vi.mocked(getAdminSessionGeneration).mockClear();
+		await expect(checkAdminAuth(makeCookies(mutate(session)))).resolves.toEqual({ ok: false });
+		expect(getAdminSessionGeneration).not.toHaveBeenCalled();
+	});
+
+	it("rejects a v1 cookie signed the old way (raw hash as the HMAC key)", async () => {
+		const payload = `v1.${Date.now() + 60_000}.bm9uY2U`;
+		const signature = createHmac("sha256", "$argon2id$valid-hash").update(payload).digest("base64url");
+		await expect(checkAdminAuth(makeCookies(`${payload}.${signature}`))).resolves.toEqual({ ok: false });
+	});
+
+	it("checks format, expiry and signature before touching the database", async () => {
+		const session = await createSessionForTest();
+		vi.mocked(getAdminSessionGeneration).mockClear();
+		await checkAdminAuth(makeCookies());
+		await checkAdminAuth(makeCookies(`${session}.tampered`));
+		await checkAdminAuth(makeCookies(session.replace(/[^.]+$/, "forged")));
+		expect(getAdminSessionGeneration).not.toHaveBeenCalled();
 	});
 
 	it("never runs argon2: checking a session is a cheap HMAC comparison", async () => {
 		const session = await createSessionForTest();
 		vi.mocked(verify).mockClear();
-		checkAdminAuth(makeCookies(session));
-		checkAdminAuth(makeCookies());
+		await checkAdminAuth(makeCookies(session));
+		await checkAdminAuth(makeCookies());
 		expect(verify).not.toHaveBeenCalled();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// revokeAdminSessions
+// ---------------------------------------------------------------------------
+
+describe("revokeAdminSessions", () => {
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("moves the session generation on", async () => {
+		await revokeAdminSessions();
+		expect(incrementAdminSessionGeneration).toHaveBeenCalledOnce();
+	});
+
+	it("surfaces a storage failure instead of reporting a logout that did not revoke", async () => {
+		vi.mocked(incrementAdminSessionGeneration).mockRejectedValueOnce(new Error("database unavailable"));
+		await expect(revokeAdminSessions()).rejects.toThrow("database unavailable");
 	});
 });
 
@@ -238,20 +332,47 @@ describe("createAdminSessionCookie", () => {
 
 	it("calls cookies.set with the admin_session name", async () => {
 		const cookies = makeCookies();
-		createAdminSessionCookie(cookies);
+		await expect(createAdminSessionCookie(cookies)).resolves.toBe(true);
 		expect(cookies.set).toHaveBeenCalledWith("admin_session", expect.any(String), expect.any(Object));
+	});
+
+	it("binds the session to the current generation (v2.expiresAt.generation.nonce.signature)", async () => {
+		vi.mocked(getAdminSessionGeneration).mockResolvedValueOnce(42);
+		const cookies = makeCookies();
+		await createAdminSessionCookie(cookies);
+		const [, storedValue] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string, object];
+		const parts = storedValue.split(".");
+		expect(parts).toHaveLength(5);
+		expect(parts[0]).toBe("v2");
+		expect(parts[2]).toBe("42");
+	});
+
+	it("does not sign with the raw ADMIN_TOKEN_HASH (a derived key is used)", async () => {
+		const cookies = makeCookies();
+		await createAdminSessionCookie(cookies);
+		const [, storedValue] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string, object];
+		const payload = storedValue.slice(0, storedValue.lastIndexOf("."));
+		const rawKeySignature = createHmac("sha256", "$argon2id$valid-hash").update(payload).digest("base64url");
+		expect(storedValue.endsWith(rawKeySignature)).toBe(false);
+	});
+
+	it("sets no cookie and reports failure when the generation cannot be read", async () => {
+		vi.mocked(getAdminSessionGeneration).mockRejectedValueOnce(new Error("database unavailable"));
+		const cookies = makeCookies();
+		await expect(createAdminSessionCookie(cookies)).resolves.toBe(false);
+		expect(cookies.set).not.toHaveBeenCalled();
 	});
 
 	it("does not store the raw admin token in the cookie", async () => {
 		const cookies = makeCookies();
-		createAdminSessionCookie(cookies);
+		await createAdminSessionCookie(cookies);
 		const [, storedValue] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string, object];
 		expect(storedValue).not.toContain("valid-token");
 	});
 
 	it("sets path: /admin", async () => {
 		const cookies = makeCookies();
-		createAdminSessionCookie(cookies);
+		await createAdminSessionCookie(cookies);
 		const [, , opts] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [
 			string,
 			string,
@@ -262,7 +383,7 @@ describe("createAdminSessionCookie", () => {
 
 	it("sets sameSite: strict", async () => {
 		const cookies = makeCookies();
-		createAdminSessionCookie(cookies);
+		await createAdminSessionCookie(cookies);
 		const [, , opts] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [
 			string,
 			string,
@@ -273,7 +394,7 @@ describe("createAdminSessionCookie", () => {
 
 	it("sets httpOnly: true", async () => {
 		const cookies = makeCookies();
-		createAdminSessionCookie(cookies);
+		await createAdminSessionCookie(cookies);
 		const [, , opts] = (cookies.set as ReturnType<typeof vi.fn>).mock.calls[0] as [
 			string,
 			string,

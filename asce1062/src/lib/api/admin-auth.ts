@@ -5,16 +5,27 @@
  *  - Runtime auth uses ADMIN_TOKEN_HASH only; no raw token env var is read
  *  - Raw tokens are verified with Argon2 and never stored in cookies
  *  - Admin sessions use a signed, HttpOnly, SameSite=Strict cookie
+ *  - The cookie signing key is derived from ADMIN_TOKEN_HASH (HKDF), not the hash itself
+ *  - Each session carries the server-side generation current at login; logout moves
+ *    the generation on, so every outstanding session (a copied cookie too) is revoked
  *  - Token query params are not accepted because URLs leak into logs/history
  */
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHmac, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
 import type { AstroCookies } from "astro";
 import { verify } from "@node-rs/argon2";
+import { getAdminSessionGeneration, incrementAdminSessionGeneration } from "@/lib/api/admin-session-store";
 
 const ADMIN_COOKIE_NAME = "admin_session";
-const SESSION_VERSION = "v1";
+const SESSION_VERSION = "v2";
+const SESSION_KEY_INFO = "alexmbugua.me admin session v2";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const MAX_TOKEN_LENGTH = 512;
+
+/**
+ * `unavailable`: the cookie is genuine (signed, unexpired) but whether it was
+ * revoked could not be checked. Never access; lets logout still try to revoke.
+ */
+type AdminAuthResult = { ok: true } | { ok: false; unavailable?: true };
 
 const COOKIE_OPTIONS = {
 	path: "/admin",
@@ -38,8 +49,23 @@ function safeEqual(a: string, b: string): boolean {
 	return timingSafeEqual(ab, bb);
 }
 
+/** Session signing key: derived for this one purpose, so the hash is not reused as a key. */
+function deriveSessionKey(tokenHash: string): Buffer {
+	return Buffer.from(hkdfSync("sha256", tokenHash, "", SESSION_KEY_INFO, 32));
+}
+
 function signSessionPayload(payload: string, tokenHash: string): string {
-	return createHmac("sha256", tokenHash).update(payload).digest("base64url");
+	return createHmac("sha256", deriveSessionKey(tokenHash)).update(payload).digest("base64url");
+}
+
+/** The current generation, or null when it cannot be read (callers fail closed). */
+async function readGeneration(): Promise<number | null> {
+	try {
+		return await getAdminSessionGeneration();
+	} catch (err) {
+		console.error("[admin-auth] could not read the admin session generation", err);
+		return null;
+	}
 }
 
 function normalizeToken(token: string | undefined): string {
@@ -50,23 +76,36 @@ function normalizeToken(token: string | undefined): string {
 	return normalized;
 }
 
-function isValidSessionCookie(cookies: AstroCookies): boolean {
+/**
+ * Format, expiry and signature are checked first (no I/O), so a forged or stale
+ * cookie never reaches the database. Only a genuine session pays for the
+ * generation read that tells whether it has been revoked since.
+ *
+ * "unavailable" means the cookie is signed and unexpired but the generation
+ * could not be read: still not authenticated, but distinct from a bad cookie.
+ */
+async function checkSessionCookie(cookies: AstroCookies): Promise<"valid" | "invalid" | "unavailable"> {
 	const tokenHash = getAdminTokenHash();
 	const session = cookies.get(ADMIN_COOKIE_NAME)?.value;
-	if (!tokenHash || !session) return false;
+	if (!tokenHash || !session) return "invalid";
 
 	const parts = session.split(".");
-	if (parts.length !== 4) return false;
+	if (parts.length !== 5) return "invalid";
 
-	const [version, expiresAt, nonce, signature] = parts;
-	if (version !== SESSION_VERSION || !/^\d+$/.test(expiresAt) || !nonce || !signature) return false;
+	const [version, expiresAt, generation, nonce, signature] = parts;
+	if (version !== SESSION_VERSION || !/^\d+$/.test(expiresAt) || !/^\d+$/.test(generation) || !nonce || !signature) {
+		return "invalid";
+	}
 
 	const expiresAtMs = Number(expiresAt);
-	if (!Number.isSafeInteger(expiresAtMs) || expiresAtMs <= Date.now()) return false;
+	if (!Number.isSafeInteger(expiresAtMs) || expiresAtMs <= Date.now()) return "invalid";
 
-	const payload = `${version}.${expiresAt}.${nonce}`;
-	const expectedSignature = signSessionPayload(payload, tokenHash);
-	return safeEqual(signature, expectedSignature);
+	const payload = `${version}.${expiresAt}.${generation}.${nonce}`;
+	if (!safeEqual(signature, signSessionPayload(payload, tokenHash))) return "invalid";
+
+	const currentGeneration = await readGeneration();
+	if (currentGeneration === null) return "unavailable";
+	return Number(generation) === currentGeneration ? "valid" : "invalid";
 }
 
 /** Return true when a raw token verifies against ADMIN_TOKEN_HASH. */
@@ -82,16 +121,33 @@ export async function verifyAdminToken(token: string | undefined): Promise<boole
 	}
 }
 
-/** Persist an opaque signed admin session cookie. The raw token is never stored. */
-export function createAdminSessionCookie(cookies: AstroCookies): void {
+/**
+ * Persist an opaque signed admin session cookie bound to the current generation.
+ * The raw token is never stored. Returns false (and sets nothing) when no
+ * session can be issued, so the caller can report the login as failed.
+ */
+export async function createAdminSessionCookie(cookies: AstroCookies): Promise<boolean> {
 	const tokenHash = getAdminTokenHash();
-	if (!tokenHash) return;
+	if (!tokenHash) return false;
+
+	const generation = await readGeneration();
+	if (generation === null) return false;
 
 	const expiresAt = String(Date.now() + SESSION_TTL_SECONDS * 1000);
 	const nonce = randomBytes(16).toString("base64url");
-	const payload = `${SESSION_VERSION}.${expiresAt}.${nonce}`;
+	const payload = `${SESSION_VERSION}.${expiresAt}.${generation}.${nonce}`;
 	const signature = signSessionPayload(payload, tokenHash);
 	cookies.set(ADMIN_COOKIE_NAME, `${payload}.${signature}`, COOKIE_OPTIONS);
+	return true;
+}
+
+/**
+ * Revoke every outstanding admin session (single log-out = sign out everywhere).
+ * Throws when the generation could not be moved on, so a failed revocation is
+ * never reported as a successful logout.
+ */
+export async function revokeAdminSessions(): Promise<void> {
+	await incrementAdminSessionGeneration();
 }
 
 /** Remove the admin session cookie using the same options used to set it. */
@@ -126,9 +182,11 @@ export function checkPostOrigin(request: Request): boolean {
 
 /**
  * Verify an incoming admin request by its signed session cookie (a cheap HMAC
- * check). The raw token is verified with argon2 only by the login form, which
- * then sets this cookie; there is no header-based login.
+ * check, then one generation read). The raw token is verified with argon2 only
+ * by the login form, which then sets this cookie; there is no header-based login.
  */
-export function checkAdminAuth(cookies: AstroCookies): { ok: true } | { ok: false } {
-	return isValidSessionCookie(cookies) ? { ok: true } : { ok: false };
+export async function checkAdminAuth(cookies: AstroCookies): Promise<AdminAuthResult> {
+	const result = await checkSessionCookie(cookies);
+	if (result === "valid") return { ok: true };
+	return result === "unavailable" ? { ok: false, unavailable: true } : { ok: false };
 }

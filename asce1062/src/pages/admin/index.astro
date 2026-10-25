@@ -12,6 +12,7 @@ import {
 	checkAdminAuth,
 	clearAdminSessionCookie,
 	createAdminSessionCookie,
+	revokeAdminSessions,
 	verifyAdminToken,
 } from "@/lib/api/admin-auth";
 
@@ -23,10 +24,11 @@ const ADMIN_PAGES = [
 		icon: "icon-journal-bookmark",
 	},
 ];
-const auth = checkAdminAuth(Astro.cookies);
+const auth = await checkAdminAuth(Astro.cookies);
 
 // Handle POST actions
-let loginError = false;
+let loginError: string | null = null;
+let loggedOut = false;
 
 if (Astro.request.method === "POST") {
 	const formData = await Astro.request.formData();
@@ -35,24 +37,42 @@ if (Astro.request.method === "POST") {
 	if (action === "login") {
 		const submittedToken = String(formData.get("token") ?? "");
 		if (await verifyAdminToken(submittedToken)) {
-			createAdminSessionCookie(Astro.cookies);
-			return Astro.redirect("/admin");
+			if (await createAdminSessionCookie(Astro.cookies)) {
+				return Astro.redirect("/admin");
+			}
+			loginError = "Could not start a session. Try again.";
+		} else {
+			// Slow down sequential brute-force attempts.
+			// Note:
+			// 	- on serverless each invocation is isolated
+			// 	- this only throttles single-threaded attacks
+			await new Promise((r) => setTimeout(r, 500));
+			loginError = "Invalid token.";
 		}
-		// Slow down sequential brute-force attempts.
-		// Note:
-		// 	- on serverless each invocation is isolated
-		// 	- this only throttles single-threaded attacks
-		await new Promise((r) => setTimeout(r, 500));
-		loginError = true;
 	}
 
 	if (action === "logout") {
+		// Only a genuine session may revoke: an anonymous POST must not be able to
+		// sign the moderator out everywhere. A genuine session whose generation could
+		// not be read still tries, so a database hiccup is reported, not hidden.
+		// The local cookie is cleared either way.
+		let revoked = true;
+		if (auth.ok || auth.unavailable) {
+			try {
+				await revokeAdminSessions();
+			} catch (err) {
+				console.error("[admin] logout could not revoke other sessions", err);
+				revoked = false;
+			}
+		}
 		clearAdminSessionCookie(Astro.cookies);
-		return Astro.redirect("/admin");
+		if (revoked) return Astro.redirect("/admin");
+		loggedOut = true;
+		loginError = "Signed out here, but other sessions could not be revoked. Log in and out again to retry.";
 	}
 }
 
-const isAuthed = auth.ok;
+const isAuthed = auth.ok && !loggedOut;
 const pendingCount = isAuthed ? await countPendingEntries() : 0;
 ---
 
@@ -103,7 +123,7 @@ const pendingCount = isAuthed ? await countPendingEntries() : 0;
 							class="input input-accent w-full"
 							autofocus
 						/>
-						{loginError && <p class="-mt-1 text-error text-sm">Invalid token.</p>}
+						{loginError && <p class="-mt-1 text-error text-sm">{loginError}</p>}
 					</div>
 					<button type="submit" class="btn btn-secondary btn-pixel w-full">
 						Login

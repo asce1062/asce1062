@@ -104,7 +104,7 @@ describe("guestbook migrations", () => {
 			VALUES (2, 'approve', 'visible', 'admin', '2025-06-27 08:00:00')`
 		);
 
-		await expect(applyMigrations(client, MIGRATIONS)).resolves.toEqual(["0002_normalize_legacy_timestamps.sql"]);
+		expect(await applyMigrations(client, MIGRATIONS)).toContain("0002_normalize_legacy_timestamps.sql");
 
 		const rows = await client.execute(
 			`SELECT "timestamp", "moderatedAt", "adminNotifiedAt", "copySentAt" FROM "Guestbook" ORDER BY "id"`
@@ -118,6 +118,16 @@ describe("guestbook migrations", () => {
 		});
 		const log = await client.execute(`SELECT "at" FROM "GuestbookModerationLog"`);
 		expect(log.rows[0].at).toBe("2025-06-27T08:00:00.000Z");
+		client.close();
+	});
+
+	it("seeds a single admin session generation row that cannot be duplicated", async () => {
+		const client = temporaryClient();
+		await applyMigrations(client, MIGRATIONS);
+
+		const rows = await client.execute(`SELECT "id", "generation" FROM "AdminSession"`);
+		expect(rows.rows.map((row) => ({ ...row }))).toEqual([{ id: 1, generation: 0 }]);
+		await expect(client.execute(`INSERT INTO "AdminSession" ("id", "generation") VALUES (2, 0)`)).rejects.toThrow();
 		client.close();
 	});
 
