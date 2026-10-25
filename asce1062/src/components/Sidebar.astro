@@ -13,7 +13,6 @@
 import "@/styles/components/sidebar.css";
 import { mainNavigation, navSections, sidebarOptions } from "@/data/navigation";
 import { FLAVORS, FLAVOR_LABELS, FLAVOR_SWATCHES } from "@/scripts/flavorManager";
-import asciiData from "@/data/ascii-art.json";
 import AsciiWidget from "@/components/AsciiWidget.astro";
 import AvatarMiniWidget from "@/components/AvatarMiniWidget.astro";
 import ShareNotification from "@/components/ShareNotification.astro";
@@ -37,11 +36,6 @@ const grouped = navSections.map((s) => ({
 	label: s.label,
 	items: mainNavigation.filter((link) => link.section === s.key),
 }));
-
-type AsciiVariant = { text: string; font: string; art: string };
-const eggVariantsJson = JSON.stringify(
-	(asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer")
-);
 ---
 
 <!-- State machine: hidden checkbox -->
@@ -257,7 +251,8 @@ const eggVariantsJson = JSON.stringify(
 		<!-- ASCII easter egg. visible on overscroll. Hidden in collapsed mode.
 		     Not aria-hidden: its dice/copy buttons are focusable; AsciiWidget hides the art itself. -->
 		<div class="nav-easter-egg" data-collapsed-hidden>
-			<AsciiWidget widgetId="nav-egg" variants={eggVariantsJson} artClass="nav-egg-art" />
+			<!-- Variants are loaded by src/scripts/sidebarEgg.ts when the egg nears the viewport -->
+			<AsciiWidget widgetId="nav-egg" artClass="nav-egg-art" />
 		</div>
 	</nav>
 

@@ -37,6 +37,8 @@ export interface AsciiWidgetOptions {
 	replayOnDice?: boolean;
 	/** Called after each render. isDice is false on the initial render. */
 	onRender?: (v: AsciiVariant, isDice: boolean) => void;
+	/** Variants loaded by the caller; otherwise read from the `{widgetId}-data` carrier. */
+	variants?: readonly AsciiVariant[];
 }
 
 export function setupAsciiWidget(widgetId: string, opts: AsciiWidgetOptions = {}): AsciiRevealTeardown | null {
@@ -49,9 +51,9 @@ export function setupAsciiWidget(widgetId: string, opts: AsciiWidgetOptions = {}
 
 	const container = opts.container ?? wrapEl;
 
-	if (!widgetEl || !dataEl || !artEl || !fontEl || !container) return null;
+	if (!widgetEl || !artEl || !fontEl || !container) return null;
 
-	const variants: AsciiVariant[] = JSON.parse(dataEl.dataset.variants ?? "[]");
+	const variants: readonly AsciiVariant[] = opts.variants ?? JSON.parse(dataEl?.dataset.variants ?? "[]");
 	if (!variants.length) return null;
 
 	let current = -1;

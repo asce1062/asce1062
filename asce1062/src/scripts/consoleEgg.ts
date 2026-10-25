@@ -12,11 +12,8 @@
  * Note: there is no reliable cross-browser API to detect when DevTools is opened,
  * so we fire on page load/navigation, the closest practical equivalent.
  */
-import asciiData from "@/data/ascii-art.json";
 import { hexDark } from "@/config/design-tokens";
-
-type AsciiVariant = { readonly text: string; readonly font: string; readonly art: string };
-const asciiVariants = (asciiData as AsciiVariant[]).filter((v) => v.text !== "404" && v.text !== "Alex.Immer");
+import { loadGreetingVariants } from "@/scripts/asciiGreetings";
 
 type ConsoleColorRole =
 	"primary" | "secondary" | "accent" | "warning" | "success" | "info" | "baseContent" | "neutralContent";
@@ -123,7 +120,7 @@ async function getSwStatus(): Promise<string> {
 // ── Main ──
 
 async function printEgg(): Promise<void> {
-	const variant = pickRandom(asciiVariants);
+	const variant = pickRandom(await loadGreetingVariants());
 
 	const platform = getPlatformLabel();
 	const lang = navigator.language ?? "unknown";

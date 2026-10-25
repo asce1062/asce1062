@@ -28,7 +28,8 @@ import "@/styles/components/asciiWidget.css";
 
 interface Props {
 	widgetId: string;
-	variants: string;
+	/** Variants as JSON; omit when the page's script loads them itself (sidebar egg). */
+	variants?: string;
 	artClass?: string;
 	class?: string;
 }
