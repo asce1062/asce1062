@@ -28,7 +28,7 @@
     "test:e2e": "playwright test --project=e2e",
     "check:glued": "playwright test --project=site",
     "check:links": "node scripts/check-links.mjs",
-    "prepare": "husky || true",
+    "prepare": "cd .. && husky || true",
     "hash:admin-token": "node scripts/hash-admin-token.mjs",
     "generate:ascii": "node scripts/generate-ascii.mjs",
     "fonts:subset": "node scripts/subset-fonts.mjs",

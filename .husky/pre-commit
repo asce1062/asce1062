@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
+# Stop at the first failing step: without -e only the last command's exit
+# code would count, and a lint-staged failure could still commit.
+set -e
 
 # Change to the project directory where node_modules and package.json are located
 cd asce1062
@@ -6,8 +9,9 @@ cd asce1062
 # Run lint-staged for file-specific linting and formatting
 npx lint-staged
 
-# Run tests after linting. Fail the commit if any test fails
-STAGED_SOURCE=$(git diff --cached --name-only | grep -E '\.(ts|js|mjs|astro)$')
+# Run tests after linting. Fail the commit if any test fails. grep exits 1
+# when nothing matches, which is not an error here.
+STAGED_SOURCE=$(git diff --cached --name-only | grep -E '\.(ts|js|mjs|astro|mdx|json)$' || true)
 
 if [ -n "$STAGED_SOURCE" ]; then
   npm test

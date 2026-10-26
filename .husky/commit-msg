@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+
+# Commit message rules: Conventional Commit subject, no em dash, no
+# co-author trailers. Comment lines (git's template) are ignored.
+MSG=$(grep -v '^#' "$1" || true)
+SUBJECT=$(printf '%s\n' "$MSG" | head -n 1)
+
+# Git-generated subjects (merges, reverts, autosquash) pass as-is.
+case "$SUBJECT" in
+  "Merge "* | "Revert \""* | "fixup! "* | "squash! "* | "amend! "*) ;;
+  *)
+    if ! printf '%s\n' "$SUBJECT" | grep -qE '^(feat|fix|refactor|perf|test|docs|style|build|ci|chore|revert)(\([^()]+\))?!?: [^ ].*'; then
+      echo "commit-msg: subject must be a Conventional Commit, e.g. \"fix(nav): keep focus in the menu\"." >&2
+      echo "  types: feat fix refactor perf test docs style build ci chore revert" >&2
+      echo "  got:   $SUBJECT" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+if printf '%s\n' "$MSG" | grep -q '—'; then
+  echo "commit-msg: replace the em dash with a plain dash." >&2
+  exit 1
+fi
+
+if printf '%s\n' "$MSG" | grep -qi '^co-authored-by:'; then
+  echo "commit-msg: drop the Co-Authored-By trailer." >&2
+  exit 1
+fi

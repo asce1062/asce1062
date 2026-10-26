@@ -1,11 +1,14 @@
 #!/usr/bin/env sh
+# Stop at the first failing step: without -e only the last command's exit
+# code would count.
+set -e
 
 # Change to the project directory where node_modules and package.json are located
 cd asce1062
 
 # ascii-art.json is generated and committed. Staging it here would not add it to
 # the push (the commits already exist), so fail on drift and ask for a commit.
-npm run generate:ascii --silent || exit 1
+npm run generate:ascii --silent
 # Against HEAD, not the index: what gets pushed is the committed file.
 if ! git diff --quiet HEAD -- src/data/ascii-art.json; then
   echo "pre-push: src/data/ascii-art.json is out of date. Commit the regenerated file and push again." >&2
@@ -15,3 +18,35 @@ fi
 # Type-check .astro and .ts (including tests). Vitest strips types, so a type
 # error can pass the pre-commit test run.
 npm run check --silent
+
+# Unused files, exports and dependencies.
+npm run knip --silent
+
+# Full test run with the coverage floors in vitest.config.ts.
+npm run test:coverage --silent
+
+# Opt-in checks against a fresh build of dist/:
+#   SITE=1 git push        glued words and broken links in the built pages
+#   E2E=1 git push         user journeys and axe accessibility checks
+#   LIGHTHOUSE=1 git push  Lighthouse budgets (lighthouserc.cjs)
+#   VERIFY=1 git push      all three
+if [ -n "$VERIFY" ]; then
+  SITE=1 E2E=1 LIGHTHOUSE=1
+fi
+
+if [ -n "$SITE$E2E$LIGHTHOUSE" ]; then
+  npm run build --silent
+
+  if [ -n "$SITE" ]; then
+    npm run check:glued
+    npm run check:links --silent
+  fi
+
+  if [ -n "$E2E" ]; then
+    npm run test:e2e
+  fi
+
+  if [ -n "$LIGHTHOUSE" ]; then
+    npx lhci autorun
+  fi
+fi
