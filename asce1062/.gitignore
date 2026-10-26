@@ -35,3 +35,8 @@ pnpm-debug.log*
 # README.md is the only .md that belongs in the repo
 *.md
 !README.md
+
+# Test reports (npm run test:coverage, npm run test:e2e)
+coverage/
+test-results/
+playwright-report/

@@ -27,3 +27,8 @@ src/data/ascii-art.json
 
 # Netlify
 .netlify
+
+# Test reports
+coverage/
+test-results/
+playwright-report/
