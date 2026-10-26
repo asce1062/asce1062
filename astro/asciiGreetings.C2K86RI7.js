@@ -1,0 +1,1 @@
+import{t as e}from"./preload-helper.DHhhL8Zf.js";var t=e=>e.text!==`404`&&e.text!==`Alex.Immer`,n=null;function r(){return n??=e(()=>import(`./ascii-art.CBq-73OJ.js`).then(e=>e.n).then(e=>e.default.filter(t)),[]).catch(()=>(n=null,[])),n}export{r as t};

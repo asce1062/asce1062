@@ -1,0 +1,1 @@
+import{t as e}from"./pagefindSearch.Be6esU2u.js";function t(){let t=document.querySelectorAll(`[data-pagefind-ui]:not([data-pagefind-deferred])`);if(t.length===0)return;let n=()=>t.forEach(t=>void e(t));`requestIdleCallback`in window?requestIdleCallback(n,{timeout:2e3}):setTimeout(n,1)}document.addEventListener(`astro:page-load`,t);

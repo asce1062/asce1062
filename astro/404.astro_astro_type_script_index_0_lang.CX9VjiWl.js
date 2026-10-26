@@ -1,0 +1,1 @@
+import{t as e}from"./asciiWidget.MnAgY1r8.js";var t=null;function n(){t?.(),t=null,document.querySelector(`[data-page-404]`)&&(t=e(`neofetch`,{replayOnDice:!0}))}document.addEventListener(`astro:page-load`,n),document.addEventListener(`astro:before-swap`,()=>{t?.(),t=null});
