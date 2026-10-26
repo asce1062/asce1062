@@ -5,8 +5,8 @@ const root = (page: import("@playwright/test").Page) => page.locator("html");
 test.describe("navigation", () => {
 	test("the sidebar takes a visitor from home to a blog post", async ({ page }) => {
 		await page.goto(PAGES.home);
-		// Home has no heading of its own: the site greeting is its h1.
-		await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alex.");
+		// The greeting is shared header chrome; the home page names itself in a hidden h1.
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alex Mbugua");
 
 		await page.locator("#nav-menu").getByRole("link", { name: "Blog", exact: true }).click();
 		await expect(page).toHaveURL(/\/blog\/?$/);

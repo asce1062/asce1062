@@ -39,7 +39,8 @@ content in /blog and /notes.
 	}
 
 	/*
-	 * The post title is the page's h1 but keeps the h2 step of the scale, and
+	 * The page title (post title, or the opening "This is a ... page" on
+	 * article pages) is the page's h1 but keeps the h2 step of the scale, and
 	 * the TOC label is an h2 that keeps the h1 step: the heading levels follow
 	 * the document outline while the visual hierarchy stays as designed.
 	 */

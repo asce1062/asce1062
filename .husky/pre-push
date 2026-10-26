@@ -26,7 +26,7 @@ npm run knip --silent
 npm run test:coverage --silent
 
 # Opt-in checks against a fresh build of dist/:
-#   SITE=1 git push        glued words and broken links in the built pages
+#   SITE=1 git push        glued words, one h1 per page, broken links
 #   E2E=1 git push         user journeys and axe accessibility checks
 #   LIGHTHOUSE=1 git push  Lighthouse budgets (lighthouserc.cjs)
 #   VERIFY=1 git push      all three
@@ -38,7 +38,7 @@ if [ -n "$SITE$E2E$LIGHTHOUSE" ]; then
   npm run build --silent
 
   if [ -n "$SITE" ]; then
-    npm run check:glued
+    npm run check:site
     npm run check:links --silent
   fi
 

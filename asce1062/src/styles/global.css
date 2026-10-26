@@ -371,13 +371,18 @@
   ============================================
   */
 
+	/*
+	Page titles. Every page's h1 is its own topic and takes the same step as h2,
+	so the header greeting (below) stays the largest text on every page at
+	every width. In-article titles use .content-title (markdown.css).
+	*/
 	h1 {
-		@apply text-2xl md:text-3xl;
+		@apply text-xl md:text-2xl;
 		transition: font-size var(--duration-instant);
-		color: var(--color-base-content);
+		color: var(--color-heading);
 	}
 
-	/* Greeting in Header */
+	/* Greeting in Header: shared site chrome, a <p> on purpose, larger than any h1. */
 	.site-greeting {
 		@apply text-2xl md:text-4xl;
 		display: inline-block; /* Constrain hover zone to text width, not full paragraph block */

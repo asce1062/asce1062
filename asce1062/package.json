@@ -26,7 +26,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test --project=e2e",
-    "check:glued": "playwright test --project=site",
+    "check:site": "playwright test --project=site",
     "check:links": "node scripts/check-links.mjs",
     "prepare": "cd .. && husky || true",
     "hash:admin-token": "node scripts/hash-admin-token.mjs",

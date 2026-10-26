@@ -42,9 +42,10 @@ await Promise.all(
 	ogImage="images/social-preview.png"
 	description=`bleep bloop found ${totalCount} ${totalCount == 1 ? "item" : "items"}`>
 	<div class="flex flex-col gap-4">
-		<p>
+		<!-- The page's h1, styled as the body-text summary it reads as (body p: 15px on phones). -->
+		<h1 class="text-[15px] sm:text-base leading-normal font-normal text-base-content my-[1em]">
 			found {totalCount} {totalCount == 1 ? "item" : "items"} tagged with <b>{tag}</b>
-		</p>
+		</h1>
 
 		{posts.length > 0 && (
 			<div>

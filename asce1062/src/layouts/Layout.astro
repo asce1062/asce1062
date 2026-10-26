@@ -31,8 +31,6 @@ interface Props {
 	wordCount?: number;
 	/** Set to true to add noindex, nofollow to the page */
 	noIndex?: boolean;
-	/** Render the header greeting as the page h1 (pages with no heading of their own) */
-	greetingAsH1?: boolean;
 }
 
 const {
@@ -47,7 +45,6 @@ const {
 	readingTime,
 	wordCount,
 	noIndex = false,
-	greetingAsH1 = false,
 } = Astro.props;
 
 // Safe base URL fallback: use Astro.site if configured, otherwise fall back to SITE.url
@@ -253,7 +250,7 @@ const ICOMOON_TOKEN = "fxd10s";
 		     is not a scroll container, so sticky children keep working; fixed overlays escape it. -->
 		<div class="sidebar-content-offset lg:ml-[var(--sidebar-current-width)] flex flex-col min-h-dvh overflow-clip">
 			<div class="w-full content-prose mx-auto px-4 pt-4 md:px-8 md:pt-8">
-				<Header greetingAsH1={greetingAsH1} />
+				<Header />
 			</div>
 
 			<div id="primary" class="w-full content-prose mx-auto px-4 md:px-8 pb-4 md:pb-2 relative grow flex flex-col">
