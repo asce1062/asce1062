@@ -310,7 +310,7 @@ readability and muted clears AA. Glows are suppressed on bright surfaces.
 	--color-base-300: oklch(84% 0.04 86);
 	--color-base-content: oklch(34% 0.05 60);
 
-	--color-primary: oklch(52% 0.12 65);
+	--color-primary: oklch(45% 0.1 65);
 	--color-primary-content: oklch(97% 0.02 85);
 
 	--color-secondary: oklch(50% 0.09 205);
@@ -322,15 +322,16 @@ readability and muted clears AA. Glows are suppressed on bright surfaces.
 	--color-neutral: oklch(84% 0.03 80);
 	--color-neutral-content: oklch(40% 0.02 70);
 
-	/* Status - mid lightness in light mode → light -content (warning excepted). */
+	/* Status - mid lightness in light mode → light -content. Warning is mostly
+	   used as text (text-warning), so it sits dark enough for AA on base-300. */
 	--color-info: oklch(52% 0.13 240);
 	--color-info-content: oklch(98% 0.02 240);
 
 	--color-success: oklch(50% 0.1 155);
 	--color-success-content: oklch(98% 0.02 155);
 
-	--color-warning: oklch(70% 0.13 75);
-	--color-warning-content: oklch(25% 0.06 70);
+	--color-warning: oklch(45% 0.095 75);
+	--color-warning-content: oklch(97% 0.02 80);
 
 	--color-error: oklch(52% 0.16 27);
 	--color-error-content: oklch(98% 0.015 27);
@@ -394,6 +395,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-success: oklch(78% 0.12 158);
 	--color-warning: oklch(85% 0.13 95);
 	--color-error: oklch(66% 0.16 25);
+	--color-error-content: oklch(12% 0.02 25);
 
 	/* Heading h2 */
 	--color-heading: oklch(86% 0.13 288);
@@ -435,6 +437,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(82% 0.16 108);
 	--color-success: oklch(84% 0.17 148);
 	--color-error: oklch(64% 0.18 32);
+	--color-error-content: oklch(12% 0.02 32);
 	--color-info: oklch(74% 0.13 175);
 
 	/* Heading h2 */
@@ -477,6 +480,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(84% 0.16 85);
 	--color-success: oklch(72% 0.13 138);
 	--color-error: oklch(62% 0.18 35);
+	--color-error-content: oklch(12% 0.02 35);
 	--color-info: oklch(72% 0.12 215);
 
 	/* Heading h2 */
@@ -518,6 +522,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(86% 0.15 92);
 	--color-success: oklch(80% 0.15 168);
 	--color-error: oklch(72% 0.18 18);
+	--color-error-content: oklch(12% 0.02 18);
 	--color-info: oklch(80% 0.14 240);
 
 	/* Heading h2*/
@@ -560,6 +565,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(88% 0.16 95);
 	--color-success: oklch(82% 0.16 150);
 	--color-error: oklch(70% 0.18 28);
+	--color-error-content: oklch(12% 0.02 28);
 	--color-info: oklch(86% 0.13 205);
 
 	/* Heading h2 */
@@ -590,8 +596,9 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-primary: oklch(72% 0 0);
 	--color-primary-content: oklch(10% 0 0);
 
-	--color-secondary: oklch(52% 0 0);
-	--color-secondary-content: oklch(96% 0 0);
+	/* Light enough for AA as keyword highlight text on code blocks (#191724). */
+	--color-secondary: oklch(61% 0 0);
+	--color-secondary-content: oklch(12% 0 0);
 
 	--color-accent: oklch(82% 0 0);
 	--color-accent-content: oklch(12% 0 0);
@@ -602,6 +609,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(80% 0.11 88);
 	--color-success: oklch(72% 0.12 155);
 	--color-error: oklch(64% 0.16 27);
+	--color-error-content: oklch(12% 0 0);
 	--color-info: oklch(72% 0.11 235);
 
 	/* Heading h2 */
@@ -644,6 +652,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(82% 0.14 100);
 	--color-success: oklch(74% 0.14 172);
 	--color-error: oklch(66% 0.16 22);
+	--color-error-content: oklch(12% 0.02 22);
 	--color-info: oklch(82% 0.15 200);
 
 	/* Heading h2 */
@@ -672,13 +681,14 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-base-content: oklch(90% 0.012 22);
 
 	--color-primary: oklch(64% 0.17 22);
-	--color-primary-content: oklch(96% 0.008 22);
+	--color-primary-content: oklch(12% 0.02 22);
 
-	--color-secondary: oklch(54% 0.15 18);
-	--color-secondary-content: oklch(94% 0.01 22);
+	/* Light enough for AA as keyword highlight text on code blocks (#191724). */
+	--color-secondary: oklch(63% 0.15 18);
+	--color-secondary-content: oklch(12% 0.02 20);
 
 	--color-accent: oklch(70% 0.18 16);
-	--color-accent-content: oklch(96% 0.008 22);
+	--color-accent-content: oklch(12% 0.02 20);
 
 	--color-neutral: oklch(14% 0.02 20);
 	--color-neutral-content: oklch(64% 0.012 22);
@@ -686,6 +696,7 @@ Flavors: observatory | crt-green | amber | synthwave | dos | void | ice | redlin
 	--color-warning: oklch(80% 0.16 62);
 	--color-success: oklch(68% 0.13 152);
 	--color-error: oklch(70% 0.19 20);
+	--color-error-content: oklch(12% 0.02 20);
 	--color-info: oklch(70% 0.13 240);
 
 	/* Heading h2 */
@@ -712,6 +723,8 @@ LIGHT MODE FLAVOR OVERRIDES
 ============================================
 Selectors: html[data-theme="light"][data-flavor="X"]
 Light mode suppresses glows (they read poorly on bright surfaces).
+Primary (links) and warning (labels) are text colours: each sits dark enough
+for AA (4.5:1) on its flavor's base-300, the darkest surface text sits on.
 ============================================
 */
 
@@ -739,7 +752,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(50% 0.14 252);
 	--color-success: oklch(50% 0.11 160);
-	--color-warning: oklch(70% 0.13 82);
+	--color-warning: oklch(47% 0.095 82);
 	--color-error: oklch(52% 0.16 25);
 
 	/* Heading h2 */
@@ -781,7 +794,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(48% 0.13 178);
 	--color-success: oklch(46% 0.13 150);
-	--color-warning: oklch(60% 0.14 110);
+	--color-warning: oklch(46.5% 0.1 110);
 	--color-error: oklch(50% 0.17 32);
 
 	/* Heading h2 */
@@ -809,10 +822,10 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 	--color-base-300: oklch(84% 0.06 89);
 	--color-base-content: oklch(36% 0.08 55);
 
-	--color-primary: oklch(56% 0.14 68);
+	--color-primary: oklch(45% 0.095 68);
 	--color-primary-content: oklch(97% 0.02 88);
 
-	--color-secondary: oklch(58% 0.15 50);
+	--color-secondary: oklch(55% 0.145 50);
 	--color-secondary-content: oklch(97% 0.02 50);
 
 	--color-accent: oklch(50% 0.14 62);
@@ -823,7 +836,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(52% 0.13 218);
 	--color-success: oklch(50% 0.11 138);
-	--color-warning: oklch(66% 0.15 82);
+	--color-warning: oklch(45% 0.09 82);
 	--color-error: oklch(52% 0.18 35);
 
 	/* Heading h2 */
@@ -851,13 +864,13 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 	--color-base-300: oklch(89% 0.05 295);
 	--color-base-content: oklch(34% 0.11 295);
 
-	--color-primary: oklch(52% 0.18 300);
+	--color-primary: oklch(50% 0.18 300);
 	--color-primary-content: oklch(97% 0.01 300);
 
 	--color-secondary: oklch(50% 0.14 195);
 	--color-secondary-content: oklch(98% 0.008 195);
 
-	--color-accent: oklch(56% 0.15 55);
+	--color-accent: oklch(55% 0.135 55);
 	--color-accent-content: oklch(97% 0.02 56);
 
 	--color-neutral: oklch(89% 0.04 298);
@@ -865,7 +878,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(50% 0.15 242);
 	--color-success: oklch(50% 0.12 168);
-	--color-warning: oklch(66% 0.14 90);
+	--color-warning: oklch(48% 0.095 90);
 	--color-error: oklch(52% 0.18 20);
 
 	/* Heading h2 */
@@ -893,7 +906,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 	--color-base-300: oklch(86% 0 0);
 	--color-base-content: oklch(22% 0.031 278);
 
-	--color-primary: oklch(48% 0.16 255);
+	--color-primary: oklch(46.5% 0.15 255);
 	--color-primary-content: oklch(100% 0 0);
 
 	--color-secondary: oklch(50% 0.05 257);
@@ -907,7 +920,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(50% 0.15 205);
 	--color-success: oklch(48% 0.12 150);
-	--color-warning: oklch(66% 0.15 92);
+	--color-warning: oklch(46% 0.09 92);
 	--color-error: oklch(50% 0.18 28);
 
 	/* Heading h2 */
@@ -949,7 +962,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(48% 0.13 235);
 	--color-success: oklch(48% 0.11 155);
-	--color-warning: oklch(64% 0.13 85);
+	--color-warning: oklch(52% 0.105 85);
 	--color-error: oklch(50% 0.16 27);
 
 	/* Heading h2 */
@@ -977,7 +990,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 	--color-base-300: oklch(88% 0.014 210);
 	--color-base-content: oklch(22% 0.04 218);
 
-	--color-primary: oklch(46% 0.13 200);
+	--color-primary: oklch(46% 0.075 200);
 	--color-primary-content: oklch(98% 0.006 200);
 
 	--color-secondary: oklch(52% 0.1 205);
@@ -991,7 +1004,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(48% 0.14 200);
 	--color-success: oklch(48% 0.12 172);
-	--color-warning: oklch(66% 0.14 98);
+	--color-warning: oklch(47.5% 0.095 98);
 	--color-error: oklch(52% 0.16 22);
 
 	/* Heading h2 */
@@ -1019,7 +1032,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 	--color-base-300: oklch(90% 0.04 22);
 	--color-base-content: oklch(28% 0.09 22);
 
-	--color-primary: oklch(52% 0.19 24);
+	--color-primary: oklch(51% 0.19 24);
 	--color-primary-content: oklch(98% 0.006 22);
 
 	--color-secondary: oklch(48% 0.17 18);
@@ -1033,7 +1046,7 @@ Light mode suppresses glows (they read poorly on bright surfaces).
 
 	--color-info: oklch(50% 0.14 242);
 	--color-success: oklch(48% 0.12 152);
-	--color-warning: oklch(66% 0.14 60);
+	--color-warning: oklch(49.5% 0.115 60);
 	--color-error: oklch(52% 0.19 24);
 
 	/* Heading h2 */

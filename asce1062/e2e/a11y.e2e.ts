@@ -9,9 +9,13 @@ const FLAVORS = ["observatory", "crt-green", "amber", "synthwave", "dos", "void"
 // on what a reader sees at rest.
 test.use({ reducedMotion: "reduce" });
 
-/** One line per violation node: rule, element, and axe's reason (e.g. the contrast ratio). */
+/**
+ * One line per violation node: rule, element, and axe's reason (e.g. the contrast ratio).
+ * .pre-art is decorative ASCII art (aria-hidden, an image made of text), which
+ * WCAG 1.4.3 exempts from contrast as pure decoration.
+ */
 async function violations(page: Page, rules?: string[]): Promise<string[]> {
-	const builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
+	const builder = new AxeBuilder({ page }).withTags(WCAG_TAGS).exclude(".pre-art");
 	if (rules) builder.withRules(rules);
 	const { violations } = await builder.analyze();
 	return violations.flatMap((v) =>
@@ -40,14 +44,17 @@ for (const theme of ["dark", "light"] as const) {
 	});
 }
 
-// Flavors recolour the dark theme only, so contrast is the risk they carry.
-for (const flavor of FLAVORS) {
-	test(`${flavor} flavor keeps text contrast on home and a post`, async ({ page, appearance }) => {
-		await appearance({ theme: "dark", flavor });
-		for (const path of [PAGES.home, PAGES.post]) {
-			await page.goto(path);
-			await expect(page.locator("html")).toHaveAttribute("data-flavor", flavor);
-			expect(await violations(page, ["color-contrast"]), path).toEqual([]);
-		}
-	});
+// Flavors recolour both themes, so contrast is the risk they carry. Home has
+// the status labels, the blog index the cards, a post the code highlights.
+for (const theme of ["dark", "light"] as const) {
+	for (const flavor of FLAVORS) {
+		test(`${flavor} flavor (${theme}) keeps text contrast`, async ({ page, appearance }) => {
+			await appearance({ theme, flavor });
+			for (const path of [PAGES.home, PAGES.blogIndex, PAGES.post]) {
+				await page.goto(path);
+				await expect(page.locator("html")).toHaveAttribute("data-flavor", flavor);
+				expect.soft(await violations(page, ["color-contrast"]), path).toEqual([]);
+			}
+		});
+	}
 }
