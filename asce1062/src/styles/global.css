@@ -441,8 +441,12 @@
   ============================================
   */
 
+	/* Inline, not inline-block: an inline-block link is an atomic box, so the
+	   line could break between it and its trailing punctuation ("guestbook" /
+	   "."), and a long link could not wrap inside itself. Links that need a box
+	   (link-action, nav links, cards) set their own display. */
 	a {
-		@apply underline-offset-4 hover:no-underline inline-block;
+		@apply underline-offset-4 hover:no-underline;
 	}
 
 	a:hover {
@@ -450,6 +454,7 @@
 		color: var(--color-primary-content);
 	}
 
+	/* Press nudge. Only links with a box display move: inline boxes ignore translate. */
 	a:active {
 		translate: 0 0.5px;
 	}
