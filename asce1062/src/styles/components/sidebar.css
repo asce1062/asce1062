@@ -176,10 +176,10 @@ body:has(#nav-toggle:checked) {
 	opacity: 1;
 }
 
+/* Subdued via the muted token, not opacity: at 0.18 opacity it was ~1.4:1. */
 .nav-brand-sub {
 	font-size: 0.63rem;
-	color: var(--color-base-content);
-	opacity: 0.18;
+	color: var(--color-muted);
 	transition: opacity 0.35s ease;
 }
 
@@ -200,12 +200,12 @@ body:has(#nav-toggle:checked) {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.28rem;
-	color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+	/* Muted token, not a translucent mix: the mix plus opacity was ~2.2:1. */
+	color: var(--color-muted);
 	font-size: 0.61rem;
 	font-weight: 600;
 	letter-spacing: 0.03em;
 	text-transform: lowercase;
-	opacity: 0.72;
 	transition:
 		color 0.3s ease,
 		opacity 0.3s ease,
@@ -235,17 +235,10 @@ body:has(#nav-toggle:checked) {
 	margin-left: 0.5ch;
 }
 
-.nav-brand-prompt[data-navbrand-state="idle"] {
-	opacity: 0.88;
-}
-
+/* Idle quiets the greeting to the muted token (AA), not to a fade below it. */
 .nav-brand-prompt[data-navbrand-state="idle"] .nav-brand-greeting {
-	opacity: 0.62;
-	color: var(--color-neutral-content);
-}
-
-.nav-brand-prompt[data-navbrand-state="idle"] .nav-brand-sub {
-	opacity: 0.14;
+	opacity: 1;
+	color: var(--color-muted);
 }
 
 .nav-brand-prompt[data-navbrand-state="return"] .nav-brand-greeting {
