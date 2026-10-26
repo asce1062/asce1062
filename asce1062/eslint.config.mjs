@@ -149,7 +149,7 @@ export default [
 	 * Node scripts outside src (db/, scripts/, etc.)
 	 */
 	{
-		files: ["db/**/*.{ts,tsx}", "scripts/**/*.{ts,tsx}", "*.{ts,tsx}"],
+		files: ["db/**/*.{ts,tsx}", "scripts/**/*.{ts,tsx}", "e2e/**/*.{ts,tsx}", "*.{ts,tsx}"],
 		languageOptions: {
 			parser: tsparser,
 			parserOptions: {
