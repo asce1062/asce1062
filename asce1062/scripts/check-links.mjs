@@ -31,6 +31,13 @@ const result = await checker.check({
 	recurse: true,
 	cleanUrls: true,
 	checkFragments: true,
+	// The crawler's local server drops connections under its default 100
+	// parallel requests on a busy machine: ease off, and retry network errors
+	// and 5xx. A 404 is never retried, so real breaks still fail at once.
+	concurrency: 20,
+	retryErrors: true,
+	retryErrorsCount: 3,
+	retryErrorsJitter: 500,
 	// The crawler serves dist/ on a loopback port; anything else is external.
 	linksToSkip: async (link) => {
 		const url = new URL(link);
