@@ -25,7 +25,6 @@
  *   setFlavor(flavor) - applies a flavor to the DOM and persists it
  *   syncSwatches()    - syncs flavor swatch buttons to the active flavor
  *   initFlavorPicker(signal) - attach listeners to flavor swatch buttons
- *  switchFlavor(flavor, opts) - user-triggered flavor switch with transition
  *
  * Theme and flavor are separate orthogonal layers. Changing flavor does not affect the active theme, and vice versa.
  *
@@ -34,8 +33,6 @@
 
 import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
 import { atomicSwitch } from "@/scripts/themeTransition";
-import { resolveEffectiveTransitionStyle, type TransitionContext } from "@/scripts/transitionRegistry";
-import { getStoredTransition } from "@/scripts/transitionManager";
 
 export type Flavor = "observatory" | "crt-green" | "amber" | "synthwave" | "dos" | "void" | "ice" | "redline" | "";
 
@@ -76,8 +73,9 @@ export const FLAVOR_SWATCHES: Record<Flavor, string> = {
 	redline: "oklch(58% 0.25 22)",
 };
 
-/** Dispatched on document when the active flavor changes. detail: FlavorChangeDetail. */
-export const FLAVOR_CHANGE_EVENT = "flavor-change";
+/** Dispatched on document when the active flavor changes. detail: FlavorChangeDetail.
+ *  Listeners outside this module (burn404, haunted, magical text) use the string. */
+const FLAVOR_CHANGE_EVENT = "flavor-change";
 
 /** Event detail emitted with every FLAVOR_CHANGE_EVENT. */
 export interface FlavorChangeDetail {
@@ -216,9 +214,6 @@ export function syncSwatches(container: HTMLElement | Document = document): void
  * Does NOT call applyStoredFlavor() (that is the caller's responsibility).
  * This keeps the separation clean: flavorPicker.ts decides when to restore,
  * initFlavorPicker() handles only UI wiring.
- *
- * Future transition animations should be orchestrated from the FLAVOR_CHANGE_EVENT
- * listener here, and not baked into setFlavor(), to keep state and animation separate.
  */
 export function initFlavorPicker(signal: AbortSignal): void {
 	syncSwatches();
@@ -237,42 +232,4 @@ export function initFlavorPicker(signal: AbortSignal): void {
 
 	// Keep swatches in sync whenever flavor changes (from any call site)
 	document.addEventListener(FLAVOR_CHANGE_EVENT, () => syncSwatches(), { signal });
-}
-
-// ─── User-triggered flow ─────────────────────────────────────────────────────
-
-/**
- * User-triggered flavor switch. Resolves the effective transition style,
- * calls atomicSwitch, then dispatches FLAVOR_CHANGE_EVENT after the transition.
- *
- * Do NOT use this for silent restores (page load / soft-nav). Use setFlavor()
- * with { persist: false, emitEvent: false } for those.
- */
-export function switchFlavor(
-	flavor: Flavor,
-	opts?: Partial<Pick<TransitionContext, "coords" | "triggerEl" | "source">>
-): void {
-	const prevFlavor = getActiveFlavor();
-	if (prevFlavor === flavor) return;
-
-	const storedTransition = getStoredTransition();
-	const effectiveStyle = resolveEffectiveTransitionStyle(storedTransition, flavor);
-
-	atomicSwitch(() => setFlavor(flavor, { persist: true, emitEvent: false }), {
-		style: effectiveStyle,
-		source: opts?.source ?? "flavor-swatch",
-		reason: "user",
-		coords: opts?.coords,
-		triggerEl: opts?.triggerEl,
-		prevFlavor,
-		nextFlavor: flavor,
-	});
-
-	// Emit FLAVOR_CHANGE_EVENT after the atomic switch completes (not inside
-	// applyChange, which would risk triggering a nested atomicSwitch call).
-	document.dispatchEvent(
-		new CustomEvent<FlavorChangeDetail>(FLAVOR_CHANGE_EVENT, {
-			detail: { prevFlavor, nextFlavor: flavor },
-		})
-	);
 }

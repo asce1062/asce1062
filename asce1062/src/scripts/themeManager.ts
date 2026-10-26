@@ -195,12 +195,7 @@ export function handleThemeToggle(): void {
 	const newTheme: Theme = prevTheme === "light" ? "dark" : "light";
 	hasManualThemeOverride = true;
 	disableMatchDeviceTheme();
-	atomicSwitch(() => setTheme(newTheme), {
-		source: "theme-toggle",
-		reason: "user",
-		prevTheme,
-		nextTheme: newTheme,
-	});
+	atomicSwitch(() => setTheme(newTheme));
 	updateThemeIcon();
 }
 

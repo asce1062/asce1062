@@ -24,8 +24,6 @@ export const PREF_KEYS = {
 	matrixBackground: "matrix-bg",
 	/** Active flavor name (e.g. "crt-green", "amber"). Absent = default warm void. */
 	flavor: "theme-flavor",
-	/** Active transition style name, e.g. "scanline". Absent or null = no explicit preference. */
-	transition: "theme-transition",
 	/** Set to "1" when the desktop sidebar is in collapsed (icon-only) mode; absent otherwise. */
 	sidebarCollapsed: "sidebar-collapsed",
 	/** Visit count integer (as string) for navbrand milestone greeting. */
