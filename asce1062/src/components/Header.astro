@@ -2,12 +2,21 @@
 /**
  * Header Component
  *
- * Top bar with breadcrumb navigation, theme switcher, search button, and site h1.
+ * Top bar with breadcrumb navigation, theme switcher, search button, and the
+ * site greeting. The greeting is the page h1 only where the page has no
+ * heading of its own (greetingAsH1); content pages head themselves.
  * Navigation is now in the Sidebar component.
  */
 import "@/styles/components/header.css";
 import ThemeSwitcher from "@/components/ThemeSwitcher.astro";
 import { mainNavigation, siteMetadata } from "@/data/navigation";
+
+interface Props {
+	greetingAsH1?: boolean;
+}
+
+const { greetingAsH1 = false } = Astro.props;
+const Greeting = greetingAsH1 ? "h1" : "p";
 
 const url = new URL(Astro.url.pathname, Astro.site);
 const link = url.pathname.split("/").filter((i) => i);
@@ -102,11 +111,11 @@ const crumbs = link.map((segment, index) => {
 			</span>
 		</b>
 	</div>
-	<p
+	<Greeting
 		class="site-greeting font-retro"
 		data-text-effect="decrypt, typing, glitch-lock-on"
 		data-text-effect-triggers="load, hover, activate, resume, route-enter, intersection, idle-return, random-effect, random-time">
 		{siteMetadata.greeting}
-	</p>
+	</Greeting>
 	<hr class="w-full h-[1.875px] my-4 border-0 bg-base-300" />
 </header>
