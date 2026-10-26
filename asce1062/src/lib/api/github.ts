@@ -445,7 +445,8 @@ export function renderMarkdownToHtml(markdown: string): string {
 
 	// Bold (**text** or __text__)
 	html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-	html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+	// Underscores bold only at word edges, as in CommonMark: terminal-window__body stays literal.
+	html = html.replace(/(^|[^\p{L}\p{N}_])__([^_]+)__(?![\p{L}\p{N}_])/gu, "$1<strong>$2</strong>");
 
 	// Links [text](url). Only http/https schemes allowed to prevent javascript: injection
 	html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text: string, url: string) => {

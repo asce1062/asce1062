@@ -115,6 +115,15 @@ describe("renderMarkdownToHtml. Markdown transforms", () => {
 		expect(result).toContain("<strong>bold</strong>");
 	});
 
+	it("renders __text__ mid-sentence as <strong>", () => {
+		expect(renderMarkdownToHtml("a __bold__ word.")).toBe("a <strong>bold</strong> word.");
+	});
+
+	it("leaves intraword double underscores literal (BEM class names)", () => {
+		const commit = "Updated terminal-window__body scanlines; moved into terminal-window__body::before";
+		expect(renderMarkdownToHtml(commit)).toBe(commit);
+	});
+
 	it("renders inline `code` as <code>", () => {
 		const result = renderMarkdownToHtml("`inline code`");
 		expect(result).toContain("<code");
