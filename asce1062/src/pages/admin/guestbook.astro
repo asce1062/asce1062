@@ -1,17 +1,37 @@
 ---
 /**
- * Admin moderation page for guestbook entries
- * Lists pending/hidden entries with reasons/scores, approve/hide buttons, filter tabs
+ * Admin moderation page for guestbook entries.
+ *
+ * Lists every entry (not only the ones the classifier held), with status tabs,
+ * search, keyset paging, per-entry and bulk approve/hide, and the audit trail.
+ * The whole list state lives in the query string, so an action redirects back
+ * to the same tab, search and page.
  */
 export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
 import { checkAdminAuth } from "@/lib/api/admin-auth";
-import { getModeratedEntries, updateEntryStatus, safeParseReasons, getModerationLog } from "@/lib/api/guestbook";
+import { safeParseReasons } from "@/lib/api/guestbook";
 import { deliverRequestedCopy } from "@/lib/api/guestbook-copy";
-import { formatDate } from "@/lib/content/utils";
 import { sanitizeEntryUrl } from "@/lib/api/guestbook-input";
-import type { ModerationStatus } from "@/lib/api/guestbook";
+import {
+	countEntriesByFilter,
+	listEntriesForModeration,
+	listModerationLog,
+	moderateEntries,
+	type ModerationResult,
+} from "@/lib/api/guestbook-moderation";
+import {
+	describeResult,
+	moderationUrl,
+	parseListState,
+	parseModerationForm,
+	resultParams,
+	type ListState,
+	type ModerationView,
+	type PlainNotice,
+} from "@/lib/api/guestbook-moderation-request";
+import { formatDate } from "@/lib/content/utils";
 
 // Defence in depth: middleware enforces auth for /admin/*, but this page holds
 // every entry's private data, so it re-checks rather than trusting routing alone.
@@ -20,249 +40,394 @@ if (!auth.ok) {
 	return Astro.redirect("/admin", 303);
 }
 
-const FILTERS = ["all", "pending", "hidden", "audit"] as const;
-type Filter = (typeof FILTERS)[number];
-const ACTIONS = ["approve", "approve-clear", "hide"] as const;
-type Action = (typeof ACTIONS)[number];
-
-const isFilter = (value: string | null): value is Filter => FILTERS.includes(value as Filter);
-const isAction = (value: string | null): value is Action => ACTIONS.includes(value as Action);
+/** Requested copies emailed at once after a bulk approve. */
+const COPY_CONCURRENCY = 3;
 
 const url = new URL(Astro.request.url);
-const requestedFilter = url.searchParams.get("filter");
-const filter: Filter = isFilter(requestedFilter) ? requestedFilter : "all";
+const state = parseListState(url.searchParams);
 
 // Handle moderation actions: POST, then redirect (303) so a reload never repeats
-// the action and writes a duplicate audit row. The result travels in the query.
+// the action. The outcome travels in the query string.
 if (Astro.request.method === "POST") {
-	const formData = await Astro.request.formData();
-	const entryId = Number(formData.get("entryId"));
-	const action = String(formData.get("action") ?? "");
+	const back = (outcome: PlainNotice) => Astro.redirect(moderationUrl(state, { done: outcome }), 303);
 
-	if (Number.isInteger(entryId) && entryId > 0 && isAction(action)) {
-		const newStatus: ModerationStatus = action === "hide" ? "hidden" : "visible";
-		const updated = await updateEntryStatus(entryId, newStatus, { clearFlags: action === "approve-clear" });
-		const result = new URLSearchParams({ filter, result: updated ? action : "missing", entry: String(entryId) });
-		// A copy the guest asked for goes out once the entry is approved. Awaited:
-		// the function stops once the redirect is sent.
-		if (updated && newStatus === "visible") {
-			const copy = await deliverRequestedCopy(entryId);
-			if (copy) result.set("copy", copy.ok ? "sent" : "failed");
-		}
-		return Astro.redirect(`/admin/guestbook?${result}`, 303);
+	// A body that is not a form is as invalid as one with no action in it.
+	const formData = await Astro.request.formData().catch(() => null);
+	const request = formData && parseModerationForm(formData);
+	if (!request) return back("none");
+
+	let result: ModerationResult;
+	try {
+		result = await moderateEntries(request.ids, request.action);
+	} catch (err) {
+		// The batch is one transaction, so a failure changed nothing.
+		console.error("[guestbook] moderation action failed:", err);
+		return back("error");
 	}
-	return Astro.redirect(`/admin/guestbook?filter=${filter}`, 303);
+
+	// A copy the guest asked for goes out once the entry is approved. Awaited:
+	// the function stops once the redirect is sent. deliverRequestedCopy never
+	// throws. Sent a few at a time to stay under the mail provider's rate limit.
+	const copyOutcome = { sent: 0, failed: 0 };
+	const approved = request.action === "hide" ? [] : result.changed;
+	for (let start = 0; start < approved.length; start += COPY_CONCURRENCY) {
+		const copies = await Promise.all(approved.slice(start, start + COPY_CONCURRENCY).map(deliverRequestedCopy));
+		copyOutcome.sent += copies.filter((copy) => copy?.ok === true).length;
+		copyOutcome.failed += copies.filter((copy) => copy?.ok === false).length;
+	}
+	return Astro.redirect(moderationUrl(state, resultParams(request.action, result, copyOutcome)), 303);
 }
 
-const resultAction = url.searchParams.get("result");
-const resultEntry = Number(url.searchParams.get("entry"));
-const RESULT_MESSAGES: Record<Action, string> = {
-	approve: "approved",
-	"approve-clear": "approved and flags cleared",
-	hide: "hidden",
-};
-const COPY_MESSAGES = new Map([
-	["sent", " Their requested copy was emailed."],
-	["failed", " Their requested copy could not be emailed. Check the function logs."],
-]);
-const copyMessage = COPY_MESSAGES.get(url.searchParams.get("copy") ?? "") ?? "";
-const actionMessage =
-	Number.isInteger(resultEntry) && resultEntry > 0
-		? isAction(resultAction)
-			? `Entry #${resultEntry} ${RESULT_MESSAGES[resultAction]}.${copyMessage}`
-			: resultAction === "missing"
-				? `Entry #${resultEntry} no longer exists.`
-				: ""
-		: "";
+const notice = describeResult(url.searchParams);
+const isAudit = state.view === "audit";
+const cursor = { before: state.before, after: state.after };
 
-// Fetch entries
-const entries = filter === "audit" ? [] : await getModeratedEntries(filter);
-const auditLog = filter === "audit" ? await getModerationLog() : [];
+const [counts, entryPage, auditPage] = await Promise.all([
+	countEntriesByFilter(),
+	state.view === "audit" ? null : listEntriesForModeration({ filter: state.view, search: state.search, ...cursor }),
+	isAudit ? listModerationLog(cursor) : null,
+]);
+const entries = entryPage?.rows ?? [];
+const auditLog = auditPage?.rows ?? [];
+const page = entryPage ?? auditPage;
+const hasCursor = state.before !== undefined || state.after !== undefined;
+
+const TABS: { view: ModerationView; label: string; count?: number }[] = [
+	{ view: "all", label: "All", count: counts.all },
+	{ view: "visible", label: "Visible", count: counts.visible },
+	{ view: "pending", label: "Pending", count: counts.pending },
+	{ view: "hidden", label: "Hidden", count: counts.hidden },
+	{ view: "flagged", label: "Flagged", count: counts.flagged },
+	{ view: "audit", label: "Audit Trail" },
+];
+
+/** Same search, first page of another tab. */
+const tabUrl = (view: ModerationView): string => moderationUrl({ view, search: state.search });
+const firstPageUrl = moderationUrl({ view: state.view, search: state.search });
+const pageUrl = (cursorState: Pick<ListState, "before" | "after">): string =>
+	moderationUrl({ view: state.view, search: state.search, ...cursorState });
+const newerUrl = page?.newer != null ? pageUrl({ after: page.newer }) : null;
+const olderUrl = page?.older != null ? pageUrl({ before: page.older }) : null;
+/** The "all" list narrowed to one entry, wherever it sits in the paging. */
+const entryUrl = (id: number): string => moderationUrl({ view: "all", search: `#${id}` });
+
+const emptyMessage = hasCursor
+	? "Nothing left on this page."
+	: state.search && !isAudit
+		? `No entries match "${state.search}"${state.view === "all" ? "" : ` in ${state.view}`}.`
+		: isAudit
+			? "No moderation actions recorded yet."
+			: "No entries here.";
 ---
 
 <Layout noIndex title="Guestbook Moderation" description="Admin: review guestbook entries">
 	<div class="flex items-center justify-between mb-6 gap-4">
-		<h2>Guestbook Moderation</h2>
+		<h1 class="content-title">Guestbook Moderation</h1>
 		<a href="/admin" class="btn btn-error btn-sm btn-frame">
 			Back to Admin
 		</a>
 	</div>
 
-	{actionMessage && <div class="mb-4 p-3 bg-success/10 border border-success text-sm">{actionMessage}</div>}
-
-	<nav class="flex gap-2 mb-6">
-		<a href={`/admin/guestbook?filter=all`} class:list={["btn btn-sm", { "btn-accent": filter === "all" }]}>
-			{" "}
-			All{" "}
-		</a>
-		<a href={`/admin/guestbook?filter=pending`} class:list={["btn btn-sm", { "btn-accent": filter === "pending" }]}>
-			Pending
-		</a>
-		<a href={`/admin/guestbook?filter=hidden`} class:list={["btn btn-sm", { "btn-accent": filter === "hidden" }]}>
-			Hidden
-		</a>
-		<a href={`/admin/guestbook?filter=audit`} class:list={["btn btn-sm", { "btn-accent": filter === "audit" }]}>
-			Audit Trail
-		</a>
-	</nav>
-
-	{filter === "audit" ? (
-		auditLog.length === 0 ? (
-			<p class="text-base-content/60">No moderation actions recorded yet.</p>
-		) : (
-			<div class="overflow-x-auto">
-				<table class="table table-sm w-full text-xs font-mono">
-					<thead>
-						<tr class="text-base-content/50">
-							<th>Entry</th>
-							<th class="text-right">Action</th>
-							<th class="text-right">Status change</th>
-							<th class="text-right">Reasons before</th>
-							<th class="text-right">Score</th>
-							<th class="text-right">Actor</th>
-							<th class="text-right">At</th>
-						</tr>
-					</thead>
-					<tbody>
-						{auditLog.map((row: any) => {
-							const reasonsBefore = safeParseReasons(row.reasonsBefore);
-							return (
-								<tr class="border-t border-base-300">
-									<td class="py-2">
-										<a href={`/admin/guestbook?filter=all#entry-${row.entryId}`} class="link link-hover">
-											#{row.entryId}
-										</a>
-									</td>
-									<td class="py-2 text-right">
-										<span
-											class:list={[
-												"badge badge-sm",
-												{
-													"badge-secondary": row.action === "approve",
-													"badge-success": row.action === "approve_clear",
-													"badge-error": row.action === "hide",
-												},
-											]}>
-											{row.action}
-										</span>
-									</td>
-									<td class="py-2 text-right text-base-content/60">
-										{row.fromStatus ?? "—"} → {row.toStatus}
-									</td>
-									<td class="py-2 text-right">
-										{reasonsBefore.length > 0 ? (
-											<div class="flex flex-wrap justify-end gap-1">
-												{reasonsBefore.map((r: string) => (
-													<span class="px-1 py-0.5 bg-base-300 rounded">{r}</span>
-												))}
-											</div>
-										) : (
-											<span class="text-base-content/30">—</span>
-										)}
-									</td>
-									<td class="py-2 text-right text-base-content/60">{row.scoreBefore ?? "—"}</td>
-									<td class="py-2 text-right text-base-content/60">{row.actor}</td>
-									<td class="py-2 text-right text-base-content/50 whitespace-nowrap">{formatDate(row.at)}</td>
-								</tr>
-							);
-						})}
-					</tbody>
-				</table>
-			</div>
-		)
-	) : entries.length === 0 ? (
-		<p class="text-base-content/60">No entries to review.</p>
-	) : (
-		<div class="space-y-4">
-			{entries.map((entry) => {
-				const reasons = safeParseReasons(entry.moderationReason);
-				const safeUrl = sanitizeEntryUrl(entry.url);
-				return (
-					<div id={`entry-${entry.id}`} class="p-4 border border-base-300 bg-neutral rounded">
-						<div class="flex justify-between items-start mb-2">
-							<div>
-								<span class="text-xs text-base-content/40 font-mono mr-2">#{entry.id}</span>
-								<strong>{entry.name}</strong>
-								{safeUrl ? (
-									<a href={safeUrl} target="_blank" rel="noopener noreferrer" class="text-xs ml-2">
-										{safeUrl}
-									</a>
-								) : (
-									// Show unsafe stored URLs as inert text so a moderator can see them.
-									entry.url && <span class="text-xs ml-2 text-error font-mono">{entry.url}</span>
-								)}
-								{entry.email && <span class="text-xs ml-2 text-base-content/50">{entry.email}</span>}
-							</div>
-							<div class="flex items-center gap-2">
-								<span
-									class:list={[
-										"text-xs px-2 py-0.5 rounded font-mono",
-										{
-											"badge badge-warning": entry.status === "pending",
-											"badge badge-error": entry.status === "hidden" || entry.isSpam,
-											"badge badge-success": entry.status === "visible",
-										},
-									]}>
-									{entry.status || (entry.isSpam ? "hidden (legacy)" : "visible (legacy)")}
-								</span>
-								{entry.moderationScore != null && <span class="badge">score: {entry.moderationScore}</span>}
-							</div>
-						</div>
-
-						{reasons.length > 0 && (
-							<div class="flex gap-1 mb-2 flex-wrap">
-								{reasons.map((r: string) => (
-									<span class="text-xs px-1.5 py-0.5 bg-base-300 rounded font-mono">{r}</span>
-								))}
-							</div>
-						)}
-
-						{/* prettier-ignore */}
-						<pre class="text-sm whitespace-pre-wrap break-words mb-3 max-h-40 overflow-y-auto bg-base-100 p-2 rounded">{entry.message}</pre>
-
-						<div class="flex justify-between items-center">
-							<div>
-								<time class="text-xs text-base-content/50">{formatDate(entry.timestamp)}</time>
-								{entry.moderatedAt && (
-									<p class="text-xs text-base-content/40 mt-0.5">
-										moderated by {entry.moderatedBy ?? "admin"} · {formatDate(entry.moderatedAt)}
-									</p>
-								)}
-							</div>
-							<form method="POST" class="flex gap-2">
-								<input type="hidden" name="entryId" value={entry.id} />
-								{(entry.status === "pending" || entry.status === "hidden" || entry.isSpam) && (
-									<button type="submit" name="action" value="approve" class="btn btn-secondary btn-sm btn-elevation">
-										Approve
-									</button>
-								)}
-								{(entry.status === "pending" || entry.status === "hidden" || entry.isSpam) &&
-									entry.moderationReason && (
-										<button
-											type="submit"
-											name="action"
-											value="approve-clear"
-											class="btn btn-success btn-sm btn-frame"
-											title="Approve and remove moderation flags (use for false positives)">
-											Approve & Clear
-										</button>
-									)}
-								{(entry.status === "pending" || entry.status === "visible") && (
-									<button type="submit" name="action" value="hide" class="btn btn-primary btn-sm btn-pixel">
-										Hide
-									</button>
-								)}
-							</form>
-						</div>
-					</div>
-				);
-			})}
+	{notice && (
+		<div
+			role="status"
+			class:list={[
+				"mb-4 p-3 border text-sm",
+				notice.ok ? "bg-success/10 border-success" : "bg-warning/10 border-warning",
+			]}>
+			{notice.text}
 		</div>
 	)}
 
-	<div class="mt-8 text-xs text-base-content/40">
+	<nav class="flex flex-wrap gap-2 mb-4" aria-label="Entry filters">
+		{TABS.map((tab) => (
+			<a
+				href={tabUrl(tab.view)}
+				aria-current={state.view === tab.view ? "page" : undefined}
+				class:list={["btn btn-sm", { "btn-accent": state.view === tab.view }]}>
+				{tab.count === undefined ? tab.label : `${tab.label} ${tab.count}`}
+			</a>
+		))}
+	</nav>
+
+	{!isAudit && (
+		<form
+			method="GET"
+			action={moderationUrl({ view: "all", search: "" })}
+			role="search"
+			class="flex flex-wrap items-center gap-2 mb-6">
+			{state.view !== "all" && <input type="hidden" name="filter" value={state.view} />}
+			<label for="moderation-search" class="sr-only">
+				Search entries
+			</label>
+			<input
+				id="moderation-search"
+				type="search"
+				name="q"
+				value={state.search}
+				maxlength="100"
+				placeholder="name, message, email, url or #id"
+				class="input input-accent input-sm flex-1 min-w-48"
+			/>
+			<button type="submit" class="btn btn-secondary btn-sm">
+				Search
+			</button>
+			{state.search && (
+				<a href={moderationUrl({ view: state.view, search: "" })} class="btn btn-sm">
+					Clear
+				</a>
+			)}
+		</form>
+	)}
+
+	{isAudit && auditLog.length > 0 && (
+		<div class="overflow-x-auto">
+			<table class="table table-sm w-full text-xs font-mono">
+				<thead>
+					<tr class="text-base-content/50">
+						<th>Entry</th>
+						<th class="text-right">Action</th>
+						<th class="text-right">Status change</th>
+						<th class="text-right">Reasons before</th>
+						<th class="text-right">Score</th>
+						<th class="text-right">Actor</th>
+						<th class="text-right">At</th>
+					</tr>
+				</thead>
+				<tbody>
+					{auditLog.map((row) => {
+						const reasonsBefore = safeParseReasons(row.reasonsBefore);
+						return (
+							<tr class="border-t border-base-300">
+								<td class="py-2">
+									<a href={entryUrl(row.entryId)} class="link link-hover">
+										#{row.entryId}
+									</a>
+								</td>
+								<td class="py-2 text-right">
+									<span
+										class:list={[
+											"badge badge-sm",
+											{
+												"badge-secondary": row.action === "approve",
+												"badge-success": row.action === "approve_clear",
+												"badge-error": row.action === "hide",
+											},
+										]}>
+										{row.action}
+									</span>
+								</td>
+								<td class="py-2 text-right text-base-content/60">
+									{row.fromStatus ?? "-"} → {row.toStatus}
+								</td>
+								<td class="py-2 text-right">
+									{reasonsBefore.length > 0 ? (
+										<div class="flex flex-wrap justify-end gap-1">
+											{reasonsBefore.map((r: string) => (
+												<span class="px-1 py-0.5 bg-base-300 rounded">{r}</span>
+											))}
+										</div>
+									) : (
+										<span class="text-base-content/30">-</span>
+									)}
+								</td>
+								<td class="py-2 text-right text-base-content/60">{row.scoreBefore ?? "-"}</td>
+								<td class="py-2 text-right text-base-content/60">{row.actor}</td>
+								<td class="py-2 text-right text-base-content/50 whitespace-nowrap">{formatDate(row.at)}</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	)}
+
+	{!isAudit && entries.length > 0 && (
+		// One form for the whole page: a row button acts on its own entry, a bulk
+		// button on every ticked one. It posts to the current list state.
+		<form method="POST" action={moderationUrl(state)} data-moderation-form>
+			<div class="flex flex-wrap items-center gap-2 mb-4 p-2 border border-base-300 text-sm">
+				{/* Needs script to tick the boxes, so it stays hidden until the script runs. */}
+				<label class="flex items-center gap-2 mr-auto" hidden data-select-all-label>
+					<input type="checkbox" class="checkbox" data-select-all />
+					Select all on this page
+				</label>
+				<span class="text-base-content/60">With ticked entries:</span>
+				<button type="submit" name="bulk" value="approve" class="btn btn-secondary btn-sm">
+					Approve
+				</button>
+				<button type="submit" name="bulk" value="hide" class="btn btn-primary btn-sm">
+					Hide
+				</button>
+			</div>
+
+			<div class="space-y-4">
+				{entries.map((entry) => {
+					const reasons = safeParseReasons(entry.moderationReason);
+					const safeUrl = sanitizeEntryUrl(entry.url);
+					const held = entry.status !== "visible";
+					const label = `entry ${entry.id} by ${entry.name}`;
+					return (
+						<article id={`entry-${entry.id}`} class="p-4 border border-base-300 bg-neutral rounded">
+							<div class="flex flex-wrap justify-between items-start gap-2 mb-2">
+								<div class="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+									{/* The label gives the small checkbox a 24px tap target. */}
+									<label class="inline-flex items-center justify-center w-6 h-6 cursor-pointer">
+										<input
+											type="checkbox"
+											name="ids"
+											value={entry.id}
+											class="checkbox"
+											aria-label={`Select ${label}`}
+										/>
+									</label>
+									<span class="text-xs text-base-content/60 font-mono">#{entry.id}</span>
+									<strong class="break-words">{entry.name}</strong>
+									{safeUrl ? (
+										<a href={safeUrl} target="_blank" rel="noopener noreferrer" class="text-xs break-all">
+											{safeUrl}
+										</a>
+									) : (
+										// Show unsafe stored URLs as inert text so a moderator can see them.
+										entry.url && <span class="text-xs text-error font-mono break-all">{entry.url}</span>
+									)}
+									{entry.email && <span class="text-xs text-base-content/60 break-all">{entry.email}</span>}
+								</div>
+								<div class="flex items-center gap-2">
+									<span
+										class:list={[
+											"text-xs px-2 py-0.5 rounded font-mono",
+											{
+												"badge badge-warning": entry.status === "pending",
+												"badge badge-error": entry.status === "hidden" || entry.isSpam,
+												"badge badge-success": entry.status === "visible",
+											},
+										]}>
+										{entry.status || (entry.isSpam ? "hidden (legacy)" : "visible (legacy)")}
+									</span>
+									{entry.moderationScore != null && <span class="badge">score: {entry.moderationScore}</span>}
+								</div>
+							</div>
+
+							{reasons.length > 0 && (
+								<div class="flex gap-1 mb-2 flex-wrap">
+									{reasons.map((r: string) => (
+										<span class="text-xs px-1.5 py-0.5 bg-base-300 rounded font-mono">{r}</span>
+									))}
+								</div>
+							)}
+
+							{/* prettier-ignore */}
+							<pre class="text-sm whitespace-pre-wrap break-words mb-3 max-h-40 overflow-y-auto bg-base-100 p-2 rounded" tabindex="0" aria-label={`Message of ${label}`}>{entry.message}</pre>
+
+							<div class="flex flex-wrap justify-between items-center gap-2">
+								<div>
+									<time class="text-xs text-base-content/60" datetime={entry.timestamp.toISOString()}>
+										{formatDate(entry.timestamp)}
+									</time>
+									{entry.moderatedAt && (
+										<p class="text-xs text-base-content/60 mt-0.5 mb-0">
+											moderated by {entry.moderatedBy ?? "admin"} · {formatDate(entry.moderatedAt)}
+										</p>
+									)}
+								</div>
+								<div class="flex flex-wrap gap-2">
+									{held && (
+										<button
+											type="submit"
+											name="single"
+											value={`approve:${entry.id}`}
+											aria-label={`Approve ${label}`}
+											class="btn btn-secondary btn-sm btn-elevation">
+											Approve
+										</button>
+									)}
+									{entry.moderationReason && (
+										<button
+											type="submit"
+											name="single"
+											value={`approve-clear:${entry.id}`}
+											aria-label={`${held ? "Approve and clear" : "Clear"} flags of ${label}`}
+											class="btn btn-success btn-sm btn-frame"
+											title="Remove the moderation flags (use for false positives)">
+											{held ? "Approve & Clear" : "Clear Flags"}
+										</button>
+									)}
+									{entry.status !== "hidden" && (
+										<button
+											type="submit"
+											name="single"
+											value={`hide:${entry.id}`}
+											aria-label={`Hide ${label}`}
+											class="btn btn-primary btn-sm btn-pixel">
+											Hide
+										</button>
+									)}
+								</div>
+							</div>
+						</article>
+					);
+				})}
+			</div>
+		</form>
+	)}
+
+	{(isAudit ? auditLog.length === 0 : entries.length === 0) && (
+		<p class="text-base-content/60">
+			{emptyMessage} {hasCursor && <a href={firstPageUrl}>Back to the newest</a>}
+		</p>
+	)}
+
+	{(newerUrl || olderUrl) && (
+		<nav class="flex justify-between gap-2 mt-6" aria-label="Pages">
+			{newerUrl ? (
+				<a href={newerUrl} rel="prev" class="btn btn-sm">
+					← Newer
+				</a>
+			) : (
+				<span />
+			)}
+			{olderUrl && (
+				<a href={olderUrl} rel="next" class="btn btn-sm">
+					Older →
+				</a>
+			)}
+		</nav>
+	)}
+
+	<div class="mt-8 text-xs text-base-content/60">
 		<p>
-			{filter === "audit" ? `Log rows: ${auditLog.length}` : `Entries: ${entries.length}`} | Filter: {filter}
+			{isAudit ? `Log rows shown: ${auditLog.length}` : `Entries shown: ${entries.length}`} | View: {state.view}
+			{state.search && !isAudit && ` | Search: ${state.search}`}
 		</p>
 	</div>
 </Layout>
+
+<script>
+	/** Wire the "select all on this page" checkbox to the entry checkboxes. */
+	function initSelectAll(): void {
+		const form = document.querySelector<HTMLFormElement>("[data-moderation-form]");
+		const selectAll = form?.querySelector<HTMLInputElement>("[data-select-all]");
+		const label = form?.querySelector<HTMLElement>("[data-select-all-label]");
+		if (!form || !selectAll || !label) return;
+
+		const boxes = (): HTMLInputElement[] => Array.from(form.querySelectorAll<HTMLInputElement>('input[name="ids"]'));
+		const sync = (): void => {
+			const ticked = boxes().filter((box) => box.checked).length;
+			selectAll.checked = ticked > 0 && ticked === boxes().length;
+			selectAll.indeterminate = ticked > 0 && ticked < boxes().length;
+		};
+
+		label.hidden = false;
+		selectAll.addEventListener("change", () => {
+			for (const box of boxes()) box.checked = selectAll.checked;
+			sync();
+		});
+		form.addEventListener("change", (event) => {
+			if (event.target !== selectAll) sync();
+		});
+		sync();
+	}
+
+	document.addEventListener("astro:page-load", initSelectAll);
+</script>

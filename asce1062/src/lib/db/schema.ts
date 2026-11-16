@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { customType, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const dateText = customType<{ data: Date; driverData: string }>({
@@ -50,6 +51,9 @@ export const Guestbook = sqliteTable(
 		index("ix_guestbook_ip_time").on(table.ipHash, table.timestamp),
 		index("ix_guestbook_ip_msg_time").on(table.ipHash, table.messageHash, table.timestamp),
 		index("ix_guestbook_status").on(table.status),
+		index("ix_guestbook_flagged")
+			.on(table.id)
+			.where(sql`${table.moderationReason} IS NOT NULL`),
 	]
 );
 

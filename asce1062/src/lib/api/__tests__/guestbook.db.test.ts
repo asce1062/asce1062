@@ -26,7 +26,8 @@ import { rm } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import { db, databaseClient } from "@/lib/db/client";
 import { Guestbook, GuestbookModerationLog } from "@/lib/db/schema";
-import { createGuestEntry, updateEntryStatus } from "../guestbook";
+import { createGuestEntry } from "../guestbook";
+import { moderateEntries } from "../guestbook-moderation";
 import { deliverRequestedCopy } from "../guestbook-copy";
 import { sendEntryCopy } from "../guestbook-notify";
 
@@ -70,25 +71,6 @@ describe("createGuestEntry (real DB)", () => {
 	});
 });
 
-describe("updateEntryStatus (real DB)", () => {
-	it("updates the entry and appends one audit row", async () => {
-		const { entryId } = await createGuestEntry(entry("Moderate me please"));
-
-		await expect(updateEntryStatus(entryId, "hidden")).resolves.toBe(true);
-
-		const [row] = await db.select().from(Guestbook).where(eq(Guestbook.id, entryId));
-		const logs = await db.select().from(GuestbookModerationLog);
-		expect(row.status).toBe("hidden");
-		expect(logs).toHaveLength(1);
-		expect(logs[0]).toMatchObject({ entryId, action: "hide", fromStatus: "visible", toStatus: "hidden" });
-	});
-
-	it("returns false and writes no audit row for an unknown entry", async () => {
-		await expect(updateEntryStatus(999_999, "hidden")).resolves.toBe(false);
-		expect(await db.select().from(GuestbookModerationLog)).toHaveLength(0);
-	});
-});
-
 describe("requested entry copies (real DB)", () => {
 	const withCopy = (message: string, email = "ada@example.com") => ({
 		...entry(message),
@@ -121,7 +103,7 @@ describe("requested entry copies (real DB)", () => {
 		expect(sendEntryCopy).not.toHaveBeenCalled();
 		expect(await copySentAt(entryId)).toBeNull();
 
-		await updateEntryStatus(entryId, "visible");
+		await moderateEntries([entryId], "approve");
 		await expect(deliverRequestedCopy(entryId)).resolves.toEqual({ ok: true });
 		expect(sendEntryCopy).toHaveBeenCalledWith(
 			expect.objectContaining({ entryId, email: "ada@example.com", status: "visible", theme: "dark", submittedAt })

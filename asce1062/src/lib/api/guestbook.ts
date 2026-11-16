@@ -5,7 +5,7 @@
  */
 import { and, count, desc, eq, gte, isNotNull, isNull, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { Guestbook, GuestbookModerationLog } from "@/lib/db/schema";
+import { Guestbook } from "@/lib/db/schema";
 import {
 	normalizeAvatarState,
 	parseEntryStyle,
@@ -168,10 +168,10 @@ const CURRENT_MODERATION_VERSION = 2;
  * 	- Use descriptive names, not "bot", "auto", etc.
  *
  *  system  - Automated retroactive correction/backfill (post-insert patch, retroFlagSameMsgEntries)
- *  admin   - Manual action via the admin UI (updateEntryStatus default)
+ *  admin   - Manual action via the admin UI (moderateEntries default)
  *  future: a stable user-ID string for multi-admin support
  */
-const MODERATED_BY = {
+export const MODERATED_BY = {
 	system: "system",
 	admin: "admin",
 } as const;
@@ -598,136 +598,11 @@ export async function getGuestEntries(): Promise<GuestEntry[]> {
 }
 
 /**
- * Fetch entries for admin review. Returns pending, hidden, and moderated-visible entries.
- */
-export async function getModeratedEntries(filter: "pending" | "hidden" | "all" = "all"): Promise<GuestEntry[]> {
-	if (filter === "pending") {
-		const rows = await db
-			.select()
-			.from(Guestbook)
-			.where(eq(Guestbook.status, "pending"))
-			.orderBy(desc(Guestbook.timestamp));
-		return rows as unknown as GuestEntry[];
-	}
-
-	if (filter === "hidden") {
-		const rows = await db
-			.select()
-			.from(Guestbook)
-			.where(eq(Guestbook.status, "hidden"))
-			.orderBy(desc(Guestbook.timestamp));
-		return rows as unknown as GuestEntry[];
-	}
-
-	// "all". pending + hidden + visible entries that carry a moderationReason (admin-reviewed)
-	const rows = await db
-		.select()
-		.from(Guestbook)
-		.where(
-			or(
-				eq(Guestbook.status, "pending"),
-				eq(Guestbook.status, "hidden"),
-				and(eq(Guestbook.status, "visible"), isNotNull(Guestbook.moderationReason))
-			)
-		)
-		.orderBy(desc(Guestbook.timestamp));
-	return rows as unknown as GuestEntry[];
-}
-
-/**
  * Count entries currently awaiting review.
  */
 export async function countPendingEntries(): Promise<number> {
 	const result = await db.select({ value: count() }).from(Guestbook).where(eq(Guestbook.status, "pending"));
 	return result[0]?.value ?? 0;
-}
-
-/**
- * Update entry moderation status (admin action).
- *
- * The status change and its GuestbookModerationLog row are written in one batch,
- * so the original classifier output is always preserved for audit / analytics,
- * even when action === "approve_clear" nulls the Guestbook columns.
- * Returns false (and writes nothing) when no entry has this id.
- *
- * Options:
- *  - `clearFlags`
- * 			- when true, also nulls out moderationReason and moderationScore.
- *    	- Use when approving a legitimately flagged entry to remove the "scarlet letter".
- *    	- Default keeps flags for audit trail.
- *  - `moderatedBy`
- * 			- identity of the actor. Defaults to "admin" for manual admin actions
- * 			- can be set to "system" for automated retroactive corrections
- * 			- can be set to a future stable user-ID for multi-admin support
- */
-export async function updateEntryStatus(
-	id: number,
-	status: ModerationStatus,
-	options?: { clearFlags?: boolean; moderatedBy?: string }
-): Promise<boolean> {
-	assertStatus(status);
-	const actor = options?.moderatedBy ?? MODERATED_BY.admin;
-	const clearFlags = options?.clearFlags ?? false;
-	const at = new Date();
-
-	// Derive a human-readable action label for the log.
-	const action = status === "hidden" ? "hide" : clearFlags ? "approve_clear" : "approve";
-
-	// Read current state before mutating. The log row needs the pre-action values.
-	const [current] = await db.select().from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
-	if (!current) return false;
-
-	// One batch (a single transaction on libsql): the status change and its audit
-	// row commit together or not at all. If the entry was deleted after the read,
-	// the audit insert fails its foreign key and the whole batch rolls back.
-	try {
-		await db.batch([
-			db
-				.update(Guestbook)
-				.set({
-					status,
-					isSpam: status === "hidden",
-					moderatedAt: at,
-					moderatedBy: actor,
-					...(clearFlags ? { moderationReason: null, moderationScore: null } : {}),
-				})
-				.where(eq(Guestbook.id, id)),
-			db.insert(GuestbookModerationLog).values({
-				entryId: id,
-				action,
-				fromStatus: current.status ?? null,
-				toStatus: status,
-				reasonsBefore: current.moderationReason ?? null,
-				scoreBefore: current.moderationScore ?? null,
-				// After "approve_clear" the flags are gone from Guestbook; log preserves them above.
-				// For "approve" / "hide" the flags are unchanged, so after === before.
-				reasonsAfter: clearFlags ? null : (current.moderationReason ?? null),
-				scoreAfter: clearFlags ? null : (current.moderationScore ?? null),
-				actor,
-				at,
-			}),
-		]);
-	} catch (err) {
-		const [stillThere] = await db.select({ id: Guestbook.id }).from(Guestbook).where(eq(Guestbook.id, id)).limit(1);
-		if (!stillThere) return false;
-		throw err;
-	}
-	return true;
-}
-
-/**
- * Return moderation history, newest first.
- * Pass an entryId to scope to a single entry. Omit for the full audit log.
- */
-export async function getModerationLog(entryId?: number) {
-	if (entryId !== undefined) {
-		return db
-			.select()
-			.from(GuestbookModerationLog)
-			.where(eq(GuestbookModerationLog.entryId, entryId))
-			.orderBy(desc(GuestbookModerationLog.at));
-	}
-	return db.select().from(GuestbookModerationLog).orderBy(desc(GuestbookModerationLog.at));
 }
 
 /**
