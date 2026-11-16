@@ -62,7 +62,7 @@ interface MusicTrack {
 
 interface MusicPageRefs {
 	terminal: HTMLElement;
-	overlay: HTMLElement | null;
+	announcer: HTMLElement | null;
 	dockChip: HTMLElement | null;
 	dragHandle: HTMLElement | null;
 	windowTitle: HTMLElement | null;
@@ -147,7 +147,7 @@ function getRefs(): MusicPageRefs | null {
 
 	return {
 		terminal,
-		overlay: document.getElementById("music-modal-overlay"),
+		announcer: document.getElementById("music-announcer"),
 		dockChip: document.getElementById("music-dock-chip"),
 		dragHandle: document.getElementById("music-terminal-drag-handle"),
 		windowTitle: document.getElementById("music-window-title"),
@@ -424,7 +424,6 @@ function updateDockStack() {
 
 function updateMusicVisibility() {
 	setHidden(refs?.terminal ?? null, !isMusicOpen);
-	setHidden(refs?.overlay ?? null, !isMusicOpen);
 	setHidden(refs?.dockChip ?? null, !isMusicMinimized);
 	if (refs?.dockChip) refs.dockChip.dataset.musicDocked = isMusicMinimized ? "true" : "false";
 	if (isMusicOpen) applyMusicWindowRect();
@@ -489,12 +488,23 @@ function handleMusicTriggerKeydown(event: KeyboardEvent) {
 	handleMusicTrigger(event);
 }
 
+/** True while keyboard focus is somewhere inside the player window. */
+function musicHasFocus(): boolean {
+	return Boolean(refs?.terminal.contains(document.activeElement));
+}
+
 function minimizeMusicDialog() {
 	applyMusicWindowRect();
+	const hadFocus = musicHasFocus();
 	isMusicOpen = false;
 	isMusicMinimized = true;
-	const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
-	(triggerEl ?? document.body).focus();
+	// Hiding the window would drop focus to <body>. Show the dock chip that
+	// restores it and move focus there first, so the window is never hidden
+	// while it still holds focus. Focus elsewhere on the page is left alone.
+	if (hadFocus && refs?.dockChip) {
+		setHidden(refs.dockChip, false);
+		refs.dockChip.focus();
+	}
 	updateMusicVisibility();
 	// Nothing is on screen: stop the 60fps analyser loop and the idle animation.
 	visualizer?.setVisible(false);
@@ -535,10 +545,15 @@ function closeMusicDialog() {
 	updateCover(null);
 	updatePlaybackUi();
 	setSignal("[\u00A0carrier search...\u00A0]", "paused");
-	// Return focus to the trigger before hiding the dialog so aria-hidden is
-	// never set while a descendant element still holds focus.
-	const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
-	(triggerEl ?? document.body).focus();
+	// Return focus to the trigger before hiding the window so aria-hidden is
+	// never set while a descendant element still holds focus. Focus elsewhere
+	// on the page is left alone.
+	if (musicHasFocus()) {
+		const triggerEl = document.querySelector<HTMLElement>("[data-music-player-trigger]");
+		(triggerEl ?? document.body).focus();
+	}
+	announce("");
+	updateMediaSession(null);
 	updateMusicVisibility();
 }
 
@@ -568,6 +583,66 @@ function updateWindowTitle() {
 		refs.windowPlaylist.textContent = compactTitle;
 	} else if (refs?.windowTitle) {
 		refs.windowTitle.textContent = `navidrome.exe | ${compactTitle}`;
+	}
+}
+
+/** Say something to screen readers through the player's polite live region. */
+function announce(message: string): void {
+	if (refs?.announcer) refs.announcer.textContent = message;
+}
+
+/** The raw slider value is a percentage; read the position out as times instead. */
+function setSeekValueText(currentTime: number, duration: number): void {
+	const valueText = `${formatMusicDuration(currentTime)} of ${formatMusicDuration(duration)}`;
+	if (refs?.progressInput?.getAttribute("aria-valuetext") !== valueText) {
+		refs?.progressInput?.setAttribute("aria-valuetext", valueText);
+	}
+}
+
+function describeTrack(track: MusicTrack): string {
+	const title = text(track.title, "Untitled track");
+	return track.artist ? `${title} by ${track.artist}` : title;
+}
+
+/**
+ * Tell the operating system what is playing, so lock screen, headset and
+ * keyboard media keys show and control it.
+ */
+function updateMediaSession(track: MusicTrack | null): void {
+	if (!("mediaSession" in navigator)) return;
+	if (!track) {
+		navigator.mediaSession.metadata = null;
+		navigator.mediaSession.playbackState = "none";
+		return;
+	}
+	const coverId = track.coverArt || currentPlaylist?.coverArt || currentPlaylist?.id;
+	navigator.mediaSession.metadata = new MediaMetadata({
+		title: text(track.title, "Untitled track"),
+		artist: track.artist ?? "",
+		album: track.album ?? "",
+		artwork: coverId ? [{ src: new URL(coverUrl(coverId), location.origin).href }] : [],
+	});
+}
+
+function bindMediaSession(signal: AbortSignal): void {
+	if (!("mediaSession" in navigator)) return;
+	const handlers: [MediaSessionAction, () => void][] = [
+		// Explicit, not a toggle: a headset or OS widget with stale state can send
+		// "play" while already playing, and a toggle would then pause.
+		["play", () => void (playbackState.isPlaying || togglePlayback())],
+		["pause", () => void (playbackState.isPlaying && togglePlayback())],
+		["stop", () => stopPlayback()],
+		["previoustrack", playPreviousTrack],
+		["nexttrack", playNextTrack],
+	];
+	for (const [action, handler] of handlers) {
+		// Some browsers throw for actions they do not support.
+		try {
+			navigator.mediaSession.setActionHandler(action, handler);
+			signal.addEventListener("abort", () => navigator.mediaSession.setActionHandler(action, null), { once: true });
+		} catch {
+			continue;
+		}
 	}
 }
 
@@ -623,6 +698,11 @@ function updatePlaybackUi() {
 	if (refs?.progressInput instanceof HTMLInputElement) {
 		refs.progressInput.value = String(progress);
 		refs.progressInput.style.setProperty("--progress", `${progress}%`);
+		// Left alone while the slider is focused during playback: a screen reader
+		// would otherwise read the time out every second. Seeking updates it.
+		if (!(playbackState.isPlaying && document.activeElement === refs.progressInput)) {
+			setSeekValueText(currentTime, duration);
+		}
 	}
 	if (refs?.elapsedTimeNode instanceof HTMLTimeElement) {
 		refs.elapsedTimeNode.textContent = formatMusicDuration(currentTime);
@@ -631,6 +711,9 @@ function updatePlaybackUi() {
 	if (refs?.durationTimeNode instanceof HTMLTimeElement) {
 		refs.durationTimeNode.textContent = formatMusicDuration(duration);
 		refs.durationTimeNode.dateTime = `PT${Math.floor(duration)}S`;
+	}
+	if ("mediaSession" in navigator && currentTrack) {
+		navigator.mediaSession.playbackState = playbackState.isPlaying ? "playing" : "paused";
 	}
 	if (refs?.playButton) {
 		const playLabel = refs.playButton.querySelector(".music-play-label");
@@ -852,6 +935,11 @@ function playTrack(track: MusicTrack) {
 	player.src = `/api/music/stream/${encodeURIComponent(track.id)}`;
 	const playPromise = player.play();
 	playPromise
+		.then(() => {
+			// Announced once playback has really started, so a failed stream is not
+			// first reported as playing.
+			if (requestId === playRequestId) announce(`Now playing: ${describeTrack(track)}`);
+		})
 		.catch((error: unknown) => {
 			// Switching tracks rejects the previous play() with AbortError; that is not
 			// a failure of the track now playing.
@@ -864,6 +952,11 @@ function playTrack(track: MusicTrack) {
 				name === "NotAllowedError" ? "[\u00A0playback blocked...\u00A0]" : "[\u00A0stream error\u00A0]",
 				"paused"
 			);
+			announce(
+				name === "NotAllowedError"
+					? "Playback was blocked by the browser. Press play to start."
+					: `Could not play ${describeTrack(track)}.`
+			);
 			updatePlaybackUi();
 		})
 		.finally(() => {
@@ -873,6 +966,7 @@ function playTrack(track: MusicTrack) {
 	updateWindowTitle();
 	updateNowFile();
 	updateCover(track.coverArt ? track : currentPlaylist);
+	updateMediaSession(track);
 	highlightPlayingTrack();
 	highlightPlayingPlaylist();
 	updatePlaybackUi();
@@ -1157,6 +1251,18 @@ function keepMusicAbovePageTransition(event: Event) {
 }
 
 function bindControls(signal: AbortSignal) {
+	bindMediaSession(signal);
+	// Escape minimizes, but only from inside the window: the page behind it
+	// stays usable, and Escape there belongs to the page.
+	refs?.terminal.addEventListener(
+		"keydown",
+		(event) => {
+			if (event.key !== "Escape" || event.defaultPrevented) return;
+			event.preventDefault();
+			minimizeMusicDialog();
+		},
+		{ signal }
+	);
 	refs?.playButton?.addEventListener("click", togglePlayback, { signal });
 	refs?.stopButton?.addEventListener("click", () => stopPlayback(), { signal });
 	refs?.previousButton?.addEventListener("click", playPreviousTrack, { signal });
@@ -1232,8 +1338,10 @@ function bindControls(signal: AbortSignal) {
 				const player = refs?.player;
 				if (!(player instanceof HTMLAudioElement)) return;
 				const duration = Number.isFinite(player.duration) ? player.duration : 0;
-				if (duration > 0 && refs?.progressInput instanceof HTMLInputElement)
+				if (duration > 0 && refs?.progressInput instanceof HTMLInputElement) {
 					player.currentTime = (Number(refs.progressInput.value) / 100) * duration;
+					setSeekValueText(player.currentTime, duration);
+				}
 			},
 			{ signal }
 		);
@@ -1307,6 +1415,7 @@ function bindControls(signal: AbortSignal) {
 }
 
 function cleanupMusicPage() {
+	updateMediaSession(null);
 	visualizer?.teardown();
 	visualizer = null;
 	controlsAbortController?.abort();

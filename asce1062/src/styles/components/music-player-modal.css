@@ -11,14 +11,6 @@
 	isolation: isolate;
 }
 
-.music-modal-overlay {
-	position: fixed;
-	inset: 0;
-	z-index: 12000;
-	background: transparent;
-	pointer-events: none;
-}
-
 .music-terminal {
 	--player-bg: var(--color-base-100);
 	--player-bg-elevated: var(--color-base-100);

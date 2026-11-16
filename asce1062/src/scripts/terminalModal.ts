@@ -89,7 +89,6 @@ import {
 import { disableMatchDeviceTheme, handleThemeToggle, setTheme, type Theme } from "@/scripts/themeManager";
 
 type TerminalModalElements = {
-	overlay: HTMLElement | null;
 	windowEl: HTMLElement | null;
 	dockChip: HTMLButtonElement | null;
 	log: HTMLElement | null;
@@ -199,7 +198,6 @@ let _historyNavigationSession: TerminalHistoryNavigationSession = createTerminal
 
 function getElements(): TerminalModalElements {
 	return {
-		overlay: document.getElementById("terminal-modal-overlay"),
 		windowEl: document.getElementById("terminal-modal"),
 		dockChip: document.getElementById("terminal-dock-chip") as HTMLButtonElement | null,
 		log: document.getElementById("terminal-modal-log"),
@@ -339,10 +337,6 @@ function setHidden(el: HTMLElement | null, hidden: boolean): void {
 	el.hidden = hidden;
 }
 
-function setDocumentScrollLock(locked: boolean): void {
-	document.body.style.overflow = locked ? "hidden" : "";
-}
-
 function updateWindowFrame(elements: TerminalModalElements): void {
 	if (!elements.windowEl) return;
 
@@ -377,9 +371,9 @@ function setDockState(elements: TerminalModalElements): void {
 }
 
 function setWindowVisibility(elements: TerminalModalElements): void {
-	setHidden(elements.overlay, !_open);
+	// A floating window, not a modal: no backdrop and no scroll lock, so the page
+	// behind it stays readable, scrollable and clickable while it is open.
 	setHidden(elements.windowEl, !_open);
-	setDocumentScrollLock(_open);
 	setDockState(elements);
 	updateWindowFrame(elements);
 }
@@ -1197,10 +1191,13 @@ function openTerminal(detail?: NavBrandTerminalOpenDetail): void {
 
 function destroyTerminal(): void {
 	const elements = getElements();
+	const hadFocus = Boolean(elements.windowEl?.contains(document.activeElement));
 	resetTerminalSession(elements);
 	_open = false;
 	setWindowVisibility(elements);
-	if (_opener?.isConnected) _opener.focus();
+	// Only when focus was in the window: the page behind it is usable, so focus
+	// may be somewhere the visitor chose.
+	if (hadFocus && _opener?.isConnected) _opener.focus();
 	_opener = null;
 }
 
@@ -1727,15 +1724,7 @@ export function initTerminalModal(): void {
 	const { signal } = _abortController;
 
 	const elements = getElements();
-	if (
-		!elements.windowEl ||
-		!elements.overlay ||
-		!elements.dockChip ||
-		!elements.dragHandle ||
-		!elements.form ||
-		!elements.input
-	)
-		return;
+	if (!elements.windowEl || !elements.dockChip || !elements.dragHandle || !elements.form || !elements.input) return;
 
 	setWindowVisibility(elements);
 	syncPromptMirror(elements);
@@ -1751,7 +1740,6 @@ export function initTerminalModal(): void {
 		{ signal }
 	);
 
-	elements.overlay.addEventListener("click", () => minimizeTerminal(), { signal });
 	elements.closeButton?.addEventListener("click", () => onWindowAction("close"), { signal });
 	elements.minimizeButton?.addEventListener("click", () => onWindowAction("minimize"), { signal });
 	elements.maximizeButton?.addEventListener("click", () => onWindowAction("maximize"), { signal });
@@ -2020,15 +2008,17 @@ export function initTerminalModal(): void {
 	document.addEventListener(
 		"keydown",
 		(event) => {
-			if (!_open) return;
-			if (event.key === "Escape") {
-				event.preventDefault();
-				if (_windowState.mode === "fullscreen") {
-					exitFullscreenToWindowed();
-					return;
-				}
-				minimizeTerminal();
+			if (!_open || event.key !== "Escape") return;
+			// The page stays usable behind the window, so Escape belongs to the
+			// terminal only while focus is inside it. Elsewhere it is the page's
+			// (search, the nav drawer).
+			if (!getElements().windowEl?.contains(document.activeElement)) return;
+			event.preventDefault();
+			if (_windowState.mode === "fullscreen") {
+				exitFullscreenToWindowed();
+				return;
 			}
+			minimizeTerminal();
 		},
 		{ signal }
 	);

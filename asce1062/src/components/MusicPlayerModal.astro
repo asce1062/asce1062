@@ -3,7 +3,10 @@ import "@/styles/components/music-player-modal.css";
 ---
 
 <div id="music-modal-root" data-pagefind-ignore transition:persist>
-	<div id="music-modal-overlay" class="music-modal-overlay" hidden aria-hidden="true"></div>
+	{/* Track changes and playback errors, for screen readers: the visible signal
+		   line is animated text. Outside the window so it still speaks while the
+		   player is minimized. */}
+	<p id="music-announcer" class="sr-only" role="status" aria-live="polite"></p>
 
 	<button
 		id="music-dock-chip"
@@ -128,9 +131,18 @@ import "@/styles/components/music-player-modal.css";
 						&nbsp;[ STOP ]&nbsp;
 					</button>
 				</div>
-				<label class="music-progress-wrap" aria-label="Track progress">
-					<span class="sr-only">Track progress</span>
-					<input id="music-progress" class="music-progress" type="range" min="0" max="100" value="0" step="0.1" />
+				<div class="music-progress-wrap">
+					<input
+						id="music-progress"
+						class="music-progress"
+						type="range"
+						min="0"
+						max="100"
+						value="0"
+						step="0.1"
+						aria-label="Seek"
+						aria-valuetext="00:00 of 00:00"
+					/>
 					<span class="music-time-row" aria-live="off">
 						<time id="music-time-elapsed" class="music-time" datetime="PT0S">
 							00:00
@@ -139,7 +151,7 @@ import "@/styles/components/music-player-modal.css";
 							00:00
 						</time>
 					</span>
-				</label>
+				</div>
 				<div class="music-secondary-controls" aria-label="Additional playback controls">
 					<button
 						id="music-shuffle-button"

@@ -5,17 +5,6 @@
  * personal workstation feel: restrained chrome, warm/cosmic accents, and just
  * enough BBS structure to signal "tooling surface" rather than page card.
  */
-.terminal-overlay {
-	position: fixed;
-	inset: 0;
-	z-index: 108;
-	background:
-		radial-gradient(circle at top right, color-mix(in oklab, var(--color-secondary) 18%, transparent), transparent 42%),
-		radial-gradient(circle at bottom left, color-mix(in oklab, var(--color-warning) 12%, transparent), transparent 36%),
-		color-mix(in oklab, var(--color-base-100) 68%, transparent);
-	backdrop-filter: blur(0.5rem);
-}
-
 .terminal-window {
 	position: fixed;
 	z-index: 109;
@@ -234,6 +223,8 @@
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
+	/* The page behind is scrollable: keep a scroll that reaches the end of the log from moving it. */
+	overscroll-behavior: contain;
 	padding-right: 0.15rem;
 	font-size: 0.75rem;
 	line-height: 1.55;
@@ -680,10 +671,6 @@
 }
 
 @media (max-width: 768px) {
-	.terminal-overlay {
-		backdrop-filter: blur(0.35rem);
-	}
-
 	.terminal-window {
 		inset: 0.8rem;
 		width: auto !important;
@@ -821,7 +808,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.terminal-overlay,
 	.terminal-window,
 	.terminal-window__control,
 	.terminal-dock-chip {

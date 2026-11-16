@@ -70,4 +70,91 @@ test.describe("music player", () => {
 		await page.getByRole("button", { name: "Close music player" }).click();
 		await expect(player).toBeHidden();
 	});
+
+	test("is a floating window: Escape minimizes it only from inside", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const player = page.getByRole("dialog", { name: "Navidrome music player" });
+		await page.locator("#nav-menu [data-music-player-trigger]").click();
+		await expect(player).toBeFocused();
+		await expect(player).not.toHaveAttribute("aria-modal");
+
+		// Focus on the page behind it: Escape is the page's, not the player's.
+		await page.locator("#theme-toggle-btn").focus();
+		await page.keyboard.press("Escape");
+		await expect(player).toBeVisible();
+
+		// From inside, Escape minimizes and focus lands on the tab that restores it.
+		await page.getByRole("button", { name: "Minimize music player" }).focus();
+		await page.keyboard.press("Escape");
+		await expect(player).toBeHidden();
+		const restore = page.getByRole("button", { name: "Restore music player" });
+		await expect(restore).toBeFocused();
+
+		await page.keyboard.press("Enter");
+		await expect(player).toBeVisible();
+		await expect(player).toBeFocused();
+	});
+
+	test("names the seek slider and reads its position as times", async ({ page }) => {
+		await page.goto(PAGES.home);
+		await page.locator("#nav-menu [data-music-player-trigger]").click();
+
+		const seek = page.getByRole("slider", { name: "Seek" });
+		await expect(seek).toHaveAttribute("aria-valuetext", "00:00 of 00:00");
+	});
+});
+
+test.describe("terminal", () => {
+	// The nav brand opens the terminal by dispatching this event.
+	const openTerminal = (page: import("@playwright/test").Page) =>
+		page.evaluate(() =>
+			document.dispatchEvent(new CustomEvent("navbrand:open-terminal", { detail: { source: "test" } }))
+		);
+
+	test("is a floating window: the page behind it stays usable", async ({ page }) => {
+		await page.goto(PAGES.post);
+		const terminal = page.getByRole("dialog", { name: "stellar console" });
+		await openTerminal(page);
+		await expect(terminal).toBeVisible();
+		await expect(terminal).not.toHaveAttribute("aria-modal");
+
+		// No scroll lock: the page scrolls with the terminal open.
+		await page.mouse.move(8, 8);
+		await page.evaluate(() => window.scrollTo(0, 600));
+		await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+		await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+
+		// No backdrop: a control outside the window still takes clicks.
+		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.locator("#theme-toggle-btn").click();
+		await expect(root(page)).toHaveAttribute("data-theme", "light");
+		await expect(terminal).toBeVisible();
+	});
+
+	test("Escape minimizes it only from inside", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const terminal = page.getByRole("dialog", { name: "stellar console" });
+		await openTerminal(page);
+		await expect(terminal).toBeVisible();
+
+		await page.locator("#theme-toggle-btn").focus();
+		await page.keyboard.press("Escape");
+		await expect(terminal).toBeVisible();
+
+		await page.locator("#terminal-modal").focus();
+		await page.keyboard.press("Escape");
+		await expect(terminal).toBeHidden();
+		await expect(page.locator("#terminal-dock-chip")).toBeFocused();
+	});
+
+	test("stays open across a page navigation", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const terminal = page.getByRole("dialog", { name: "stellar console" });
+		await openTerminal(page);
+		await expect(terminal).toBeVisible();
+
+		await page.locator("#nav-menu").getByRole("link", { name: "Blog", exact: true }).click();
+		await expect(page).toHaveURL(/\/blog\/?$/);
+		await expect(terminal).toBeVisible();
+	});
 });
