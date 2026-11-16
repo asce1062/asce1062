@@ -95,6 +95,40 @@ test.describe("music player", () => {
 		await expect(player).toBeFocused();
 	});
 
+	test("size button steps windowed, maximized, miniplayer and back", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const player = page.getByRole("dialog", { name: "Navidrome music player" });
+		await page.locator("#nav-menu [data-music-player-trigger]").click();
+		await expect(player).toBeVisible();
+		const size = page.locator("#music-collapse-button");
+		const box = async () => {
+			const rect = await player.boundingBox();
+			if (!rect) throw new Error("music player has no box");
+			return rect;
+		};
+		const viewport = page.viewportSize();
+		if (!viewport) throw new Error("no viewport");
+
+		// Opens windowed, at the narrowest allowed width, so the button offers more room.
+		const windowed = await box();
+		expect(windowed.width).toBe(560);
+		await expect(size).toHaveAccessibleName("Maximize music player");
+
+		// Maximized fills the same movement box as the terminal: 24px from every edge.
+		await size.click();
+		await expect(size).toHaveAccessibleName("Collapse music player");
+		expect(await box()).toEqual({ x: 24, y: 24, width: viewport.width - 48, height: viewport.height - 48 });
+
+		await size.click();
+		await expect(size).toHaveAccessibleName("Expand music player");
+		await expect(size).toHaveAttribute("aria-expanded", "false");
+		expect((await box()).height).toBeLessThan(windowed.height);
+
+		await size.click();
+		await expect(size).toHaveAccessibleName("Maximize music player");
+		expect(await box()).toEqual(windowed);
+	});
+
 	test("names the seek slider and reads its position as times", async ({ page }) => {
 		await page.goto(PAGES.home);
 		await page.locator("#nav-menu [data-music-player-trigger]").click();

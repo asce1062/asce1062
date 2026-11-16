@@ -116,6 +116,10 @@ let musicWindowRect: TerminalWindowRect | null = null;
 let expandedMusicRect: TerminalWindowRect | null = null;
 let collapsedMusicRect: TerminalWindowRect | null = null;
 let musicWindowMode: "expanded" | "collapsed" = "expanded";
+// Expanded only: the window fills the movement box. expandedMusicRect keeps the
+// windowed size to come back to.
+let isMusicMaximized = false;
+const EXPANDED_MIN_WIDTH = 560;
 let lastDragHandleTapTs: number | null = null;
 let interactionState:
 	| {
@@ -332,7 +336,7 @@ function getMinimumMusicSize() {
 function getMinimumMusicWidth() {
 	const mobile = isMobileMusicViewport();
 	const collapsed = musicWindowMode === "collapsed";
-	return mobile ? Math.min(320, window.innerWidth - getWindowMargin() * 2) : collapsed ? 420 : 560;
+	return mobile ? Math.min(320, window.innerWidth - getWindowMargin() * 2) : collapsed ? 420 : EXPANDED_MIN_WIDTH;
 }
 
 function getMaximumMusicSize() {
@@ -349,7 +353,8 @@ function getMaximumMusicSize() {
 function getPreferredMusicRect() {
 	const bounds = getMusicHomeBounds();
 	const mobile = isMobileMusicViewport();
-	const width = mobile ? bounds.width : Math.min(Math.max(880, bounds.width * 0.72), bounds.width);
+	// Open at the narrowest allowed width; the visitor can widen or maximize it.
+	const width = mobile ? bounds.width : Math.min(EXPANDED_MIN_WIDTH, bounds.width);
 	const height = bounds.height;
 	return clampMusicRect({
 		x: bounds.left + (bounds.width - width) / 2,
@@ -387,9 +392,53 @@ function clampMusicRect(rect: TerminalWindowRect) {
 	return { x, y, width, height };
 }
 
+function getMaximizedMusicRect() {
+	const bounds = getMusicBounds();
+	return { x: bounds.left, y: bounds.top, width: bounds.width, height: bounds.height };
+}
+
+function isMaximizedMusicRect(rect: TerminalWindowRect | null) {
+	if (!rect) return false;
+	const full = getMaximizedMusicRect();
+	return (
+		Math.abs(rect.x - full.x) < 1 &&
+		Math.abs(rect.y - full.y) < 1 &&
+		Math.abs(rect.width - full.width) < 1 &&
+		Math.abs(rect.height - full.height) < 1
+	);
+}
+
+/**
+ * The size button steps through three sizes like the terminal's: windowed,
+ * maximized, miniplayer, then back. Where the windowed size already fills the
+ * movement box (phones), the maximized step is skipped.
+ */
+function getNextMusicWindowSize(): "maximized" | "collapsed" | "windowed" {
+	if (musicWindowMode === "collapsed") return "windowed";
+	if (isMusicMaximized || isMaximizedMusicRect(musicWindowRect)) return "collapsed";
+	return "maximized";
+}
+
+function updateSizeButton() {
+	if (!refs?.collapseButton) return;
+	const next = getNextMusicWindowSize();
+	const label =
+		next === "maximized"
+			? "Maximize music player"
+			: next === "collapsed"
+				? "Collapse music player"
+				: "Expand music player";
+	refs.collapseButton.textContent = next === "collapsed" ? "[-]" : "[+]";
+	refs.collapseButton.setAttribute("aria-label", label);
+	refs.collapseButton.setAttribute("title", label);
+	refs.collapseButton.setAttribute("aria-expanded", String(musicWindowMode !== "collapsed"));
+}
+
 function applyMusicWindowRect(options: { preferCollapsedMaxHeight?: boolean } = {}) {
 	if (!refs?.terminal) return;
-	const sourceRect = musicWindowRect ?? getPreferredMusicRect();
+	// A maximized window follows the viewport, except while it is being resized.
+	const sourceRect =
+		isMusicMaximized && !interactionState ? getMaximizedMusicRect() : (musicWindowRect ?? getPreferredMusicRect());
 	let measurementRect = sourceRect;
 	if (musicWindowMode === "collapsed") {
 		// Apply collapsed width first, then measure height after container queries reflow.
@@ -409,9 +458,10 @@ function applyMusicWindowRect(options: { preferCollapsedMaxHeight?: boolean } = 
 	musicWindowRect = rect;
 	if (musicWindowMode === "collapsed") {
 		collapsedMusicRect = rect;
-	} else {
+	} else if (!isMusicMaximized) {
 		expandedMusicRect = rect;
 	}
+	updateSizeButton();
 	refs.terminal.dataset.musicWindowMode = musicWindowMode;
 	refs.terminal.style.left = `${rect.x}px`;
 	refs.terminal.style.top = `${rect.y}px`;
@@ -534,6 +584,7 @@ function closeMusicDialog() {
 	expandedMusicRect = null;
 	collapsedMusicRect = null;
 	musicWindowMode = "expanded";
+	isMusicMaximized = false;
 	playlistsLoaded = false;
 	playlistsLoadPromise = null;
 	currentPlaylist = null;
@@ -1167,32 +1218,32 @@ function cycleFlavor() {
 	setPlayerFlavor(getNextMusicPlayerFlavor(activeFlavor));
 }
 
-function toggleCollapsed() {
-	const collapsed = !refs?.terminal.classList.contains("is-collapsed");
+function cycleMusicWindowSize() {
+	if (!refs?.terminal) return;
 	applyMusicWindowRect();
-	if (musicWindowMode === "collapsed") {
-		collapsedMusicRect = musicWindowRect;
-	} else {
-		expandedMusicRect = musicWindowRect;
-	}
-	musicWindowMode = collapsed ? "collapsed" : "expanded";
-	refs?.terminal.classList.toggle("is-collapsed", collapsed);
+	const next = getNextMusicWindowSize();
 	const hadCollapsedRect = Boolean(collapsedMusicRect);
-	musicWindowRect = collapsed
-		? (collapsedMusicRect ?? getPreferredCollapsedMusicRect())
-		: (expandedMusicRect ?? getPreferredMusicRect());
-	applyMusicWindowRect({ preferCollapsedMaxHeight: collapsed && !hadCollapsedRect });
-	if (refs?.collapseButton) {
-		refs.collapseButton.textContent = collapsed ? "[+]" : "[-]";
-		refs.collapseButton.setAttribute("aria-label", collapsed ? "Expand music player" : "Collapse music player");
-		refs.collapseButton.setAttribute("title", collapsed ? "Expand music player" : "Collapse music player");
-		refs.collapseButton.setAttribute("aria-expanded", String(!collapsed));
+	if (next === "maximized") isMusicMaximized = true;
+	if (next === "collapsed") {
+		isMusicMaximized = false;
+		// Size the miniplayer from the windowed rect, not the maximized one.
+		musicWindowRect = expandedMusicRect ?? musicWindowRect;
 	}
+	musicWindowMode = next === "collapsed" ? "collapsed" : "expanded";
+	const collapsed = musicWindowMode === "collapsed";
+	refs.terminal.classList.toggle("is-collapsed", collapsed);
+	musicWindowRect =
+		next === "maximized"
+			? getMaximizedMusicRect()
+			: next === "collapsed"
+				? (collapsedMusicRect ?? getPreferredCollapsedMusicRect())
+				: (expandedMusicRect ?? getPreferredMusicRect());
+	applyMusicWindowRect({ preferCollapsedMaxHeight: collapsed && !hadCollapsedRect });
 }
 
 function handleTopbarDoubleClick(event: MouseEvent) {
 	if (event.target instanceof HTMLElement && event.target.closest("button, a, input, select, textarea")) return;
-	toggleCollapsed();
+	cycleMusicWindowSize();
 }
 
 function beginMusicDrag(event: PointerEvent) {
@@ -1249,8 +1300,14 @@ function updateMusicResize(event: PointerEvent) {
 }
 
 function endMusicInteraction() {
+	const hadInteraction = Boolean(interactionState);
 	interactionState = null;
 	refs?.terminal.classList.remove("is-dragging");
+	// Resizing a maximized window makes it an ordinary window again.
+	if (hadInteraction && isMusicMaximized && !isMaximizedMusicRect(musicWindowRect)) {
+		isMusicMaximized = false;
+		applyMusicWindowRect();
+	}
 }
 
 function keepMusicAbovePageTransition(event: Event) {
@@ -1299,7 +1356,7 @@ function bindControls(signal: AbortSignal) {
 			const now = Date.now();
 			if (shouldTreatTerminalHandleTapAsDoubleTap(lastDragHandleTapTs, now)) {
 				lastDragHandleTapTs = null;
-				toggleCollapsed();
+				cycleMusicWindowSize();
 				return;
 			}
 
@@ -1339,7 +1396,7 @@ function bindControls(signal: AbortSignal) {
 	document.addEventListener("astro:before-swap", keepMusicAbovePageTransition, { signal });
 	document.addEventListener("click", handleMusicTrigger, { signal });
 	document.addEventListener("keydown", handleMusicTriggerKeydown, { signal });
-	refs?.collapseButton?.addEventListener("click", toggleCollapsed, { signal });
+	refs?.collapseButton?.addEventListener("click", cycleMusicWindowSize, { signal });
 	if (refs?.progressInput instanceof HTMLInputElement && refs.player instanceof HTMLAudioElement) {
 		refs.progressInput.addEventListener(
 			"input",
