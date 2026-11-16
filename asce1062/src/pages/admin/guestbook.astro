@@ -167,7 +167,10 @@ const emptyMessage = hasCursor
 				value={state.search}
 				maxlength="100"
 				placeholder="name, message, email, url or #id"
+				autocomplete="off"
 				class="input input-accent input-sm flex-1 min-w-48"
+				data-live-search
+				transition:persist="moderation-search"
 			/>
 			<button type="submit" class="btn btn-secondary btn-sm">
 				Search
@@ -404,6 +407,8 @@ const emptyMessage = hasCursor
 </Layout>
 
 <script>
+	import { navigate } from "astro:transitions/client";
+
 	/** Wire the "select all on this page" checkbox to the entry checkboxes. */
 	function initSelectAll(): void {
 		const form = document.querySelector<HTMLFormElement>("[data-moderation-form]");
@@ -429,5 +434,50 @@ const emptyMessage = hasCursor
 		sync();
 	}
 
+	/** Pause after the last keystroke before the list is filtered. */
+	const LIVE_SEARCH_DELAY_MS = 300;
+	let liveSearchTimer: number | undefined;
+
+	/**
+	 * Filter the list as the moderator types. The search still runs on the
+	 * server, so it covers every entry and not only the page on screen. The box
+	 * is persisted across the page swap, which keeps focus, the caret and
+	 * anything typed while the results were loading. Without script the form
+	 * submits as usual.
+	 */
+	function initLiveSearch(): void {
+		const input = document.querySelector<HTMLInputElement>("[data-live-search]");
+		if (!input) return;
+
+		// The persisted box keeps its old text when a link changes the search
+		// (Clear, an audit row). Follow the URL unless the moderator is typing.
+		const applied = new URLSearchParams(location.search).get("q") ?? "";
+		if (document.activeElement !== input && input.value !== applied) input.value = applied;
+
+		// The same element survives every swap, so it is wired only once.
+		if (input.dataset.liveSearchReady) return;
+		input.dataset.liveSearchReady = "true";
+
+		const search = (): void => {
+			const form = input.form;
+			if (!form) return;
+			const params = new URLSearchParams();
+			for (const [key, value] of new FormData(form)) {
+				if (typeof value === "string" && value.trim()) params.set(key, value.trim());
+			}
+			const query = params.toString();
+			const target = query ? `${form.action}?${query}` : form.action;
+			if (target === location.href) return;
+			// Replace, not push: one history entry per search, not one per keystroke.
+			void navigate(target, { history: "replace" });
+		};
+
+		input.addEventListener("input", () => {
+			window.clearTimeout(liveSearchTimer);
+			liveSearchTimer = window.setTimeout(search, LIVE_SEARCH_DELAY_MS);
+		});
+	}
+
 	document.addEventListener("astro:page-load", initSelectAll);
+	document.addEventListener("astro:page-load", initLiveSearch);
 </script>
