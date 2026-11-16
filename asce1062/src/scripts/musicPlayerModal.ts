@@ -8,7 +8,7 @@
  * - Proxy playback through the local stream endpoint so credentials stay server-side.
  * - Keep expanded, collapsed/miniplayer, and minimized dock states distinct.
  * - Preserve playback across minimize/collapse while close fully resets the player.
- * - Clamp drag/resize geometry to the usable viewport/sidebar bounds.
+ * - Clamp drag/resize geometry to the viewport, with the same margins as the terminal.
  *
  * Astro ClientRouter notes:
  * - The component root uses transition:persist, so this module rebinds after
@@ -220,19 +220,13 @@ function setHidden(element: HTMLElement | null, hidden: boolean) {
 	element.setAttribute("aria-hidden", hidden ? "true" : "false");
 }
 
+// Same margins as the terminal window, so both windows share one movement box.
 function getWindowMargin() {
-	return window.matchMedia("(width < 640px)").matches ? 12 : 20;
+	return window.matchMedia("(max-width: 768px)").matches ? 12 : 24;
 }
 
 function isMobileMusicViewport() {
 	return window.matchMedia("(width < 640px)").matches;
-}
-
-function getCurrentSidebarWidth() {
-	if (!window.matchMedia("(min-width: 1024px)").matches) return 0;
-	const sidebar = document.querySelector<HTMLElement>(".nav-menu");
-	const rect = sidebar?.getBoundingClientRect();
-	return rect && rect.right > 0 ? rect.right : 0;
 }
 
 function getMusicElementBottom(element: HTMLElement | null) {
@@ -256,30 +250,45 @@ function updateStickyMetrics() {
 }
 
 function getMusicBounds() {
+	// Match the terminal: the viewport inset by the window margin. The window may
+	// sit over the sidebar and the page rails, exactly as the terminal does.
 	const margin = getWindowMargin();
-	const mobile = isMobileMusicViewport();
-	if (mobile) {
-		// Mobile has little vertical room; match the terminal's margin-only viewport bounds.
-		const left = margin;
-		const top = margin;
-		const right = window.innerWidth - margin;
-		const bottom = window.innerHeight - margin;
+	const left = margin;
+	const top = margin;
+	const right = window.innerWidth - margin;
+	const bottom = window.innerHeight - margin;
 
-		return {
-			left,
-			top,
-			right: Math.max(left + 1, right),
-			bottom: Math.max(top + 1, bottom),
-			width: Math.max(1, right - left),
-			height: Math.max(1, bottom - top),
-		};
-	}
+	return {
+		left,
+		top,
+		right: Math.max(left + 1, right),
+		bottom: Math.max(top + 1, bottom),
+		width: Math.max(1, right - left),
+		height: Math.max(1, bottom - top),
+	};
+}
 
+function getCurrentSidebarWidth() {
+	if (!window.matchMedia("(min-width: 1024px)").matches) return 0;
+	const sidebar = document.querySelector<HTMLElement>(".nav-menu");
+	const rect = sidebar?.getBoundingClientRect();
+	return rect && rect.right > 0 ? rect.right : 0;
+}
+
+/**
+ * The box the window opens in: the page area between the sidebar and the
+ * header/footer rails. It only sets the initial centred size and position.
+ * Dragging and resizing use the wider getMusicBounds().
+ */
+function getMusicHomeBounds() {
+	const bounds = getMusicBounds();
+	if (isMobileMusicViewport()) return bounds;
+
+	const margin = 20;
+	const railMargin = 4;
 	const headerRailRect = document.querySelector<HTMLElement>("header hr")?.getBoundingClientRect();
 	const footerRailRect = document.querySelector<HTMLElement>("footer hr")?.getBoundingClientRect();
 	const left = getCurrentSidebarWidth() + margin;
-	const railMargin = 4;
-	// Desktop uses the visible page rails and sidebar width as the movement box.
 	const top = Math.max(
 		margin,
 		headerRailRect && headerRailRect.bottom > 0 ? headerRailRect.bottom + railMargin : margin
@@ -338,7 +347,7 @@ function getMaximumMusicSize() {
 }
 
 function getPreferredMusicRect() {
-	const bounds = getMusicBounds();
+	const bounds = getMusicHomeBounds();
 	const mobile = isMobileMusicViewport();
 	const width = mobile ? bounds.width : Math.min(Math.max(880, bounds.width * 0.72), bounds.width);
 	const height = bounds.height;
@@ -351,7 +360,7 @@ function getPreferredMusicRect() {
 }
 
 function getPreferredCollapsedMusicRect() {
-	const bounds = getMusicBounds();
+	const bounds = getMusicHomeBounds();
 	const base = musicWindowRect ?? expandedMusicRect ?? getPreferredMusicRect();
 	const width = Math.min(Math.max(base.width, 520), 640, bounds.width);
 	const height = getMaximumMusicSize().height;

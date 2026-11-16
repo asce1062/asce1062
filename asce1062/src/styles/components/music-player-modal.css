@@ -6,11 +6,6 @@
  * The minimized dock chip intentionally shares the sidebar/terminal dock
  * stack instead of the dialog stack, so the sidebar can mask its inset edge.
  */
-#music-modal-root {
-	position: relative;
-	isolation: isolate;
-}
-
 .music-terminal {
 	--player-bg: var(--color-base-100);
 	--player-bg-elevated: var(--color-base-100);
@@ -30,8 +25,8 @@
 	--music-control-sticky-top: calc(-1 * var(--music-terminal-body-padding));
 
 	position: fixed;
-	/* Above page content and route-transition snapshots while the dialog is open. */
-	z-index: 12001;
+	/* Above the sidebar (40), like the terminal window (109), which stacks just above it. */
+	z-index: 108;
 	display: flex;
 	flex-direction: column;
 	container-type: inline-size;
