@@ -498,13 +498,13 @@ async function loadPlaylistsOnce() {
 			const playlistsPayload = await fetchJson("/api/music/playlists");
 			renderPlaylists(Array.isArray(playlistsPayload.playlists) ? playlistsPayload.playlists : []);
 			playlistsLoaded = true;
-			setSignal("[\u00A0carrier search...\u00A0]", "paused");
+			setSignal("[\u00A0carrier search...\u00A0]");
 			updateNowFile();
 			updateCover(null);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : "Could not reach the music service.";
 			setState(refs?.playlistsState ?? null, refs?.playlistsCount ?? null, message, "error");
-			setSignal("[\u00A0carrier dropped...\u00A0]", "paused");
+			setSignal("[\u00A0carrier dropped...\u00A0]");
 		} finally {
 			playlistsLoadPromise = null;
 		}
@@ -604,7 +604,7 @@ function closeMusicDialog() {
 	updateNowFile();
 	updateCover(null);
 	updatePlaybackUi();
-	setSignal("[\u00A0carrier search...\u00A0]", "paused");
+	setSignal("[\u00A0carrier search...\u00A0]");
 	// Return focus to the trigger before hiding the window so aria-hidden is
 	// never set while a descendant element still holds focus. Focus elsewhere
 	// on the page is left alone.
@@ -706,7 +706,7 @@ function bindMediaSession(signal: AbortSignal): void {
 	}
 }
 
-function setSignal(message: string, _mode?: string) {
+function setSignal(message: string) {
 	if (refs?.signalLabel) {
 		// Reset first: cancelling a running effect restores that effect's own target.
 		resetTextEffect(refs.signalLabel);
@@ -937,7 +937,7 @@ function renderTracks(entry: HTMLElement, tracks: MusicTrack[]) {
 		queueState.textContent = "This playlist has no playable tracks.";
 		queueState.hidden = false;
 		queue.hidden = true;
-		setSignal("[\u00A0carrier search...\u00A0]", "paused");
+		setSignal("[\u00A0carrier search...\u00A0]");
 		updatePlaybackUi();
 		return;
 	}
@@ -964,7 +964,7 @@ function renderTracks(entry: HTMLElement, tracks: MusicTrack[]) {
 	queue.hidden = false;
 	highlightPlayingTrack();
 	highlightPlayingPlaylist();
-	setSignal("[\u00A0playlist locked...\u00A0]", "paused");
+	setSignal("[\u00A0playlist locked...\u00A0]");
 }
 
 function playTrackFromBrowse(track: MusicTrack) {
@@ -980,6 +980,24 @@ function playTrackFromBrowse(track: MusicTrack) {
 		currentPlaylist = browsingPlaylist;
 	}
 	playTrack(track);
+}
+
+/**
+ * Why play() rejected. NotAllowedError is the browser's autoplay policy, which
+ * pressing play fixes. Anything else means the stream itself failed (missing
+ * track, upstream error), which pressing play again will not fix.
+ */
+function describePlayFailure(error: unknown, track: MusicTrack | null): { signal: string; announcement: string } {
+	if (error instanceof DOMException && error.name === "NotAllowedError") {
+		return {
+			signal: "[\u00A0playback blocked...\u00A0]",
+			announcement: "Playback was blocked by the browser. Press play to start.",
+		};
+	}
+	return {
+		signal: "[\u00A0stream error...\u00A0]",
+		announcement: track ? `Could not play ${describeTrack(track)}.` : "Could not play this track.",
+	};
 }
 
 /** Increments per playTrack; a settled play() from an older request is ignored. */
@@ -1004,19 +1022,11 @@ function playTrack(track: MusicTrack) {
 			// Switching tracks rejects the previous play() with AbortError; that is not
 			// a failure of the track now playing.
 			if (requestId !== playRequestId) return;
-			const name = error instanceof DOMException ? error.name : "";
-			if (name === "AbortError") return;
+			if (error instanceof DOMException && error.name === "AbortError") return;
 			setPlaybackState({ ...playbackState, isPlaying: false });
-			// NotAllowedError: autoplay policy. NotSupportedError: the stream itself failed.
-			setSignal(
-				name === "NotAllowedError" ? "[\u00A0playback blocked...\u00A0]" : "[\u00A0stream error\u00A0]",
-				"paused"
-			);
-			announce(
-				name === "NotAllowedError"
-					? "Playback was blocked by the browser. Press play to start."
-					: `Could not play ${describeTrack(track)}.`
-			);
+			const failure = describePlayFailure(error, track);
+			setSignal(failure.signal);
+			announce(failure.announcement);
 			updatePlaybackUi();
 		})
 		.finally(() => {
@@ -1042,7 +1052,9 @@ function resumePlayback(player: HTMLAudioElement): void {
 		if (requestId !== playRequestId) return;
 		if (error instanceof DOMException && error.name === "AbortError") return;
 		setPlaybackState({ ...playbackState, isPlaying: false });
-		setSignal("[\u00A0playback blocked...\u00A0]", "paused");
+		const failure = describePlayFailure(error, currentTrack);
+		setSignal(failure.signal);
+		announce(failure.announcement);
 		updatePlaybackUi();
 	});
 }
@@ -1079,6 +1091,18 @@ function applyQueueResult(result: MusicQueueResult<MusicTrack>) {
 	}
 }
 
+/**
+ * A playlist load nobody is waiting for any more must not leave the signal on
+ * "loading playlist...". If another playlist is loading, that load owns the
+ * signal; otherwise show what the player is actually doing.
+ */
+function settleSignalAfterAbandonedLoad() {
+	if (expandedPlaylistId !== null) return;
+	const player = refs?.player;
+	const playing = player instanceof HTMLAudioElement && !player.paused;
+	setSignal(playing ? "[\u00A0stream online...\u00A0]" : "[\u00A0carrier search...\u00A0]");
+}
+
 async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 	const id = playlist.id;
 	const queue = entry.querySelector(".music-inline-queue");
@@ -1105,10 +1129,15 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 	queue.hidden = true;
 	queueState.hidden = false;
 	queueState.textContent = "Loading playlist tracks...";
-	setSignal("[\u00A0loading playlist...\u00A0]", "waiting");
+	setSignal("[\u00A0loading playlist...\u00A0]");
 
 	try {
 		const payload = await fetchJson(`/api/music/playlist/${encodeURIComponent(id)}`);
+		// Another playlist was opened (or this one closed) while this loaded.
+		if (expandedPlaylistId !== id) {
+			settleSignalAfterAbandonedLoad();
+			return;
+		}
 		browsingPlaylist = payload.playlist || playlist;
 		if (!currentTrack) {
 			// Nothing is playing yet — show this album's info as a preview.
@@ -1119,10 +1148,14 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 		}
 		renderTracks(entry, Array.isArray(payload.tracks) ? payload.tracks : []);
 	} catch (error) {
+		if (expandedPlaylistId !== id) {
+			settleSignalAfterAbandonedLoad();
+			return;
+		}
 		queueState.textContent = error instanceof Error ? error.message : "Could not load playlist.";
 		queueState.hidden = false;
 		queue.hidden = true;
-		setSignal("[\u00A0carrier dropped...\u00A0]", "paused");
+		setSignal("[\u00A0carrier dropped...\u00A0]");
 	}
 }
 
@@ -1143,7 +1176,7 @@ function stopPlayback(options: { clearSelection?: boolean } = {}) {
 	updateWindowTitle();
 	updateNowFile();
 	updatePlaybackUi();
-	setSignal("[\u00A0carrier search...\u00A0]", "paused");
+	setSignal("[\u00A0carrier search...\u00A0]");
 }
 
 function togglePlayback() {
@@ -1420,7 +1453,7 @@ function bindControls(signal: AbortSignal) {
 			"error",
 			() => {
 				setPlaybackState({ ...playbackState, isPlaying: false });
-				setSignal("[\u00A0stream error...\u00A0]", "paused");
+				setSignal("[\u00A0stream error...\u00A0]");
 				updatePlaybackUi();
 				visualizer?.setPlaying(false);
 			},
@@ -1430,7 +1463,7 @@ function bindControls(signal: AbortSignal) {
 			"play",
 			() => {
 				setPlaybackState({ ...playbackState, isPlaying: true });
-				setSignal("[\u00A0stream online...\u00A0]", "playing");
+				setSignal("[\u00A0stream online...\u00A0]");
 				updatePlaybackUi();
 				visualizer?.connect(player);
 				visualizer?.setPlaying(true);
@@ -1441,7 +1474,7 @@ function bindControls(signal: AbortSignal) {
 			"pause",
 			() => {
 				setPlaybackState({ ...playbackState, isPlaying: false });
-				if (!player.ended) setSignal("[\u00A0stream paused...\u00A0]", "paused");
+				if (!player.ended) setSignal("[\u00A0stream paused...\u00A0]");
 				updatePlaybackUi();
 				visualizer?.setPlaying(false);
 			},

@@ -844,6 +844,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.music-dock-chip,
+	.music-dock-chip *,
+	.music-dock-chip::before,
+	.music-dock-chip::after,
 	.music-terminal *,
 	.music-terminal *::before,
 	.music-terminal *::after {
