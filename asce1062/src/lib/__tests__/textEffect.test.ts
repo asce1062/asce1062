@@ -4,7 +4,6 @@ import {
 	DEFAULT_ROUTE_ENTER_SETTLE_DELAY_MS,
 	TEXT_EFFECTS,
 	bindTextEffectTriggers,
-	getTextEffectMetadata,
 	normalizeTextEffectTriggers,
 	playTextEffect,
 	readTextEffectConfig,
@@ -105,17 +104,17 @@ describe("resolveTextEffectKind", () => {
 			role: "exit",
 			standaloneSafe: true,
 		});
-		expect(getTextEffectMetadata("entropy")).toMatchObject({
+		expect(TEXT_EFFECTS.entropy).toMatchObject({
 			family: "cipher",
 			role: "exit",
 			standaloneSafe: true,
 		});
-		expect(getTextEffectMetadata("glitch-lock-on")).toMatchObject({
+		expect(TEXT_EFFECTS["glitch-lock-on"]).toMatchObject({
 			family: "rare",
 			role: "enter",
 			standaloneSafe: true,
 		});
-		expect(getTextEffectMetadata("signal-loss")).toMatchObject({
+		expect(TEXT_EFFECTS["signal-loss"]).toMatchObject({
 			family: "rare",
 			role: "exit",
 			standaloneSafe: true,

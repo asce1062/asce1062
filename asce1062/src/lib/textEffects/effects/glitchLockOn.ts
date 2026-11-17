@@ -1,6 +1,12 @@
 import type { EffectRendererHandle, GlitchLockOnEffectOptions } from "../types";
 import { DEFAULT_GLITCH_LOCK_TOTAL_FRAMES } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
+import {
+	createIntervalRenderer,
+	resolveTextEffectDurationMs,
+	resolveGlitchCharsetStr,
+	splitGraphemes,
+	pickRandomGrapheme,
+} from "../utils";
 
 function pickGlitchChar(glyphs: readonly string[], seed: number, useRandom: boolean): string {
 	if (useRandom) return pickRandomGrapheme(glyphs) ?? "_";
@@ -28,7 +34,7 @@ function renderGlitchLockFrame(
 
 	const body = chars
 		.map((char, index) => {
-			if (char === " ") return char;
+			if (/\s/.test(char)) return char;
 
 			if (resolvedCount > 0) {
 				const isResolved = reverse ? index >= chars.length - resolvedCount : index < resolvedCount;
@@ -65,34 +71,15 @@ export function runGlitchLockOnEnterRenderer(
 	const useRandom = charset !== "blocks";
 	const totalFrames = Math.max(3, frameCount);
 	const totalDuration = durationMs ?? resolveTextEffectDurationMs("glitch-lock-on", text);
-	const frameInterval = totalDuration / totalFrames;
-	let frame = 0;
-	let resolvePromise: () => void = () => {};
-	let settled = false;
-	const promise = new Promise<void>((resolve) => {
-		resolvePromise = resolve;
-	});
-	const intervalId = globalThis.setInterval(() => {
-		el.textContent = renderGlitchLockFrame(text, frame, totalFrames, glyphs, useRandom, reverse, intensity);
 
-		frame += 1;
-
-		if (frame >= totalFrames) {
-			globalThis.clearInterval(intervalId);
-			if (settled) return;
-			settled = true;
-			el.textContent = text;
-			resolvePromise();
-		}
-	}, frameInterval);
-
-	return {
-		promise,
-		cancel: () => {
-			if (settled) return;
-			settled = true;
-			globalThis.clearInterval(intervalId);
-			resolvePromise();
+	return createIntervalRenderer({
+		frames: totalFrames,
+		intervalMs: totalDuration / totalFrames,
+		render: (frame) => {
+			el.textContent = renderGlitchLockFrame(text, frame, totalFrames, glyphs, useRandom, reverse, intensity);
 		},
-	};
+		complete: () => {
+			el.textContent = text;
+		},
+	});
 }

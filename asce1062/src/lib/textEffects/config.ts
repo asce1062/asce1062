@@ -58,7 +58,8 @@ export function shouldHandleTextEffectTrigger(
  * - `data-text-effect-signal-blackout-ms`      — blackout hold duration in ms (default 760)
  * - `data-text-effect-signal-false-recovery`   — presence attribute; disables mid-animation false-recovery flash
  * - `data-text-effect-corruption-charset`      — "blocks" | "letters" | "binary" | any custom string (corruption burst)
- * - `data-text-effect-corruption-frames`       — frame count (default 10) (corruption burst)
+ * - `data-text-effect-corruption-delay-ms`     - ms between each frame (overrides durationMs) (corruption burst)
+ * - `data-text-effect-corruption-count`        - frame count (default 10, min 3) (corruption burst)
  * - `data-text-effect-corruption-intensity`    — fraction corrupted per frame 0–1 (default 0.5) (corruption burst)
  * - `data-text-effect-corruption-restore`      — "false" to leave final corrupted frame; default true (corruption burst)
  * - `data-text-effect-corruption-items`        — comma-separated corruption chars; takes precedence over charset (corruption burst)

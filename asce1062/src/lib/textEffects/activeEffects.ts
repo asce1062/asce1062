@@ -61,6 +61,10 @@ export function clearTriggerBindings(el: HTMLElement): void {
 	for (const cleanup of cleanups) cleanup();
 	triggerCleanups.delete(el);
 	boundElements.delete(el);
+	// Released here rather than through a registered cleanup: mouseleave runs on
+	// every hover, so registering one each time grew the list without bound on
+	// elements that persist across navigations.
+	clearHoverReplayLock(el);
 }
 
 /**
@@ -100,5 +104,4 @@ export function scheduleHoverReplayUnlock(el: HTMLElement): void {
 	document.addEventListener("mousemove", unlock, { once: true });
 	document.addEventListener("pointerdown", unlock, { once: true });
 	document.addEventListener("touchstart", unlock, { once: true });
-	registerTriggerCleanup(el, () => clearHoverReplayLock(el));
 }

@@ -2,7 +2,6 @@ import type {
 	TextEffectKind,
 	TextEffectRole,
 	TextTransitionMode,
-	TextEffectMetadata,
 	EffectRendererHandle,
 	TimeoutHandle,
 	GlitchCharset,
@@ -117,8 +116,49 @@ export function createTimeoutRenderer(
 	};
 }
 
-export function getTextEffectMetadata(effect: TextEffectKind): TextEffectMetadata {
-	return TEXT_EFFECTS[effect];
+/**
+ * Run a fixed number of frames on an interval, then settle.
+ *
+ * `render` paints frame `0..frames-1`; `complete` writes the final state once
+ * the last frame has painted. Cancelling stops the interval and resolves
+ * without calling `complete`, leaving whatever frame is on screen.
+ */
+export function createIntervalRenderer(options: {
+	frames: number;
+	intervalMs: number;
+	render: (frame: number) => void;
+	complete: () => void;
+}): EffectRendererHandle {
+	const { frames, intervalMs, render, complete } = options;
+	let frame = 0;
+	let resolvePromise: () => void = () => {};
+	let settled = false;
+	const promise = new Promise<void>((resolve) => {
+		resolvePromise = resolve;
+	});
+	const intervalId = globalThis.setInterval(() => {
+		render(frame);
+
+		frame += 1;
+
+		if (frame >= frames) {
+			globalThis.clearInterval(intervalId);
+			if (settled) return;
+			settled = true;
+			complete();
+			resolvePromise();
+		}
+	}, intervalMs);
+
+	return {
+		promise,
+		cancel: () => {
+			if (settled) return;
+			settled = true;
+			globalThis.clearInterval(intervalId);
+			resolvePromise();
+		},
+	};
 }
 
 /** Resolve the opposite directional phase inside an effect's family. */

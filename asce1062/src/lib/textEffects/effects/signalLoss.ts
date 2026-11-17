@@ -29,7 +29,7 @@ function renderSignalLossFrame(
 	const dropoutCount = Math.max(1, Math.ceil(chars.length * lossRatio * 0.72));
 	const start = Math.min(chars.length - 1, (frame * 2) % Math.max(chars.length, 1));
 	const rendered = chars.map((char, index) => {
-		if (char === " ") return char;
+		if (/\s/.test(char)) return char;
 		const inPrimaryDropout = index >= start && index < start + dropoutCount;
 		const inWrappedDropout = start + dropoutCount > chars.length && index < (start + dropoutCount) % chars.length;
 		const shouldDrop = inPrimaryDropout || inWrappedDropout || (lossRatio > 0.58 && (index + frame) % 3 === 0);

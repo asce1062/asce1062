@@ -9,9 +9,9 @@
     "markdown.config.ts",
     "lighthouserc.cjs",
     "src/pages/**/*.{astro,mdx}",
-    "src/components/MagicalText.astro",
     "scripts/**/*.{ts,js,mjs}",
     "db/**/*.{ts,js}",
+    "netlify/edge-functions/*.ts",
     "src/**/*.test.{ts,js}"
   ],
 

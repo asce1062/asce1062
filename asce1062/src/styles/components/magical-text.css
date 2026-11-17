@@ -35,6 +35,17 @@
 	}
 }
 
+/* Forced colors drops the gradient, which would leave transparent text on the
+   system background. Fall back to the inherited (system) text color. */
+@media (forced-colors: active) {
+	.magical-text-inner {
+		background-image: none;
+		-webkit-text-fill-color: currentColor;
+		color: inherit;
+		animation: none;
+	}
+}
+
 /* Adornment container sits over the text, pointer-events off */
 .magical-text-adornments {
 	position: absolute;

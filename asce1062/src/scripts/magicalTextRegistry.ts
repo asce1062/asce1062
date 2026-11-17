@@ -10,7 +10,8 @@
  *   data-magical-text                               activate (required)
  *   data-magical-text-colors="hotpink,purple,cyan"  comma-separated CSS colors
  *   data-magical-text-animation-time="10"           gradient cycle in seconds
- *   data-magical-text-adornment="star"              star | heart | ghost | ghost-alt
+ *   data-magical-text-adornment="star"              star | heart | ghost | ghost-alt | north-star |
+ *                                                   music-note | cassette | waving-hand
  *   data-magical-text-no-adornments                 presence → disable sparkles
  *   data-magical-text-adornment-count="3"
  *   data-magical-text-adornment-size="16"           width & height in px
@@ -19,8 +20,10 @@
  *   data-magical-text-animation-type="sparkle"      sparkle | scale
  *
  * Usage:
- *   import '@/scripts/magicalTextRegistry';
- *   — or import via MagicalText.astro which includes it automatically.
+ *   Layout.astro imports this module on demand, the first time a page contains
+ *   a `[data-magical-text]` element. It binds the current page as soon as it
+ *   evaluates (the `astro:page-load` that triggered the import has already
+ *   fired) and then follows every later soft navigation itself.
  *
  * Adding a new adornment shape:
  *   See src/lib/shared/adornments.ts for step-by-step instructions.
@@ -75,20 +78,23 @@ function readMagicalTextConfig(el: HTMLElement): MagicalTextOptions {
 	return opts;
 }
 
-const cleanupFns: (() => void)[] = [];
+const cleanups = new Map<HTMLElement, () => void>();
 
+/** Bind every unbound `[data-magical-text]` element. Safe to call repeatedly. */
 function initMagicalTextRegistry(): void {
 	const elements = document.querySelectorAll<HTMLElement>("[data-magical-text]");
 	for (const el of elements) {
-		const opts = readMagicalTextConfig(el);
-		cleanupFns.push(bindMagicalText(el, opts));
+		if (cleanups.has(el)) continue;
+		cleanups.set(el, bindMagicalText(el, readMagicalTextConfig(el)));
 	}
 }
 
 function cleanupMagicalTextRegistry(): void {
-	for (const fn of cleanupFns) fn();
-	cleanupFns.length = 0;
+	for (const cleanup of cleanups.values()) cleanup();
+	cleanups.clear();
 }
 
 document.addEventListener("astro:before-swap", cleanupMagicalTextRegistry);
 document.addEventListener("astro:page-load", initMagicalTextRegistry);
+// Loaded on demand after `astro:page-load`, so the current page is bound now.
+initMagicalTextRegistry();

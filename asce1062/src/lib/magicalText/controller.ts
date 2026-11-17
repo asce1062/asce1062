@@ -20,7 +20,8 @@ function randomBetween(min: number, max: number): number {
  *
  * Replaces the element's text content with a gradient-sweep span and optional
  * floating sparkle adornments. The gradient is pure CSS; sparkle lifecycle
- * (positioning, color tracking) is driven by a requestAnimationFrame loop.
+ * (positioning, color tracking) is driven by a requestAnimationFrame loop that
+ * pauses while the element is offscreen or the document is hidden.
  *
  * a 200-step RGB table maps each sparkle's horizontal position + current
  * gradient offset to the gradient color at that screen position.
@@ -65,6 +66,7 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 
 	let rafId: number | null = null;
 	let fadeTable: RGBColor[] | null = null;
+	let stopColorTracking: (() => void) | null = null;
 
 	interface SparkleState {
 		wrapper: HTMLElement;
@@ -136,7 +138,34 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 				rafId = requestAnimationFrame(frame);
 			};
 
-			rafId = requestAnimationFrame(frame);
+			// Colors derive from wall-clock time, so the loop can stop while
+			// nobody can see it and resume in step with the CSS gradient.
+			let onScreen = true;
+			const syncLoop = () => {
+				const shouldRun = onScreen && !document.hidden;
+				if (shouldRun && rafId === null) {
+					rafId = requestAnimationFrame(frame);
+				} else if (!shouldRun && rafId !== null) {
+					cancelAnimationFrame(rafId);
+					rafId = null;
+				}
+			};
+
+			const observer =
+				typeof IntersectionObserver === "undefined"
+					? null
+					: new IntersectionObserver((entries) => {
+							onScreen = entries.at(-1)?.isIntersecting ?? onScreen;
+							syncLoop();
+						});
+			observer?.observe(el);
+			document.addEventListener("visibilitychange", syncLoop);
+			stopColorTracking = () => {
+				observer?.disconnect();
+				document.removeEventListener("visibilitychange", syncLoop);
+			};
+
+			syncLoop();
 		}
 	}
 
@@ -153,6 +182,7 @@ export function bindMagicalText(el: HTMLElement, opts: MagicalTextOptions = {}):
 	}
 
 	return () => {
+		stopColorTracking?.();
 		if (rafId !== null) {
 			cancelAnimationFrame(rafId);
 			rafId = null;

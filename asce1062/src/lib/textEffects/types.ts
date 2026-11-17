@@ -165,7 +165,7 @@ export type GlitchEffectOptions = {
 	items?: string[];
 	/** Reveal direction: false = left→right (default), true = right→left. */
 	reverse?: boolean;
-	/** Ms between each reveal tick. Default 50. */
+	/** Ms between each reveal tick. Default: the auto-resolved glitch duration spread over text length + count. */
 	delayMs?: number;
 	/** Extra noise frames before reveal starts. Default 5. */
 	count?: number;
@@ -185,7 +185,7 @@ export type TypewriterEffectOptions = {
 	loop?: boolean;
 	/** Ms between each character typed or deleted. Default 100. */
 	delayMs?: number;
-	/** Cursor character appended to typed text. Default "|". */
+	/** Cursor character appended to typed text. Default "█". */
 	cursorChar?: string;
 	/** Cursor blink interval in ms. Default 530. */
 	cursorBlinkIntervalMs?: number;

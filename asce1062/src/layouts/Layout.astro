@@ -279,10 +279,15 @@ const ICOMOON_TOKEN = "fxd10s";
 		import "@/scripts/textEffectRegistry";
 	</script>
 	<script>
-		import "@/scripts/magicalTextRegistry";
-	</script>
-	<script>
-		import "@/scripts/hauntedRegistry";
+		// Decorative registries are fetched only once a page actually uses them.
+		// Each module binds the current page when it evaluates and then follows
+		// later soft navigations itself, so repeat imports are no-ops.
+		function loadDecorativeRegistries(): void {
+			if (document.querySelector("[data-magical-text]")) void import("@/scripts/magicalTextRegistry");
+			if (document.querySelector("[data-haunted]")) void import("@/scripts/hauntedRegistry");
+		}
+
+		document.addEventListener("astro:page-load", loadDecorativeRegistries);
 	</script>
 	<script>
 		import "@/scripts/tabTitle";

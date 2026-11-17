@@ -155,7 +155,7 @@
  *   data-text-effect-glitch-count="140"              // extra noise frames before reveal starts (default 5)
  *   data-text-effect-glitch-items="▓,░,#,!"          // comma-separated glitch chars; takes precedence over charset
  *   data-text-effect-glitch-shimmer-ms="1000"         // max quiet ms between post-settle shimmer pulses (default 5000)
- *   data-text-effect-glitch-shimmer="true"            // "true" to enable the post-settle shimmer loop
+ *   data-text-effect-glitch-shimmer="false"           // "false" to disable the post-settle shimmer loop (default on)
  *
  *   Typewriter (standalone):
  *   data-text-effect-typewriter-delay-ms="100"        // ms between each character typed or deleted (default 100)

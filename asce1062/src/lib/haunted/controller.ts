@@ -41,7 +41,7 @@ interface CreatureEl {
  *
  * On mouseenter: creatures fly out from the container centre in evenly-spaced
  * directions and the container pulses with a box-shadow glow.
- * On mouseleave: glow fades back to off.
+ * On mouseleave: the glow stops and the container returns to its own box-shadow.
  *
  * Respects `prefers-reduced-motion` — both effects are skipped when the user
  * has requested reduced motion.
@@ -96,7 +96,9 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		}
 
 		// Creature layer sits behind the content (z-index 0, no pointer events)
-		creatureLayer = document.createElement("div");
+		// Spans throughout: the host may be a phrasing element (sup, span, a...),
+		// where div children are invalid. haunted.css gives them block layout.
+		creatureLayer = document.createElement("span");
 		creatureLayer.className = "haunted-creatures";
 		// Decorative: some creature SVGs carry no aria-hidden of their own.
 		creatureLayer.setAttribute("aria-hidden", "true");
@@ -106,13 +108,13 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 		const n = Math.max(1, cOpts.numberOf);
 
 		for (let i = 0; i < n; i++) {
-			const wrap = document.createElement("div");
+			const wrap = document.createElement("span");
 			wrap.className = "haunted-creature-wrap";
 
-			const fly = document.createElement("div");
+			const fly = document.createElement("span");
 			fly.className = "haunted-creature-fly";
 
-			const wave = document.createElement("div");
+			const wave = document.createElement("span");
 			wave.className = "haunted-creature-wave";
 			wave.innerHTML = svgStr;
 
@@ -135,7 +137,9 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 	}
 
 	let glowAnim: Animation | null = null;
-	const pendingTimers: ReturnType<typeof setTimeout>[] = [];
+	// One hide timer per creature: a re-hover replaces the previous timer, so
+	// the count never exceeds the creature count however often the host is hovered.
+	const hideTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
 	function getInitY(): number {
 		const rect = el.getBoundingClientRect();
@@ -175,7 +179,9 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 			wrap.style.transform = `translateX(${cx}px) translateY(${cy}px) rotate(${rotation}deg)`;
 			wrap.style.display = "block";
 
-			// Cancel any in-progress animations from a previous hover
+			// Cancel any in-progress animations (and the pending hide) from a previous hover
+			const previousTimer = hideTimers.get(i);
+			if (previousTimer !== undefined) clearTimeout(previousTimer);
 			fly.getAnimations().forEach((a) => a.cancel());
 			wave.getAnimations().forEach((a) => a.cancel());
 
@@ -206,26 +212,25 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 
 			// Hide wrapper once animation finishes; clear fill-forwards state
 			const timer = setTimeout(() => {
+				hideTimers.delete(i);
 				wrap.style.display = "none";
 				fly.getAnimations().forEach((a) => a.cancel());
 				wave.getAnimations().forEach((a) => a.cancel());
 			}, animMs);
 
-			pendingTimers.push(timer);
+			hideTimers.set(i, timer);
 		});
 	}
 
 	function onMouseLeave(): void {
 		if (glowEnabled) {
-			// Cancel the looping glow and fade box-shadow back to off
+			// Cancel the looping glow: the host falls back to its own box-shadow.
+			// Nothing is pinned with a forwards fill, which would keep overriding
+			// the stylesheet's box-shadow for as long as the page lives.
 			if (glowAnim) {
 				glowAnim.cancel();
 				glowAnim = null;
 			}
-			el.animate([{ boxShadow: gOpts.boxShadowOff }], {
-				duration: gOpts.animationTime * 1000,
-				fill: "forwards",
-			});
 		}
 
 		// Re-arm all creatures for the next hover
@@ -263,8 +268,9 @@ export function bindHaunted(el: HTMLElement, opts: HauntedOptions = {}): () => v
 			document.removeEventListener("flavor-change", onFlavorChange);
 		}
 		if (glowAnim) glowAnim.cancel();
-		el.getAnimations().forEach((a) => a.cancel());
-		pendingTimers.forEach(clearTimeout);
+		glowAnim = null;
+		hideTimers.forEach((timer) => clearTimeout(timer));
+		hideTimers.clear();
 		creatureEls.forEach(({ fly, wave }) => {
 			fly.getAnimations().forEach((a) => a.cancel());
 			wave.getAnimations().forEach((a) => a.cancel());

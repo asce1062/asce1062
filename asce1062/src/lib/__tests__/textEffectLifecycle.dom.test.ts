@@ -108,3 +108,66 @@ describe("glitch shimmer", () => {
 		expect(vi.getTimerCount()).toBe(0);
 	});
 });
+
+describe("hover replay lock", () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
+		);
+		document.body.innerHTML = "";
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
+
+	function bindHover(): HTMLElement {
+		const el = document.createElement("p");
+		el.textContent = "hover me";
+		document.body.append(el);
+		bindTextEffectTriggers({
+			el,
+			effects: ["scramble"],
+			triggers: ["hover"],
+		} as Parameters<typeof bindTextEffectTriggers>[0]);
+		return el;
+	}
+
+	it("releases the lock once per unbind, however many times the element was hovered", async () => {
+		const { clearTriggerBindings, hoverReplayLocks } = await import("@/lib/textEffects/activeEffects");
+		const el = bindHover();
+
+		for (let i = 0; i < 6; i++) {
+			el.dispatchEvent(new Event("mouseenter"));
+			el.dispatchEvent(new Event("mouseleave"));
+			document.dispatchEvent(new Event("mousemove")); // unlocks, ready for the next hover
+		}
+
+		const released = vi.spyOn(hoverReplayLocks, "delete");
+		clearTriggerBindings(el);
+
+		// One registered cleanup per hover used to run here.
+		expect(released).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a pending unlock and its document listeners when the element is unbound", async () => {
+		const { clearTriggerBindings, hoverReplayLocks } = await import("@/lib/textEffects/activeEffects");
+		const el = bindHover();
+		const removed = vi.spyOn(document, "removeEventListener");
+
+		el.dispatchEvent(new Event("mouseenter"));
+		el.dispatchEvent(new Event("mouseleave"));
+		expect(hoverReplayLocks.has(el)).toBe(true);
+
+		clearTriggerBindings(el);
+
+		expect(hoverReplayLocks.has(el)).toBe(false);
+		expect(removed.mock.calls.map(([type]) => type)).toEqual(
+			expect.arrayContaining(["mousemove", "pointerdown", "touchstart"])
+		);
+	});
+});

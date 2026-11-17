@@ -1,7 +1,7 @@
 export type { AdornmentKind, AnimationType } from "../shared/adornments";
 
 export type MagicalTextOptions = {
-	/** CSS color strings. Default: ['darkorange', 'purple'] */
+	/** CSS color strings. Default: the theme's --color-primary and --color-accent (tracks flavor changes). */
 	colors?: string[];
 	/** Gradient sweep cycle duration in seconds. Default: 10 */
 	animationTime?: number;
@@ -19,7 +19,7 @@ export type MagicalTextOptions = {
 	adornmentDuration?: number;
 	/**
 	 * Animation style. 'sparkle' rotates while scaling; 'scale' only scales.
-	 * Defaults: star/heart → 'sparkle'; ghost/ghost-alt → 'scale'.
+	 * Defaults: star/heart → 'sparkle'; every other adornment → 'scale'.
 	 */
 	animationType?: import("../shared/adornments").AnimationType;
 };

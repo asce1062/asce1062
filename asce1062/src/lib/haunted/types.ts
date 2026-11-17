@@ -10,7 +10,7 @@ export type HauntedCreatureOptions = {
 	numberOf?: number;
 	/** Travel distance in pixels. Default: 200 */
 	distance?: number;
-	/** If false, creatures fly out only once (not reset across hovers). Default: true */
+	/** If false, creatures fly out once per hover and are re-armed on mouseleave. Default: true */
 	repeat?: boolean;
 	/** Width and height of each creature SVG in px. Default: { width: 44, height: 44 } */
 	dimensions?: { width: number; height: number };
@@ -26,9 +26,9 @@ export type HauntedCreatureOptions = {
 export type HauntedGlowOptions = {
 	/** Glow pulse cycle in seconds. Default: 3 */
 	animationTime?: number;
-	/** box-shadow value at glow lowest point. Default: '0px 0px 0px rgba(255,0,0,0)' */
+	/** box-shadow value at glow lowest point. Default: a 0px transparent shadow in the theme's --color-primary (tracks flavor changes). */
 	boxShadowOff?: string;
-	/** box-shadow value at glow highest point. Default: '0px 0px 40px rgba(255,0,0,1)' */
+	/** box-shadow value at glow highest point. Default: a 40px opaque shadow in the theme's --color-primary (tracks flavor changes). */
 	boxShadowOn?: string;
 };
 

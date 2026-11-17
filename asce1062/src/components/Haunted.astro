@@ -4,7 +4,8 @@
  * A container whose children glow on hover and emit flying creatures.
  *
  * Props:
- *   creature          SVG creature to use: 'ghost' | 'ghost-alt' | 'heart' | 'star'.
+ *   creature          SVG creature to use: 'ghost' | 'ghost-alt' | 'heart' | 'star' |
+ *                     'north-star' | 'music-note' | 'cassette' | 'waving-hand'.
  *                     Default: 'ghost'.
  *   creatureColors    CSS color(s) for creatures that use fill="currentColor". Multiple colors are distributed
  *                     across creatures in round-robin order. Default: [--color-primary] from
@@ -13,7 +14,7 @@
  *     animationTime   Fly duration in seconds. Default: 1.5
  *     numberOf        Number of creatures. Default: 6
  *     distance        Travel distance in px. Default: 200
- *     repeat          false = one-shot per page load. Default: true
+ *     repeat          false = fly out once per hover, re-armed on mouseleave. Default: true
  *     dimensions      { width, height } of each creature in px. Default: { 44, 44 }
  *   disableFun        true to disable all effects (glow and creatures). Default: false
  *   disableGlow       true to disable only the box-shadow glow, independent of disableFun. Default: false
@@ -21,14 +22,18 @@
  *   glowOptions       Fine-tune the box-shadow glow:
  *     animationTime   Glow pulse cycle in seconds. Default: 3
  *     boxShadowOff    box-shadow CSS value at glow low point.
- *                     Default: '0px 0px 0px rgba(255,0,0,0)'
+ *                     Default: 0px transparent shadow in the theme's --color-primary.
  *     boxShadowOn     box-shadow CSS value at glow high point.
- *                     Default: '0px 0px 40px rgba(255,0,0,1)'
+ *                     Default: 40px opaque shadow in the theme's --color-primary.
+ *                     Both defaults track flavor changes.
  *   tag               HTML tag to use for the container. Default: 'div'.
  *                     Also accepts 'span', 'section', 'article', 'aside', 'nav',
- *                     'header', 'footer', 'main', 'li', 'button', 'a', 'sup', 'i'.
+ *                     'header', 'footer', 'main', 'li', 'button', 'a', 'sup', 'i', 'b',
+ *                     'em', 'strong'.
  *   style             Flat camelCase style object spread as inline style onto the
  *                     container (e.g. { borderRadius: '8px', padding: '1rem' }).
+ *                     Declarations whose name or value could inject further CSS
+ *                     (`;`, braces, comments, unbalanced quotes) are dropped.
  *   class             Extra CSS class(es) applied to the container.
  *   ...               Any additional HTML attributes (role, tabindex, aria-*, data-*,
  *                     etc.) are forwarded directly to the root element.
@@ -55,7 +60,8 @@
  *   4. Use it: <Haunted creature="my-shape" />
  *
  * Notes:
- *   - Creatures are injected by JS; the component renders only a content wrapper.
+ *   - Creatures are injected by JS; the component renders only a content wrapper
+ *     (a span inside phrasing tags such as 'span', 'a' or 'sup', otherwise a div).
  *   - Glow and creature animations use the Web Animations API.
  *   - Both effects are skipped when prefers-reduced-motion is set.
  *   - Nested CSS (pseudo-selectors, media queries) is not possible via the style
@@ -63,6 +69,7 @@
  */
 
 import type { CreatureKind, HauntedCreatureOptions, HauntedGlowOptions } from "@/lib/haunted";
+import { serializeStyle } from "@/lib/haunted/serializeStyle";
 import "@/styles/components/haunted.css";
 
 interface Props {
@@ -110,11 +117,10 @@ const {
 	...rest
 } = Astro.props;
 
-function serializeStyle(s: Record<string, string>): string {
-	return Object.entries(s)
-		.map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}: ${v}`)
-		.join("; ");
-}
+// Phrasing hosts may only contain phrasing content, so their content wrapper
+// is a span (haunted.css lays it out as a block, matching the div).
+const PHRASING_TAGS: ReadonlySet<string> = new Set(["span", "button", "a", "sup", "i", "b", "em", "strong"]);
+const ContentTag = PHRASING_TAGS.has(Tag) ? "span" : "div";
 
 const baseStyle = "display: inline-block; position: relative";
 const inlineStyle = style ? `${baseStyle}; ${serializeStyle(style)}` : baseStyle;
@@ -141,7 +147,7 @@ if (glowOptions?.boxShadowOn !== undefined) dataAttrs["data-haunted-glow-on"] = 
 ---
 
 <Tag class={className} style={inlineStyle} {...rest} {...dataAttrs}>
-	<div class="haunted-content">
+	<ContentTag class="haunted-content">
 		<slot />
-	</div>
+	</ContentTag>
 </Tag>

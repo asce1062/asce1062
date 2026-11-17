@@ -18,6 +18,8 @@
 }
 
 .haunted-creature-fly {
+	/* A span (valid inside phrasing hosts); transforms need a block box. */
+	display: block;
 	opacity: 0;
 }
 
@@ -28,4 +30,9 @@
 .haunted-content {
 	position: relative;
 	z-index: 1;
+}
+
+/* Phrasing hosts wrap their content in a span; lay it out like the div. */
+span.haunted-content {
+	display: block;
 }

@@ -1,6 +1,12 @@
 import type { EffectRendererHandle, CorruptionEffectOptions } from "../types";
 import { DEFAULT_CORRUPTION_COUNT, DEFAULT_CORRUPTION_INTENSITY, DEFAULT_CORRUPTION_ITEMS } from "../constants";
-import { resolveTextEffectDurationMs, resolveGlitchCharsetStr, splitGraphemes, pickRandomGrapheme } from "../utils";
+import {
+	createIntervalRenderer,
+	resolveTextEffectDurationMs,
+	resolveGlitchCharsetStr,
+	splitGraphemes,
+	pickRandomGrapheme,
+} from "../utils";
 
 export function runCorruptionRenderer(
 	el: HTMLElement,
@@ -26,39 +32,19 @@ export function runCorruptionRenderer(
 	const stepMs = delayMs ?? totalDuration / totalCount;
 	const clampedIntensity = Math.min(1, Math.max(0, intensity));
 
-	let frame = 0;
-	let resolvePromise: () => void = () => {};
-	let settled = false;
-	const promise = new Promise<void>((resolve) => {
-		resolvePromise = resolve;
-	});
-
-	const intervalId = globalThis.setInterval(() => {
-		el.textContent = chars
-			.map((char) => {
-				if (/\s/.test(char)) return char;
-				return Math.random() < clampedIntensity ? (pickRandomGrapheme(glyphs) ?? char) : char;
-			})
-			.join("");
-
-		frame += 1;
-
-		if (frame >= totalCount) {
-			globalThis.clearInterval(intervalId);
-			if (settled) return;
-			settled = true;
-			if (restore) el.textContent = text;
-			resolvePromise();
-		}
-	}, stepMs);
-
-	return {
-		promise,
-		cancel: () => {
-			if (settled) return;
-			settled = true;
-			globalThis.clearInterval(intervalId);
-			resolvePromise();
+	return createIntervalRenderer({
+		frames: totalCount,
+		intervalMs: stepMs,
+		render: () => {
+			el.textContent = chars
+				.map((char) => {
+					if (/\s/.test(char)) return char;
+					return Math.random() < clampedIntensity ? (pickRandomGrapheme(glyphs) ?? char) : char;
+				})
+				.join("");
 		},
-	};
+		complete: () => {
+			if (restore) el.textContent = text;
+		},
+	});
 }
