@@ -3,6 +3,7 @@
  * Handles guestbook entry action menus: toggle, clipboard, share, anchor highlight
  */
 
+import { parseEntryStyle } from "@/lib/api/guestbook-input";
 import { copyToClipboard, shareOrCopyToClipboard } from "@/scripts/feedbackManager";
 
 const NOTIFICATION_ID = "entry-action-notification";
@@ -42,26 +43,14 @@ function toggleMenu(trigger: HTMLButtonElement): void {
 	}
 }
 
-/** Copy entry style JSON to clipboard */
+/**
+ * Copy entry style JSON to clipboard.
+ * Goes through the same parser the entry renderer uses, so an entry with no
+ * stored style (or a partial one) copies exactly the style it is drawn with.
+ */
 async function handleCopyStyle(button: HTMLElement): Promise<void> {
-	const rawStyle = button.dataset.style || "";
-	let styleObj: Record<string, string>;
-
-	const defaults = {
-		bg: "topography",
-		borderColor: "base-300",
-		borderWidth: "1px",
-		borderStyle: "solid",
-		borderRadius: "0rem",
-	};
-
-	try {
-		styleObj = rawStyle ? { ...defaults, ...JSON.parse(rawStyle) } : defaults;
-	} catch {
-		styleObj = defaults;
-	}
-
-	await copyToClipboard(JSON.stringify(styleObj, null, 2), NOTIFICATION_ID);
+	const style = parseEntryStyle(button.dataset.style);
+	await copyToClipboard(JSON.stringify(style, null, 2), NOTIFICATION_ID);
 }
 
 /** Copy entry message text to clipboard */

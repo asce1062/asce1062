@@ -157,7 +157,10 @@ const entries = await getGuestEntries();
 					/>
 				</label>
 			</p>
-			<p aria-hidden="true">
+			{/* Honeypot. Visible on purpose, so it is not aria-hidden: a focusable (clickable)
+			    control inside aria-hidden is announced without its label. Its label tells
+			    everyone, sighted or not, to skip it, and tabindex="-1" keeps it out of the tab order. */}
+			<p>
 				<label>
 					Subject{" "}
 					<small>

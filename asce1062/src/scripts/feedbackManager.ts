@@ -8,6 +8,10 @@ import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 const AUTO_HIDE_DELAY = 3000; // ms. time before a notification auto-hides
 const FADE_OUT_DURATION = 300; // ms. matches the fadeOut CSS animation duration
 const RARE_NOTIFICATION_TITLE_CHANCE = 0.08;
+const COPY_FAILED_TITLE = "Signal lost";
+const COPY_FAILED_MESSAGE = "Copy failed. Try again.";
+
+type NotificationVariant = "success" | "copy-failed";
 
 // Auto-hide timers: fires hideNotification() after AUTO_HIDE_DELAY.
 const notificationTimers = new Map<string, number>();
@@ -46,22 +50,52 @@ function pickNotificationTitle(notification: HTMLElement): string | null {
 	return pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? null;
 }
 
-function updateNotificationTitle(notification: HTMLElement): void {
+/**
+ * Fill the toast for this showing. A failure replaces the success title and
+ * message; the next success puts the notification's own message back.
+ */
+function updateNotificationContent(notification: HTMLElement, variant: NotificationVariant): void {
 	if (typeof notification.querySelector !== "function") return;
 
 	const title = notification.querySelector<HTMLElement>("[data-share-notification-title]");
-	if (!title) return;
+	const message = notification.querySelector<HTMLElement>("[data-share-notification-message]");
 
-	const nextTitle = pickNotificationTitle(notification);
-	if (nextTitle) title.textContent = nextTitle;
+	if (variant === "copy-failed") {
+		if (title) {
+			if (notification.dataset.successTitle === undefined) {
+				notification.dataset.successTitle = title.textContent ?? "";
+			}
+			title.textContent = COPY_FAILED_TITLE;
+		}
+		if (message) {
+			if (notification.dataset.successMessage === undefined) {
+				notification.dataset.successMessage = message.textContent ?? "";
+			}
+			message.textContent = COPY_FAILED_MESSAGE;
+		}
+		return;
+	}
+
+	if (message && notification.dataset.successMessage !== undefined) {
+		message.textContent = notification.dataset.successMessage;
+		delete notification.dataset.successMessage;
+	}
+	if (title && notification.dataset.successTitle !== undefined) {
+		title.textContent = notification.dataset.successTitle;
+		delete notification.dataset.successTitle;
+	}
+	const nextTitle = title ? pickNotificationTitle(notification) : null;
+	if (title && nextTitle) title.textContent = nextTitle;
 }
 
 /**
  * Show a notification with auto-hide.
  * Cancels any in-flight hide animation or auto-hide timer before showing,
  * so calling this repeatedly never leaves the notification in a broken state.
+ * The "copy-failed" variant reuses the same toast (and its live region) to
+ * report a clipboard failure.
  */
-export function showNotification(notificationId: string): void {
+export function showNotification(notificationId: string, variant: NotificationVariant = "success"): void {
 	const notification = document.getElementById(notificationId);
 	if (!notification) {
 		console.warn(`[feedbackManager] Notification "${notificationId}" not found`);
@@ -84,7 +118,7 @@ export function showNotification(notificationId: string): void {
 	}
 
 	// Show: clear both animation and hidden state.
-	updateNotificationTitle(notification);
+	updateNotificationContent(notification, variant);
 	notification.classList.remove("fadeOut", "hidden");
 
 	// Schedule auto-hide.
@@ -130,15 +164,11 @@ export function hideNotification(notificationId: string): void {
 }
 
 /**
- * Copy text to clipboard and show a notification on success.
- * Returns false if the Clipboard API is unavailable or the write fails.
+ * Copy text to clipboard and show a notification either way: the success
+ * toast, or the same toast reporting the failure (Clipboard API unavailable,
+ * permission denied, or the write rejected). Returns whether the copy worked.
  */
 export async function copyToClipboard(text: string, notificationId: string): Promise<boolean> {
-	if (!navigator.clipboard?.writeText) {
-		console.error("[feedbackManager] Clipboard API not available");
-		return false;
-	}
-
 	const copied = await writeTextToClipboard(text);
 	if (copied) {
 		showNotification(notificationId);
@@ -146,6 +176,7 @@ export async function copyToClipboard(text: string, notificationId: string): Pro
 	}
 
 	console.error("[feedbackManager] Failed to copy to clipboard");
+	showNotification(notificationId, "copy-failed");
 	return false;
 }
 
