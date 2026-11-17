@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["astro/magicalTextRegistry.DgIhqoqB.js","astro/colorUtils.ByMOzeSb.js","astro/hauntedRegistry.BRgbyZyH.js"])))=>i.map(i=>d[i]);
+import{t as e}from"./preload-helper.DHhhL8Zf.js";function t(){document.querySelector(`[data-magical-text]`)&&e(()=>import(`./magicalTextRegistry.DgIhqoqB.js`),__vite__mapDeps([0,1])),document.querySelector(`[data-haunted]`)&&e(()=>import(`./hauntedRegistry.BRgbyZyH.js`),__vite__mapDeps([2,1]))}document.addEventListener(`astro:page-load`,t);
