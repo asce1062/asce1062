@@ -3,15 +3,20 @@
  * Renders a collapsible, nested table of contents for blog posts
  */
 
+import { MAX_TOC_DEPTH, limitTocDepth } from "@/lib/content/toc";
 import type { TableOfContents, TableOfContentsEntry } from "@/types";
 
 interface Props {
 	tableOfContents?: TableOfContents;
 }
 
-const { tableOfContents } = Astro.props;
+const { tableOfContents: fullTableOfContents } = Astro.props;
 
-// Helper function to render nested TOC entries recursively
+// The markup below nests exactly MAX_TOC_DEPTH lists, so deeper headings are
+// dropped here, on purpose and by name, instead of silently by the template.
+const tableOfContents = fullTableOfContents && limitTocDepth(fullTableOfContents, MAX_TOC_DEPTH);
+
+// Helper function to describe one TOC entry for the template
 function renderTocEntry(entry: TableOfContentsEntry) {
 	return {
 		entry,

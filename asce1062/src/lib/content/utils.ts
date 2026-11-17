@@ -30,6 +30,15 @@ export function getContentUrl(id: string, basePath: string): string {
 }
 
 /**
+ * Generate the canonical URL of a tag page.
+ * The site's canonical form ends with a slash (it is what the sitemap and
+ * <link rel="canonical"> emit), and the tag is a path segment, so it is encoded.
+ */
+export function getTagUrl(tag: string): string {
+	return `/tags/${encodeURIComponent(tag)}/`;
+}
+
+/**
  * Sort content entries by publication date (newest first)
  */
 export function sortByDate<T extends ContentEntry>(entries: T[]): T[] {

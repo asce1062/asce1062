@@ -6,7 +6,7 @@ import TableOfContentsComponent from "@/components/content/TableOfContents.astro
 import ContentNavigation from "@/components/content/ContentNavigation.astro";
 import { render } from "astro:content";
 import { getPublishedEntries } from "@/lib/content/published";
-import { formatDate } from "@/lib/content/utils";
+import { formatDate, getTagUrl } from "@/lib/content/utils";
 import type { TableOfContents } from "@/types";
 import "@/styles/global.css";
 
@@ -89,11 +89,13 @@ const editDate = updatedDate ? formatDate(updatedDate, "long") : null;
 
 		{!isBlog && <div class="mt-4" aria-hidden="true" />}
 
-		<span class="block mt-1 mb-1">
+		{/* One meta value for every tag: repeating data-pagefind-meta="tag" per link
+		    keeps only the last one, because a page holds a single value per meta key. */}
+		<span class="block mt-1 mb-1" data-pagefind-meta={tags.length > 0 ? `tag:${tags.join(", ")}` : undefined}>
 			tags:{" "}
 			{tags.map((tag) => (
 				<>
-					<a class="italic" href={`/tags/${tag}`} data-pagefind-meta="tag">
+					<a class="italic" href={getTagUrl(tag)}>
 						{tag}
 					</a>{" "}
 				</>

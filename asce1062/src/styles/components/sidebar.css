@@ -131,10 +131,19 @@ body:has(#nav-toggle:checked) {
 .nav-brand-prompt:hover,
 .nav-brand-prompt:focus-visible {
 	transform: translateX(0.08rem);
+}
+
+.nav-brand-prompt:hover {
 	outline: none;
 }
 
+/* Keyboard focus: the site's accent ring (well over 3:1 against the sidebar
+   surface in both themes); the soft glow alone was too faint to see.
+   No offset: the prompt sits 0.25rem from the panel edge and .nav-menu clips
+   its overflow, so an offset ring would lose its right side. */
 .nav-brand-prompt:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 0;
 	filter: drop-shadow(0 0 0.35rem color-mix(in oklab, var(--color-accent) 18%, transparent));
 }
 

@@ -2,10 +2,25 @@
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
 
+/**
+ * Tailwind only generates classes it can read whole in the source, so the
+ * max-width is picked from complete class names instead of built as `max-w-${x}`.
+ */
+const MAX_WIDTH_CLASSES = {
+	xs: "max-w-xs",
+	sm: "max-w-sm",
+	md: "max-w-md",
+	lg: "max-w-lg",
+	xl: "max-w-xl",
+	"2xl": "max-w-2xl",
+	"3xl": "max-w-3xl",
+	full: "max-w-full",
+} as const;
+
 interface Props {
 	image: string;
 	altText: string;
-	maxWidth?: string;
+	maxWidth?: keyof typeof MAX_WIDTH_CLASSES;
 }
 
 const { image, altText, maxWidth = "full" } = Astro.props;
@@ -17,8 +32,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 		<Image
 			src={images[image]()}
 			alt={altText}
-			title={altText}
-			class={`h-auto max-w-${maxWidth} mx-auto`}
+			class:list={["h-auto mx-auto", MAX_WIDTH_CLASSES[maxWidth]]}
 			loading="lazy"
 			decoding="async"
 		/>

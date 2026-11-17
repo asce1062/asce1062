@@ -20,7 +20,6 @@ const images = import.meta.glob<{ default: ImageMetadata }>("/src/assets/**/*.{j
 	<Picture
 		src={images[src]()}
 		alt={altText}
-		title={altText}
 		formats={["avif", "webp"]}
 		pictureAttributes={{ class: "contents" }}
 		class="m-auto my-4 block bg-cover h-72 object-cover opacity-100 transition-transform duration-300 hover:scale-105"

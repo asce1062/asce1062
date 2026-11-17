@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import Columns from "@/components/ui/Columns.astro";
 import { getPublishedEntries } from "@/lib/content/published";
-import { getAllTags } from "@/lib/content/utils";
+import { getAllTags, getTagUrl } from "@/lib/content/utils";
 
 const allPosts = await getPublishedEntries("blog");
 const allNotes = await getPublishedEntries("notes");
@@ -22,7 +22,7 @@ const tags = getAllTags([...allPosts, ...allNotes]);
 			<ul class="list-disc list-inside">
 				{tags.map((tag) => (
 					<li>
-						<a class="italic" href={`/tags/${tag}`}>
+						<a class="italic" href={getTagUrl(tag)}>
 							{tag}
 						</a>
 					</li>

@@ -2,12 +2,24 @@
  * Palette Copy Functionality
  *
  * Handles copying CSS variable computed values to clipboard
- * with icon toggle feedback (clipboard → checkmark)
+ * with icon toggle feedback (clipboard → checkmark), a brief error state when
+ * the copy fails, and a polite screen reader announcement for both outcomes.
  */
 
+import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 import { flashCheckIcon } from "@/scripts/feedbackManager";
 
 const RESET_DELAY = 2000;
+const STATUS_ID = "palette-copy-status";
+const COPIED_LABEL = "Copied!";
+const FAILED_LABEL = "Copy failed";
+const FAILED_ANNOUNCEMENT = "Copy failed. Try again.";
+const ERROR_CLASS = "text-error";
+const SUCCESS_CLASS = "text-success";
+
+// Pending restores, keyed on the element whose look was changed, so a second
+// click cancels the first restore instead of racing it.
+const restoreTimers = new WeakMap<HTMLElement, number>();
 
 /**
  * Initialize palette interactions
@@ -15,15 +27,57 @@ const RESET_DELAY = 2000;
 export function initPaletteCopy(): void {
 	// Swatch copy buttons
 	const copyButtons = document.querySelectorAll<HTMLButtonElement>(".copy-btn");
-	copyButtons.forEach((btn) => {
-		btn.addEventListener("click", () => handleCopyClick(btn));
-	});
-
 	// OKLCH copy buttons (ingredients table)
 	const oklchButtons = document.querySelectorAll<HTMLButtonElement>(".oklch-copy");
-	oklchButtons.forEach((btn) => {
-		btn.addEventListener("click", () => handleOklchCopy(btn));
+	if (copyButtons.length === 0 && oklchButtons.length === 0) return;
+
+	// The live region has to exist before its text changes, or the first copy is not announced.
+	ensureStatusRegion();
+
+	copyButtons.forEach((btn) => {
+		btn.addEventListener("click", () => void handleCopyClick(btn));
 	});
+	oklchButtons.forEach((btn) => {
+		btn.addEventListener("click", () => void handleOklchCopy(btn));
+	});
+}
+
+/**
+ * Visually hidden polite live region. The buttons carry an aria-label, so the
+ * icon swap and the "Copied!" text inside them are never read out on their own.
+ */
+function ensureStatusRegion(): HTMLElement {
+	const existing = document.getElementById(STATUS_ID);
+	if (existing) return existing;
+
+	const region = document.createElement("span");
+	region.id = STATUS_ID;
+	region.className = "sr-only";
+	region.setAttribute("role", "status");
+	region.setAttribute("aria-live", "polite");
+	document.body.appendChild(region);
+	return region;
+}
+
+function announce(message: string): void {
+	const region = ensureStatusRegion();
+	// Clear first so copying the same value twice is announced twice.
+	region.textContent = "";
+	window.setTimeout(() => {
+		region.textContent = message;
+	}, 50);
+}
+
+/** Run `restore` after the reset delay, replacing any restore still pending for `el`. */
+function scheduleRestore(el: HTMLElement, restore: () => void): void {
+	const prior = restoreTimers.get(el);
+	if (prior !== undefined) clearTimeout(prior);
+
+	const timer = window.setTimeout(() => {
+		restoreTimers.delete(el);
+		restore();
+	}, RESET_DELAY);
+	restoreTimers.set(el, timer);
 }
 
 /**
@@ -36,12 +90,17 @@ async function handleCopyClick(btn: HTMLButtonElement): Promise<void> {
 	// Get the computed color value from CSS variable
 	const computedValue = window.getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
 
-	try {
-		await navigator.clipboard.writeText(computedValue);
+	if (await writeTextToClipboard(computedValue)) {
+		btn.classList.remove(ERROR_CLASS);
 		showSuccessState(btn);
-	} catch (err) {
-		console.error("Failed to copy:", err);
+		announce(`Copied ${computedValue}`);
+		return;
 	}
+
+	// Failure: the clipboard icon stays and turns the error colour for a moment.
+	btn.classList.add(ERROR_CLASS);
+	scheduleRestore(btn, () => btn.classList.remove(ERROR_CLASS));
+	announce(FAILED_ANNOUNCEMENT);
 }
 
 /**
@@ -54,25 +113,23 @@ async function handleOklchCopy(btn: HTMLButtonElement): Promise<void> {
 	const codeElement = btn.querySelector<HTMLElement>("code");
 	if (!codeElement) return;
 
-	try {
-		await navigator.clipboard.writeText(oklchValue);
-		showOklchCopiedState(codeElement, oklchValue);
-	} catch (err) {
-		console.error("Failed to copy:", err);
-	}
+	const copied = await writeTextToClipboard(oklchValue);
+	showOklchState(codeElement, oklchValue, copied);
+	announce(copied ? `Copied ${oklchValue}` : FAILED_ANNOUNCEMENT);
 }
 
 /**
- * Show copied state for OKLCH values
+ * Show the copied or failed state for OKLCH values, then put the value back
  */
-function showOklchCopiedState(codeElement: HTMLElement, originalValue: string): void {
-	codeElement.textContent = "Copied!";
-	codeElement.classList.add("text-success");
+function showOklchState(codeElement: HTMLElement, originalValue: string, copied: boolean): void {
+	codeElement.textContent = copied ? COPIED_LABEL : FAILED_LABEL;
+	codeElement.classList.toggle(SUCCESS_CLASS, copied);
+	codeElement.classList.toggle(ERROR_CLASS, !copied);
 
-	setTimeout(() => {
+	scheduleRestore(codeElement, () => {
 		codeElement.textContent = originalValue;
-		codeElement.classList.remove("text-success");
-	}, RESET_DELAY);
+		codeElement.classList.remove(SUCCESS_CLASS, ERROR_CLASS);
+	});
 }
 
 /**

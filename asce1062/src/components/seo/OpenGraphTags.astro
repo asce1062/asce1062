@@ -194,13 +194,15 @@ const breadcrumbSchema =
 						"@type": "ListItem",
 						position: 1,
 						name: "Home",
-						item: siteUrl,
+						item: `${siteUrl}/`,
 					},
 					...pathSegments.map((segment, index) => ({
 						"@type": "ListItem",
 						position: index + 2,
 						name: formatBreadcrumbName(segment),
-						item: `${siteUrl}/${pathSegments.slice(0, index + 1).join("/")}`,
+						// Trailing slash: the canonical form the sitemap and <link rel="canonical"> use.
+						// Segments come from the already percent-encoded page URL, so no re-encoding.
+						item: `${siteUrl}/${pathSegments.slice(0, index + 1).join("/")}/`,
 					})),
 				],
 			}
