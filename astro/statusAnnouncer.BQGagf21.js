@@ -1,0 +1,1 @@
+var e=`status-announcer`;function t(){let t=document.getElementById(e);if(t)return t;let n=document.createElement(`span`);return n.id=e,n.className=`sr-only`,n.setAttribute(`role`,`status`),n.setAttribute(`aria-live`,`polite`),document.body.appendChild(n),n}function n(e){t().textContent=``,window.setTimeout(()=>{t().textContent=e},50)}export{t as n,n as t};
