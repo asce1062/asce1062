@@ -8,12 +8,10 @@ import {
 	SYSTEM_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_COOLDOWN_MS,
 	getScheduledCuriosityDelay,
-	resolveStatePriority,
 	shouldShowCollapsedEventCuriosityNudge,
 	shouldShowScheduledCollapsedCuriosityNudge,
 	shouldEnterIdle,
 	shouldShowSystemMessage,
-	type NavBrandState,
 } from "@/lib/navBrand/state";
 
 describe("shouldEnterIdle", () => {
@@ -21,13 +19,6 @@ describe("shouldEnterIdle", () => {
 		const now = 1_000_000;
 		expect(shouldEnterIdle(now - IDLE_DELAY_MS, now)).toBe(true);
 		expect(shouldEnterIdle(now - IDLE_DELAY_MS + 1, now)).toBe(false);
-	});
-});
-
-describe("resolveStatePriority", () => {
-	it("prefers higher-priority states when triggers compete", () => {
-		const states: NavBrandState[] = ["active", "idle", "return"];
-		expect(resolveStatePriority(states)).toBe("return");
 	});
 });
 

@@ -32,6 +32,7 @@ import {
 	RARE_MESSAGE_CHANCE,
 	SYSTEM_MESSAGE_CHANCE,
 	getScheduledCuriosityDelay,
+	shouldEnterIdle,
 	shouldShowCollapsedEventCuriosityNudge,
 	shouldShowScheduledCollapsedCuriosityNudge,
 	shouldShowRareMessage,
@@ -79,8 +80,6 @@ type NavBrandMemory = {
 	lastGreetingText: string | null;
 	lastSystemTs: number;
 	lastRareTs: number;
-	lastIdleTs: number;
-	lastReturnTs: number;
 	idleCount: number;
 	lastTeaserNudge: string | null;
 };
@@ -102,7 +101,6 @@ declare global {
 let elements: NavBrandElements = getElements();
 let idleTimer: number | null = null;
 let settleTimer: number | null = null;
-let hintTimer: number | null = null;
 let teaserNudgeTimer: number | null = null;
 let teaserResetTimer: number | null = null;
 let listenersBound = false;
@@ -126,8 +124,6 @@ const memory: NavBrandMemory = {
 	lastGreetingText: null,
 	lastSystemTs: 0,
 	lastRareTs: 0,
-	lastIdleTs: 0,
-	lastReturnTs: 0,
 	idleCount: 0,
 	lastTeaserNudge: null,
 };
@@ -320,6 +316,11 @@ function getGuaranteedCuriosityCount(surface: CuriositySurfaceId): number {
 	return hasEarlyCuriosityNudge(surface) ? 2 : 1;
 }
 
+function clearTeaserTimers(): void {
+	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
+	teaserResetTimer = clearTimer(teaserResetTimer);
+}
+
 function clearCuriositySurfaceTimers(surface: CuriositySurfaceId): void {
 	const timers = curiositySurfaces[surface];
 	timers.waitTimer = clearTimer(timers.waitTimer);
@@ -341,14 +342,13 @@ function pickTeaserNudge(): string {
 }
 
 function scheduleTeaserNudge(): void {
-	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
-	teaserResetTimer = clearTimer(teaserResetTimer);
+	clearTeaserTimers();
 
 	teaserNudgeTimer = window.setTimeout(() => {
 		elements = getElements();
 		if (!elements.teaserTrigger || !elements.teaserText) return;
 		if (document.visibilityState !== "visible") return;
-		if (memory.lastState === "hint" || memory.lastState === "idle" || memory.lastState === "return") return;
+		if (memory.lastState === "idle" || memory.lastState === "return") return;
 		if (elements.teaserTrigger.matches(":hover, :focus-visible, :focus-within")) {
 			scheduleTeaserNudge();
 			return;
@@ -356,9 +356,7 @@ function scheduleTeaserNudge(): void {
 
 		setTeaserText(pickTeaserNudge());
 		teaserResetTimer = window.setTimeout(() => {
-			if (memory.lastState !== "hint") {
-				setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
-			}
+			setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		}, NAVBRAND_TERMINAL_NUDGE_RESET_MS);
 		scheduleTeaserNudge();
 	}, NAVBRAND_TERMINAL_NUDGE_MS);
@@ -376,6 +374,7 @@ function scheduleCuriositySurface(surface: CuriositySurfaceId): void {
 	});
 
 	timers.waitTimer = window.setTimeout(() => {
+		timers.waitTimer = null;
 		const trigger = getCuriositySurfaceTarget(surface);
 		if (!trigger) return;
 		if (!canScheduleCuriositySurface(surface)) {
@@ -411,6 +410,18 @@ function scheduleCuriositySurface(surface: CuriositySurfaceId): void {
 	}, delay);
 }
 
+/**
+ * Start a surface's nudge cycle unless one is already running, so a re-render
+ * never pushes back a pending pulse or cuts short a visible one. Restarts go
+ * through `resetCuriositySurface`/`clearCuriositySurfaceTimers` at the points
+ * where the inputs change: collapse toggles, route changes, idle, hidden tabs.
+ */
+function ensureCuriositySurface(surface: CuriositySurfaceId): void {
+	const timers = curiositySurfaces[surface];
+	if (timers.waitTimer !== null || timers.resetTimer !== null) return;
+	scheduleCuriositySurface(surface);
+}
+
 function triggerCollapsedCuriosityNudge(immediate = false): void {
 	resetCuriositySurface("collapsedSidebar");
 	scheduleCuriositySurface("collapsedSidebar");
@@ -419,6 +430,7 @@ function triggerCollapsedCuriosityNudge(immediate = false): void {
 	const timers = curiositySurfaces.collapsedSidebar;
 	timers.waitTimer = clearTimer(timers.waitTimer);
 	timers.waitTimer = window.setTimeout(() => {
+		timers.waitTimer = null;
 		const trigger = getCollapsedSidebarTrigger();
 		if (!trigger || !isDesktopCollapsed() || document.visibilityState !== "visible") {
 			scheduleCuriositySurface("collapsedSidebar");
@@ -453,13 +465,10 @@ function renderNavBrand({ state, greeting, subline, mode, tone = "normal", onGre
 		tone,
 	});
 
-	if (state !== "hint") {
-		hintTimer = clearTimer(hintTimer);
-		setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
-		scheduleTeaserNudge();
-		scheduleCuriositySurface("collapsedSidebar");
-		scheduleCuriositySurface("mobileHeader");
-	}
+	setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
+	scheduleTeaserNudge();
+	ensureCuriositySurface("collapsedSidebar");
+	ensureCuriositySurface("mobileHeader");
 
 	memory.lastState = state;
 	memory.lastGreetingText = greeting;
@@ -582,14 +591,11 @@ function getActiveCategory(): MessageCategory {
 
 function renderIdle(): void {
 	settleTimer = clearTimer(settleTimer);
-	teaserNudgeTimer = clearTimer(teaserNudgeTimer);
-	teaserResetTimer = clearTimer(teaserResetTimer);
+	clearTeaserTimers();
 	clearCuriositySurfaceTimers("collapsedSidebar");
 	clearCuriositySurfaceTimers("mobileHeader");
-	const now = Date.now();
 	const category: MessageCategory = memory.idleCount > 0 ? "idleEscalation" : "idle";
 	const greeting = choosePoolMessage(category);
-	memory.lastIdleTs = now;
 	memory.idleCount += 1;
 
 	renderNavBrand({
@@ -601,13 +607,11 @@ function renderIdle(): void {
 }
 
 function renderReturn(): void {
-	const now = Date.now();
-	memory.lastReturnTs = now;
-	lastActivityTs = now;
+	lastActivityTs = Date.now();
 
 	const subline = getSubline();
 	if (maybeRenderSystem("return", subline)) {
-		scheduleIdleTimer();
+		armIdleTimer();
 		return;
 	}
 
@@ -627,7 +631,7 @@ function renderReturn(): void {
 		},
 	});
 
-	scheduleIdleTimer();
+	armIdleTimer();
 }
 
 function getTeaserTrigger(target: EventTarget | null): HTMLElement | null {
@@ -650,10 +654,9 @@ function restoreTeaserHint(): void {
 }
 
 /**
- * Task 2 boundary:
- * the sidebar no longer owns terminal execution. It only advertises intent by
- * dispatching a single custom event. Task 3's modal coordinator should listen
- * for `navbrand:open-terminal` and decide how to open the shared terminal
+ * The sidebar does not own terminal execution. It only advertises intent by
+ * dispatching a single custom event; the terminal modal coordinator listens
+ * for `navbrand:open-terminal` and decides how to open the shared terminal
  * window for the reported source/trigger combination.
  */
 function dispatchOpenTerminal(trigger: NavBrandTerminalOpenDetail["trigger"], target: HTMLElement): void {
@@ -667,22 +670,41 @@ function dispatchOpenTerminal(trigger: NavBrandTerminalOpenDetail["trigger"], ta
 	);
 }
 
-/** Reset idle after meaningful activity while respecting hidden-tab pauses. */
-function scheduleIdleTimer(): void {
-	idleTimer = clearTimer(idleTimer);
-	if (document.visibilityState === "hidden") return;
+/**
+ * Keep one idle timer alive while respecting hidden-tab pauses.
+ *
+ * Activity only moves `lastActivityTs`; when the timer expires early it re-arms
+ * for the time still owed, so idle lands exactly `IDLE_DELAY_MS` after the last
+ * activity without a clear/create pair per pointer event.
+ */
+function armIdleTimer(): void {
+	if (idleTimer !== null || document.visibilityState === "hidden") return;
 
 	const delay = Math.max(0, IDLE_DELAY_MS - (Date.now() - lastActivityTs));
 	idleTimer = window.setTimeout(() => {
+		idleTimer = null;
+		if (!shouldEnterIdle(lastActivityTs, Date.now())) {
+			armIdleTimer();
+			return;
+		}
 		if (document.visibilityState === "visible" && memory.lastState !== "idle") {
 			renderIdle();
 		}
 	}, delay);
 }
 
+/** Stop every timer so nothing scheduled for the outgoing page fires after a swap. */
+function teardownTimers(): void {
+	idleTimer = clearTimer(idleTimer);
+	settleTimer = clearTimer(settleTimer);
+	clearTeaserTimers();
+	clearCuriositySurfaceTimers("collapsedSidebar");
+	clearCuriositySurfaceTimers("mobileHeader");
+}
+
 function onActivity(): void {
 	lastActivityTs = Date.now();
-	scheduleIdleTimer();
+	armIdleTimer();
 
 	if (memory.lastState === "idle") {
 		renderActive();
@@ -698,14 +720,14 @@ function onNewVisit(): void {
 	lastActivityTs = now;
 	resetCuriositySurface("mobileHeader");
 	renderArrival(previousLastVisitTs);
-	scheduleIdleTimer();
+	armIdleTimer();
 }
 
 function onSoftNav(): void {
 	lastActivityTs = Date.now();
 	resetCuriositySurface("mobileHeader");
 	renderActive();
-	scheduleIdleTimer();
+	armIdleTimer();
 }
 
 function bindListeners(): void {
@@ -778,13 +800,7 @@ function bindListeners(): void {
 			renderReturn();
 		} else {
 			// Hidden tabs should not accumulate idle/system timers in the background.
-			idleTimer = clearTimer(idleTimer);
-			settleTimer = clearTimer(settleTimer);
-			hintTimer = clearTimer(hintTimer);
-			teaserNudgeTimer = clearTimer(teaserNudgeTimer);
-			teaserResetTimer = clearTimer(teaserResetTimer);
-			clearCuriositySurfaceTimers("collapsedSidebar");
-			clearCuriositySurfaceTimers("mobileHeader");
+			teardownTimers();
 			setTeaserText(NAVBRAND_TERMINAL_TEASER_HINT);
 		}
 	});
@@ -806,6 +822,14 @@ function bindListeners(): void {
 
 if (typeof document !== "undefined") {
 	bindListeners();
+
+	/**
+	 * This module is evaluated once and outlives soft navigations, while the
+	 * sidebar and header are not `transition:persist` and get replaced. Listeners
+	 * are delegated from `document`, so they are bound once and need no rebinding;
+	 * timers are stopped before the swap and restarted by `astro:page-load`.
+	 */
+	document.addEventListener("astro:before-swap", teardownTimers);
 
 	document.addEventListener("astro:page-load", () => {
 		initShareNotification(SIDEBAR_EMAIL_NOTIFICATION_ID);

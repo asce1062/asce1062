@@ -4,11 +4,10 @@
  * This module is the pure decision layer for:
  * - state names and timing constants
  * - rarity/cooldown rules
- * - state priority resolution
  *
  * It should remain browser-agnostic so it stays easy to unit test.
  */
-export type NavBrandState = "arrival" | "active" | "idle" | "return" | "system" | "hint";
+export type NavBrandState = "arrival" | "active" | "idle" | "return" | "system";
 
 export const IDLE_DELAY_MS = 45_000;
 export const RETURN_SETTLE_MS = 4_000;
@@ -24,16 +23,9 @@ export const SYSTEM_MESSAGE_COOLDOWN_MS = 5 * 60_000;
 export const RARE_MESSAGE_COOLDOWN_MS = 30 * 60_000;
 export const SYSTEM_STATE_DURATION_MS = 4_000;
 
-const STATE_PRIORITY: NavBrandState[] = ["return", "system", "idle", "active", "arrival", "hint"];
-
 /** Idle is purely time-based; the coordinator owns the timer lifecycle. */
 export function shouldEnterIdle(lastActivityTs: number, now: number): boolean {
 	return now - lastActivityTs >= IDLE_DELAY_MS;
-}
-
-/** Resolve competing state triggers using the priority order defined in the spec. */
-export function resolveStatePriority(states: readonly NavBrandState[]): NavBrandState {
-	return STATE_PRIORITY.find((state) => states.includes(state)) ?? "active";
 }
 
 /** System messages are rare interruptions, so cooldown always wins over chance. */

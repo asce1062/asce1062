@@ -228,8 +228,7 @@ body:has(#nav-toggle:checked) {
 }
 
 .nav-brand-prompt:hover .nav-brand-teaser-text,
-.nav-brand-prompt:focus-visible .nav-brand-teaser-text,
-.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-teaser-text {
+.nav-brand-prompt:focus-visible .nav-brand-teaser-text {
 	color: var(--color-warning);
 	opacity: 1;
 	text-shadow: 0 0 0.35rem color-mix(in oklab, var(--color-warning) 14%, transparent);
@@ -258,11 +257,6 @@ body:has(#nav-toggle:checked) {
 .nav-brand-prompt[data-navbrand-state="system"] .nav-brand-greeting {
 	color: color-mix(in oklab, var(--color-accent) 72%, var(--color-base-content));
 	text-shadow: 0 0 0.5rem color-mix(in oklab, var(--color-accent) 20%, transparent);
-}
-
-.nav-brand-prompt[data-navbrand-state="hint"] .nav-brand-greeting {
-	color: color-mix(in oklab, var(--color-warning) 60%, var(--color-base-content));
-	opacity: 0.92;
 }
 
 .nav-brand-prompt[data-navbrand-tone="rare"] .nav-brand-greeting {
@@ -1245,6 +1239,14 @@ All rules scoped to lg+ so mobile is completely unaffected.
 	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"])
 		.nav-link[data-tooltip]:focus-visible::before {
 		opacity: 1;
+	}
+
+	/* Dismissed with Escape (WCAG 1.4.13); stays hidden until the pointer leaves the link. */
+	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"])
+		.nav-link[data-tooltip][data-tooltip-dismissed]::after,
+	html[data-sidebar-collapsed]:not([data-sidebar-transition="collapsing"])
+		.nav-link[data-tooltip][data-tooltip-dismissed]::before {
+		opacity: 0;
 	}
 }
 

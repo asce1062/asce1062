@@ -20,6 +20,7 @@ import { bindAvatarMiniWidget } from "@/scripts/avatarMiniWidget";
 import { getSidebarCollapseShortcutLabel, initSidebarCollapseShortcut } from "@/scripts/keyboardShortcuts";
 
 const COLLAPSED_ATTR = "data-sidebar-collapsed";
+const TOOLTIP_DISMISSED_ATTR = "data-tooltip-dismissed";
 const TRANSITION_ATTR = "data-sidebar-transition";
 const COLLAPSED_WIDTH_VAR = "--sidebar-current-width";
 const SIDEBAR_TRANSITION_MS = 200;
@@ -132,13 +133,24 @@ function initCollapse(): void {
 	document.addEventListener(
 		"keydown",
 		(e: KeyboardEvent) => {
-			if (e.key === "Escape" && desktop.matches && isCollapsed()) {
-				const sidebar = document.querySelector<HTMLElement>(".nav-menu");
-				if (sidebar?.contains(document.activeElement)) {
-					setCollapsed(false);
-					tab.focus();
-				}
+			if (e.key !== "Escape" || !desktop.matches || !isCollapsed()) return;
+
+			const sidebar = document.querySelector<HTMLElement>(".nav-menu");
+			if (sidebar?.contains(document.activeElement)) {
+				setCollapsed(false);
+				tab.focus();
+				return;
 			}
+
+			// Focus is elsewhere but the pointer rests on a nav icon: dismiss its
+			// tooltip without making the visitor move the pointer (WCAG 1.4.13).
+			const hovered = sidebar?.querySelector<HTMLElement>(".nav-link[data-tooltip]:hover");
+			if (!hovered) return;
+			hovered.setAttribute(TOOLTIP_DISMISSED_ATTR, "");
+			hovered.addEventListener("pointerleave", () => hovered.removeAttribute(TOOLTIP_DISMISSED_ATTR), {
+				once: true,
+				signal,
+			});
 		},
 		{ signal }
 	);
