@@ -25,7 +25,7 @@
  */
 
 import { getPref, setPref, removePref, PREF_KEYS } from "@/lib/prefs";
-import { isFlavor, setFlavor, type Flavor } from "@/scripts/flavorManager";
+import { isFlavor, isFlavorManuallySelected, setFlavor, type Flavor } from "@/scripts/flavorManager";
 import { atomicSwitch } from "@/scripts/themeTransition";
 
 export type Theme = "light" | "dark";
@@ -93,9 +93,12 @@ export function getThemeFromUrl(): Theme | null {
  * Returns:
  *   - a known flavor id for ?flavor=crt-green|amber|synthwave|dos|void|ice|redline
  *   - "" for ?flavor=default or ?flavor= (default warm void)
- *   - null when absent or invalid
+ *   - null when absent or invalid, or once the visitor has picked a flavor by
+ *     hand: the address bar keeps the param, but it stops being authoritative
+ *     until the next hard load (same rule as ?theme=)
  */
 export function getFlavorFromUrl(): Flavor | null {
+	if (isFlavorManuallySelected()) return null;
 	const param = new URLSearchParams(window.location.search).get("flavor");
 	if (param === null) return null;
 	if (param === "" || param === "default") return "";

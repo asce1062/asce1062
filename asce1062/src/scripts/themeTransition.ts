@@ -10,12 +10,19 @@
  * BROWSER-ONLY. Import only from client-side <script> blocks.
  */
 
+// Identifies the latest switch, so frames queued by an earlier one cannot lift
+// the freeze while a newer switch is still waiting for its repaint.
+let _switchId = 0;
+
 /** Apply a theme/flavor DOM change so every element repaints in the same frame. */
 export function atomicSwitch(apply: () => void): void {
 	const root = document.documentElement;
+	const switchId = ++_switchId;
 	root.setAttribute("data-theme-switching", "");
 	apply();
 	requestAnimationFrame(() => {
-		requestAnimationFrame(() => root.removeAttribute("data-theme-switching"));
+		requestAnimationFrame(() => {
+			if (switchId === _switchId) root.removeAttribute("data-theme-switching");
+		});
 	});
 }

@@ -131,11 +131,26 @@ export function getActiveFlavor(): Flavor {
 // ---------------------------------------------------------------------------
 
 /**
- * Apply a flavor to <html>. No-ops if the flavor is already active.
+ * True once the visitor has picked a flavor by hand in this page session.
+ * From then on a ?flavor= param in the address bar is no longer authoritative
+ * (see getFlavorFromUrl); a hard load reads the URL again.
+ */
+let hasManualFlavorSelection = false;
+
+/** Whether the visitor has picked a flavor by hand since the last hard load. */
+export function isFlavorManuallySelected(): boolean {
+	return hasManualFlavorSelection;
+}
+
+/**
+ * Apply a flavor to <html> and persist it. The DOM write and the event are
+ * skipped when the flavor is already active; persistence is not, so a flavor
+ * painted before this module loaded still reaches storage.
  *
  * Options:
  *   persist   - write to localStorage (default: true)
- *   emitEvent - dispatch FLAVOR_CHANGE_EVENT (default: true)
+ *   emitEvent - user-initiated change: freeze transitions, dispatch
+ *               FLAVOR_CHANGE_EVENT and mark the selection as manual (default: true)
  *
  * Use { persist: false, emitEvent: false } for silent restoration on
  * page load / soft navigation to avoid triggering transition animations.
@@ -143,25 +158,7 @@ export function getActiveFlavor(): Flavor {
 export function setFlavor(flavor: Flavor, options: SetFlavorOptions = {}): void {
 	const { persist = true, emitEvent = true } = options;
 
-	const prevFlavor = getActiveFlavor();
-	if (prevFlavor === flavor) return; // already applied so no work needed
-
-	const applyToDOM = () => {
-		if (flavor) {
-			getRoot().setAttribute("data-flavor", flavor);
-		} else {
-			getRoot().removeAttribute("data-flavor");
-		}
-	};
-
-	// User-initiated: freeze all per-element transitions so every element repaints
-	// atomically in one frame. Silent restores (page load / after-swap) apply
-	// directly (no transition freeze needed, no user is watching).
-	if (emitEvent) {
-		atomicSwitch(applyToDOM);
-	} else {
-		applyToDOM();
-	}
+	if (emitEvent) hasManualFlavorSelection = true;
 
 	if (persist) {
 		if (flavor) {
@@ -171,13 +168,31 @@ export function setFlavor(flavor: Flavor, options: SetFlavorOptions = {}): void 
 		}
 	}
 
-	if (emitEvent) {
-		document.dispatchEvent(
-			new CustomEvent<FlavorChangeDetail>(FLAVOR_CHANGE_EVENT, {
-				detail: { prevFlavor, nextFlavor: flavor },
-			})
-		);
+	const prevFlavor = getActiveFlavor();
+	if (prevFlavor === flavor) return; // already painted
+
+	const applyToDOM = () => {
+		if (flavor) {
+			getRoot().setAttribute("data-flavor", flavor);
+		} else {
+			getRoot().removeAttribute("data-flavor");
+		}
+	};
+
+	if (!emitEvent) {
+		// Silent restore (page load / after-swap): no user is watching, no freeze needed.
+		applyToDOM();
+		return;
 	}
+
+	// User-initiated: freeze all per-element transitions so every element repaints
+	// atomically in one frame.
+	atomicSwitch(applyToDOM);
+	document.dispatchEvent(
+		new CustomEvent<FlavorChangeDetail>(FLAVOR_CHANGE_EVENT, {
+			detail: { prevFlavor, nextFlavor: flavor },
+		})
+	);
 }
 
 /**

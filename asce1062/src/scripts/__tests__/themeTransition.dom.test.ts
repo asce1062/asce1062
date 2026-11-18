@@ -37,4 +37,15 @@ describe("atomicSwitch", () => {
 		flushFrame();
 		expect(document.documentElement.hasAttribute("data-theme-switching")).toBe(false);
 	});
+
+	it("a second switch keeps the freeze until its own two frames have passed", () => {
+		atomicSwitch(() => {});
+		flushFrame();
+		atomicSwitch(() => {});
+		// The first switch's second frame runs here, alongside the second switch's first.
+		flushFrame();
+		expect(document.documentElement.hasAttribute("data-theme-switching")).toBe(true);
+		flushFrame();
+		expect(document.documentElement.hasAttribute("data-theme-switching")).toBe(false);
+	});
 });

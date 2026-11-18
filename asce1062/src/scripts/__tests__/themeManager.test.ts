@@ -122,4 +122,31 @@ describe("themeManager URL theme overrides", () => {
 		expect(storage.get("theme-flavor")).toBe("amber");
 		expect(document.documentElement.getAttribute("data-flavor")).toBe("amber");
 	});
+
+	it("keeps the full URL but stops using the URL flavor after a manual pick", async () => {
+		const { storage } = setupBrowserGlobals("?flavor=amber");
+		const { initThemeFromUrl } = await import("@/scripts/themeManager");
+		const { setFlavor } = await import("@/scripts/flavorManager");
+
+		initThemeFromUrl();
+		expect(document.documentElement.getAttribute("data-flavor")).toBe("amber");
+
+		setFlavor("crt-green");
+		// A later soft navigation back to the same URL re-runs the URL pass.
+		initThemeFromUrl();
+
+		expect(window.location.search).toBe("?flavor=amber");
+		expect(document.documentElement.getAttribute("data-flavor")).toBe("crt-green");
+		expect(storage.get("theme-flavor")).toBe("crt-green");
+	});
+
+	it("stores a URL flavor that was already painted before the module loaded", async () => {
+		const { attributes, storage } = setupBrowserGlobals("?flavor=amber");
+		attributes["data-flavor"] = "amber";
+		const { initThemeFromUrl } = await import("@/scripts/themeManager");
+
+		initThemeFromUrl();
+
+		expect(storage.get("theme-flavor")).toBe("amber");
+	});
 });
