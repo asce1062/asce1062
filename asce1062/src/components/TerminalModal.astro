@@ -22,7 +22,13 @@ import "@/styles/components/terminal-modal.css";
 	aria-describedby="terminal-modal-status"
 	tabindex="-1"
 	hidden>
-	<header id="terminal-modal-drag-handle" class="terminal-window__chrome">
+	<header
+		id="terminal-modal-drag-handle"
+		class="terminal-window__chrome"
+		role="group"
+		tabindex="0"
+		aria-label="Terminal title bar: move or resize the window"
+		aria-describedby="terminal-modal-keys">
 		<div class="terminal-window__identity">
 			<p class="terminal-window__eyebrow">Alex's Workstation</p>
 			<h2 id="terminal-modal-title" class="terminal-window__title">
@@ -88,6 +94,9 @@ import "@/styles/components/terminal-modal.css";
 			</button>
 		</div>
 	</header>
+	<p id="terminal-modal-keys" hidden>
+		Arrow keys move the window. Shift plus arrow keys resize it.
+	</p>
 
 	<div class="terminal-window__statusbar">
 		<span class="terminal-window__status terminal-window__status--signal">

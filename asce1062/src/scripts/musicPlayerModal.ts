@@ -42,6 +42,7 @@ import {
 	type TerminalWindowRect,
 } from "@/lib/navBrand/terminalWindow";
 import { AsciiVisualizerController } from "@/lib/asciiVisualizer";
+import { getWindowKeyResizeEdge, resolveWindowKeyNudge } from "@/scripts/floatingWindowKeys";
 import "@/scripts/textEffectRegistry";
 
 interface MusicPlaylist {
@@ -125,6 +126,7 @@ let interactionState:
 	| {
 			kind: "drag";
 			pointerId: number;
+			captureTarget: HTMLElement;
 			startX: number;
 			startY: number;
 			startRect: TerminalWindowRect;
@@ -132,6 +134,7 @@ let interactionState:
 	| {
 			kind: "resize";
 			pointerId: number;
+			captureTarget: HTMLElement;
 			edge: string;
 			startX: number;
 			startY: number;
@@ -553,6 +556,7 @@ function musicHasFocus(): boolean {
 }
 
 function minimizeMusicDialog() {
+	endMusicInteraction();
 	applyMusicWindowRect();
 	const hadFocus = musicHasFocus();
 	isMusicOpen = false;
@@ -570,6 +574,7 @@ function minimizeMusicDialog() {
 }
 
 function closeMusicDialog() {
+	endMusicInteraction();
 	const player = refs?.player;
 	if (player instanceof HTMLAudioElement) {
 		player.pause();
@@ -1140,7 +1145,7 @@ async function loadPlaylist(playlist: MusicPlaylist, entry: HTMLElement) {
 		}
 		browsingPlaylist = payload.playlist || playlist;
 		if (!currentTrack) {
-			// Nothing is playing yet — show this album's info as a preview.
+			// Nothing is playing yet - show this album's info as a preview.
 			currentPlaylist = browsingPlaylist;
 			updateWindowTitle();
 			updateNowFile();
@@ -1288,6 +1293,7 @@ function beginMusicDrag(event: PointerEvent) {
 	interactionState = {
 		kind: "drag",
 		pointerId: event.pointerId,
+		captureTarget: refs.dragHandle,
 		startX: event.clientX,
 		startY: event.clientY,
 		startRect: musicWindowRect ?? getPreferredMusicRect(),
@@ -1306,7 +1312,7 @@ function updateMusicDrag(event: PointerEvent) {
 	applyMusicWindowRect();
 }
 
-function beginMusicResize(event: PointerEvent, edge: string) {
+function beginMusicResize(event: PointerEvent, handle: HTMLElement, edge: string) {
 	if (!refs?.terminal) return;
 	const mobile = isMobileMusicViewport();
 	if (mobile && edge !== "n") return;
@@ -1314,12 +1320,13 @@ function beginMusicResize(event: PointerEvent, edge: string) {
 	interactionState = {
 		kind: "resize",
 		pointerId: event.pointerId,
+		captureTarget: handle,
 		edge,
 		startX: event.clientX,
 		startY: event.clientY,
 		startRect: musicWindowRect ?? getPreferredMusicRect(),
 	};
-	(event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
+	handle.setPointerCapture(event.pointerId);
 }
 
 function updateMusicResize(event: PointerEvent) {
@@ -1332,15 +1339,48 @@ function updateMusicResize(event: PointerEvent) {
 	applyMusicWindowRect();
 }
 
+/** Applies musicWindowRect. Resizing a maximized window makes it an ordinary window again. */
+function commitMusicWindowRect() {
+	if (isMusicMaximized && !isMaximizedMusicRect(musicWindowRect)) isMusicMaximized = false;
+	applyMusicWindowRect();
+}
+
+/**
+ * Ends a drag or resize however it stopped: pointer released or cancelled, or
+ * the window minimized or closed. Idempotent.
+ */
 function endMusicInteraction() {
-	const hadInteraction = Boolean(interactionState);
+	if (!interactionState) return;
+	const { captureTarget, pointerId } = interactionState;
 	interactionState = null;
+	if (captureTarget.hasPointerCapture(pointerId)) captureTarget.releasePointerCapture(pointerId);
 	refs?.terminal.classList.remove("is-dragging");
-	// Resizing a maximized window makes it an ordinary window again.
-	if (hadInteraction && isMusicMaximized && !isMaximizedMusicRect(musicWindowRect)) {
-		isMusicMaximized = false;
-		applyMusicWindowRect();
+	if (isMusicMaximized) commitMusicWindowRect();
+}
+
+/** Arrow keys on the focused title bar move the window, Shift + Arrow keys resize it. */
+function handleMusicWindowKeydown(event: KeyboardEvent) {
+	const nudge = resolveWindowKeyNudge(event, refs?.dragHandle ?? null);
+	if (!nudge) return;
+	// The keys are the title bar's: they must not scroll the page behind the window.
+	event.preventDefault();
+	if (interactionState) return;
+
+	applyMusicWindowRect();
+	const rect = musicWindowRect ?? getPreferredMusicRect();
+	if (nudge.kind === "move") {
+		musicWindowRect = clampMusicRect({ ...rect, x: rect.x + nudge.deltaX, y: rect.y + nudge.deltaY });
+		commitMusicWindowRect();
+		return;
 	}
+
+	const edge = getWindowKeyResizeEdge(nudge, isMobileMusicViewport());
+	if (!edge) return;
+	const resized = clampMusicRect(resizeTerminalWindowRectFromEdge(edge, rect, nudge.deltaX, nudge.deltaY));
+	// At a size limit the clamp would only shift the window: leave it where it is.
+	if (resized.width === rect.width && resized.height === rect.height) return;
+	musicWindowRect = resized;
+	commitMusicWindowRect();
 }
 
 function keepMusicAbovePageTransition(event: Event) {
@@ -1373,6 +1413,7 @@ function bindControls(signal: AbortSignal) {
 	refs?.closeButton?.addEventListener("click", closeMusicDialog, { signal });
 	refs?.dockChip?.addEventListener("click", openMusicDialog, { signal });
 	refs?.dragHandle?.addEventListener("pointerdown", beginMusicDrag, { signal });
+	refs?.dragHandle?.addEventListener("keydown", handleMusicWindowKeydown, { signal });
 	refs?.dragHandle?.addEventListener("dblclick", handleTopbarDoubleClick, { signal });
 	refs?.dragHandle?.addEventListener(
 		"pointerup",
@@ -1400,7 +1441,7 @@ function bindControls(signal: AbortSignal) {
 	for (const handle of refs?.resizeHandles ?? []) {
 		const edge = handle.dataset.musicResize;
 		if (!edge) continue;
-		handle.addEventListener("pointerdown", (event) => beginMusicResize(event, edge), { signal });
+		handle.addEventListener("pointerdown", (event) => beginMusicResize(event, handle, edge), { signal });
 	}
 	document.addEventListener(
 		"pointermove",
@@ -1414,7 +1455,13 @@ function bindControls(signal: AbortSignal) {
 		},
 		{ signal }
 	);
-	document.addEventListener("pointerup", endMusicInteraction, { signal });
+	// Only the pointer that started the drag or resize can end it: a second
+	// finger lifting elsewhere must not drop the window.
+	const endPointerInteraction = (event: PointerEvent) => {
+		if (interactionState?.pointerId === event.pointerId) endMusicInteraction();
+	};
+	document.addEventListener("pointerup", endPointerInteraction, { signal });
+	document.addEventListener("pointercancel", endPointerInteraction, { signal });
 	window.addEventListener(
 		"resize",
 		() => {
@@ -1514,6 +1561,8 @@ function bindControls(signal: AbortSignal) {
 }
 
 function cleanupMusicPage() {
+	// The listeners that would end an in-flight drag or resize go with this page.
+	endMusicInteraction();
 	updateMediaSession(null);
 	visualizer?.teardown();
 	visualizer = null;

@@ -52,6 +52,7 @@ import {
 	type TerminalFocusTargetRole,
 } from "@/lib/navBrand/terminalFocus";
 import { writeTextToClipboard } from "@/scripts/copyToClipboard";
+import { getWindowKeyResizeEdge, resolveWindowKeyNudge } from "@/scripts/floatingWindowKeys";
 import {
 	centerTerminalWindowRect,
 	createTerminalWindowState,
@@ -153,6 +154,7 @@ type InteractionSession =
 	| {
 			kind: "drag";
 			pointerId: number;
+			captureTarget: HTMLElement;
 			startX: number;
 			startY: number;
 			startRect: TerminalWindowRect;
@@ -160,6 +162,7 @@ type InteractionSession =
 	| {
 			kind: "resize";
 			pointerId: number;
+			captureTarget: HTMLElement;
 			edge: string;
 			startX: number;
 			startY: number;
@@ -191,6 +194,7 @@ let _terminalLastAtmosphere: string | null = null;
 let _terminalLastSystemTs = 0;
 let _terminalLastRareTs = 0;
 const _sequenceTimers: number[] = [];
+const _logEffectTimers: number[] = [];
 let _completionInput = "";
 let _completionItems: NavBrandCommandCompletion[] = [];
 let _completionIndex = 0;
@@ -605,9 +609,9 @@ function clearTerminalIdleTimer(): void {
 	}
 }
 
-function clearSequenceTimers(): void {
-	while (_sequenceTimers.length > 0) {
-		const timer = _sequenceTimers.pop();
+function clearTimers(timers: number[]): void {
+	while (timers.length > 0) {
+		const timer = timers.pop();
 		if (timer !== undefined) {
 			window.clearTimeout(timer);
 		}
@@ -726,11 +730,11 @@ function clearTerminalViewport(elements: TerminalModalElements, commandText: str
 }
 
 function resetTerminalRuntime(elements: TerminalModalElements): void {
-	clearSequenceTimers();
+	clearTimers(_sequenceTimers);
 	_entries = [];
 	_commandHistory.length = 0;
 	_nextEntryId = 0;
-	_interaction = null;
+	endInteraction();
 	clearTerminalIdleTimer();
 	_terminalIdleCount = 0;
 	_terminalLastAtmosphere = null;
@@ -770,7 +774,7 @@ function resetTerminalSession(elements: TerminalModalElements): void {
 	_nextEntryId = 0;
 	_windowState = createTerminalWindowState();
 	_lastDragHandleTapTs = null;
-	_interaction = null;
+	endInteraction();
 	clearTerminalIdleTimer();
 	_terminalIdleCount = 0;
 	_terminalLastAtmosphere = null;
@@ -964,6 +968,8 @@ function createEntryElement(entry: TerminalEntry): HTMLElement {
 function renderLog(elements: TerminalModalElements, animateFromId?: string): void {
 	if (!elements.log) return;
 
+	// Effects still queued belong to entries this render replaces.
+	clearTimers(_logEffectTimers);
 	for (const el of elements.log.querySelectorAll<HTMLElement>("[data-terminal-entry-text]")) {
 		resetTextEffect(el);
 	}
@@ -989,13 +995,15 @@ function renderLog(elements: TerminalModalElements, animateFromId?: string): voi
 	});
 
 	for (const { target, effect, delayMs } of animated) {
-		window.setTimeout(() => {
-			playTextEffect({
-				el: target,
-				effect,
-				text: readTextEffectText(target),
-			});
-		}, delayMs);
+		_logEffectTimers.push(
+			window.setTimeout(() => {
+				playTextEffect({
+					el: target,
+					effect,
+					text: readTextEffectText(target),
+				});
+			}, delayMs)
+		);
 	}
 
 	elements.log.scrollTop = elements.log.scrollHeight;
@@ -1024,7 +1032,7 @@ function appendRenderedEntry(elements: TerminalModalElements, entry: TerminalEnt
 }
 
 function queueEntrySequence(elements: TerminalModalElements, entries: TerminalEntry[]): void {
-	clearSequenceTimers();
+	clearTimers(_sequenceTimers);
 
 	let delay = 0;
 	for (const entry of entries) {
@@ -1197,13 +1205,14 @@ function destroyTerminal(): void {
 	setWindowVisibility(elements);
 	// Only when focus was in the window: the page behind it is usable, so focus
 	// may be somewhere the visitor chose.
-	if (hadFocus && _opener?.isConnected) _opener.focus();
+	if (hadFocus) _opener?.focus();
 	_opener = null;
 }
 
 function minimizeTerminal(): void {
 	const elements = getElements();
 	const hadFocus = Boolean(elements.windowEl?.contains(document.activeElement));
+	endInteraction();
 	_open = false;
 	clearTerminalIdleTimer();
 	_windowState = minimizeTerminalWindow(_windowState);
@@ -1212,7 +1221,7 @@ function minimizeTerminal(): void {
 	// restores the terminal (or back to whatever opened it).
 	if (hadFocus) {
 		if (elements.dockChip && !elements.dockChip.hidden) elements.dockChip.focus();
-		else if (_opener?.isConnected) _opener.focus();
+		else _opener?.focus();
 	}
 }
 
@@ -1259,9 +1268,23 @@ function restoreFromDock(): void {
 	openTerminal();
 }
 
+/** Pointer and keyboard geometry changes land here, so both obey the same box and minimum sizes. */
+function applyWindowRect(rect: TerminalWindowRect): void {
+	_windowState = updateTerminalWindowRect(_windowState, clampRect(rect));
+	updateWindowFrame(getElements());
+}
+
+function canDragWindow(): boolean {
+	return _windowState.mode !== "minimized" && _windowState.mode !== "fullscreen" && !isMobile();
+}
+
+function canResizeWindow(edge: string): boolean {
+	if (_windowState.mode === "minimized" || _windowState.mode === "fullscreen") return false;
+	return !isMobile() || edge === "n";
+}
+
 function beginDrag(event: PointerEvent, elements: TerminalModalElements): void {
-	if (!elements.windowEl || _windowState.mode === "minimized" || _windowState.mode === "fullscreen" || isMobile())
-		return;
+	if (!elements.windowEl || !elements.dragHandle || !canDragWindow()) return;
 	if (!(event.target instanceof HTMLElement)) return;
 	if (event.target.closest("[data-terminal-control]")) return;
 	if (event.target.closest("#terminal-modal-form")) return;
@@ -1269,56 +1292,100 @@ function beginDrag(event: PointerEvent, elements: TerminalModalElements): void {
 	_interaction = {
 		kind: "drag",
 		pointerId: event.pointerId,
+		captureTarget: elements.dragHandle,
 		startX: event.clientX,
 		startY: event.clientY,
 		startRect: _windowState.rect,
 	};
-	elements.dragHandle?.setPointerCapture(event.pointerId);
+	elements.dragHandle.setPointerCapture(event.pointerId);
 }
 
-function beginResize(event: PointerEvent, edge: string): void {
-	if (_windowState.mode === "minimized" || _windowState.mode === "fullscreen") return;
-	if (isMobile() && edge !== "n") return;
+function beginResize(event: PointerEvent, handle: HTMLElement, edge: string): void {
+	if (!canResizeWindow(edge)) return;
 
 	_interaction = {
 		kind: "resize",
 		edge,
 		pointerId: event.pointerId,
+		captureTarget: handle,
 		startX: event.clientX,
 		startY: event.clientY,
 		startRect: _windowState.rect,
 	};
 
-	(event.currentTarget as HTMLElement | null)?.setPointerCapture(event.pointerId);
+	handle.setPointerCapture(event.pointerId);
 }
 
 function updateDrag(event: PointerEvent): void {
 	if (!_interaction || _interaction.kind !== "drag") return;
-	const deltaX = event.clientX - _interaction.startX;
-	const deltaY = event.clientY - _interaction.startY;
-	const nextRect = clampRect({
+	applyWindowRect({
 		..._interaction.startRect,
-		x: _interaction.startRect.x + deltaX,
-		y: _interaction.startRect.y + deltaY,
+		x: _interaction.startRect.x + event.clientX - _interaction.startX,
+		y: _interaction.startRect.y + event.clientY - _interaction.startY,
 	});
-
-	_windowState = updateTerminalWindowRect(_windowState, nextRect);
-	updateWindowFrame(getElements());
 }
 
 function updateResize(event: PointerEvent): void {
 	if (!_interaction || _interaction.kind !== "resize") return;
 	const deltaX = event.clientX - _interaction.startX;
 	const deltaY = event.clientY - _interaction.startY;
-	_windowState = updateTerminalWindowRect(
-		_windowState,
-		clampRect(resizeTerminalWindowRectFromEdge(_interaction.edge, _interaction.startRect, deltaX, deltaY))
-	);
-	updateWindowFrame(getElements());
+	applyWindowRect(resizeTerminalWindowRectFromEdge(_interaction.edge, _interaction.startRect, deltaX, deltaY));
 }
 
+/**
+ * Ends a drag or resize however it stopped: pointer released or cancelled, the
+ * window minimized or closed, or the page swapped. Idempotent.
+ */
 function endInteraction(): void {
+	if (!_interaction) return;
+	const { captureTarget, pointerId } = _interaction;
 	_interaction = null;
+	if (captureTarget.hasPointerCapture(pointerId)) captureTarget.releasePointerCapture(pointerId);
+}
+
+/** Arrow keys on the focused title bar move the window, Shift + Arrow keys resize it. */
+function handleWindowKeydown(event: KeyboardEvent, elements: TerminalModalElements): void {
+	const nudge = resolveWindowKeyNudge(event, elements.dragHandle);
+	if (!nudge) return;
+	// The keys are the title bar's: they must not scroll the page behind the window.
+	event.preventDefault();
+	if (_interaction) return;
+
+	const rect = _windowState.rect;
+	if (nudge.kind === "move") {
+		if (canDragWindow()) applyWindowRect({ ...rect, x: rect.x + nudge.deltaX, y: rect.y + nudge.deltaY });
+		return;
+	}
+
+	const edge = getWindowKeyResizeEdge(nudge, isMobile());
+	if (!edge || !canResizeWindow(edge)) return;
+	const resized = clampRect(resizeTerminalWindowRectFromEdge(edge, rect, nudge.deltaX, nudge.deltaY));
+	// At a size limit the clamp would only shift the window: leave it where it is.
+	if (resized.width === rect.width && resized.height === rect.height) return;
+	applyWindowRect(resized);
+}
+
+/**
+ * A page swap replaces the terminal's markup along with the rest of <body>;
+ * only this module's state carries over. Let go of everything tied to the
+ * outgoing nodes: initTerminalModal() rebuilds the window on astro:page-load,
+ * rendering every entry, including the ones a cleared sequence had not shown yet.
+ */
+function releaseOutgoingPage(): void {
+	endInteraction();
+	clearTimers(_sequenceTimers);
+	clearTimers(_logEffectTimers);
+	closeCompletionMenu(getElements());
+}
+
+/**
+ * The opener is a page element, so a swap usually removes it. Point at the same
+ * control on the new page when it has one, otherwise forget it, so a later
+ * close or minimize never holds or focuses a detached node.
+ */
+function reconnectOpener(): void {
+	if (!_opener || _opener.isConnected) return;
+	_opener = _opener.id ? document.getElementById(_opener.id) : null;
 }
 
 function focusSearchInput(): boolean {
@@ -1837,6 +1904,12 @@ export function initTerminalModal(): void {
 			}
 
 			if (event.key === "Tab") {
+				// Shift+Tab is the way out of the input, to the window controls and
+				// the title bar that moves and resizes the window.
+				if (event.shiftKey) {
+					closeCompletionMenu(elements);
+					return;
+				}
 				event.preventDefault();
 				openOrCycleCompletionMenu(elements);
 				return;
@@ -1873,6 +1946,7 @@ export function initTerminalModal(): void {
 	elements.input.addEventListener("select", () => syncPromptMirror(elements), { signal });
 
 	elements.dragHandle.addEventListener("pointerdown", (event) => beginDrag(event, elements), { signal });
+	elements.dragHandle.addEventListener("keydown", (event) => handleWindowKeydown(event, elements), { signal });
 	elements.windowEl.addEventListener(
 		"pointerdown",
 		(event) => {
@@ -1903,7 +1977,7 @@ export function initTerminalModal(): void {
 	for (const handle of elements.resizeHandles) {
 		const edge = handle.dataset.terminalResize;
 		if (!edge) continue;
-		handle.addEventListener("pointerdown", (event) => beginResize(event, edge), { signal });
+		handle.addEventListener("pointerdown", (event) => beginResize(event, handle, edge), { signal });
 	}
 
 	document.addEventListener(
@@ -1920,7 +1994,13 @@ export function initTerminalModal(): void {
 		{ signal }
 	);
 
-	document.addEventListener("pointerup", endInteraction, { signal });
+	// Only the pointer that started the drag or resize can end it: a second
+	// finger lifting elsewhere must not drop the window.
+	const endPointerInteraction = (event: PointerEvent) => {
+		if (_interaction?.pointerId === event.pointerId) endInteraction();
+	};
+	document.addEventListener("pointerup", endPointerInteraction, { signal });
+	document.addEventListener("pointercancel", endPointerInteraction, { signal });
 	document.addEventListener(
 		"keydown",
 		(event) => {
@@ -2025,3 +2105,5 @@ export function initTerminalModal(): void {
 }
 
 document.addEventListener("astro:page-load", initTerminalModal);
+document.addEventListener("astro:before-swap", releaseOutgoingPage);
+document.addEventListener("astro:after-swap", reconnectOpener);

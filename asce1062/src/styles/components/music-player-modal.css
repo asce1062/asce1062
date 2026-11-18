@@ -114,6 +114,12 @@
 	cursor: grabbing;
 }
 
+/* Keyboard stop for moving and resizing; inset, the window clips at its edge. */
+.music-terminal-topbar:focus-visible {
+	outline: 2px solid var(--player-alert);
+	outline-offset: -2px;
+}
+
 .music-window-title {
 	grid-column: 2;
 	min-width: 0;

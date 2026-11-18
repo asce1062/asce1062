@@ -2,6 +2,9 @@ import { PAGES, expect, test } from "./fixtures";
 
 const root = (page: import("@playwright/test").Page) => page.locator("html");
 
+/** The id browsers give the mouse pointer; a drag ends only for the pointer that began it. */
+const MOUSE_POINTER_ID = 1;
+
 test.describe("navigation", () => {
 	test("the sidebar takes a visitor from home to a blog post", async ({ page }) => {
 		await page.goto(PAGES.home);
@@ -129,6 +132,92 @@ test.describe("music player", () => {
 		expect(await box()).toEqual(windowed);
 	});
 
+	test("the title bar moves and resizes the window from the keyboard", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const player = page.getByRole("dialog", { name: "Navidrome music player" });
+		await page.locator("#nav-menu [data-music-player-trigger]").click();
+		await expect(player).toBeFocused();
+		const size = page.locator("#music-collapse-button");
+		const box = async () => {
+			const rect = await player.boundingBox();
+			if (!rect) throw new Error("music player has no box");
+			return rect;
+		};
+
+		// The title bar is the window's first keyboard stop and says which keys it takes.
+		const titleBar = page.getByRole("group", { name: "Music player title bar: move or resize the window" });
+		await page.keyboard.press("Tab");
+		await expect(titleBar).toBeFocused();
+		await expect(titleBar).toHaveAccessibleDescription("Arrow keys move the window. Shift plus arrow keys resize it.");
+
+		const start = await box();
+		await page.keyboard.press("ArrowRight");
+		await expect.poll(box).toEqual({ ...start, x: start.x + 16 });
+		await page.keyboard.press("ArrowLeft");
+		await page.keyboard.press("Shift+ArrowRight");
+		await expect.poll(box).toEqual({ ...start, width: start.width + 16 });
+		// Already at the minimum width: shrinking stops there and does not shift the window.
+		await page.keyboard.press("Shift+ArrowLeft");
+		await page.keyboard.press("Shift+ArrowLeft");
+		await expect.poll(box).toEqual(start);
+
+		// Arrow keys on a button inside the title bar are not the window's.
+		await size.focus();
+		await page.keyboard.press("ArrowRight");
+		expect(await box()).toEqual(start);
+
+		// A maximized window resized from the keyboard is an ordinary window again.
+		await size.click();
+		await expect(size).toHaveAccessibleName("Collapse music player");
+		const maximized = await box();
+		await titleBar.focus();
+		await page.keyboard.press("Shift+ArrowUp");
+		await expect.poll(box).toEqual({ ...maximized, height: maximized.height - 16 });
+		await expect(size).toHaveAccessibleName("Maximize music player");
+
+		// The miniplayer moves, and resizes only within its own limits: it opens at full height.
+		await size.click();
+		await size.click();
+		await expect(size).toHaveAccessibleName("Expand music player");
+		const mini = await box();
+		await titleBar.focus();
+		await page.keyboard.press("ArrowUp");
+		await expect.poll(box).toEqual({ ...mini, y: mini.y - 16 });
+		await page.keyboard.press("Shift+ArrowDown");
+		expect(await box()).toEqual({ ...mini, y: mini.y - 16 });
+	});
+
+	test("a cancelled drag lets go of the window", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const player = page.getByRole("dialog", { name: "Navidrome music player" });
+		await page.locator("#nav-menu [data-music-player-trigger]").click();
+		await expect(player).toBeVisible();
+		const box = async () => {
+			const rect = await player.boundingBox();
+			if (!rect) throw new Error("music player has no box");
+			return rect;
+		};
+
+		const start = await box();
+		const grip = await page.locator("#music-window-title").boundingBox();
+		if (!grip) throw new Error("music title has no box");
+		await page.mouse.move(grip.x + 4, grip.y + grip.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(grip.x + 44, grip.y + grip.height / 2);
+		await expect.poll(box).toEqual({ ...start, x: start.x + 40 });
+		await expect(player).toHaveClass(/is-dragging/);
+
+		// The browser cancels a pointer when the OS or a gesture takes it over.
+		await page.evaluate(
+			(pointerId) => document.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true, pointerId })),
+			MOUSE_POINTER_ID
+		);
+		await expect(player).not.toHaveClass(/is-dragging/);
+		await page.mouse.move(grip.x + 144, grip.y + grip.height / 2);
+		await page.mouse.up();
+		expect(await box()).toEqual({ ...start, x: start.x + 40 });
+	});
+
 	test("names the seek slider and reads its position as times", async ({ page }) => {
 		await page.goto(PAGES.home);
 		await page.locator("#nav-menu [data-music-player-trigger]").click();
@@ -190,5 +279,91 @@ test.describe("terminal", () => {
 		await page.locator("#nav-menu").getByRole("link", { name: "Blog", exact: true }).click();
 		await expect(page).toHaveURL(/\/blog\/?$/);
 		await expect(terminal).toBeVisible();
+
+		// Rebound once on the new page: one key press is one step.
+		const before = await terminal.boundingBox();
+		await page.locator("#terminal-modal-drag-handle").focus();
+		await page.keyboard.press("ArrowRight");
+		await expect.poll(async () => (await terminal.boundingBox())?.x).toBe((before?.x ?? 0) + 16);
+	});
+
+	test("the title bar moves and resizes the window from the keyboard", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const terminal = page.getByRole("dialog", { name: "stellar console" });
+		await openTerminal(page);
+		const input = page.getByRole("textbox", { name: "Run a terminal command" });
+		await expect(input).toBeFocused();
+		const box = async () => {
+			const rect = await terminal.boundingBox();
+			if (!rect) throw new Error("terminal has no box");
+			return rect;
+		};
+		const start = await box();
+
+		// Arrow keys in the input belong to the input.
+		await page.keyboard.press("ArrowLeft");
+		await page.keyboard.press("Shift+ArrowLeft");
+		expect(await box()).toEqual(start);
+
+		// Shift+Tab walks back from the input through the window controls to the title bar.
+		const titleBar = page.getByRole("group", { name: "Terminal title bar: move or resize the window" });
+		await page.keyboard.press("Shift+Tab");
+		await expect(page.getByRole("button", { name: "Close terminal" })).toBeFocused();
+		await page.keyboard.press("ArrowLeft");
+		expect(await box()).toEqual(start);
+		await page.keyboard.press("Shift+Tab");
+		await page.keyboard.press("Shift+Tab");
+		await page.keyboard.press("Shift+Tab");
+		await expect(titleBar).toBeFocused();
+		await expect(titleBar).toHaveAccessibleDescription("Arrow keys move the window. Shift plus arrow keys resize it.");
+
+		await page.keyboard.press("ArrowLeft");
+		await page.keyboard.press("ArrowUp");
+		await expect.poll(box).toEqual({ ...start, x: start.x - 16, y: start.y - 16 });
+
+		await page.keyboard.press("Shift+ArrowRight");
+		await page.keyboard.press("Shift+ArrowDown");
+		await expect
+			.poll(box)
+			.toEqual({ x: start.x - 16, y: start.y - 16, width: start.width + 16, height: start.height + 16 });
+		await expect(page.locator("#terminal-modal-geometry")).toHaveText(`${start.width + 16}×${start.height + 16}`);
+
+		// Fullscreen cannot be moved or resized by pointer, so not by keyboard either.
+		await page.getByRole("button", { name: "Expand terminal" }).click();
+		await page.getByRole("button", { name: "Enter fullscreen" }).click();
+		const fullscreen = await box();
+		await titleBar.focus();
+		await page.keyboard.press("ArrowRight");
+		await page.keyboard.press("Shift+ArrowLeft");
+		expect(await box()).toEqual(fullscreen);
+	});
+
+	test("a cancelled drag lets go of the window", async ({ page }) => {
+		await page.goto(PAGES.home);
+		const terminal = page.getByRole("dialog", { name: "stellar console" });
+		await openTerminal(page);
+		await expect(terminal).toBeVisible();
+		const box = async () => {
+			const rect = await terminal.boundingBox();
+			if (!rect) throw new Error("terminal has no box");
+			return rect;
+		};
+
+		const start = await box();
+		const grip = await page.locator("#terminal-modal-title").boundingBox();
+		if (!grip) throw new Error("terminal title has no box");
+		await page.mouse.move(grip.x + 4, grip.y + grip.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(grip.x + 44, grip.y + grip.height / 2 + 30);
+		await expect.poll(box).toEqual({ ...start, x: start.x + 40, y: start.y + 30 });
+
+		// The browser cancels a pointer when the OS or a gesture takes it over.
+		await page.evaluate(
+			(pointerId) => document.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true, pointerId })),
+			MOUSE_POINTER_ID
+		);
+		await page.mouse.move(grip.x + 144, grip.y + grip.height / 2 + 130);
+		await page.mouse.up();
+		expect(await box()).toEqual({ ...start, x: start.x + 40, y: start.y + 30 });
 	});
 });

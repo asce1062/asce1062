@@ -29,7 +29,13 @@ import "@/styles/components/music-player-modal.css";
 		aria-label="Navidrome music player"
 		tabindex="-1"
 		hidden>
-		<header id="music-terminal-drag-handle" class="music-terminal-topbar">
+		<header
+			id="music-terminal-drag-handle"
+			class="music-terminal-topbar"
+			role="group"
+			tabindex="0"
+			aria-label="Music player title bar: move or resize the window"
+			aria-describedby="music-terminal-keys">
 			<i class="music-window-icon text-xl icon-cassette" aria-hidden="true"></i>
 			<p id="music-window-title" class="music-window-title">
 				<span class="music-window-app">navidrome.exe</span>
@@ -76,6 +82,9 @@ import "@/styles/components/music-player-modal.css";
 				</button>
 			</div>
 		</header>
+		<p id="music-terminal-keys" hidden>
+			Arrow keys move the window. Shift plus arrow keys resize it.
+		</p>
 
 		<div class="music-terminal-body">
 			<section class="music-visualizer-panel music-expanded" aria-label="Signal visualizer">
