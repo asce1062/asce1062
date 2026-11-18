@@ -6,6 +6,7 @@
 import { defineCollection } from "astro:content";
 import { z } from "zod";
 import { glob } from "astro/loaders";
+import { hasDateBegun } from "./lib/content/publishDate";
 
 /**
  * Base Content Schema
@@ -19,7 +20,7 @@ const contentSchema = z.object({
 		.min(10, "Description must be at least 10 characters")
 		.max(200, "Description must be 200 characters or less"),
 
-	pubDate: z.date().refine((date) => date <= new Date(), {
+	pubDate: z.date().refine((date) => hasDateBegun(date), {
 		message: "Publication date cannot be in the future",
 	}),
 
@@ -36,7 +37,7 @@ const contentSchema = z.object({
 	// Optional fields
 	updatedDate: z
 		.date()
-		.refine((date) => date <= new Date(), {
+		.refine((date) => hasDateBegun(date), {
 			message: "Updated date cannot be in the future",
 		})
 		.optional(),
