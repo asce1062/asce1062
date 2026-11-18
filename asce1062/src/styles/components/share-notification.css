@@ -4,6 +4,10 @@ Share Notification
 ============================================
 */
 .share-notification {
+	/* Tone of the sigil block and frame: info for success, error for a failure. */
+	--share-notification-tone: var(--color-info);
+	--share-notification-tone-content: var(--color-info-content);
+	--share-notification-sigil-width: 3rem;
 	position: fixed;
 	top: 2rem;
 	right: 2rem;
@@ -21,11 +25,11 @@ Share Notification
 	background:
 		linear-gradient(
 			90deg,
-			var(--color-info) 0 3rem,
-			color-mix(in oklab, var(--color-base-100) 94%, var(--color-neutral)) 3rem
+			var(--share-notification-tone) 0 var(--share-notification-sigil-width),
+			color-mix(in oklab, var(--color-base-100) 94%, var(--color-neutral)) var(--share-notification-sigil-width)
 		),
 		var(--color-base-100);
-	border: 1px solid color-mix(in oklab, var(--color-info) 58%, transparent);
+	border: 1px solid color-mix(in oklab, var(--share-notification-tone) 58%, transparent);
 	box-shadow:
 		0.45rem 0.45rem 0 color-mix(in oklab, var(--color-accent) 16%, transparent),
 		0 1rem 2.8rem color-mix(in oklab, black 42%, transparent);
@@ -47,12 +51,26 @@ Share Notification
 	display: grid;
 	place-items: center;
 	height: 100%;
-	color: var(--color-info-content);
+	color: var(--share-notification-tone-content);
 	font-size: 1.58rem;
 }
 
-.share-notification__sigil i {
+.share-notification__icon-success {
 	transform: scaleX(-1);
+}
+
+.share-notification__icon-error,
+.share-notification[data-error] .share-notification__icon-success {
+	display: none;
+}
+
+.share-notification[data-error] {
+	--share-notification-tone: var(--color-error);
+	--share-notification-tone-content: var(--color-error-content);
+}
+
+.share-notification[data-error] .share-notification__icon-error {
+	display: inline-block;
 }
 
 .share-notification__copy {
@@ -130,13 +148,7 @@ Share Notification
 		max-width: min(calc(100vw - 2rem), 19rem);
 		min-height: 4.25rem;
 		padding: 0.44rem 0.68rem 0.44rem 0;
-		background:
-			linear-gradient(
-				90deg,
-				var(--color-info) 0 2.75rem,
-				color-mix(in oklab, var(--color-base-100) 94%, var(--color-neutral)) 2.75rem
-			),
-			var(--color-base-100);
+		--share-notification-sigil-width: 2.75rem;
 		font-size: 0.875rem;
 		column-gap: 0.14rem;
 	}

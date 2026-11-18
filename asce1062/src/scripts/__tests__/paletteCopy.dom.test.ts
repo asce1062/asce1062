@@ -4,7 +4,7 @@ import { initPaletteCopy } from "@/scripts/paletteCopy";
 
 const VALUE = "oklch(80% 0.13 80)";
 
-const status = () => document.getElementById("palette-copy-status")!;
+const status = () => document.getElementById("status-announcer")!;
 const swatchButton = () => document.querySelector<HTMLButtonElement>(".copy-btn")!;
 const oklchButton = () => document.querySelector<HTMLButtonElement>(".oklch-copy")!;
 
@@ -40,7 +40,7 @@ describe("palette copy", () => {
 	it("adds one polite, visually hidden live region", () => {
 		initPaletteCopy();
 
-		expect(document.querySelectorAll("#palette-copy-status")).toHaveLength(1);
+		expect(document.querySelectorAll("#status-announcer")).toHaveLength(1);
 		expect(status().getAttribute("role")).toBe("status");
 		expect(status().getAttribute("aria-live")).toBe("polite");
 		expect(status().classList.contains("sr-only")).toBe(true);
@@ -51,7 +51,7 @@ describe("palette copy", () => {
 		document.body.innerHTML = "<p>nothing to copy</p>";
 		initPaletteCopy();
 
-		expect(document.getElementById("palette-copy-status")).toBeNull();
+		expect(document.getElementById("status-announcer")).toBeNull();
 	});
 
 	it("copies a swatch, swaps the icon and announces the value", async () => {

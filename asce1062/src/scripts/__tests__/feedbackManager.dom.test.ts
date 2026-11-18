@@ -66,4 +66,14 @@ describe("copyToClipboard feedback", () => {
 		expect(messageText()).toBe("Copied!");
 		expect(titleText()).toBe("Orbit achieved");
 	});
+
+	it("marks the toast as an error on failure and clears the mark on the next success", async () => {
+		vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockRejectedValue(new Error("denied")) } });
+		await copyToClipboard("text", ID);
+		expect(toast().hasAttribute("data-error")).toBe(true);
+
+		vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+		await copyToClipboard("text", ID);
+		expect(toast().hasAttribute("data-error")).toBe(false);
+	});
 });

@@ -86,6 +86,12 @@ live in their respective stylesheets.
 	color: var(--color-accent);
 }
 
+/* Copy failed: stays readable as an error while the pointer is still on the button. */
+.ascii-widget-btn.text-error,
+.ascii-widget-btn.text-error:hover {
+	color: var(--color-error);
+}
+
 /* Dice tilts left, copy tilts right */
 .ascii-widget-randomize:hover {
 	transform: rotate(-6deg);

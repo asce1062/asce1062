@@ -29,7 +29,8 @@
  *   - Semi-transparent trail using --color-base-100 at opacity 0.05 each frame
  *   - Columns reset randomly when they pass the bottom (p > 0.975)
  *   - ~30 fps throttle via requestAnimationFrame + timestamp gate
- *   - Respects prefers-reduced-motion: no animation when reduced motion requested
+ *   - Respects prefers-reduced-motion: a still frame of the rain instead of the
+ *     animation, switching live when the preference changes
  *
  * BROWSER-ONLY. Import only from client-side <script> blocks.
  */
@@ -41,6 +42,9 @@ const ACTIVE_ATTR = "data-matrix-bg";
 const CANVAS_ID = "matrix-rain-canvas";
 const FONT_SIZE = 16;
 const FRAME_INTERVAL = 1000 / 30; // ~30 fps
+const STILL_TAIL_LENGTH = 14; // glyphs per column in the reduced-motion still
+
+const _reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const CHARS =
 	"ぱぷぺぴぽぴゃぴゅぴょざずぜじぞじゃじゅじょらるれりろりゃりゅりょやよゆ" +
@@ -137,6 +141,9 @@ function resizeCanvas(): void {
 		{ length: cols },
 		(_, i) => prev[i] ?? Math.floor(Math.random() * (cssHeight / FONT_SIZE / 2)) + 1
 	);
+
+	// Resizing cleared the bitmap, and nothing repaints it without the animation.
+	if (_reducedMotion.matches) drawStill();
 }
 
 function removeCanvas(): void {
@@ -181,6 +188,47 @@ function tick(now: number): void {
 	_rafId = requestAnimationFrame(tick);
 }
 
+/** Deterministic 0..1 value for a grid cell, so the still does not reshuffle on redraw. */
+function cellNoise(col: number, row: number): number {
+	let h = (Math.imul(col + 1, 374761393) ^ Math.imul(row + 1, 668265263)) >>> 0;
+	h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+	return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * Reduced motion: one frozen frame of the rain. Each column gets a tail of
+ * glyphs fading upward from a fixed head position.
+ */
+function drawStill(): void {
+	if (!_ctx) return;
+	_ctx.clearRect(0, 0, _cssWidth, _cssHeight);
+	_ctx.fillStyle = _charColor;
+	_ctx.font = `${FONT_SIZE}px monospace`;
+
+	const rows = Math.ceil(_cssHeight / FONT_SIZE) + STILL_TAIL_LENGTH;
+	for (let col = 0; col < _drops.length; col++) {
+		const head = Math.floor(cellNoise(col, 0) * rows) + 1;
+		for (let offset = 0; offset < STILL_TAIL_LENGTH; offset++) {
+			const row = head - offset;
+			if (row < 1) break;
+			_ctx.globalAlpha = 1 - offset / STILL_TAIL_LENGTH;
+			const char = CHARS[Math.floor(cellNoise(col, row) * CHARS.length)];
+			_ctx.fillText(char, col * FONT_SIZE, row * FONT_SIZE);
+		}
+	}
+	_ctx.globalAlpha = 1;
+}
+
+/** Paint the canvas the way the motion preference asks: animated, or a still. */
+function render(): void {
+	if (_reducedMotion.matches) {
+		stopAnimation();
+		drawStill();
+	} else {
+		startAnimation();
+	}
+}
+
 function startAnimation(): void {
 	if (_rafId !== null) return;
 	_lastFrame = 0;
@@ -203,11 +251,8 @@ function isActive(): boolean {
 function enable(): void {
 	refreshColors();
 	document.documentElement.setAttribute(ACTIVE_ATTR, "");
-	const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-	if (!prefersReduced) {
-		buildCanvas();
-		startAnimation();
-	}
+	buildCanvas();
+	render();
 }
 
 function disable(): void {
@@ -263,9 +308,17 @@ init();
 new MutationObserver(() => {
 	refreshColors();
 	if (_ctx && _canvas) {
-		_ctx.clearRect(0, 0, _canvas.width, _canvas.height);
+		_ctx.clearRect(0, 0, _cssWidth, _cssHeight);
+		if (_reducedMotion.matches) drawStill();
 	}
 }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavor"] });
+
+// Follow the motion preference live: swap between the animation and the still.
+_reducedMotion.addEventListener("change", () => {
+	if (!isActive() || !_ctx) return;
+	_ctx.clearRect(0, 0, _cssWidth, _cssHeight);
+	render();
+});
 
 // Re-stamp attribute and rebuild canvas before new page's content becomes
 // visible on soft navigation (body is replaced by ClientRouter).

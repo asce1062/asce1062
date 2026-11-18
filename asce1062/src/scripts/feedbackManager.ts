@@ -10,6 +10,7 @@ const FADE_OUT_DURATION = 300; // ms. matches the fadeOut CSS animation duration
 const RARE_NOTIFICATION_TITLE_CHANCE = 0.08;
 const COPY_FAILED_TITLE = "Signal lost";
 const COPY_FAILED_MESSAGE = "Copy failed. Try again.";
+const ERROR_ATTR = "data-error";
 
 type NotificationVariant = "success" | "copy-failed";
 
@@ -60,6 +61,9 @@ function updateNotificationContent(notification: HTMLElement, variant: Notificat
 	const title = notification.querySelector<HTMLElement>("[data-share-notification-title]");
 	const message = notification.querySelector<HTMLElement>("[data-share-notification-message]");
 
+	// Drives the error look (tone and icon) in share-notification.css.
+	notification.toggleAttribute(ERROR_ATTR, variant === "copy-failed");
+
 	if (variant === "copy-failed") {
 		if (title) {
 			if (notification.dataset.successTitle === undefined) {
@@ -93,7 +97,7 @@ function updateNotificationContent(notification: HTMLElement, variant: Notificat
  * Cancels any in-flight hide animation or auto-hide timer before showing,
  * so calling this repeatedly never leaves the notification in a broken state.
  * The "copy-failed" variant reuses the same toast (and its live region) to
- * report a clipboard failure.
+ * report a clipboard failure, in the error tone with a warning icon.
  */
 export function showNotification(notificationId: string, variant: NotificationVariant = "success"): void {
 	const notification = document.getElementById(notificationId);

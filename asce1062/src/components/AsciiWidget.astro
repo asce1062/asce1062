@@ -47,12 +47,12 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 			id={`${widgetId}-randomize`}
 			class="ascii-widget-btn ascii-widget-randomize"
 			aria-label="Randomize ASCII art">
-			<i class="icon-dice"></i>
+			<i class="icon-dice" aria-hidden="true"></i>
 		</button>
 		<div class="ascii-widget-meta">
 			<button class="ascii-widget-btn ascii-widget-copy" data-widget-id={widgetId} aria-label="Copy ASCII art as JSON">
-				<i class="icon-clipboard ascii-copy-icon"></i>
-				<i class="icon-check2 text-success ascii-check-icon hidden"></i>
+				<i class="icon-clipboard ascii-copy-icon" aria-hidden="true"></i>
+				<i class="icon-check2 text-success ascii-check-icon hidden" aria-hidden="true"></i>
 			</button>
 			<p id={`${widgetId}-font`} class="ascii-widget-font">
 				&nbsp;
@@ -71,57 +71,7 @@ const { widgetId, variants, artClass = "", class: className = "" } = Astro.props
 </div>
 
 <script>
-	/**
-	 * Copy button handler for all AsciiWidget instances on the page.
-	 * Reads data-ascii-current (set by each page's init script) from the
-	 * widget root and copies it as formatted JSON to the clipboard.
-	 * Uses icon toggle (clipboard → checkmark) as feedback via flashCheckIcon.
-	 */
-
-	import { flashCheckIcon } from "@/scripts/feedbackManager";
-
-	/**
-	 * Format the variant for copying:
-	 *
-	 * 1. Visual art. literal newlines. For pasting anywhere and it reads correctly.
-	 * 2. Valid JSON in a ```json code fence. Properly escaped \n json and can be
-	 *    parsed without modification.
-	 */
-	function formatVariant(raw: string): string {
-		const { text, font, art } = JSON.parse(raw) as { text: string; font: string; art: string };
-
-		const visual = `[${font}]\n\n` + "```figlet\n" + art + "\n```";
-		const json = "```json\n" + JSON.stringify({ text, font, art }, null, 2) + "\n```";
-
-		return visual + "\n\n" + json;
-	}
-
-	function initAsciiCopy(): void {
-		document.querySelectorAll<HTMLButtonElement>(".ascii-widget-copy").forEach((btn) => {
-			btn.addEventListener("click", async () => {
-				const widgetId = btn.dataset.widgetId;
-				if (!widgetId) return;
-
-				const widgetEl = document.getElementById(widgetId);
-				const raw = widgetEl?.dataset.asciiCurrent;
-				if (!raw) return;
-
-				try {
-					await navigator.clipboard.writeText(formatVariant(raw));
-					showCopied(btn);
-				} catch {
-					// Clipboard write failed silently. no feedback shown.
-				}
-			});
-		});
-	}
-
-	function showCopied(btn: HTMLButtonElement): void {
-		const copyIcon = btn.querySelector<HTMLElement>(".ascii-copy-icon");
-		const checkIcon = btn.querySelector<HTMLElement>(".ascii-check-icon");
-		if (!copyIcon || !checkIcon) return;
-		flashCheckIcon(copyIcon, checkIcon);
-	}
+	import { initAsciiCopy } from "@/scripts/asciiWidgetCopy";
 
 	document.addEventListener("astro:page-load", initAsciiCopy);
 </script>

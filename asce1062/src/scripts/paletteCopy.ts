@@ -8,9 +8,9 @@
 
 import { writeTextToClipboard } from "@/scripts/copyToClipboard";
 import { flashCheckIcon } from "@/scripts/feedbackManager";
+import { announceStatus, ensureStatusRegion } from "@/scripts/statusAnnouncer";
 
 const RESET_DELAY = 2000;
-const STATUS_ID = "palette-copy-status";
 const COPIED_LABEL = "Copied!";
 const FAILED_LABEL = "Copy failed";
 const FAILED_ANNOUNCEMENT = "Copy failed. Try again.";
@@ -42,32 +42,6 @@ export function initPaletteCopy(): void {
 	});
 }
 
-/**
- * Visually hidden polite live region. The buttons carry an aria-label, so the
- * icon swap and the "Copied!" text inside them are never read out on their own.
- */
-function ensureStatusRegion(): HTMLElement {
-	const existing = document.getElementById(STATUS_ID);
-	if (existing) return existing;
-
-	const region = document.createElement("span");
-	region.id = STATUS_ID;
-	region.className = "sr-only";
-	region.setAttribute("role", "status");
-	region.setAttribute("aria-live", "polite");
-	document.body.appendChild(region);
-	return region;
-}
-
-function announce(message: string): void {
-	const region = ensureStatusRegion();
-	// Clear first so copying the same value twice is announced twice.
-	region.textContent = "";
-	window.setTimeout(() => {
-		region.textContent = message;
-	}, 50);
-}
-
 /** Run `restore` after the reset delay, replacing any restore still pending for `el`. */
 function scheduleRestore(el: HTMLElement, restore: () => void): void {
 	const prior = restoreTimers.get(el);
@@ -93,14 +67,14 @@ async function handleCopyClick(btn: HTMLButtonElement): Promise<void> {
 	if (await writeTextToClipboard(computedValue)) {
 		btn.classList.remove(ERROR_CLASS);
 		showSuccessState(btn);
-		announce(`Copied ${computedValue}`);
+		announceStatus(`Copied ${computedValue}`);
 		return;
 	}
 
 	// Failure: the clipboard icon stays and turns the error colour for a moment.
 	btn.classList.add(ERROR_CLASS);
 	scheduleRestore(btn, () => btn.classList.remove(ERROR_CLASS));
-	announce(FAILED_ANNOUNCEMENT);
+	announceStatus(FAILED_ANNOUNCEMENT);
 }
 
 /**
@@ -115,7 +89,7 @@ async function handleOklchCopy(btn: HTMLButtonElement): Promise<void> {
 
 	const copied = await writeTextToClipboard(oklchValue);
 	showOklchState(codeElement, oklchValue, copied);
-	announce(copied ? `Copied ${oklchValue}` : FAILED_ANNOUNCEMENT);
+	announceStatus(copied ? `Copied ${oklchValue}` : FAILED_ANNOUNCEMENT);
 }
 
 /**
